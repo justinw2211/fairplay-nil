@@ -6,6 +6,7 @@ import Athletes from "./pages/Athletes";
 import Universities from "./pages/Universities";
 import Collectives from "./pages/Collectives";
 import About from "./pages/About";
+import Brands from "./pages/Brands";
 import FMVStep1 from "./pages/FMVStep1";
 import FMVStep2 from "./pages/FMVStep2";
 import FMVResult from "./pages/FMVResult";
@@ -19,6 +20,7 @@ const App = () => {
     { path: "/athletes", label: "Athletes" },
     { path: "/universities", label: "Universities" },
     { path: "/collectives", label: "Collectives" },
+    { path: "/brands", label: "Brands" },
     { path: "/about", label: "About" }
   ];
 
@@ -29,18 +31,24 @@ const App = () => {
 
   return (
     <div>
+      {/* Green Top Bar */}
+      <div style={{
+        height: '1.2rem',
+        backgroundColor: '#88E788'
+      }}></div>
+
       <nav style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         background: 'linear-gradient(to right, #2C2F36, #1F1F23)',
-        padding: '1.25rem 2rem',
+        padding: '1.4rem 2rem',
         fontFamily: "'Helvetica Neue', sans-serif",
         fontSize: '1.15rem',
         boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
         borderBottom: '1px solid #444'
       }}>
-        {/* Single-line Logo */}
+        {/* Logo */}
         <NavLink to="/" style={{ textDecoration: 'none' }}>
           <span style={{
             color: 'white',
@@ -52,12 +60,12 @@ const App = () => {
           </span>
         </NavLink>
 
-        {/* Center Links (with consistent margin from logo) */}
+        {/* Center Links */}
         <div style={{
           display: 'flex',
-          gap: '48px',
+          gap: '32px',
           alignItems: 'center',
-          marginLeft: '-80px'
+          marginLeft: '-60px'
         }}>
           {centerLinks.map((item, index) => {
             const isActive = location.pathname === item.path;
@@ -104,7 +112,7 @@ const App = () => {
           })}
           <NavLink to="/fmvcalculator/step1">
             <button style={{
-              padding: "0.65rem 1.4rem",
+              padding: "0.7rem 1.5rem",
               backgroundColor: "#88E788",
               color: "#1a1a1a",
               fontWeight: "700",
@@ -135,6 +143,7 @@ const App = () => {
         <Route path="/athletes" element={<Athletes />} />
         <Route path="/universities" element={<Universities />} />
         <Route path="/collectives" element={<Collectives />} />
+        <Route path="/brands" element={<Brands />} />
         <Route path="/fmvcalculator/step1" element={<FMVStep1 formData={formData} setFormData={setFormData} />} />
         <Route path="/fmvcalculator/step2" element={<FMVStep2 formData={formData} setFormData={setFormData} />} />
         <Route path="/fmvcalculator/result" element={<FMVResult />} />
