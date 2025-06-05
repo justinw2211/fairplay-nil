@@ -14,11 +14,11 @@ const App = () => (
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      background: '#181818',
+      background: '#2C2F36',
       padding: '1rem 2rem',
       fontFamily: "'Inter', sans-serif"
     }}>
-      <NavLink to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+      <NavLink to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', cursor: 'pointer' }}>
         <div style={{
           backgroundColor: '#144D3D',
           padding: '0.3rem 0.75rem',
@@ -33,30 +33,30 @@ const App = () => (
         </div>
       </NavLink>
       <div style={{ display: 'flex', gap: '20px' }}>
-        <NavLink to="/" style={({ isActive }) => ({
+        <NavLink to="/" style={({ isActive }) => ({ transition: 'color 0.3s',
           color: isActive ? '#88E788' : 'white',
           fontWeight: 'bold',
-          textDecoration: 'none'
+          textDecoration: 'none', cursor: 'pointer'
         })}>Home</NavLink>
-        <NavLink to="/about" style={({ isActive }) => ({
+        <NavLink to="/about" style={({ isActive }) => ({ transition: 'color 0.3s',
           color: isActive ? '#88E788' : 'white',
-          textDecoration: 'none'
+          textDecoration: 'none', cursor: 'pointer'
         })}>About</NavLink>
-        <NavLink to="/athletes" style={({ isActive }) => ({
+        <NavLink to="/athletes" style={({ isActive }) => ({ transition: 'color 0.3s',
           color: isActive ? '#88E788' : 'white',
-          textDecoration: 'none'
+          textDecoration: 'none', cursor: 'pointer'
         })}>Athletes</NavLink>
-        <NavLink to="/universities" style={({ isActive }) => ({
+        <NavLink to="/universities" style={({ isActive }) => ({ transition: 'color 0.3s',
           color: isActive ? '#88E788' : 'white',
-          textDecoration: 'none'
+          textDecoration: 'none', cursor: 'pointer'
         })}>Universities</NavLink>
-        <NavLink to="/collectives" style={({ isActive }) => ({
+        <NavLink to="/collectives" style={({ isActive }) => ({ transition: 'color 0.3s',
           color: isActive ? '#88E788' : 'white',
-          textDecoration: 'none'
+          textDecoration: 'none', cursor: 'pointer'
         })}>Collectives</NavLink>
-        <NavLink to="/fmvcalculator" style={({ isActive }) => ({
+        <NavLink to="/fmvcalculator" style={({ isActive }) => ({ transition: 'color 0.3s',
           color: isActive ? '#88E788' : 'white',
-          textDecoration: 'none'
+          textDecoration: 'none', cursor: 'pointer'
         })}>FMV Calculator</NavLink>
       </div>
     </nav>
