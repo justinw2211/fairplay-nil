@@ -10,22 +10,24 @@ const FMVResult = () => {
       setResult("$8,750");
       setLoading(false);
     }, 5000);
-
-    const style = document.createElement("style");
-    style.textContent =
-      "@keyframes spin { " +
-      "0% { transform: rotate(0deg); } " +
-      "100% { transform: rotate(360deg); } " +
-      "}";
-    document.head.appendChild(style);
   }, []);
+
+  const spinnerStyle = {
+    border: "4px solid rgba(255,255,255,0.2)",
+    borderTop: "4px solid #88E788",
+    borderRadius: "50%",
+    width: "50px",
+    height: "50px",
+    animation: "spin 1s linear infinite",
+    marginBottom: "1rem"
+  };
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
         {loading ? (
           <div style={styles.loading}>
-            <div style={styles.spinner}></div>
+            <div style={spinnerStyle}></div>
             <p>Processing your FMV estimate...</p>
           </div>
         ) : (
@@ -35,6 +37,14 @@ const FMVResult = () => {
           </div>
         )}
       </div>
+      <style>
+        {`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}
+      </style>
     </div>
   );
 };
@@ -72,15 +82,6 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center"
-  },
-  spinner: {
-    border: "4px solid rgba(255,255,255,0.2)",
-    borderTop: "4px solid #88E788",
-    borderRadius: "50%",
-    width: "50px",
-    height: "50px",
-    animation: "spin 1s linear infinite",
-    marginBottom: "1rem"
   }
 };
 
