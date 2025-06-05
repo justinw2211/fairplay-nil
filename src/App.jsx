@@ -54,8 +54,15 @@ const App = () => {
         borderBottom: '1px solid #444',
         position: 'relative'
       }}>
-        <NavLink to="/" style={{ display: 'flex', alignItems: 'center' }}>
-          <img src="/logo.png" alt="Fair Play NIL logo" style={{ height: '40px' }} />
+        <NavLink to="/" style={{ textDecoration: 'none' }}>
+          <span style={{
+            color: 'white',
+            fontWeight: 700,
+            fontSize: '1.45rem',
+            letterSpacing: '0.5px'
+          }}>
+            FAIR PLAY NIL
+          </span>
         </NavLink>
 
         <div style={{ display: 'flex', gap: '32px', alignItems: 'center', marginLeft: '-60px' }}>
@@ -84,24 +91,24 @@ const App = () => {
           <div
             onMouseEnter={() => setCompanyOpen(true)}
             onMouseLeave={() => setCompanyOpen(false)}
-            style={{ position: 'relative' }}
+            style={{ position: 'relative', height: '100%' }}
           >
-            <span style={{
+            <div style={{
               color: companyOpen ? '#88E788' : 'white',
               fontWeight: 500,
-              cursor: 'pointer'
+              cursor: 'pointer',
+              paddingBottom: '0.5rem'
             }}>
               Company
-            </span>
+            </div>
             <div style={{
               display: companyOpen ? 'block' : 'none',
               position: 'absolute',
-              top: '2.4rem',
+              top: '100%',
               left: 0,
               backgroundColor: '#2C2F36',
               borderRadius: '6px',
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
-              transition: 'opacity 0.3s ease',
               padding: '0.5rem 0',
               zIndex: 1000
             }}>
