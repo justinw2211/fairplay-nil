@@ -10,8 +10,30 @@ import FMVStep1 from "./pages/FMVStep1";
 import FMVStep2 from "./pages/FMVStep2";
 import FMVResult from "./pages/FMVResult";
 
-const App = () => {
+const NavItem = ({ path, label, index, hoveredIndex, setHoveredIndex }) => {
   const location = useLocation();
+  const isActive = location.pathname === path;
+  const isHovered = hoveredIndex === index;
+
+  return (
+    <NavLink
+      to={path}
+      onMouseEnter={() => setHoveredIndex(index)}
+      onMouseLeave={() => setHoveredIndex(null)}
+      style={{
+        color: isHovered || isActive ? '#88E788' : 'white',
+        fontWeight: 500,
+        textDecoration: 'none',
+        cursor: 'pointer',
+        transition: 'color 0.3s ease'
+      }}
+    >
+      {label}
+    </NavLink>
+  );
+};
+
+const App = () => {
   const [formData, setFormData] = useState({});
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
@@ -52,27 +74,16 @@ const App = () => {
           </div>
         </NavLink>
         <div style={{ display: 'flex', gap: '20px' }}>
-          {navItems.map(({ path, label }, index) => {
-            const isActive = location.pathname === path;
-            const isHovered = hoveredIndex === index;
-            return (
-              <NavLink
-                key={path}
-                to={path}
-                onMouseEnter={() => setHoveredIndex(index)}
-                onMouseLeave={() => setHoveredIndex(null)}
-                style={{
-                  color: isHovered || isActive ? '#88E788' : 'white',
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                  cursor: 'pointer',
-                  transition: 'color 0.3s ease'
-                }}
-              >
-                {label}
-              </NavLink>
-            );
-          })}
+          {navItems.map((item, index) => (
+            <NavItem
+              key={item.path}
+              path={item.path}
+              label={item.label}
+              index={index}
+              hoveredIndex={hoveredIndex}
+              setHoveredIndex={setHoveredIndex}
+            />
+          ))}
         </div>
       </nav>
 
