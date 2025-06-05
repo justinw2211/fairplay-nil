@@ -34,28 +34,28 @@ const App = () => {
         justifyContent: 'space-between',
         alignItems: 'center',
         background: 'linear-gradient(to right, #2C2F36, #1F1F23)',
-        padding: '1rem 2rem',
+        padding: '1.25rem 2rem',
         fontFamily: "'Helvetica Neue', sans-serif",
+        fontSize: '1.15rem',
         boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
-        borderBottom: '1px solid #444',
-        fontSize: '1.05rem'
+        borderBottom: '1px solid #444'
       }}>
-        {/* Logo Text Only */}
+        {/* Single-line Logo */}
         <NavLink to="/" style={{ textDecoration: 'none' }}>
           <span style={{
             color: 'white',
             fontWeight: 700,
-            fontSize: '1.25rem',
-            lineHeight: '1.2'
+            fontSize: '1.45rem',
+            letterSpacing: '0.5px'
           }}>
-            FAIR PLAY<br />NIL
+            FAIR PLAY NIL
           </span>
         </NavLink>
 
-        {/* Center Links Adjusted Left and Spaced Wider */}
+        {/* Center Links (with consistent margin from logo) */}
         <div style={{
           display: 'flex',
-          gap: '40px',
+          gap: '48px',
           alignItems: 'center',
           marginLeft: '-80px'
         }}>
@@ -104,18 +104,19 @@ const App = () => {
           })}
           <NavLink to="/fmvcalculator/step1">
             <button style={{
-              padding: "0.5rem 1rem",
+              padding: "0.65rem 1.4rem",
               backgroundColor: "#88E788",
               color: "#1a1a1a",
-              fontWeight: "600",
-              borderRadius: "6px",
+              fontWeight: "700",
+              fontSize: "1rem",
+              borderRadius: "8px",
               border: "none",
               cursor: "pointer",
               transition: "transform 0.2s ease, box-shadow 0.2s ease"
             }}
               onMouseOver={(e) => {
-                e.currentTarget.style.transform = "scale(1.05)";
-                e.currentTarget.style.boxShadow = "0 4px 10px rgba(136, 231, 136, 0.4)";
+                e.currentTarget.style.transform = "scale(1.06)";
+                e.currentTarget.style.boxShadow = "0 6px 14px rgba(136, 231, 136, 0.35)";
               }}
               onMouseOut={(e) => {
                 e.currentTarget.style.transform = "scale(1)";
