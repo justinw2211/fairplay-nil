@@ -7,10 +7,17 @@ const FMVResult = () => {
 
   useEffect(() => {
     setTimeout(() => {
-      // Simulated FMV calculation result
       setResult("$8,750");
       setLoading(false);
     }, 5000);
+
+    const style = document.createElement("style");
+    style.textContent =
+      "@keyframes spin { " +
+      "0% { transform: rotate(0deg); } " +
+      "100% { transform: rotate(360deg); } " +
+      "}";
+    document.head.appendChild(style);
   }, []);
 
   return (
@@ -18,7 +25,7 @@ const FMVResult = () => {
       <div style={styles.card}>
         {loading ? (
           <div style={styles.loading}>
-            <div className="spinner" style={styles.spinner}></div>
+            <div style={styles.spinner}></div>
             <p>Processing your FMV estimate...</p>
           </div>
         ) : (
@@ -76,15 +83,5 @@ const styles = {
     marginBottom: "1rem"
   }
 };
-
-// Add CSS spinner animation globally
-const style = document.createElement("style");
-style.innerHTML = \`
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-\`;
-document.head.appendChild(style);
 
 export default FMVResult;
