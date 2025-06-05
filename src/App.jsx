@@ -6,17 +6,21 @@ import Athletes from "./pages/Athletes";
 import Universities from "./pages/Universities";
 import Collectives from "./pages/Collectives";
 import About from "./pages/About";
-import FMVCalculator from "./pages/FMVCalculator";
+import FMVStep1 from "./pages/FMVStep1";
+import FMVStep2 from "./pages/FMVStep2";
+import FMVResult from "./pages/FMVResult";
 
 const App = () => {
   const location = useLocation();
+  const [formData, setFormData] = useState({});
+
   const navItems = [
     { path: "/", label: "Home" },
     { path: "/about", label: "About" },
     { path: "/athletes", label: "Athletes" },
     { path: "/universities", label: "Universities" },
     { path: "/collectives", label: "Collectives" },
-    { path: "/fmvcalculator", label: "FMV Calculator" }
+    { path: "/fmvcalculator/step1", label: "FMV Calculator" }
   ];
 
   return (
@@ -50,7 +54,6 @@ const App = () => {
           {navItems.map(({ path, label }) => {
             const [hovered, setHovered] = useState(false);
             const isActive = location.pathname === path;
-
             return (
               <NavLink
                 key={path}
@@ -78,7 +81,9 @@ const App = () => {
         <Route path="/athletes" element={<Athletes />} />
         <Route path="/universities" element={<Universities />} />
         <Route path="/collectives" element={<Collectives />} />
-        <Route path="/fmvcalculator" element={<FMVCalculator />} />
+        <Route path="/fmvcalculator/step1" element={<FMVStep1 formData={formData} setFormData={setFormData} />} />
+        <Route path="/fmvcalculator/step2" element={<FMVStep2 formData={formData} setFormData={setFormData} />} />
+        <Route path="/fmvcalculator/result" element={<FMVResult />} />
       </Routes>
     </div>
   );
