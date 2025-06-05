@@ -54,15 +54,8 @@ const App = () => {
         borderBottom: '1px solid #444',
         position: 'relative'
       }}>
-        <NavLink to="/" style={{ textDecoration: 'none' }}>
-          <span style={{
-            color: 'white',
-            fontWeight: 700,
-            fontSize: '1.45rem',
-            letterSpacing: '0.5px'
-          }}>
-            FAIR PLAY NIL
-          </span>
+        <NavLink to="/" style={{ display: 'flex', alignItems: 'center' }}>
+          <img src="/logo.png" alt="Fair Play NIL logo" style={{ height: '40px' }} />
         </NavLink>
 
         <div style={{ display: 'flex', gap: '32px', alignItems: 'center', marginLeft: '-60px' }}>
@@ -100,38 +93,37 @@ const App = () => {
             }}>
               Company
             </span>
-            {companyOpen && (
-              <div style={{
-                position: 'absolute',
-                top: '2.4rem',
-                left: 0,
-                backgroundColor: '#2C2F36',
-                borderRadius: '6px',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
-                transition: 'opacity 0.3s ease',
-                padding: '0.5rem 0',
-                zIndex: 1000
-              }}>
-                {companyMenu.map(item => (
-                  <div
-                    key={item.path}
-                    onClick={() => navigate(item.path)}
-                    style={{
-                      padding: '0.5rem 1.5rem',
-                      color: 'white',
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                      fontWeight: 400,
-                      transition: 'background-color 0.2s ease'
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.backgroundColor = "#3A3F47"}
-                    onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
-                  >
-                    {item.label}
-                  </div>
-                ))}
-              </div>
-            )}
+            <div style={{
+              display: companyOpen ? 'block' : 'none',
+              position: 'absolute',
+              top: '2.4rem',
+              left: 0,
+              backgroundColor: '#2C2F36',
+              borderRadius: '6px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+              transition: 'opacity 0.3s ease',
+              padding: '0.5rem 0',
+              zIndex: 1000
+            }}>
+              {companyMenu.map(item => (
+                <div
+                  key={item.path}
+                  onClick={() => navigate(item.path)}
+                  style={{
+                    padding: '0.5rem 1.5rem',
+                    color: 'white',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    fontWeight: 400,
+                    transition: 'background-color 0.2s ease'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = "#3A3F47"}
+                  onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+                >
+                  {item.label}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
