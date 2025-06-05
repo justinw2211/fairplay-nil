@@ -93,10 +93,17 @@ const App = () => {
           <div
             onMouseEnter={() => setCompanyOpen(true)}
             onMouseLeave={() => setCompanyOpen(false)}
-            style={{ position: 'relative', display: 'flex', alignItems: 'center', height: '100%' }}
+            style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
           >
             <div style={{
               color: companyOpen || isCompanyActive ? '#88E788' : 'white',
+              fontWeight: 500,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              height: '100%',
+              textDecoration: 'none',
+              padding: 0,
               fontWeight: 500,
               cursor: 'pointer',
               paddingBottom: '0.5rem',
