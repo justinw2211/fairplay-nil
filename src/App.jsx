@@ -1,27 +1,30 @@
 
 import React, { useState } from "react";
-import { Routes, Route, NavLink, useLocation } from "react-router-dom";
+import { Routes, Route, NavLink, useLocation, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Athletes from "./pages/Athletes";
 import Universities from "./pages/Universities";
 import Collectives from "./pages/Collectives";
-import About from "./pages/About";
 import Brands from "./pages/Brands";
+import AboutUs from "./pages/AboutUs";
+import Security from "./pages/Security";
+import Careers from "./pages/Careers";
 import FMVStep1 from "./pages/FMVStep1";
 import FMVStep2 from "./pages/FMVStep2";
 import FMVResult from "./pages/FMVResult";
 
 const App = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({});
   const [hoveredIndex, setHoveredIndex] = useState(null);
+  const [companyOpen, setCompanyOpen] = useState(false);
 
   const centerLinks = [
     { path: "/athletes", label: "Athletes" },
     { path: "/universities", label: "Universities" },
     { path: "/collectives", label: "Collectives" },
-    { path: "/brands", label: "Brands" },
-    { path: "/about", label: "About" }
+    { path: "/brands", label: "Brands" }
   ];
 
   const rightLinks = [
@@ -29,13 +32,15 @@ const App = () => {
     { path: "/signin", label: "Sign In" }
   ];
 
+  const companyMenu = [
+    { path: "/aboutus", label: "About Us" },
+    { path: "/security", label: "Security" },
+    { path: "/careers", label: "Careers" }
+  ];
+
   return (
     <div>
-      {/* Green Top Bar */}
-      <div style={{
-        height: '1.2rem',
-        backgroundColor: '#88E788'
-      }}></div>
+      <div style={{ height: '1.2rem', backgroundColor: '#88E788' }}></div>
 
       <nav style={{
         display: 'flex',
@@ -46,9 +51,9 @@ const App = () => {
         fontFamily: "'Helvetica Neue', sans-serif",
         fontSize: '1.15rem',
         boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
-        borderBottom: '1px solid #444'
+        borderBottom: '1px solid #444',
+        position: 'relative'
       }}>
-        {/* Logo */}
         <NavLink to="/" style={{ textDecoration: 'none' }}>
           <span style={{
             color: 'white',
@@ -60,13 +65,7 @@ const App = () => {
           </span>
         </NavLink>
 
-        {/* Center Links */}
-        <div style={{
-          display: 'flex',
-          gap: '32px',
-          alignItems: 'center',
-          marginLeft: '-60px'
-        }}>
+        <div style={{ display: 'flex', gap: '32px', alignItems: 'center', marginLeft: '-60px' }}>
           {centerLinks.map((item, index) => {
             const isActive = location.pathname === item.path;
             const isHovered = hoveredIndex === index;
@@ -88,9 +87,54 @@ const App = () => {
               </NavLink>
             );
           })}
+
+          <div
+            onMouseEnter={() => setCompanyOpen(true)}
+            onMouseLeave={() => setCompanyOpen(false)}
+            style={{ position: 'relative' }}
+          >
+            <span style={{
+              color: companyOpen ? '#88E788' : 'white',
+              fontWeight: 500,
+              cursor: 'pointer'
+            }}>
+              Company
+            </span>
+            {companyOpen && (
+              <div style={{
+                position: 'absolute',
+                top: '2.4rem',
+                left: 0,
+                backgroundColor: '#2C2F36',
+                borderRadius: '6px',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+                transition: 'opacity 0.3s ease',
+                padding: '0.5rem 0',
+                zIndex: 1000
+              }}>
+                {companyMenu.map(item => (
+                  <div
+                    key={item.path}
+                    onClick={() => navigate(item.path)}
+                    style={{
+                      padding: '0.5rem 1.5rem',
+                      color: 'white',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      fontWeight: 400,
+                      transition: 'background-color 0.2s ease'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = "#3A3F47"}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+                  >
+                    {item.label}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Right Links */}
         <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
           {rightLinks.map((item, index) => {
             const isActive = location.pathname === item.path;
@@ -139,11 +183,13 @@ const App = () => {
 
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
         <Route path="/athletes" element={<Athletes />} />
         <Route path="/universities" element={<Universities />} />
         <Route path="/collectives" element={<Collectives />} />
         <Route path="/brands" element={<Brands />} />
+        <Route path="/aboutus" element={<AboutUs />} />
+        <Route path="/security" element={<Security />} />
+        <Route path="/careers" element={<Careers />} />
         <Route path="/fmvcalculator/step1" element={<FMVStep1 formData={formData} setFormData={setFormData} />} />
         <Route path="/fmvcalculator/step2" element={<FMVStep2 formData={formData} setFormData={setFormData} />} />
         <Route path="/fmvcalculator/result" element={<FMVResult />} />
