@@ -35,29 +35,30 @@ const App = () => {
         alignItems: 'center',
         background: 'linear-gradient(to right, #2C2F36, #1F1F23)',
         padding: '1rem 2rem',
-        fontFamily: "'Inter', sans-serif",
+        fontFamily: "'Helvetica Neue', sans-serif",
         boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
-        borderBottom: '1px solid #444'
+        borderBottom: '1px solid #444',
+        fontSize: '1.05rem'
       }}>
-        {/* Logo Section */}
+        {/* Logo Text Only */}
         <NavLink to="/" style={{ textDecoration: 'none' }}>
-          <div style={{
-            backgroundColor: '#144D3D',
-            padding: '0.3rem 0.75rem',
-            borderRadius: '4px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
+          <span style={{
+            color: 'white',
+            fontWeight: 700,
+            fontSize: '1.25rem',
+            lineHeight: '1.2'
           }}>
-            <span style={{ color: 'white', fontWeight: 600, fontSize: '1rem', lineHeight: '1.2' }}>
-              FAIR PLAY<br />NIL
-            </span>
-          </div>
+            FAIR PLAY<br />NIL
+          </span>
         </NavLink>
 
-        {/* Center Links */}
-        <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+        {/* Center Links Adjusted Left and Spaced Wider */}
+        <div style={{
+          display: 'flex',
+          gap: '40px',
+          alignItems: 'center',
+          marginLeft: '-80px'
+        }}>
           {centerLinks.map((item, index) => {
             const isActive = location.pathname === item.path;
             const isHovered = hoveredIndex === index;
@@ -136,7 +137,6 @@ const App = () => {
         <Route path="/fmvcalculator/step1" element={<FMVStep1 formData={formData} setFormData={setFormData} />} />
         <Route path="/fmvcalculator/step2" element={<FMVStep2 formData={formData} setFormData={setFormData} />} />
         <Route path="/fmvcalculator/result" element={<FMVResult />} />
-        {/* Placeholder routes */}
         <Route path="/contact" element={<div style={{ padding: '2rem', color: 'white' }}>Contact Page Placeholder</div>} />
         <Route path="/signin" element={<div style={{ padding: '2rem', color: 'white' }}>Sign In Page Placeholder</div>} />
       </Routes>
