@@ -81,7 +81,7 @@ const App = () => {
                   color: isHovered || isActive ? '#88E788' : 'white',
                   fontWeight: 500,
                   textDecoration: 'none',
-                  cursor: 'pointer',
+                  cursor: "pointer",
                   transition: 'color 0.3s ease'
                 }}
               >
@@ -105,15 +105,15 @@ const App = () => {
               height: "100%",
               cursor: "pointer",
               padding: 0,
-              textDecoration: "none"
-              cursor: 'pointer',
+              textDecoration: "none",
+              cursor: "pointer",
               display: 'flex',
               alignItems: 'center',
               height: '100%',
               textDecoration: 'none',
               padding: 0,
               fontWeight: 500,
-              cursor: 'pointer',
+              cursor: "pointer",
               paddingBottom: '0.5rem',
               display: 'flex',
               alignItems: 'center',
@@ -139,7 +139,7 @@ const App = () => {
                   style={{
                     padding: '0.5rem 1.5rem',
                     color: location.pathname === item.path ? '#88E788' : 'white',
-                    cursor: 'pointer',
+                    cursor: "pointer",
                     whiteSpace: 'nowrap',
                     fontWeight: 400,
                     transition: 'background-color 0.2s ease'
@@ -165,7 +165,7 @@ const App = () => {
                   color: isActive ? '#88E788' : 'white',
                   fontWeight: 500,
                   textDecoration: 'none',
-                  cursor: 'pointer',
+                  cursor: "pointer",
                   transition: 'color 0.3s ease'
                 }}
               >
