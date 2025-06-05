@@ -13,7 +13,6 @@ import FMVResult from "./pages/FMVResult";
 const App = () => {
   const location = useLocation();
   const [formData, setFormData] = useState({});
-
   const navItems = [
     { path: "/", label: "Home" },
     { path: "/about", label: "About" },
@@ -22,6 +21,7 @@ const App = () => {
     { path: "/collectives", label: "Collectives" },
     { path: "/fmvcalculator/step1", label: "FMV Calculator" }
   ];
+  const [hoveredIndex, setHoveredIndex] = useState(null);
 
   return (
     <div>
@@ -51,22 +51,22 @@ const App = () => {
           </div>
         </NavLink>
         <div style={{ display: 'flex', gap: '20px' }}>
-          {navItems.map(({ path, label }) => {
-            const [hovered, setHovered] = useState(false);
+          {navItems.map(({ path, label }, index) => {
             const isActive = location.pathname === path;
+            const isHovered = hoveredIndex === index;
             return (
               <NavLink
                 key={path}
                 to={path}
                 style={{
-                  color: hovered || isActive ? '#88E788' : 'white',
+                  color: isHovered || isActive ? '#88E788' : 'white',
                   fontWeight: 500,
                   textDecoration: 'none',
                   cursor: 'pointer',
                   transition: 'color 0.3s ease'
                 }}
-                onMouseEnter={() => setHovered(true)}
-                onMouseLeave={() => setHovered(false)}
+                onMouseEnter={() => setHoveredIndex(index)}
+                onMouseLeave={() => setHoveredIndex(null)}
               >
                 {label}
               </NavLink>
