@@ -38,6 +38,8 @@ const App = () => {
     { path: "/careers", label: "Careers" }
   ];
 
+  const isCompanyActive = companyMenu.some(item => location.pathname === item.path);
+
   return (
     <div>
       <div style={{ height: '1.2rem', backgroundColor: '#88E788' }}></div>
@@ -91,13 +93,16 @@ const App = () => {
           <div
             onMouseEnter={() => setCompanyOpen(true)}
             onMouseLeave={() => setCompanyOpen(false)}
-            style={{ position: 'relative', height: '100%' }}
+            style={{ position: 'relative', display: 'flex', alignItems: 'center', height: '100%' }}
           >
             <div style={{
-              color: companyOpen ? '#88E788' : 'white',
+              color: companyOpen || isCompanyActive ? '#88E788' : 'white',
               fontWeight: 500,
               cursor: 'pointer',
-              paddingBottom: '0.5rem'
+              paddingBottom: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              height: '100%'
             }}>
               Company
             </div>
@@ -118,7 +123,7 @@ const App = () => {
                   onClick={() => navigate(item.path)}
                   style={{
                     padding: '0.5rem 1.5rem',
-                    color: 'white',
+                    color: location.pathname === item.path ? '#88E788' : 'white',
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
                     fontWeight: 400,
