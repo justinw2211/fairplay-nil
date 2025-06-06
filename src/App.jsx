@@ -38,8 +38,6 @@ const App = () => {
     { path: "/careers", label: "Careers" }
   ];
 
-  const isCompanyActive = companyMenu.some(item => location.pathname === item.path);
-
   return (
     <div>
       <div style={{ height: '1.2rem', backgroundColor: '#88E788' }}></div>
@@ -93,64 +91,47 @@ const App = () => {
           <div
             onMouseEnter={() => setCompanyOpen(true)}
             onMouseLeave={() => setCompanyOpen(false)}
-            style={{ position: 'relative', display: 'flex', alignItems: 'center', height: '100%' }}
+            style={{ position: 'relative' }}
           >
             <span style={{
-              color: companyOpen || isCompanyActive ? '#88E788' : 'white',
+              color: companyOpen ? '#88E788' : 'white',
               fontWeight: 500,
-              fontSize: "1.15rem",
-              display: "flex",
-              alignItems: "center",
-              lineHeight: "1",
-              height: "100%",
-              cursor: "pointer",
-              padding: 0,
-              textDecoration: "none"
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              height: '100%',
-              textDecoration: 'none',
-              padding: 0,
-              fontWeight: 500,
-              cursor: 'pointer',
-              paddingBottom: '0.5rem',
-              display: 'flex',
-              alignItems: 'center',
-              height: '100%'
+              cursor: 'pointer'
             }}>
               Company
             </span>
-            <div style={{
-              display: companyOpen ? 'block' : 'none',
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              backgroundColor: '#2C2F36',
-              borderRadius: '6px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
-              padding: '0.5rem 0',
-              zIndex: 1000
-            }}>
-              {companyMenu.map(item => (
-                <div
-                  key={item.path}
-                  onClick={() => navigate(item.path)}
-                  style={{
-                    padding: '0.5rem 1.5rem',
-                    color: location.pathname === item.path ? '#88E788' : 'white',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    fontWeight: 400,
-                    transition: 'background-color 0.2s ease'
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.backgroundColor = "#3A3F47"}
-                  onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
-                >
-                  {item.label}
-                </div>
-              ))}
-            </div>
+            {companyOpen && (
+              <div style={{
+                position: 'absolute',
+                top: '2.4rem',
+                left: 0,
+                backgroundColor: '#2C2F36',
+                borderRadius: '6px',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+                transition: 'opacity 0.3s ease',
+                padding: '0.5rem 0',
+                zIndex: 1000
+              }}>
+                {companyMenu.map(item => (
+                  <div
+                    key={item.path}
+                    onClick={() => navigate(item.path)}
+                    style={{
+                      padding: '0.5rem 1.5rem',
+                      color: 'white',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      fontWeight: 400,
+                      transition: 'background-color 0.2s ease'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = "#3A3F47"}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+                  >
+                    {item.label}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
