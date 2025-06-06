@@ -1,377 +1,452 @@
 import React, { useState } from "react";
 import {
-  Box,
-  Button,
-  Checkbox,
-  CheckboxGroup,
-  FormControl,
-  FormLabel,
-  FormErrorMessage,
-  Input,
-  Select,
-  Stack,
-  Heading,
-  useToast,
-  SimpleGrid,
+  Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
+  Input, Select, CheckboxGroup, Checkbox, NumberInput, NumberInputField,
+  useToast, Textarea, RadioGroup, Radio, Center, Text, SimpleGrid
 } from "@chakra-ui/react";
 
-const SOCIAL_OPTIONS = [
-  { label: "Instagram", value: "instagram" },
-  { label: "TikTok", value: "tiktok" },
-  { label: "Twitter/X", value: "twitter" },
-  { label: "YouTube", value: "youtube" },
+// Division and Conference options (add/remove as needed)
+const DIVISIONS = ["I", "II", "III"];
+const CONFERENCES = [
+  "SEC", "ACC", "Big Ten", "Big 12", "Pac-12", "Ivy League", "AAC", "Sun Belt", "C-USA", "MWC", "WAC", "Other"
 ];
-
-const ACHIEVEMENT_OPTIONS = [
-  "All-American",
-  "Conference Champion",
-  "Team Captain",
-  "Starter",
-  "National Team",
-  "Other",
-];
-
-const SPORTS = [
-  "Basketball",
-  "Football",
-  "Soccer",
-  "Track & Field",
-  "Baseball",
-  "Volleyball",
-  "Tennis",
-  "Golf",
-  "Swimming",
-  "Other",
-];
-
 const GENDERS = ["Men's", "Women's", "Co-ed"];
+const SPORTS = {
+  "Men's": [
+    "Basketball", "Football", "Baseball", "Soccer", "Track & Field", "Cross Country", "Lacrosse", "Golf", "Swimming", "Tennis", "Other"
+  ],
+  "Women's": [
+    "Basketball", "Soccer", "Volleyball", "Softball", "Track & Field", "Cross Country", "Lacrosse", "Golf", "Swimming", "Tennis", "Other"
+  ],
+  "Co-ed": [
+    "Esports", "Cheerleading", "Other"
+  ]
+};
+const SOCIAL_PLATFORMS = ["Instagram", "TikTok", "Twitter/X", "YouTube"];
+const ACHIEVEMENTS = [
+  "All-American", "Conference Champion", "Team Captain", "National Team", "Starter", "Other"
+];
 
-export default function FMVStep1({ onNext }) {
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    school: "",
-    sport: "",
-    gender: "",
-    gradYear: "",
-    socials: [],
-    followers: {},
-    achievements: [],
-    achievementOther: "",
-  });
+const STEPS = [
+  "About You",
+  "Academics & Athletics",
+  "Social Media",
+  "Achievements"
+];
+
+const initialFormData = {
+  name: "",
+  email: "",
+  school: "",
+  division: "",
+  conference: "",
+  gender: "",
+  sport: "",
+  graduation_year: "",
+  age: "",
+  gpa: "",
+  prior_nil_deals: "",
+  social_platforms: [],
+  followers_instagram: "",
+  followers_tiktok: "",
+  followers_twitter: "",
+  followers_youtube: "",
+  achievements: [],
+  achievement_other: ""
+};
+
+export default function FMVStep1({ formData, setFormData, ...props }) {
+  // Local state for the multipage experience
+  const [step, setStep] = useState(0);
+  const [localForm, setLocalForm] = useState(formData || initialFormData);
   const [touched, setTouched] = useState({});
   const toast = useToast();
 
-  const handleChange = (field, value) => {
-    setForm((f) => ({ ...f, [field]: value }));
-  };
+  // Progress bar logic
+  const progress = ((step + 1) / STEPS.length) * 100;
 
-  // Socials: Handle adding/removing platforms and their follower counts
-  const handleSocialChange = (platforms) => {
-    // Remove follower counts for unselected platforms
-    const filteredFollowers = Object.fromEntries(
-      Object.entries(form.followers).filter(([k]) => platforms.includes(k))
-    );
-    setForm((f) => ({
-      ...f,
-      socials: platforms,
-      followers: filteredFollowers,
-    }));
-  };
-
-  // Achievements: handle multi-select and Other field
-  const handleAchievementsChange = (selected) => {
-    setForm((f) => ({
-      ...f,
-      achievements: selected,
-      achievementOther:
-        selected.includes("Other") && !f.achievementOther
-          ? ""
-          : f.achievementOther,
-    }));
-  };
-
-  // Validation
-  const isEmail = (email) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-  const isFormValid = () => {
-    if (
-      !form.name ||
-      !form.email ||
-      !isEmail(form.email) ||
-      !form.school ||
-      !form.sport ||
-      !form.gender ||
-      !form.gradYear ||
-      form.socials.length === 0 ||
-      form.socials.some(
-        (p) => !form.followers[p] || isNaN(form.followers[p])
-      ) ||
-      form.achievements.length === 0 ||
-      (form.achievements.includes("Other") && !form.achievementOther)
-    ) {
-      return false;
+  // Helper: Validate required fields for each section
+  const validateStep = () => {
+    switch (step) {
+      case 0:
+        return (
+          localForm.name.trim() &&
+          localForm.email.trim() &&
+          localForm.school.trim()
+        );
+      case 1:
+        return (
+          localForm.gender &&
+          localForm.sport &&
+          localForm.graduation_year
+        );
+      case 2:
+        if (localForm.social_platforms.length === 0) return false;
+        // Check followers for each selected platform
+        for (const platform of localForm.social_platforms) {
+          if (
+            platform === "Instagram" && !localForm.followers_instagram.trim()
+            || platform === "TikTok" && !localForm.followers_tiktok.trim()
+            || (platform === "Twitter/X" || platform === "Twitter") && !localForm.followers_twitter.trim()
+            || platform === "YouTube" && !localForm.followers_youtube.trim()
+          ) {
+            return false;
+          }
+        }
+        return true;
+      case 3:
+        return (
+          localForm.achievements.length > 0 &&
+          (!localForm.achievements.includes("Other") || localForm.achievement_other.trim())
+        );
+      default:
+        return false;
     }
-    return true;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setTouched({
-      name: true,
-      email: true,
-      school: true,
-      sport: true,
-      gender: true,
-      gradYear: true,
-      socials: true,
-      achievements: true,
-    });
-    if (isFormValid()) {
-      if (onNext) {
-        onNext(form);
-      } else {
-        toast({
-          title: "Form submitted (demo mode)",
-          status: "success",
-          duration: 2000,
-        });
-      }
-    } else {
+  // Next/Back handlers
+  const handleNext = () => {
+    if (!validateStep()) {
       toast({
-        title: "Please fill out all required fields.",
+        title: "Please complete all required fields.",
         status: "error",
         duration: 2000,
+        isClosable: true,
+        position: "top"
       });
+      setTouched((prev) => ({ ...prev, [step]: true }));
+      return;
+    }
+    if (step === STEPS.length - 1) {
+      // Final step: commit form
+      if (typeof setFormData === "function") {
+        setFormData(localForm);
+      }
+      // If using react-router, redirect to step 2:
+      if (props.navigate) props.navigate("/fmvcalculator/step2");
+    } else {
+      setStep((s) => s + 1);
+    }
+  };
+
+  const handleBack = () => setStep((s) => Math.max(0, s - 1));
+
+  // Centralized change handler
+  const updateField = (field, value) => setLocalForm((prev) => ({ ...prev, [field]: value }));
+
+  // Handle social platforms logic
+  const handlePlatformChange = (platforms) => {
+    updateField("social_platforms", platforms);
+    // Clear follower fields for unselected platforms
+    if (!platforms.includes("Instagram")) updateField("followers_instagram", "");
+    if (!platforms.includes("TikTok")) updateField("followers_tiktok", "");
+    if (!platforms.includes("Twitter/X") && !platforms.includes("Twitter")) updateField("followers_twitter", "");
+    if (!platforms.includes("YouTube")) updateField("followers_youtube", "");
+  };
+
+  // --- Page Layouts ---
+
+  // 1. About You
+  const aboutYou = (
+    <Stack spacing={6}>
+      <Heading fontSize="2xl" color="white">About You</Heading>
+      <FormControl isRequired>
+        <FormLabel color="gray.200">Full Name</FormLabel>
+        <Input
+          value={localForm.name}
+          onChange={e => updateField("name", e.target.value)}
+          placeholder="Your Name"
+          bg="gray.800" color="white"
+        />
+      </FormControl>
+      <FormControl isRequired>
+        <FormLabel color="gray.200">Email</FormLabel>
+        <Input
+          type="email"
+          value={localForm.email}
+          onChange={e => updateField("email", e.target.value)}
+          placeholder="you@email.com"
+          bg="gray.800" color="white"
+        />
+      </FormControl>
+      <FormControl isRequired>
+        <FormLabel color="gray.200">School</FormLabel>
+        <Input
+          value={localForm.school}
+          onChange={e => updateField("school", e.target.value)}
+          placeholder="University of Virginia"
+          bg="gray.800" color="white"
+        />
+      </FormControl>
+      <FormControl>
+        <FormLabel color="gray.200">Division (optional)</FormLabel>
+        <Select
+          value={localForm.division}
+          onChange={e => updateField("division", e.target.value)}
+          placeholder="Select division"
+          bg="gray.800" color="white"
+        >
+          {DIVISIONS.map(d => <option key={d} value={d}>{d}</option>)}
+        </Select>
+      </FormControl>
+      <FormControl>
+        <FormLabel color="gray.200">Conference (optional)</FormLabel>
+        <Select
+          value={localForm.conference}
+          onChange={e => updateField("conference", e.target.value)}
+          placeholder="Select conference"
+          bg="gray.800" color="white"
+        >
+          {CONFERENCES.map(c => <option key={c} value={c}>{c}</option>)}
+        </Select>
+      </FormControl>
+    </Stack>
+  );
+
+  // 2. Academics & Athletics
+  const academicsAthletics = (
+    <Stack spacing={6}>
+      <Heading fontSize="2xl" color="white">Academics & Athletics</Heading>
+      <FormControl isRequired>
+        <FormLabel color="gray.200">Gender</FormLabel>
+        <Select
+          value={localForm.gender}
+          onChange={e => {
+            updateField("gender", e.target.value);
+            updateField("sport", ""); // Reset sport on gender change
+          }}
+          placeholder="Select gender"
+          bg="gray.800" color="white"
+        >
+          {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
+        </Select>
+      </FormControl>
+      <FormControl isRequired>
+        <FormLabel color="gray.200">Sport</FormLabel>
+        <Select
+          value={localForm.sport}
+          onChange={e => updateField("sport", e.target.value)}
+          placeholder="Select sport"
+          bg="gray.800" color="white"
+          isDisabled={!localForm.gender}
+        >
+          {localForm.gender && SPORTS[localForm.gender].map(s => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </Select>
+      </FormControl>
+      <FormControl isRequired>
+        <FormLabel color="gray.200">Graduation Year</FormLabel>
+        <NumberInput
+          value={localForm.graduation_year}
+          onChange={(_, v) => updateField("graduation_year", v)}
+          min={2024} max={2030}
+        >
+          <NumberInputField placeholder="2026" bg="gray.800" color="white" />
+        </NumberInput>
+      </FormControl>
+      <FormControl>
+        <FormLabel color="gray.200">Age (optional)</FormLabel>
+        <NumberInput
+          value={localForm.age}
+          onChange={(_, v) => updateField("age", v)}
+          min={15} max={30}
+        >
+          <NumberInputField placeholder="e.g., 20" bg="gray.800" color="white" />
+        </NumberInput>
+      </FormControl>
+      <FormControl>
+        <FormLabel color="gray.200">GPA (optional)</FormLabel>
+        <NumberInput
+          value={localForm.gpa}
+          onChange={(_, v) => updateField("gpa", v)}
+          precision={2}
+          min={0} max={4.3} step={0.01}
+        >
+          <NumberInputField placeholder="e.g., 3.78" bg="gray.800" color="white" />
+        </NumberInput>
+      </FormControl>
+      <FormControl>
+        <FormLabel color="gray.200">Prior NIL Deals (optional)</FormLabel>
+        <NumberInput
+          value={localForm.prior_nil_deals}
+          onChange={(_, v) => updateField("prior_nil_deals", v)}
+          min={0}
+        >
+          <NumberInputField placeholder="e.g., 2" bg="gray.800" color="white" />
+        </NumberInput>
+      </FormControl>
+    </Stack>
+  );
+
+  // 3. Social Media
+  const socials = (
+    <Stack spacing={6}>
+      <Heading fontSize="2xl" color="white">Social Media</Heading>
+      <FormControl isRequired>
+        <FormLabel color="gray.200">Which social platforms do you use?</FormLabel>
+        <CheckboxGroup
+          colorScheme="green"
+          value={localForm.social_platforms}
+          onChange={handlePlatformChange}
+        >
+          <SimpleGrid columns={[1, 2]} spacing={2}>
+            {SOCIAL_PLATFORMS.map(platform => (
+              <Checkbox key={platform} value={platform}>
+                {platform}
+              </Checkbox>
+            ))}
+          </SimpleGrid>
+        </CheckboxGroup>
+      </FormControl>
+      {localForm.social_platforms.includes("Instagram") && (
+        <FormControl isRequired>
+          <FormLabel color="gray.200">Instagram Followers</FormLabel>
+          <NumberInput
+            value={localForm.followers_instagram}
+            onChange={(_, v) => updateField("followers_instagram", v)}
+            min={0}
+          >
+            <NumberInputField placeholder="e.g., 5000" bg="gray.800" color="white" />
+          </NumberInput>
+        </FormControl>
+      )}
+      {localForm.social_platforms.includes("TikTok") && (
+        <FormControl isRequired>
+          <FormLabel color="gray.200">TikTok Followers</FormLabel>
+          <NumberInput
+            value={localForm.followers_tiktok}
+            onChange={(_, v) => updateField("followers_tiktok", v)}
+            min={0}
+          >
+            <NumberInputField placeholder="e.g., 2500" bg="gray.800" color="white" />
+          </NumberInput>
+        </FormControl>
+      )}
+      {(localForm.social_platforms.includes("Twitter/X") || localForm.social_platforms.includes("Twitter")) && (
+        <FormControl isRequired>
+          <FormLabel color="gray.200">Twitter/X Followers</FormLabel>
+          <NumberInput
+            value={localForm.followers_twitter}
+            onChange={(_, v) => updateField("followers_twitter", v)}
+            min={0}
+          >
+            <NumberInputField placeholder="e.g., 1200" bg="gray.800" color="white" />
+          </NumberInput>
+        </FormControl>
+      )}
+      {localForm.social_platforms.includes("YouTube") && (
+        <FormControl isRequired>
+          <FormLabel color="gray.200">YouTube Followers</FormLabel>
+          <NumberInput
+            value={localForm.followers_youtube}
+            onChange={(_, v) => updateField("followers_youtube", v)}
+            min={0}
+          >
+            <NumberInputField placeholder="e.g., 1000" bg="gray.800" color="white" />
+          </NumberInput>
+        </FormControl>
+      )}
+    </Stack>
+  );
+
+  // 4. Achievements
+  const achievements = (
+    <Stack spacing={6}>
+      <Heading fontSize="2xl" color="white">Athletic Achievements</Heading>
+      <FormControl isRequired>
+        <FormLabel color="gray.200">What are your top achievements?</FormLabel>
+        <CheckboxGroup
+          colorScheme="green"
+          value={localForm.achievements}
+          onChange={v => {
+            updateField("achievements", v);
+            if (!v.includes("Other")) updateField("achievement_other", "");
+          }}
+        >
+          <SimpleGrid columns={[1, 2]} spacing={2}>
+            {ACHIEVEMENTS.map(a => (
+              <Checkbox key={a} value={a}>{a}</Checkbox>
+            ))}
+          </SimpleGrid>
+        </CheckboxGroup>
+      </FormControl>
+      {localForm.achievements.includes("Other") && (
+        <FormControl isRequired>
+          <FormLabel color="gray.200">Please specify other achievement(s)</FormLabel>
+          <Textarea
+            value={localForm.achievement_other}
+            onChange={e => updateField("achievement_other", e.target.value)}
+            placeholder="Describe your other achievements"
+            bg="gray.800" color="white"
+          />
+        </FormControl>
+      )}
+    </Stack>
+  );
+
+  // Render logic
+  const renderSection = () => {
+    switch (step) {
+      case 0: return aboutYou;
+      case 1: return academicsAthletics;
+      case 2: return socials;
+      case 3: return achievements;
+      default: return aboutYou;
     }
   };
 
   return (
-    <Box
-      maxW="lg"
-      mx="auto"
-      mt={8}
-      p={8}
-      bg="gray.900"
-      rounded="2xl"
-      boxShadow="xl"
+    <Flex
+      minH="100vh"
+      align="center"
+      justify="center"
+      bg="linear-gradient(to bottom,#181a20 60%,#23272f 100%)"
       color="white"
-      fontFamily="Inter, sans-serif"
-      border="1px solid"
-      borderColor="gray.800"
+      py={10}
     >
-      <Heading mb={6} color="white" size="lg" fontWeight="bold" letterSpacing="tight">
-        Athlete Profile
-      </Heading>
-      <form onSubmit={handleSubmit}>
-        <Stack spacing={5}>
-          {/* Name */}
-          <FormControl isRequired isInvalid={touched.name && !form.name}>
-            <FormLabel>Name</FormLabel>
-            <Input
-              value={form.name}
-              onChange={(e) => handleChange("name", e.target.value)}
-              onBlur={() => setTouched((t) => ({ ...t, name: true }))}
-              placeholder="Full Name"
-              bg="gray.800"
-            />
-            <FormErrorMessage>Name is required</FormErrorMessage>
-          </FormControl>
-          {/* Email */}
-          <FormControl
-            isRequired
-            isInvalid={touched.email && (!form.email || !isEmail(form.email))}
-          >
-            <FormLabel>Email</FormLabel>
-            <Input
-              value={form.email}
-              onChange={(e) => handleChange("email", e.target.value)}
-              onBlur={() => setTouched((t) => ({ ...t, email: true }))}
-              placeholder="you@email.com"
-              bg="gray.800"
-              type="email"
-            />
-            <FormErrorMessage>Valid email required</FormErrorMessage>
-          </FormControl>
-          {/* School */}
-          <FormControl isRequired isInvalid={touched.school && !form.school}>
-            <FormLabel>School</FormLabel>
-            <Input
-              value={form.school}
-              onChange={(e) => handleChange("school", e.target.value)}
-              onBlur={() => setTouched((t) => ({ ...t, school: true }))}
-              placeholder="Your School"
-              bg="gray.800"
-            />
-            <FormErrorMessage>School is required</FormErrorMessage>
-          </FormControl>
-          {/* Gender */}
-          <FormControl isRequired isInvalid={touched.gender && !form.gender}>
-            <FormLabel>Gender</FormLabel>
-            <Select
-              placeholder="Select gender"
-              bg="gray.800"
-              value={form.gender}
-              onChange={(e) => handleChange("gender", e.target.value)}
-              onBlur={() => setTouched((t) => ({ ...t, gender: true }))}
+      <Box
+        w={["95vw", "600px"]}
+        bg="gray.900"
+        boxShadow="2xl"
+        borderRadius="2xl"
+        p={[4, 8]}
+        mx="auto"
+      >
+        <Box mb={6}>
+          <Text color="gray.300" fontWeight="bold" fontSize="md" mb={2} letterSpacing="wide">
+            Step {step + 1} of {STEPS.length}: {STEPS[step]}
+          </Text>
+          <Progress value={progress} size="sm" colorScheme="green" borderRadius="lg" />
+        </Box>
+        <form
+          onSubmit={e => {
+            e.preventDefault();
+            handleNext();
+          }}
+        >
+          {renderSection()}
+
+          <Flex mt={8} justify="space-between">
+            <Button
+              onClick={handleBack}
+              isDisabled={step === 0}
+              colorScheme="gray"
+              variant="ghost"
             >
-              {GENDERS.map((g) => (
-                <option value={g} key={g}>
-                  {g}
-                </option>
-              ))}
-            </Select>
-            <FormErrorMessage>Gender is required</FormErrorMessage>
-          </FormControl>
-          {/* Sport */}
-          <FormControl isRequired isInvalid={touched.sport && !form.sport}>
-            <FormLabel>Sport</FormLabel>
-            <Select
-              placeholder="Select sport"
-              bg="gray.800"
-              value={form.sport}
-              onChange={(e) => handleChange("sport", e.target.value)}
-              onBlur={() => setTouched((t) => ({ ...t, sport: true }))}
-            >
-              {SPORTS.map((s) => (
-                <option value={s} key={s}>
-                  {s}
-                </option>
-              ))}
-            </Select>
-            <FormErrorMessage>Sport is required</FormErrorMessage>
-          </FormControl>
-          {/* Graduation Year */}
-          <FormControl isRequired isInvalid={touched.gradYear && !form.gradYear}>
-            <FormLabel>Graduation Year</FormLabel>
-            <Input
-              type="number"
-              value={form.gradYear}
-              onChange={(e) => handleChange("gradYear", e.target.value)}
-              onBlur={() => setTouched((t) => ({ ...t, gradYear: true }))}
-              placeholder="e.g. 2026"
-              bg="gray.800"
-              min={2020}
-              max={2030}
-            />
-            <FormErrorMessage>Graduation year required</FormErrorMessage>
-          </FormControl>
-          {/* Social Media Platforms */}
-          <FormControl
-            isRequired
-            isInvalid={touched.socials && form.socials.length === 0}
-          >
-            <FormLabel>Social Media Platforms (select all you use)</FormLabel>
-            <CheckboxGroup
-              value={form.socials}
-              onChange={handleSocialChange}
+              Back
+            </Button>
+            <Button
+              type="submit"
               colorScheme="green"
+              px={8}
+              fontWeight="bold"
             >
-              <Stack direction="row" spacing={6}>
-                {SOCIAL_OPTIONS.map((s) => (
-                  <Checkbox value={s.value} key={s.value}>
-                    {s.label}
-                  </Checkbox>
-                ))}
-              </Stack>
-            </CheckboxGroup>
-            <FormErrorMessage>
-              At least one social media platform required
-            </FormErrorMessage>
-            {/* Dynamic follower count fields */}
-            <SimpleGrid columns={[1, 2]} spacing={4} mt={3}>
-              {form.socials.map((platform) => (
-                <FormControl
-                  key={platform}
-                  isRequired
-                  isInvalid={
-                    touched.socials &&
-                    (!form.followers[platform] ||
-                      isNaN(form.followers[platform]))
-                  }
-                >
-                  <FormLabel fontSize="sm" mt={2}>
-                    {SOCIAL_OPTIONS.find((o) => o.value === platform)?.label ||
-                      platform}{" "}
-                    followers
-                  </FormLabel>
-                  <Input
-                    type="number"
-                    min={0}
-                    bg="gray.800"
-                    value={form.followers[platform] || ""}
-                    onChange={(e) =>
-                      setForm((f) => ({
-                        ...f,
-                        followers: {
-                          ...f.followers,
-                          [platform]: e.target.value.replace(/\D/, ""),
-                        },
-                      }))
-                    }
-                  />
-                  <FormErrorMessage>
-                    Required (enter 0 if none)
-                  </FormErrorMessage>
-                </FormControl>
-              ))}
-            </SimpleGrid>
-          </FormControl>
-          {/* Achievements */}
-          <FormControl
-            isRequired
-            isInvalid={touched.achievements && form.achievements.length === 0}
-          >
-            <FormLabel>Achievements</FormLabel>
-            <CheckboxGroup
-              value={form.achievements}
-              onChange={handleAchievementsChange}
-              colorScheme="green"
-            >
-              <Stack direction="row" spacing={6}>
-                {ACHIEVEMENT_OPTIONS.map((a) => (
-                  <Checkbox value={a} key={a}>
-                    {a}
-                  </Checkbox>
-                ))}
-              </Stack>
-            </CheckboxGroup>
-            <FormErrorMessage>
-              At least one achievement required
-            </FormErrorMessage>
-            {/* Other achievement input */}
-            {form.achievements.includes("Other") && (
-              <Box mt={2}>
-                <FormLabel fontSize="sm">Other (please specify):</FormLabel>
-                <Input
-                  bg="gray.800"
-                  value={form.achievementOther}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      achievementOther: e.target.value,
-                    }))
-                  }
-                  isRequired
-                />
-              </Box>
-            )}
-          </FormControl>
-          {/* Submit/Next Button */}
-          <Button
-            type="submit"
-            colorScheme="green"
-            size="lg"
-            fontWeight="bold"
-            w="100%"
-            mt={4}
-            isDisabled={!isFormValid()}
-          >
-            Next
-          </Button>
-        </Stack>
-      </form>
-    </Box>
+              {step === STEPS.length - 1 ? "Continue" : "Next"}
+            </Button>
+          </Flex>
+        </form>
+      </Box>
+    </Flex>
   );
 }
