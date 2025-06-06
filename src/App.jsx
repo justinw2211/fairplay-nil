@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Routes, Route, NavLink, useLocation, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
@@ -104,28 +103,9 @@ const App = () => {
               alignItems: "center",
               height: "100%",
               padding: 0,
+              paddingBottom: "0.5rem",
               textDecoration: "none",
-              cursor: "pointer",
-              fontSize: "1.15rem",
-              lineHeight: "1.5",
-              display: "flex",
-              alignItems: "center",
-              height: "100%",
-              cursor: "pointer",
-              padding: 0,
-              textDecoration: "none",
-              cursor: "pointer",
-              display: 'flex',
-              alignItems: 'center',
-              height: '100%',
-              textDecoration: 'none',
-              padding: 0,
-              fontWeight: 500,
-              cursor: "pointer",
-              paddingBottom: '0.5rem',
-              display: 'flex',
-              alignItems: 'center',
-              height: '100%'
+              cursor: "pointer"
             }}>
               Company
             </div>
