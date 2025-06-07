@@ -100,7 +100,6 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
       if (typeof setFormData === "function") {
         setFormData({ ...formData, step2: localForm }); // or adapt as needed for your context
       }
-      // If using react-router, redirect to result:
       if (props.navigate) props.navigate("/fmvcalculator/result");
     } else {
       setStep((s) => s + 1);
@@ -156,7 +155,11 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
         >
           <NumberInputField
             placeholder={localForm.payment_structure === "One-time" ? "1" : "e.g., 6"}
-            bg="gray.800" color="white"
+            bg="gray.800"
+            color="white"
+            _placeholder={{ color: "gray.400" }}
+            focusBorderColor="green.400"
+            sx={{ color: "white !important" }}
           />
         </NumberInput>
       </FormControl>
@@ -167,7 +170,14 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
           onChange={(_, v) => updateField("proposed_dollar_amount", v)}
           min={1}
         >
-          <NumberInputField placeholder="e.g., 2500" bg="gray.800" color="white" />
+          <NumberInputField
+            placeholder="e.g., 2500"
+            bg="gray.800"
+            color="white"
+            _placeholder={{ color: "gray.400" }}
+            focusBorderColor="green.400"
+            sx={{ color: "white !important" }}
+          />
         </NumberInput>
       </FormControl>
     </Stack>
@@ -200,7 +210,11 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
                   value={localForm.deliverable_other}
                   onChange={e => updateField("deliverable_other", e.target.value)}
                   placeholder="Describe your deliverable"
-                  bg="gray.800" color="white"
+                  bg="gray.800"
+                  color="white"
+                  _placeholder={{ color: "gray.400" }}
+                  focusBorderColor="green.400"
+                  sx={{ color: "white !important" }}
                 />
               </FormControl>
               <FormControl isRequired>
@@ -215,7 +229,14 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
                   }
                   min={1}
                 >
-                  <NumberInputField placeholder="e.g., 2" bg="gray.800" color="white" />
+                  <NumberInputField
+                    placeholder="e.g., 2"
+                    bg="gray.800"
+                    color="white"
+                    _placeholder={{ color: "gray.400" }}
+                    focusBorderColor="green.400"
+                    sx={{ color: "white !important" }}
+                  />
                 </NumberInput>
               </FormControl>
             </Stack>
@@ -234,7 +255,14 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
                 }
                 min={1}
               >
-                <NumberInputField placeholder="e.g., 3" bg="gray.800" color="white" />
+                <NumberInputField
+                  placeholder="e.g., 3"
+                  bg="gray.800"
+                  color="white"
+                  _placeholder={{ color: "gray.400" }}
+                  focusBorderColor="green.400"
+                  sx={{ color: "white !important" }}
+                />
               </NumberInput>
             </FormControl>
           )}
@@ -266,7 +294,11 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
           value={localForm.deal_category}
           onChange={e => updateField("deal_category", e.target.value)}
           placeholder="Select category"
-          bg="gray.800" color="white"
+          bg="gray.800"
+          color="white"
+          _placeholder={{ color: "gray.400" }}
+          focusBorderColor="green.400"
+          sx={{ color: "white !important" }}
         >
           {DEAL_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
         </Select>
@@ -277,7 +309,11 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
           value={localForm.brand_partner}
           onChange={e => updateField("brand_partner", e.target.value)}
           placeholder="Nike, Adidas, etc."
-          bg="gray.800" color="white"
+          bg="gray.800"
+          color="white"
+          _placeholder={{ color: "gray.400" }}
+          focusBorderColor="green.400"
+          sx={{ color: "white !important" }}
         />
       </FormControl>
       <FormControl isRequired>
@@ -286,7 +322,11 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
           value={localForm.geography}
           onChange={e => updateField("geography", e.target.value)}
           placeholder="Select your home state"
-          bg="gray.800" color="white"
+          bg="gray.800"
+          color="white"
+          _placeholder={{ color: "gray.400" }}
+          focusBorderColor="green.400"
+          sx={{ color: "white !important" }}
         >
           {STATES.map(state => <option key={state} value={state}>{state}</option>)}
         </Select>
