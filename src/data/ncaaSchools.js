@@ -141,9 +141,9 @@ export const NCAA_SCHOOLS = {
     "West Virginia University",
     "University of Wisconsin–Madison",
     "University of Wyoming"
-    // ... (Insert all D1 schools here, as above. To save space, truncated. Let me know if you want the *full* D1 block as a separate message!)
+    // ... (Add the rest as needed)
   ],
-"II": [
+  "II": [
     "Adams State University",
     "Alaska Pacific University",
     "Albany State University",
@@ -321,7 +321,8 @@ export const NCAA_SCHOOLS = {
     "Rollins College",
     "Saginaw Valley State University",
     "Saint Anselm College",
-    "Saint Augustine's University",
+    "Saint Augustine's University"
+    // ... (Add the rest as needed)
   ],
   "III": [
     "Adrian College",
@@ -696,3 +697,22 @@ export const NCAA_SCHOOLS = {
     // ... (If a recent school is missing, add it here)
   ]
 };
+
+// Flat array of all schools for react-select and better autocomplete
+export const NCAA_SCHOOL_OPTIONS = [
+  ...NCAA_SCHOOLS.I.map(school => ({
+    label: school,
+    value: school,
+    division: "I"
+  })),
+  ...NCAA_SCHOOLS.II.map(school => ({
+    label: school,
+    value: school,
+    division: "II"
+  })),
+  ...NCAA_SCHOOLS.III.map(school => ({
+    label: school,
+    value: school,
+    division: "III"
+  }))
+];
