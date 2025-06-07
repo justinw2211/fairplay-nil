@@ -10,7 +10,7 @@ import Security from "./pages/Security";
 import Careers from "./pages/Careers";
 import FMVStep1 from "./pages/FMVStep1";
 import FMVStep2 from "./pages/FMVStep2";
-import FMVReviewStep from "./pages/FMVReviewStep"; // <-- ADDED
+import FMVReviewStep from "./pages/FMVReviewStep";
 import FMVResult from "./pages/FMVResult";
 import { ChakraProvider } from "@chakra-ui/react";
 
