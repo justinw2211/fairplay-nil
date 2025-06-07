@@ -4,21 +4,23 @@ import {
   ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton, Input, useToast
 } from "@chakra-ui/react";
 
-export default function FMVResult() {
+// To make this dynamic, pass FMV and details as props or use context/global state
+export default function FMVResult({ fmv = "$8,750", details = [] }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [shareEmail, setShareEmail] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const toast = useToast();
 
-  // Placeholder FMV output
-  const FMV = "$8,750";
-  const fmvDetails = [
-    { label: "Sport", value: "Track & Field" },
-    { label: "Division", value: "I" },
-    { label: "Social Followers", value: "14,000" },
-    { label: "Achievements", value: "All-American" },
-    { label: "Deliverables", value: "2 Instagram posts, 1 TikTok video" }
-  ];
+  // Example fallback for static details
+  const fmvDetails = details.length
+    ? details
+    : [
+        { label: "Sport", value: "Track & Field" },
+        { label: "Division", value: "I" },
+        { label: "Social Followers", value: "14,000" },
+        { label: "Achievements", value: "All-American" },
+        { label: "Deliverables", value: "2 Instagram posts, 1 TikTok video" }
+      ];
 
   const handleShare = () => {
     // Future: Trigger backend email
@@ -41,7 +43,7 @@ export default function FMVResult() {
       <Box w={["95vw", "600px"]} bg="gray.900" boxShadow="2xl" borderRadius="2xl" p={[4, 8]} mx="auto">
         <Heading size="lg" mb={4}>Your NIL FMV Estimate</Heading>
         <Text color="green.300" fontSize="3xl" fontWeight="bold" mb={3}>
-          {FMV}
+          {fmv}
         </Text>
         <Stack spacing={2} mb={5}>
           {fmvDetails.map((d, idx) => (

@@ -2,15 +2,14 @@ import React from "react";
 import {
   Box, Button, Flex, Heading, Stack, Text, Divider, SimpleGrid, Tag, useToast
 } from "@chakra-ui/react";
-import { useNavigate } from "react-router-dom";
 
-export default function FMVReviewStep({ formData, setFormData }) {
-  const navigate = useNavigate();
+export default function FMVReviewStep({
+  formData, setFormData, goToStep
+}) {
   const toast = useToast();
 
-  const handleEdit = (section) => {
-    if (section === "profile") navigate("/fmvcalculator/step1");
-    if (section === "deal") navigate("/fmvcalculator/step2");
+  const handleEdit = (stepIdx) => {
+    goToStep(stepIdx);
   };
 
   const handleSubmit = () => {
@@ -21,24 +20,25 @@ export default function FMVReviewStep({ formData, setFormData }) {
       duration: 1200,
       isClosable: true
     });
-    navigate("/fmvcalculator/result");
+    // You may want to set a flag or route to a result page here
   };
 
-  const deal = formData.step2 || {};
-
+  // If you have deliverables or deal details as arrays, use fallback/optional chaining
   return (
     <Flex minH="100vh" align="center" justify="center"
       bg="linear-gradient(to bottom,#181a20 60%,#23272f 100%)" color="white" py={10}
     >
       <Box w={["95vw", "600px"]} bg="gray.900" boxShadow="2xl" borderRadius="2xl" p={[4, 8]} mx="auto">
         <Heading size="lg" mb={3}>Review & Confirm</Heading>
-        <Text color="gray.300" mb={6}>Please review your responses below. Click <b>Edit</b> to modify any section.</Text>
+        <Text color="gray.300" mb={6}>
+          Please review your responses below. Click <b>Edit</b> to modify any section.
+        </Text>
         <Stack spacing={6}>
-          {/* Profile */}
+          {/* Profile Section */}
           <Box>
             <Flex align="center" justify="space-between" mb={2}>
               <Heading size="md">Athlete Profile</Heading>
-              <Button size="sm" onClick={() => handleEdit("profile")} colorScheme="green" variant="link">
+              <Button size="sm" onClick={() => handleEdit(0)} colorScheme="green" variant="link">
                 Edit
               </Button>
             </Flex>
@@ -66,65 +66,27 @@ export default function FMVReviewStep({ formData, setFormData }) {
             </SimpleGrid>
           </Box>
           <Divider borderColor="gray.700" />
-          {/* Deal Info */}
+          {/* Deal Info Section */}
           <Box>
             <Flex align="center" justify="space-between" mb={2}>
               <Heading size="md">Deal Details</Heading>
-              <Button size="sm" onClick={() => handleEdit("deal")} colorScheme="green" variant="link">
+              <Button size="sm" onClick={() => handleEdit(1)} colorScheme="green" variant="link">
                 Edit
               </Button>
             </Flex>
             <SimpleGrid columns={2} spacing={1}>
-              <Text color="gray.400">Payment Structure:</Text>
+              <Text color="gray.400">Deal Description:</Text>
+              <Text>{formData.deal_description}</Text>
+              <Text color="gray.400">Followers:</Text>
+              <Text>{formData.followers}</Text>
+              <Text color="gray.400">Deliverables:</Text>
               <Text>
-                {deal.payment_structure}
-                {deal.payment_structure === "Other" && deal.payment_structure_other
-                  ? ` (${deal.payment_structure_other})`
+                {formData.deliverables && formData.deliverables.length > 0
+                  ? formData.deliverables.join(", ")
                   : ""}
               </Text>
-              <Text color="gray.400">Deal Length:</Text>
-              <Text>{deal.deal_length_months} month(s)</Text>
-              <Text color="gray.400">Total Proposed $:</Text>
-              <Text>{deal.proposed_dollar_amount}</Text>
-              <Text color="gray.400">Deal Category:</Text>
-              <Text>{deal.deal_category}</Text>
-              <Text color="gray.400">Brand Partner:</Text>
-              <Text>{deal.brand_partner}</Text>
-              <Text color="gray.400">Is Real Submission:</Text>
-              <Text>{deal.is_real_submission === "yes" ? "Yes" : "Test/Demo"}</Text>
+              {/* Add more deal fields as needed */}
             </SimpleGrid>
-            {deal.deliverables && deal.deliverables.length > 0 && (
-              <Box mt={3}>
-                <Text color="gray.400" fontWeight="bold">Deliverables:</Text>
-                <Stack direction="row" flexWrap="wrap">
-                  {deal.deliverables.map(del => (
-                    <Tag key={del} colorScheme="green" mb={1}>{del}</Tag>
-                  ))}
-                </Stack>
-                <SimpleGrid columns={2} spacing={1} mt={2}>
-                  {deal.deliverables.map(del => (
-                    <React.Fragment key={del}>
-                      <Text color="gray.400">{del === "Other" ? "Other (desc):" : `${del} qty:`}</Text>
-                      <Text>
-                        {del === "Other"
-                          ? `${deal.deliverable_other} (${deal.deliverables_count["Other"] || 1})`
-                          : deal.deliverables_count[del] || 1}
-                      </Text>
-                    </React.Fragment>
-                  ))}
-                </SimpleGrid>
-              </Box>
-            )}
-            {deal.deal_type && deal.deal_type.length > 0 && (
-              <Box mt={2}>
-                <Text color="gray.400" fontWeight="bold">Deal Types:</Text>
-                <Stack direction="row" flexWrap="wrap">
-                  {deal.deal_type.map(type => (
-                    <Tag key={type} colorScheme="green" mb={1}>{type}</Tag>
-                  ))}
-                </Stack>
-              </Box>
-            )}
           </Box>
         </Stack>
         <Flex mt={8} justify="flex-end">
