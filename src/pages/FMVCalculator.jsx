@@ -6,6 +6,7 @@ import FMVReviewStep from "./FMVReviewStep";
 import FMVResult from "./FMVResult";
 import { Box } from "@chakra-ui/react";
 
+// You can expand this as needed!
 const initialFormData = {
   division: "",
   school: "",
@@ -17,7 +18,7 @@ const initialFormData = {
   age: "",
   gpa: "",
   prior_nil_deals: "",
-  // Add deal-specific fields for step 2 and review as needed
+  // Add deal-specific fields here
 };
 
 export default function FMVCalculator() {
@@ -55,8 +56,6 @@ export default function FMVCalculator() {
               setErrors={setErrors}
               onNext={handleNext}
               onBack={handleBack}
-              currentStepIdx={0}
-              totalSteps={steps.length - 1}
             />
           }
         />
@@ -70,8 +69,6 @@ export default function FMVCalculator() {
               setErrors={setErrors}
               onNext={handleNext}
               onBack={handleBack}
-              currentStepIdx={1}
-              totalSteps={steps.length - 1}
             />
           }
         />
@@ -80,11 +77,8 @@ export default function FMVCalculator() {
           element={
             <FMVReviewStep
               formData={formData}
-              setFormData={setFormData}
               onNext={handleNext}
               onBack={handleBack}
-              currentStepIdx={2}
-              totalSteps={steps.length - 1}
             />
           }
         />

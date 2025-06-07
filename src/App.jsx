@@ -8,10 +8,7 @@ import Brands from "./pages/Brands";
 import AboutUs from "./pages/AboutUs";
 import Security from "./pages/Security";
 import Careers from "./pages/Careers";
-import FMVStep1 from "./pages/FMVStep1";
-import FMVStep2 from "./pages/FMVStep2";
-import FMVReviewStep from "./pages/FMVReviewStep";
-import FMVResult from "./pages/FMVResult";
+import FMVCalculator from "./pages/FMVCalculator"; // <-- The robust survey parent
 
 const App = () => {
   const location = useLocation();
@@ -43,7 +40,6 @@ const App = () => {
   return (
     <div>
       <div style={{ height: '1.2rem', backgroundColor: '#88E788' }}></div>
-
       <nav style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -66,7 +62,6 @@ const App = () => {
             FAIR PLAY NIL
           </span>
         </NavLink>
-
         <div style={{ display: 'flex', gap: '32px', alignItems: 'center', marginLeft: '-60px' }}>
           {centerLinks.map((item, index) => {
             const isActive = location.pathname === item.path;
@@ -89,7 +84,6 @@ const App = () => {
               </NavLink>
             );
           })}
-
           <div
             onMouseEnter={() => setCompanyOpen(true)}
             onMouseLeave={() => setCompanyOpen(false)}
@@ -142,7 +136,6 @@ const App = () => {
             </div>
           </div>
         </div>
-
         <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
           {rightLinks.map((item, index) => {
             const isActive = location.pathname === item.path;
@@ -190,17 +183,10 @@ const App = () => {
       </nav>
 
       <Routes>
-        <Route path="/fmvcalculator/step1" element={
-          <FMVStep1 formData={formData} setFormData={setFormData} />
-        } />
-        <Route path="/fmvcalculator/step2" element={
-          <FMVStep2 formData={formData} setFormData={setFormData} />
-        } />
-        <Route path="/fmvcalculator/review" element={
-          <FMVReviewStep formData={formData} setFormData={setFormData} />
-        } />
-        <Route path="/fmvcalculator/result" element={<FMVResult />} />
+        {/* Single parent survey route handles all survey steps */}
+        <Route path="/fmvcalculator/*" element={<FMVCalculator />} />
 
+        {/* The rest of your site routes remain the same */}
         <Route path="/" element={<Home />} />
         <Route path="/athletes" element={<Athletes />} />
         <Route path="/universities" element={<Universities />} />
