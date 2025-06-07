@@ -4,8 +4,8 @@ import {
   Input, Select, NumberInput, NumberInputField, RadioGroup, Radio,
   CheckboxGroup, Checkbox, Textarea, useToast, SimpleGrid, Text
 } from "@chakra-ui/react";
+import { useNavigate } from "react-router-dom";
 
-// Deliverable, Deal, Category, etc. options
 const DELIVERABLES = [
   "Instagram Post", "Instagram Story", "TikTok Video", "Twitter/X Post", "YouTube Video", "Appearance", "Other"
 ];
@@ -39,17 +39,15 @@ const initialFormData = {
   is_real_submission: ""
 };
 
-export default function FMVStep2({ formData, setFormData, ...props }) {
+export default function FMVStep2({ formData, setFormData }) {
   const [step, setStep] = useState(0);
   const [localForm, setLocalForm] = useState(formData?.step2 || initialFormData);
   const [touched, setTouched] = useState({});
   const toast = useToast();
+  const navigate = useNavigate();
 
   // Progress bar logic
   const progress = ((step + 1) / STEPS.length) * 100;
-
-  // Helpers
-  const isDeliverableSelected = (deliverable) => (localForm.deliverables || []).includes(deliverable);
 
   // Validation per section
   const validateStep = () => {
@@ -61,7 +59,7 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
           localForm.proposed_dollar_amount
         );
       case 1:
-        if ((localForm.deliverables || []).length === 0) return false;
+        // Deliverables are OPTIONAL. If selected, quantity required.
         for (const del of localForm.deliverables || []) {
           if (del === "Other") {
             if (!localForm.deliverable_other.trim() || !localForm.deliverables_count["Other"]) return false;
@@ -71,8 +69,8 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
         }
         return true;
       case 2:
+        // Deal Type is OPTIONAL (multi-select). The rest required.
         return (
-          (localForm.deal_type || []).length > 0 &&
           localForm.deal_category &&
           localForm.brand_partner &&
           localForm.geography &&
@@ -100,7 +98,7 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
       if (typeof setFormData === "function") {
         setFormData({ ...formData, step2: localForm });
       }
-      if (props.navigate) props.navigate("/fmvcalculator/result");
+      navigate("/fmvcalculator/result");
     } else {
       setStep((s) => s + 1);
     }
@@ -155,8 +153,6 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
             placeholder={localForm.payment_structure === "One-time" ? "1" : "e.g., 6"}
             bg="gray.800"
             style={{ color: "white" }}
-            _placeholder={{ color: "gray.400" }}
-            focusBorderColor="green.400"
           />
         </NumberInput>
       </FormControl>
@@ -167,13 +163,7 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
           onChange={(_, v) => updateField("proposed_dollar_amount", v)}
           min={1}
         >
-          <NumberInputField
-            placeholder="e.g., 2500"
-            bg="gray.800"
-            style={{ color: "white" }}
-            _placeholder={{ color: "gray.400" }}
-            focusBorderColor="green.400"
-          />
+          <NumberInputField placeholder="e.g., 2500" bg="gray.800" style={{ color: "white" }} />
         </NumberInput>
       </FormControl>
     </Stack>
@@ -182,7 +172,7 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
   const deliverablesSection = (
     <Stack spacing={6}>
       <Heading fontSize="2xl" color="white">Deliverables</Heading>
-      <FormControl isRequired>
+      <FormControl>
         <FormLabel color="gray.200">Which deliverables are included?</FormLabel>
         <CheckboxGroup
           colorScheme="green"
@@ -208,8 +198,6 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
                   placeholder="Describe your deliverable"
                   bg="gray.800"
                   style={{ color: "white" }}
-                  _placeholder={{ color: "gray.400" }}
-                  focusBorderColor="green.400"
                 />
               </FormControl>
               <FormControl isRequired>
@@ -224,13 +212,7 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
                   }
                   min={1}
                 >
-                  <NumberInputField
-                    placeholder="e.g., 2"
-                    bg="gray.800"
-                    style={{ color: "white" }}
-                    _placeholder={{ color: "gray.400" }}
-                    focusBorderColor="green.400"
-                  />
+                  <NumberInputField placeholder="e.g., 2" bg="gray.800" style={{ color: "white" }} />
                 </NumberInput>
               </FormControl>
             </Stack>
@@ -249,13 +231,7 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
                 }
                 min={1}
               >
-                <NumberInputField
-                  placeholder="e.g., 3"
-                  bg="gray.800"
-                  style={{ color: "white" }}
-                  _placeholder={{ color: "gray.400" }}
-                  focusBorderColor="green.400"
-                />
+                <NumberInputField placeholder="e.g., 3" bg="gray.800" style={{ color: "white" }} />
               </NumberInput>
             </FormControl>
           )}
@@ -267,7 +243,7 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
   const additionalDetails = (
     <Stack spacing={6}>
       <Heading fontSize="2xl" color="white">Additional Details</Heading>
-      <FormControl isRequired>
+      <FormControl>
         <FormLabel color="gray.200">Deal Type</FormLabel>
         <CheckboxGroup
           colorScheme="green"
@@ -289,8 +265,6 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
           placeholder="Select category"
           bg="gray.800"
           style={{ color: "white" }}
-          _placeholder={{ color: "gray.400" }}
-          focusBorderColor="green.400"
         >
           {DEAL_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
         </Select>
@@ -303,8 +277,6 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
           placeholder="Nike, Adidas, etc."
           bg="gray.800"
           style={{ color: "white" }}
-          _placeholder={{ color: "gray.400" }}
-          focusBorderColor="green.400"
         />
       </FormControl>
       <FormControl isRequired>
@@ -315,8 +287,6 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
           placeholder="Select your home state"
           bg="gray.800"
           style={{ color: "white" }}
-          _placeholder={{ color: "gray.400" }}
-          focusBorderColor="green.400"
         >
           {STATES.map(state => <option key={state} value={state}>{state}</option>)}
         </Select>
@@ -337,7 +307,6 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
     </Stack>
   );
 
-  // Render logic
   const renderSection = () => {
     switch (step) {
       case 0: return dealStructure;
@@ -366,7 +335,7 @@ export default function FMVStep2({ formData, setFormData, ...props }) {
       >
         <Box mb={6}>
           <Text color="gray.300" fontWeight="bold" fontSize="md" mb={2} letterSpacing="wide">
-            Step 2 of 2: {STEPS[step]}
+            Step {step + 1} of {STEPS.length}: {STEPS[step]}
           </Text>
           <Progress value={progress} size="sm" colorScheme="green" borderRadius="lg" />
         </Box>

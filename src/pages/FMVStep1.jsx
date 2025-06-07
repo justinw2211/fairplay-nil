@@ -4,6 +4,7 @@ import {
   Input, Select, CheckboxGroup, Checkbox, NumberInput, NumberInputField,
   useToast, Textarea, Text, SimpleGrid
 } from "@chakra-ui/react";
+import { useNavigate } from "react-router-dom";
 
 const DIVISIONS = ["I", "II", "III"];
 const CONFERENCES = [
@@ -25,7 +26,6 @@ const SOCIAL_PLATFORMS = ["Instagram", "TikTok", "Twitter/X", "YouTube"];
 const ACHIEVEMENTS = [
   "All-American", "Conference Champion", "Team Captain", "National Team", "Starter", "Other"
 ];
-
 const STEPS = [
   "About You",
   "Academics & Athletics",
@@ -54,11 +54,12 @@ const initialFormData = {
   achievement_other: ""
 };
 
-export default function FMVStep1({ formData, setFormData, ...props }) {
+export default function FMVStep1({ formData, setFormData }) {
   const [step, setStep] = useState(0);
   const [localForm, setLocalForm] = useState(formData || initialFormData);
   const [touched, setTouched] = useState({});
   const toast = useToast();
+  const navigate = useNavigate();
 
   const progress = ((step + 1) / STEPS.length) * 100;
 
@@ -77,7 +78,7 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           localForm.graduation_year
         );
       case 2:
-        if ((localForm.social_platforms || []).length === 0) return false;
+        // Social platforms OPTIONAL. If selected, count required. If not, skip.
         for (const platform of localForm.social_platforms || []) {
           if (
             (platform === "Instagram" && !localForm.followers_instagram.toString().trim()) ||
@@ -90,10 +91,11 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
         }
         return true;
       case 3:
-        return (
-          (localForm.achievements || []).length > 0 &&
-          (!((localForm.achievements || []).includes("Other")) || localForm.achievement_other.trim())
-        );
+        // Achievements OPTIONAL. If "Other" chosen, must fill in details.
+        if ((localForm.achievements || []).includes("Other")) {
+          return localForm.achievement_other.trim();
+        }
+        return true;
       default:
         return false;
     }
@@ -115,14 +117,13 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
       if (typeof setFormData === "function") {
         setFormData(localForm);
       }
-      if (props.navigate) props.navigate("/fmvcalculator/step2");
+      navigate("/fmvcalculator/step2");
     } else {
       setStep((s) => s + 1);
     }
   };
 
   const handleBack = () => setStep((s) => Math.max(0, s - 1));
-
   const updateField = (field, value) => setLocalForm((prev) => ({ ...prev, [field]: value }));
 
   const handlePlatformChange = (platforms) => {
@@ -133,7 +134,6 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
     if (!platforms.includes("YouTube")) updateField("followers_youtube", "");
   };
 
-  // Section layouts with enforced input text color
   const aboutYou = (
     <Stack spacing={6}>
       <Heading fontSize="2xl" color="white">About You</Heading>
@@ -145,8 +145,6 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           placeholder="Your Name"
           bg="gray.800"
           style={{ color: "white" }}
-          _placeholder={{ color: "gray.400" }}
-          focusBorderColor="green.400"
         />
       </FormControl>
       <FormControl isRequired>
@@ -158,8 +156,6 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           placeholder="you@email.com"
           bg="gray.800"
           style={{ color: "white" }}
-          _placeholder={{ color: "gray.400" }}
-          focusBorderColor="green.400"
         />
       </FormControl>
       <FormControl isRequired>
@@ -170,8 +166,6 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           placeholder="University of Virginia"
           bg="gray.800"
           style={{ color: "white" }}
-          _placeholder={{ color: "gray.400" }}
-          focusBorderColor="green.400"
         />
       </FormControl>
       <FormControl>
@@ -182,8 +176,6 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           placeholder="Select division"
           bg="gray.800"
           style={{ color: "white" }}
-          _placeholder={{ color: "gray.400" }}
-          focusBorderColor="green.400"
         >
           {DIVISIONS.map(d => <option key={d} value={d}>{d}</option>)}
         </Select>
@@ -196,8 +188,6 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           placeholder="Select conference"
           bg="gray.800"
           style={{ color: "white" }}
-          _placeholder={{ color: "gray.400" }}
-          focusBorderColor="green.400"
         >
           {CONFERENCES.map(c => <option key={c} value={c}>{c}</option>)}
         </Select>
@@ -219,8 +209,6 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           placeholder="Select gender"
           bg="gray.800"
           style={{ color: "white" }}
-          _placeholder={{ color: "gray.400" }}
-          focusBorderColor="green.400"
         >
           {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
         </Select>
@@ -233,8 +221,6 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           placeholder="Select sport"
           bg="gray.800"
           style={{ color: "white" }}
-          _placeholder={{ color: "gray.400" }}
-          focusBorderColor="green.400"
           isDisabled={!localForm.gender}
         >
           {localForm.gender && SPORTS[localForm.gender].map(s => (
@@ -249,13 +235,7 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           onChange={(_, v) => updateField("graduation_year", v)}
           min={2024} max={2030}
         >
-          <NumberInputField
-            placeholder="2026"
-            bg="gray.800"
-            style={{ color: "white" }}
-            _placeholder={{ color: "gray.400" }}
-            focusBorderColor="green.400"
-          />
+          <NumberInputField placeholder="2026" bg="gray.800" style={{ color: "white" }} />
         </NumberInput>
       </FormControl>
       <FormControl>
@@ -265,13 +245,7 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           onChange={(_, v) => updateField("age", v)}
           min={15} max={30}
         >
-          <NumberInputField
-            placeholder="e.g., 20"
-            bg="gray.800"
-            style={{ color: "white" }}
-            _placeholder={{ color: "gray.400" }}
-            focusBorderColor="green.400"
-          />
+          <NumberInputField placeholder="e.g., 20" bg="gray.800" style={{ color: "white" }} />
         </NumberInput>
       </FormControl>
       <FormControl>
@@ -280,15 +254,9 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           value={localForm.gpa}
           onChange={(_, v) => updateField("gpa", v)}
           precision={2}
-          min={0} max={4.3} step={0.01}
+          min={0} max={4.0} step={0.01}
         >
-          <NumberInputField
-            placeholder="e.g., 3.78"
-            bg="gray.800"
-            style={{ color: "white" }}
-            _placeholder={{ color: "gray.400" }}
-            focusBorderColor="green.400"
-          />
+          <NumberInputField placeholder="e.g., 3.78" bg="gray.800" style={{ color: "white" }} />
         </NumberInput>
       </FormControl>
       <FormControl>
@@ -298,13 +266,7 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           onChange={(_, v) => updateField("prior_nil_deals", v)}
           min={0}
         >
-          <NumberInputField
-            placeholder="e.g., 2"
-            bg="gray.800"
-            style={{ color: "white" }}
-            _placeholder={{ color: "gray.400" }}
-            focusBorderColor="green.400"
-          />
+          <NumberInputField placeholder="e.g., 2" bg="gray.800" style={{ color: "white" }} />
         </NumberInput>
       </FormControl>
     </Stack>
@@ -313,7 +275,7 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
   const socials = (
     <Stack spacing={6}>
       <Heading fontSize="2xl" color="white">Social Media</Heading>
-      <FormControl isRequired>
+      <FormControl>
         <FormLabel color="gray.200">Which social platforms do you use?</FormLabel>
         <CheckboxGroup
           colorScheme="green"
@@ -337,13 +299,7 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
             onChange={(_, v) => updateField("followers_instagram", v)}
             min={0}
           >
-            <NumberInputField
-              placeholder="e.g., 5000"
-              bg="gray.800"
-              style={{ color: "white" }}
-              _placeholder={{ color: "gray.400" }}
-              focusBorderColor="green.400"
-            />
+            <NumberInputField placeholder="e.g., 5000" bg="gray.800" style={{ color: "white" }} />
           </NumberInput>
         </FormControl>
       )}
@@ -355,13 +311,7 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
             onChange={(_, v) => updateField("followers_tiktok", v)}
             min={0}
           >
-            <NumberInputField
-              placeholder="e.g., 2500"
-              bg="gray.800"
-              style={{ color: "white" }}
-              _placeholder={{ color: "gray.400" }}
-              focusBorderColor="green.400"
-            />
+            <NumberInputField placeholder="e.g., 2500" bg="gray.800" style={{ color: "white" }} />
           </NumberInput>
         </FormControl>
       )}
@@ -373,13 +323,7 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
             onChange={(_, v) => updateField("followers_twitter", v)}
             min={0}
           >
-            <NumberInputField
-              placeholder="e.g., 1200"
-              bg="gray.800"
-              style={{ color: "white" }}
-              _placeholder={{ color: "gray.400" }}
-              focusBorderColor="green.400"
-            />
+            <NumberInputField placeholder="e.g., 1200" bg="gray.800" style={{ color: "white" }} />
           </NumberInput>
         </FormControl>
       )}
@@ -391,13 +335,7 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
             onChange={(_, v) => updateField("followers_youtube", v)}
             min={0}
           >
-            <NumberInputField
-              placeholder="e.g., 1000"
-              bg="gray.800"
-              style={{ color: "white" }}
-              _placeholder={{ color: "gray.400" }}
-              focusBorderColor="green.400"
-            />
+            <NumberInputField placeholder="e.g., 1000" bg="gray.800" style={{ color: "white" }} />
           </NumberInput>
         </FormControl>
       )}
@@ -407,7 +345,7 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
   const achievements = (
     <Stack spacing={6}>
       <Heading fontSize="2xl" color="white">Athletic Achievements</Heading>
-      <FormControl isRequired>
+      <FormControl>
         <FormLabel color="gray.200">What are your top achievements?</FormLabel>
         <CheckboxGroup
           colorScheme="green"
@@ -433,8 +371,6 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
             placeholder="Describe your other achievements"
             bg="gray.800"
             style={{ color: "white" }}
-            _placeholder={{ color: "gray.400" }}
-            focusBorderColor="green.400"
           />
         </FormControl>
       )}
