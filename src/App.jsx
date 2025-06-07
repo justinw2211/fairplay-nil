@@ -8,7 +8,7 @@ import Brands from "./pages/Brands";
 import AboutUs from "./pages/AboutUs";
 import Security from "./pages/Security";
 import Careers from "./pages/Careers";
-import FMVCalculator from "./pages/FMVCalculator"; // <-- The robust survey parent
+import FMVCalculator from "./pages/FMVCalculator"; // robust survey parent
 
 const App = () => {
   const location = useLocation();
@@ -183,10 +183,10 @@ const App = () => {
       </nav>
 
       <Routes>
-        {/* Single parent survey route handles all survey steps */}
+        {/* Robust parent handles all survey steps */}
         <Route path="/fmvcalculator/*" element={<FMVCalculator />} />
 
-        {/* The rest of your site routes remain the same */}
+        {/* All your main nav pages as before */}
         <Route path="/" element={<Home />} />
         <Route path="/athletes" element={<Athletes />} />
         <Route path="/universities" element={<Universities />} />

@@ -1,89 +1,83 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation, Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import FMVStep1 from "./FMVStep1";
 import FMVStep2 from "./FMVStep2";
 import FMVReviewStep from "./FMVReviewStep";
 import FMVResult from "./FMVResult";
-import { Box } from "@chakra-ui/react";
 
-// You can expand this as needed!
-const initialFormData = {
-  division: "",
-  school: "",
-  name: "",
-  email: "",
-  gender: "",
-  sport: "",
-  graduation_year: "",
-  age: "",
-  gpa: "",
-  prior_nil_deals: "",
-  // Add deal-specific fields here
-};
+// This is the robust parent component for the multi-step survey.
+// It manages global state and all navigation between survey steps.
 
 export default function FMVCalculator() {
-  const [formData, setFormData] = useState(initialFormData);
-  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const steps = [
-    { path: "/fmvcalculator/step1", label: "Profile & Academics" },
-    { path: "/fmvcalculator/step2", label: "Deal Details" },
-    { path: "/fmvcalculator/review", label: "Review" },
-    { path: "/fmvcalculator/result", label: "Result" },
-  ];
+  // The unified form data state. 
+  // All steps update this object (it persists across all pages in the flow).
+  const [formData, setFormData] = useState(() => {
+    // Try to recover saved profile from localStorage on refresh/resume
+    let saved = {};
+    try {
+      saved = JSON.parse(localStorage.getItem("fpn_profile") || "{}");
+    } catch {}
+    return saved || {};
+  });
 
-  const currentStepIdx = steps.findIndex(step => step.path === location.pathname);
-
-  const goToStep = (idx) => {
-    if (idx >= 0 && idx < steps.length) navigate(steps[idx].path);
+  // Helper functions to update state and optionally persist to localStorage.
+  const updateFormData = (newFields) => {
+    setFormData(prev => {
+      const next = { ...prev, ...newFields };
+      localStorage.setItem("fpn_profile", JSON.stringify(next));
+      return next;
+    });
   };
 
-  const handleNext = () => goToStep(currentStepIdx + 1);
-  const handleBack = () => goToStep(currentStepIdx - 1);
+  // Step navigation helpers (for all steps to use)
+  const goToStep1 = () => navigate("/fmvcalculator/step1");
+  const goToStep2 = () => navigate("/fmvcalculator/step2");
+  const goToReview = () => navigate("/fmvcalculator/review");
+  const goToResult = () => navigate("/fmvcalculator/result");
 
+  // Render each step as a sub-route under /fmvcalculator/*
   return (
-    <Box bg="linear-gradient(to bottom,#181a20 60%,#23272f 100%)" minH="100vh">
-      <Routes>
-        <Route
-          path="/step1"
-          element={
-            <FMVStep1
-              formData={formData}
-              setFormData={setFormData}
-              errors={errors}
-              setErrors={setErrors}
-              onNext={handleNext}
-              onBack={handleBack}
-            />
-          }
-        />
-        <Route
-          path="/step2"
-          element={
-            <FMVStep2
-              formData={formData}
-              setFormData={setFormData}
-              errors={errors}
-              setErrors={setErrors}
-              onNext={handleNext}
-              onBack={handleBack}
-            />
-          }
-        />
-        <Route
-          path="/review"
-          element={
-            <FMVReviewStep
-              formData={formData}
-              onNext={handleNext}
-              onBack={handleBack}
-            />
-          }
-        />
-        <Route path="/result" element={<FMVResult />} />
-      </Routes>
-    </Box>
+    <Routes>
+      <Route
+        path="/step1"
+        element={
+          <FMVStep1
+            formData={formData}
+            setFormData={updateFormData}
+            onNext={goToStep2}
+          />
+        }
+      />
+      <Route
+        path="/step2"
+        element={
+          <FMVStep2
+            formData={formData}
+            setFormData={updateFormData}
+            onBack={goToStep1}
+            onNext={goToReview}
+          />
+        }
+      />
+      <Route
+        path="/review"
+        element={
+          <FMVReviewStep
+            formData={formData}
+            setFormData={updateFormData}
+            onBack={goToStep2}
+            onNext={goToResult}
+          />
+        }
+      />
+      <Route
+        path="/result"
+        element={<FMVResult formData={formData} />}
+      />
+      {/* Default/fallback: Start at step 1 */}
+      <Route path="*" element={<FMVStep1 formData={formData} setFormData={updateFormData} onNext={goToStep2} />} />
+    </Routes>
   );
 }
