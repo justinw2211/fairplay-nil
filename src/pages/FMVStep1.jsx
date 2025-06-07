@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import {
   Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
   Input, Select, CheckboxGroup, Checkbox, NumberInput, NumberInputField,
-  useToast, Textarea, RadioGroup, Radio, Text, SimpleGrid
+  useToast, Textarea, Text, SimpleGrid
 } from "@chakra-ui/react";
 
 const DIVISIONS = ["I", "II", "III"];
@@ -144,10 +144,9 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           onChange={e => updateField("name", e.target.value)}
           placeholder="Your Name"
           bg="gray.800"
-          color="white"
+          style={{ color: "white" }}
           _placeholder={{ color: "gray.400" }}
           focusBorderColor="green.400"
-          sx={{ color: "white !important" }}
         />
       </FormControl>
       <FormControl isRequired>
@@ -158,10 +157,9 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           onChange={e => updateField("email", e.target.value)}
           placeholder="you@email.com"
           bg="gray.800"
-          color="white"
+          style={{ color: "white" }}
           _placeholder={{ color: "gray.400" }}
           focusBorderColor="green.400"
-          sx={{ color: "white !important" }}
         />
       </FormControl>
       <FormControl isRequired>
@@ -171,10 +169,9 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           onChange={e => updateField("school", e.target.value)}
           placeholder="University of Virginia"
           bg="gray.800"
-          color="white"
+          style={{ color: "white" }}
           _placeholder={{ color: "gray.400" }}
           focusBorderColor="green.400"
-          sx={{ color: "white !important" }}
         />
       </FormControl>
       <FormControl>
@@ -184,10 +181,9 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           onChange={e => updateField("division", e.target.value)}
           placeholder="Select division"
           bg="gray.800"
-          color="white"
+          style={{ color: "white" }}
           _placeholder={{ color: "gray.400" }}
           focusBorderColor="green.400"
-          sx={{ color: "white !important" }}
         >
           {DIVISIONS.map(d => <option key={d} value={d}>{d}</option>)}
         </Select>
@@ -199,10 +195,9 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           onChange={e => updateField("conference", e.target.value)}
           placeholder="Select conference"
           bg="gray.800"
-          color="white"
+          style={{ color: "white" }}
           _placeholder={{ color: "gray.400" }}
           focusBorderColor="green.400"
-          sx={{ color: "white !important" }}
         >
           {CONFERENCES.map(c => <option key={c} value={c}>{c}</option>)}
         </Select>
@@ -223,10 +218,9 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           }}
           placeholder="Select gender"
           bg="gray.800"
-          color="white"
+          style={{ color: "white" }}
           _placeholder={{ color: "gray.400" }}
           focusBorderColor="green.400"
-          sx={{ color: "white !important" }}
         >
           {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
         </Select>
@@ -238,10 +232,9 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           onChange={e => updateField("sport", e.target.value)}
           placeholder="Select sport"
           bg="gray.800"
-          color="white"
+          style={{ color: "white" }}
           _placeholder={{ color: "gray.400" }}
           focusBorderColor="green.400"
-          sx={{ color: "white !important" }}
           isDisabled={!localForm.gender}
         >
           {localForm.gender && SPORTS[localForm.gender].map(s => (
@@ -259,10 +252,9 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           <NumberInputField
             placeholder="2026"
             bg="gray.800"
-            color="white"
+            style={{ color: "white" }}
             _placeholder={{ color: "gray.400" }}
             focusBorderColor="green.400"
-            sx={{ color: "white !important" }}
           />
         </NumberInput>
       </FormControl>
@@ -276,10 +268,9 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           <NumberInputField
             placeholder="e.g., 20"
             bg="gray.800"
-            color="white"
+            style={{ color: "white" }}
             _placeholder={{ color: "gray.400" }}
             focusBorderColor="green.400"
-            sx={{ color: "white !important" }}
           />
         </NumberInput>
       </FormControl>
@@ -294,10 +285,9 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           <NumberInputField
             placeholder="e.g., 3.78"
             bg="gray.800"
-            color="white"
+            style={{ color: "white" }}
             _placeholder={{ color: "gray.400" }}
             focusBorderColor="green.400"
-            sx={{ color: "white !important" }}
           />
         </NumberInput>
       </FormControl>
@@ -311,10 +301,9 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           <NumberInputField
             placeholder="e.g., 2"
             bg="gray.800"
-            color="white"
+            style={{ color: "white" }}
             _placeholder={{ color: "gray.400" }}
             focusBorderColor="green.400"
-            sx={{ color: "white !important" }}
           />
         </NumberInput>
       </FormControl>
@@ -351,10 +340,9 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
             <NumberInputField
               placeholder="e.g., 5000"
               bg="gray.800"
-              color="white"
+              style={{ color: "white" }}
               _placeholder={{ color: "gray.400" }}
               focusBorderColor="green.400"
-              sx={{ color: "white !important" }}
             />
           </NumberInput>
         </FormControl>
@@ -370,10 +358,9 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
             <NumberInputField
               placeholder="e.g., 2500"
               bg="gray.800"
-              color="white"
+              style={{ color: "white" }}
               _placeholder={{ color: "gray.400" }}
               focusBorderColor="green.400"
-              sx={{ color: "white !important" }}
             />
           </NumberInput>
         </FormControl>
@@ -389,10 +376,9 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
             <NumberInputField
               placeholder="e.g., 1200"
               bg="gray.800"
-              color="white"
+              style={{ color: "white" }}
               _placeholder={{ color: "gray.400" }}
               focusBorderColor="green.400"
-              sx={{ color: "white !important" }}
             />
           </NumberInput>
         </FormControl>
@@ -408,10 +394,9 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
             <NumberInputField
               placeholder="e.g., 1000"
               bg="gray.800"
-              color="white"
+              style={{ color: "white" }}
               _placeholder={{ color: "gray.400" }}
               focusBorderColor="green.400"
-              sx={{ color: "white !important" }}
             />
           </NumberInput>
         </FormControl>
@@ -447,10 +432,9 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
             onChange={e => updateField("achievement_other", e.target.value)}
             placeholder="Describe your other achievements"
             bg="gray.800"
-            color="white"
+            style={{ color: "white" }}
             _placeholder={{ color: "gray.400" }}
             focusBorderColor="green.400"
-            sx={{ color: "white !important" }}
           />
         </FormControl>
       )}
