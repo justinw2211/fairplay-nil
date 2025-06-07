@@ -1,114 +1,196 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
-  NumberInput, NumberInputField, useToast, Text, SimpleGrid, Input, FormErrorMessage, Radio, RadioGroup
+  Input, NumberInput, NumberInputField, useToast, Text, SimpleGrid, FormErrorMessage
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
+import { NCAA_SCHOOLS, NCAA_SCHOOL_OPTIONS } from "../data/ncaaSchools.js";
 
-const PAYMENT_OPTIONS = [
-  { label: "One-time", value: "One-time" },
-  { label: "Recurring", value: "Recurring" },
-  { label: "Pay Per Post", value: "Pay Per Post" },
-  { label: "Commission-Based", value: "Commission-Based" },
-  { label: "In-Kind (Product Only)", value: "In-Kind (Product Only)" },
-  { label: "Other", value: "Other" }
+const DIVISIONS = ["I", "II", "III"];
+const GENDERS = [
+  "Male", "Female", "Nonbinary", "Prefer not to say", "Other"
 ];
-const DELIVERABLES = [
-  "Instagram Post", "Instagram Story", "TikTok Video", "Tweet", "YouTube Video",
-  "Event Appearance", "Autograph Session", "Podcast", "Other"
-];
-const DEAL_TYPES = [
-  "Sponsorship", "Ambassador", "Content Only", "Product Only", "Social Only", "Other"
-];
-const DEAL_CATEGORIES = [
-  "Apparel", "Equipment", "Nutrition", "Financial", "Technology", "Collective", "Other"
-];
-
+const SPORTS = {
+  "Male": [
+    "Basketball", "Football", "Baseball", "Soccer", "Track & Field", "Cross Country", "Lacrosse", "Golf", "Swimming", "Tennis", "Other"
+  ],
+  "Female": [
+    "Basketball", "Soccer", "Volleyball", "Softball", "Track & Field", "Cross Country", "Lacrosse", "Golf", "Swimming", "Tennis", "Other"
+  ],
+  "Nonbinary": [
+    "Basketball", "Soccer", "Track & Field", "Cross Country", "Other"
+  ],
+  "Prefer not to say": [
+    "Basketball", "Soccer", "Track & Field", "Cross Country", "Other"
+  ],
+  "Other": [
+    "Basketball", "Soccer", "Track & Field", "Cross Country", "Other"
+  ],
+};
 const STEPS = [
-  { label: "Deal Info" }
+  { label: "Profile" },
+  { label: "Academics & Athletics" }
 ];
 
 const initialFormData = {
-  payment_structure: "",
-  payment_structure_other: "",
-  deal_length_months: "",
-  proposed_dollar_amount: "",
-  deliverables: [],
-  deliverables_count: {},
-  deliverable_other: "",
-  deal_type: [],
-  deal_category: "",
-  brand_partner: "",
-  is_real_submission: "",
+  division: "",
+  school: "",
+  name: "",
+  email: "",
+  gender: "",
+  sport: "",
+  graduation_year: "",
+  age: "",
+  gpa: "",
+  prior_nil_deals: ""
 };
 
-export default function FMVStep2({ formData, setFormData }) {
-  // Load step2 form from formData or localStorage if available
+function isGPAValid(val) {
+  if (val === "") return true;
+  const num = parseFloat(val);
+  return !isNaN(num) && num >= 0 && num <= 4 && /^\d(\.\d{1,2})?$|^4(\.00?)?$/.test(val);
+}
+
+function getStepLabel(step) {
+  return STEPS[step] ? STEPS[step].label : "";
+}
+
+export default function FMVStep1({ formData, setFormData }) {
+  const [step, setStep] = useState(0);
   const [localForm, setLocalForm] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem("fpn_deal")) || (formData.step2 || initialFormData);
+      return JSON.parse(localStorage.getItem("fpn_profile")) || formData || initialFormData;
     } catch {
-      return formData.step2 || initialFormData;
+      return formData || initialFormData;
     }
   });
-  const [step] = useState(0);
-  const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [errors, setErrors] = useState({});
+  const [schoolOptions, setSchoolOptions] = useState([]);
+  const [schoolInput, setSchoolInput] = useState("");
+  const [didYouMean, setDidYouMean] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
+  const gpaInputRef = useRef(null);
 
   // Autosave to localStorage
   useEffect(() => {
-    localStorage.setItem("fpn_deal", JSON.stringify(localForm));
+    localStorage.setItem("fpn_profile", JSON.stringify(localForm));
   }, [localForm]);
 
   useEffect(() => {
-    // Resume draft logic (basic MVP)
+    // Set options based on division
+    if (localForm.division) {
+      const options = NCAA_SCHOOL_OPTIONS.filter(
+        (opt) => opt.division === localForm.division
+      );
+      setSchoolOptions(options);
+      setLocalForm(f => ({ ...f, school: "" }));
+    } else {
+      setSchoolOptions([]);
+      setLocalForm(f => ({ ...f, school: "" }));
+    }
+    setSchoolInput("");
+    setDidYouMean(null);
+    // eslint-disable-next-line
+  }, [localForm.division]);
+
+  useEffect(() => {
+    // Resume draft logic (basic MVP, can improve later)
     if (window.location.hash === "#resume") {
-      const saved = localStorage.getItem("fpn_deal");
+      const saved = localStorage.getItem("fpn_profile");
       if (saved) setLocalForm(JSON.parse(saved));
     }
   }, []);
 
-  // Ensure "Other" fields cleared when option removed
+  // For accessibility: focus GPA field if error
   useEffect(() => {
-    if (!localForm.deliverables.includes("Other")) {
-      setLocalForm(f => ({ ...f, deliverable_other: "" }));
+    if (errors.gpa && gpaInputRef.current) {
+      gpaInputRef.current.focus();
     }
-    if (localForm.payment_structure !== "Other") {
-      setLocalForm(f => ({ ...f, payment_structure_other: "" }));
-    }
-  }, [localForm.deliverables, localForm.payment_structure]);
+  }, [errors.gpa]);
 
-  // Validation
+  const handleGpaBlur = (e) => {
+    let val = e.target.value;
+    // Auto-format: if entered as 3 digits (e.g., "372"), convert to "3.72"
+    if (/^\d{3}$/.test(val)) {
+      val = `${val[0]}.${val.slice(1)}`;
+    }
+    let num = parseFloat(val);
+    // If invalid, clear and show error
+    if (isNaN(num) || num < 0 || num > 4) {
+      setErrors(e => ({ ...e, gpa: "GPA must be between 0.00 and 4.00" }));
+      setLocalForm(f => ({ ...f, gpa: "" }));
+      return;
+    }
+    setLocalForm(f => ({ ...f, gpa: num.toFixed(2) }));
+    setErrors(e => ({ ...e, gpa: undefined }));
+  };
+
   const validateStep = () => {
-    let errs = {};
-    if (!localForm.payment_structure) errs.payment_structure = "Payment structure is required.";
-    if (localForm.payment_structure === "Other" && !localForm.payment_structure_other)
-      errs.payment_structure_other = "Please specify payment structure.";
-    if (!localForm.deal_length_months || localForm.deal_length_months < 1)
-      errs.deal_length_months = "Deal length required.";
-    if (!localForm.proposed_dollar_amount || Number(localForm.proposed_dollar_amount) < 1)
-      errs.proposed_dollar_amount = "Total Proposed Dollar Amount is required.";
-    if (localForm.deliverables.includes("Other") && !localForm.deliverable_other)
-      errs.deliverable_other = "Please specify other deliverable.";
-    // Deliverable counts must be numeric and >0 if deliverable selected
-    for (let del of localForm.deliverables) {
-      if (
-        !localForm.deliverables_count[del] ||
-        isNaN(localForm.deliverables_count[del]) ||
-        Number(localForm.deliverables_count[del]) < 1
-      ) {
-        errs[`deliverables_count_${del}`] = `Count for "${del}" required (must be 1 or more).`;
+    let stepErrors = {};
+    if (step === 0) {
+      if (!localForm.division) stepErrors.division = "Division is required.";
+      if (!localForm.school) stepErrors.school = "School is required.";
+      if (!localForm.name.trim()) stepErrors.name = "Full name is required.";
+      if (!localForm.email.trim() || !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(localForm.email))
+        stepErrors.email = "Valid email is required.";
+    }
+    if (step === 1) {
+      if (!localForm.gender) stepErrors.gender = "Gender is required.";
+      if (!localForm.sport) stepErrors.sport = "Sport is required.";
+      if (!localForm.graduation_year) stepErrors.graduation_year = "Graduation year is required.";
+      if (localForm.gpa !== "" && !isGPAValid(localForm.gpa))
+        stepErrors.gpa = "GPA must be a number between 0.00 and 4.00 (two decimals).";
+    }
+    setErrors(stepErrors);
+    return Object.keys(stepErrors).length === 0;
+  };
+
+  // Fuzzy match for "Did you mean"
+  const checkDidYouMean = (inputValue) => {
+    if (!inputValue || !schoolOptions.length) return null;
+    const input = inputValue.trim().toLowerCase();
+    const exact = schoolOptions.find(s => s.label.toLowerCase() === input);
+    if (exact) return null; // It's valid
+
+    // Fuzzy: find first close match by Levenshtein distance
+    let minDist = 3, best = null;
+    for (const option of schoolOptions) {
+      const label = option.label.toLowerCase();
+      const dist = levenshtein(input, label);
+      if (dist < minDist) {
+        minDist = dist;
+        best = option.label;
       }
     }
-    if (!localForm.deal_category) errs.deal_category = "Deal category required.";
-    if (!localForm.brand_partner) errs.brand_partner = "Brand partner required.";
-    if (!localForm.is_real_submission) errs.is_real_submission = "Please select if this is a real or test submission.";
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
+    return (best && minDist < 3) ? best : null;
   };
+
+  // Levenshtein distance for fuzzy matching
+  function levenshtein(a, b) {
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= b.length; i++) {
+      for (let j = 1; j <= a.length; j++) {
+        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j] + 1
+          );
+        }
+      }
+    }
+    return matrix[b.length][a.length];
+  }
 
   const handleNext = (e) => {
     e.preventDefault();
@@ -123,79 +205,58 @@ export default function FMVStep2({ formData, setFormData }) {
       setTouched(t => ({ ...t, [step]: true }));
       return;
     }
-    // Save to parent formData and move to review
-    setFormData(f => ({ ...f, step2: localForm }));
-    navigate("/fmvcalculator/review");
+    if (step === STEPS.length - 1) {
+      setFormData(localForm);
+      navigate("/fmvcalculator/step2");
+    } else {
+      setStep(s => s + 1);
+    }
   };
 
+  // Fixed: go back one step (not all the way to the start)
   const handleBack = () => {
-    navigate("/fmvcalculator/step1");
+    setStep(s => (s > 0 ? s - 1 : s));
   };
 
   const updateField = (field, value) => {
     setLocalForm(f => ({ ...f, [field]: value }));
     setErrors(e => ({ ...e, [field]: undefined }));
     setTouched(t => ({ ...t, [field]: true }));
+    if (field === "school") {
+      setDidYouMean(null);
+    }
   };
 
-  // For react-select multi
-  const handleDeliverablesChange = selected => {
-    const vals = selected ? selected.map(v => v.value) : [];
-    updateField("deliverables", vals);
-    // Remove counts for deselected deliverables
-    setLocalForm(f => {
-      const newCounts = { ...f.deliverables_count };
-      for (const key of Object.keys(newCounts)) {
-        if (!vals.includes(key)) delete newCounts[key];
-      }
-      return { ...f, deliverables_count: newCounts };
-    });
+  // School select handler
+  const handleSchoolChange = (selected) => {
+    updateField("school", selected ? selected.label : "");
+    setSchoolInput(selected ? selected.label : "");
+    setDidYouMean(null);
   };
 
-  // For react-select multi (deal_type)
-  const handleDealTypeChange = selected => {
-    const vals = selected ? selected.map(v => v.value) : [];
-    updateField("deal_type", vals);
+  // Manual entry handler
+  const handleSchoolInputChange = (inputVal) => {
+    setSchoolInput(inputVal);
+    setDidYouMean(checkDidYouMean(inputVal));
+    // Don't set value yet—wait for select
   };
 
-  // Custom styles for react-select multi
-  const selectStyles = {
-    control: (base) => ({
-      ...base,
-      background: "#222",
-      color: "white",
-      borderColor: "#555"
-    }),
-    singleValue: (base) => ({ ...base, color: "white" }),
-    input: (base) => ({ ...base, color: "white" }),
-    menu: (base) => ({ ...base, background: "#23272f", color: "#fff" }),
-    option: (base, state) => ({
-      ...base,
-      color: state.isSelected ? "#88E788" : "white",
-      background: state.isFocused ? "#262c32" : "#23272f"
-    }),
-    multiValue: (base) => ({
-      ...base,
-      background: "#353b42"
-    }),
-    multiValueLabel: (base) => ({
-      ...base,
-      color: "white",
-      fontWeight: 600
-    }),
-    multiValueRemove: (base) => ({
-      ...base,
-      color: "#88E788",
-      ':hover': { background: '#23272f', color: 'white' }
-    }),
-    placeholder: (base) => ({
-      ...base,
-      color: "gray"
-    })
+  // On blur, enforce only picking from valid schools
+  const handleSchoolBlur = () => {
+    const found = schoolOptions.find(opt => opt.label.toLowerCase() === (schoolInput || "").trim().toLowerCase());
+    if (found) {
+      updateField("school", found.label);
+      setDidYouMean(null);
+    } else if (schoolInput.trim()) {
+      setDidYouMean(checkDidYouMean(schoolInput));
+      updateField("school", "");
+      setErrors(e => ({ ...e, school: "Please select a valid school from the list." }));
+    }
   };
 
-  const progress = 67; // e.g. Step 2 of 3
-  const progressLabel = `Step 2 of 3: Deal Info`;
+  // Progress bar % and label
+  const progress = ((step + 1) / STEPS.length) * 100;
+  const progressLabel = `Step ${step + 1} of ${STEPS.length}: ${getStepLabel(step)}`;
 
   return (
     <Flex
@@ -230,147 +291,193 @@ export default function FMVStep2({ formData, setFormData }) {
         </Box>
         <form onSubmit={handleNext} autoComplete="off">
           <Stack spacing={6}>
-            <Heading fontSize="2xl" color="white">Deal Info</Heading>
-            <FormControl isRequired isInvalid={!!errors.payment_structure}>
-              <FormLabel color="gray.200">Payment Structure</FormLabel>
-              <Select
-                options={PAYMENT_OPTIONS}
-                value={localForm.payment_structure ? PAYMENT_OPTIONS.find(opt => opt.value === localForm.payment_structure) : null}
-                onChange={selected => updateField("payment_structure", selected ? selected.value : "")}
-                placeholder="Select payment structure"
-                styles={selectStyles}
-              />
-              {localForm.payment_structure === "Other" && (
-                <Input
-                  mt={2}
-                  bg="gray.800"
-                  color="white"
-                  placeholder="Describe payment structure"
-                  value={localForm.payment_structure_other}
-                  onChange={e => updateField("payment_structure_other", e.target.value)}
-                />
-              )}
-              <FormErrorMessage>{errors.payment_structure || errors.payment_structure_other}</FormErrorMessage>
-            </FormControl>
-
-            <FormControl isRequired isInvalid={!!errors.deal_length_months}>
-              <FormLabel color="gray.200">Deal Length (months)</FormLabel>
-              <NumberInput
-                value={localForm.deal_length_months}
-                onChange={(_, v) => updateField("deal_length_months", v)}
-                min={1} max={60} step={1}
-              >
-                <NumberInputField placeholder="e.g., 12" bg="gray.800" style={{ color: "white" }} />
-              </NumberInput>
-              <FormErrorMessage>{errors.deal_length_months}</FormErrorMessage>
-            </FormControl>
-
-            <FormControl isRequired isInvalid={!!errors.proposed_dollar_amount}>
-              <FormLabel color="gray.200">Total Proposed Dollar Amount</FormLabel>
-              <NumberInput
-                value={localForm.proposed_dollar_amount}
-                onChange={(_, v) => updateField("proposed_dollar_amount", v)}
-                min={1} step={1}
-                precision={2}
-              >
-                <NumberInputField placeholder="e.g., 1000" bg="gray.800" style={{ color: "white" }} />
-              </NumberInput>
-              <FormErrorMessage>{errors.proposed_dollar_amount}</FormErrorMessage>
-            </FormControl>
-
-            <FormControl>
-              <FormLabel color="gray.200">Deliverables (select all that apply)</FormLabel>
-              <Select
-                isMulti
-                options={DELIVERABLES.map(d => ({ label: d, value: d }))}
-                value={localForm.deliverables.map(d => ({ label: d, value: d }))}
-                onChange={handleDeliverablesChange}
-                placeholder="Choose deliverables"
-                styles={selectStyles}
-              />
-              {localForm.deliverables.includes("Other") && (
-                <Input
-                  mt={2}
-                  bg="gray.800"
-                  color="white"
-                  placeholder="Describe other deliverable"
-                  value={localForm.deliverable_other}
-                  onChange={e => updateField("deliverable_other", e.target.value)}
-                />
-              )}
-              <FormErrorMessage>{errors.deliverable_other}</FormErrorMessage>
-              {(localForm.deliverables || []).map(del => (
-                <FormControl key={del} isRequired isInvalid={!!errors[`deliverables_count_${del}`]}>
-                  <FormLabel color="gray.400" fontSize="sm" mt={2}>{del} Quantity</FormLabel>
-                  <NumberInput
-                    min={1}
-                    value={localForm.deliverables_count[del] || ""}
-                    onChange={(_, v) => setLocalForm(f => ({
-                      ...f,
-                      deliverables_count: { ...f.deliverables_count, [del]: v }
-                    }))}
-                  >
-                    <NumberInputField placeholder="1" bg="gray.800" style={{ color: "white" }} />
-                  </NumberInput>
-                  <FormErrorMessage>{errors[`deliverables_count_${del}`]}</FormErrorMessage>
+            {step === 0 && (
+              <>
+                <Heading fontSize="2xl" color="white">Profile</Heading>
+                <FormControl isRequired isInvalid={!!errors.division}>
+                  <FormLabel color="gray.200">Division</FormLabel>
+                  <Select
+                    options={DIVISIONS.map(d => ({ label: d, value: d }))}
+                    value={localForm.division ? { label: localForm.division, value: localForm.division } : null}
+                    onChange={selected => updateField("division", selected ? selected.value : "")}
+                    placeholder="Select division"
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        background: "#222", color: "white", borderColor: "#555"
+                      }),
+                      singleValue: (base) => ({ ...base, color: "white" }),
+                      input: (base) => ({ ...base, color: "white" }),
+                      menu: (base) => ({ ...base, background: "#23272f", color: "#fff" })
+                    }}
+                  />
+                  <FormErrorMessage>{errors.division}</FormErrorMessage>
                 </FormControl>
-              ))}
-            </FormControl>
-
-            <FormControl>
-              <FormLabel color="gray.200">Deal Type (select all that apply)</FormLabel>
-              <Select
-                isMulti
-                options={DEAL_TYPES.map(d => ({ label: d, value: d }))}
-                value={localForm.deal_type.map(d => ({ label: d, value: d }))}
-                onChange={handleDealTypeChange}
-                placeholder="Choose deal type"
-                styles={selectStyles}
-              />
-            </FormControl>
-
-            <FormControl isRequired isInvalid={!!errors.deal_category}>
-              <FormLabel color="gray.200">Deal Category</FormLabel>
-              <Select
-                options={DEAL_CATEGORIES.map(d => ({ label: d, value: d }))}
-                value={localForm.deal_category ? { label: localForm.deal_category, value: localForm.deal_category } : null}
-                onChange={selected => updateField("deal_category", selected ? selected.value : "")}
-                placeholder="Select category"
-                styles={selectStyles}
-              />
-              <FormErrorMessage>{errors.deal_category}</FormErrorMessage>
-            </FormControl>
-
-            <FormControl isRequired isInvalid={!!errors.brand_partner}>
-              <FormLabel color="gray.200">Brand Partner</FormLabel>
-              <Input
-                value={localForm.brand_partner}
-                onChange={e => updateField("brand_partner", e.target.value)}
-                placeholder="e.g., Nike"
-                bg="gray.800"
-                style={{ color: "white" }}
-              />
-              <FormErrorMessage>{errors.brand_partner}</FormErrorMessage>
-            </FormControl>
-
-            <FormControl isRequired isInvalid={!!errors.is_real_submission}>
-              <FormLabel color="gray.200">Is this a real submission?</FormLabel>
-              <RadioGroup
-                colorScheme="green"
-                value={localForm.is_real_submission}
-                onChange={v => updateField("is_real_submission", v)}
-              >
-                <SimpleGrid columns={[1, 2]} spacing={2}>
-                  <Radio value="yes" colorScheme="green" sx={{ color: "white" }}>Yes</Radio>
-                  <Radio value="no" colorScheme="green" sx={{ color: "white" }}>No (Test/Demo Only)</Radio>
-                </SimpleGrid>
-              </RadioGroup>
-              <FormErrorMessage>{errors.is_real_submission}</FormErrorMessage>
-            </FormControl>
+                <FormControl isRequired isInvalid={!!errors.school}>
+                  <FormLabel color="gray.200">School</FormLabel>
+                  <Select
+                    inputValue={schoolInput}
+                    onInputChange={handleSchoolInputChange}
+                    options={schoolOptions}
+                    value={localForm.school ? { label: localForm.school, value: localForm.school } : null}
+                    onChange={handleSchoolChange}
+                    onBlur={handleSchoolBlur}
+                    placeholder="Type to search your school..."
+                    isClearable
+                    isSearchable
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        background: "#222", color: "white", borderColor: "#555"
+                      }),
+                      singleValue: (base) => ({ ...base, color: "white" }),
+                      input: (base) => ({ ...base, color: "white" }),
+                      menu: (base) => ({ ...base, background: "#23272f", color: "#fff" })
+                    }}
+                  />
+                  {didYouMean && (
+                    <Text color="green.200" fontSize="sm" mt={1}>
+                      Did you mean <b onClick={() => {
+                        updateField("school", didYouMean);
+                        setSchoolInput(didYouMean);
+                        setDidYouMean(null);
+                      }} style={{ cursor: "pointer", textDecoration: "underline" }}>{didYouMean}</b>?
+                    </Text>
+                  )}
+                  <FormErrorMessage>{errors.school}</FormErrorMessage>
+                </FormControl>
+                <FormControl isRequired isInvalid={!!errors.name}>
+                  <FormLabel color="gray.200">Full Name</FormLabel>
+                  <Input
+                    value={localForm.name}
+                    onChange={e => updateField("name", e.target.value)}
+                    placeholder="Your Name"
+                    bg="gray.800"
+                    style={{ color: "white" }}
+                  />
+                  <FormErrorMessage>{errors.name}</FormErrorMessage>
+                </FormControl>
+                <FormControl isRequired isInvalid={!!errors.email}>
+                  <FormLabel color="gray.200">Email</FormLabel>
+                  <Input
+                    type="email"
+                    value={localForm.email}
+                    onChange={e => updateField("email", e.target.value)}
+                    placeholder="you@email.com"
+                    bg="gray.800"
+                    style={{ color: "white" }}
+                  />
+                  <FormErrorMessage>{errors.email}</FormErrorMessage>
+                </FormControl>
+              </>
+            )}
+            {step === 1 && (
+              <>
+                <Heading fontSize="2xl" color="white">Academics & Athletics</Heading>
+                <FormControl isRequired isInvalid={!!errors.gender}>
+                  <FormLabel color="gray.200">Gender</FormLabel>
+                  <Select
+                    options={GENDERS.map(g => ({ label: g, value: g }))}
+                    value={localForm.gender ? { label: localForm.gender, value: localForm.gender } : null}
+                    onChange={selected => {
+                      updateField("gender", selected ? selected.value : "");
+                      updateField("sport", "");
+                    }}
+                    placeholder="Select gender"
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        background: "#222", color: "white", borderColor: "#555"
+                      }),
+                      singleValue: (base) => ({ ...base, color: "white" }),
+                      input: (base) => ({ ...base, color: "white" }),
+                      menu: (base) => ({ ...base, background: "#23272f", color: "#fff" })
+                    }}
+                  />
+                  <FormErrorMessage>{errors.gender}</FormErrorMessage>
+                </FormControl>
+                <FormControl isRequired isInvalid={!!errors.sport}>
+                  <FormLabel color="gray.200">Sport</FormLabel>
+                  <Select
+                    options={localForm.gender ? (SPORTS[localForm.gender] || []).map(s => ({ label: s, value: s })) : []}
+                    value={localForm.sport ? { label: localForm.sport, value: localForm.sport } : null}
+                    onChange={selected => updateField("sport", selected ? selected.value : "")}
+                    placeholder="Select sport"
+                    isDisabled={!localForm.gender}
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        background: "#222", color: "white", borderColor: "#555"
+                      }),
+                      singleValue: (base) => ({ ...base, color: "white" }),
+                      input: (base) => ({ ...base, color: "white" }),
+                      menu: (base) => ({ ...base, background: "#23272f", color: "#fff" })
+                    }}
+                  />
+                  <FormErrorMessage>{errors.sport}</FormErrorMessage>
+                </FormControl>
+                <FormControl isRequired isInvalid={!!errors.graduation_year}>
+                  <FormLabel color="gray.200">Graduation Year</FormLabel>
+                  <NumberInput
+                    value={localForm.graduation_year}
+                    onChange={(_, v) => updateField("graduation_year", v)}
+                    min={2024} max={2030}
+                  >
+                    <NumberInputField placeholder="2026" bg="gray.800" style={{ color: "white" }} />
+                  </NumberInput>
+                  <FormErrorMessage>{errors.graduation_year}</FormErrorMessage>
+                </FormControl>
+                <FormControl isInvalid={!!errors.gpa}>
+                  <FormLabel color="gray.200">GPA (optional)</FormLabel>
+                  <Input
+                    ref={gpaInputRef}
+                    value={localForm.gpa}
+                    placeholder="e.g., 3.72"
+                    bg="gray.800"
+                    style={{ color: "white" }}
+                    onChange={e => {
+                      // Allow only numbers, period, and handle up to 2 decimals
+                      let val = e.target.value.replace(/[^0-9.]/g, "");
+                      // Prevent more than one decimal
+                      if ((val.match(/\./g) || []).length > 1) return;
+                      setLocalForm(f => ({ ...f, gpa: val }));
+                      setErrors(e => ({ ...e, gpa: undefined }));
+                    }}
+                    onBlur={handleGpaBlur}
+                    type="text"
+                    inputMode="decimal"
+                    maxLength={4}
+                  />
+                  <Text color="gray.400" fontSize="sm" mt={1}>Enter as 0.00 – 4.00 (two decimals)</Text>
+                  <FormErrorMessage>{errors.gpa}</FormErrorMessage>
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="gray.200">Age (optional)</FormLabel>
+                  <NumberInput
+                    value={localForm.age}
+                    onChange={(_, v) => updateField("age", v)}
+                    min={15} max={30}
+                  >
+                    <NumberInputField placeholder="e.g., 20" bg="gray.800" style={{ color: "white" }} />
+                  </NumberInput>
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="gray.200">Prior NIL Deals (optional)</FormLabel>
+                  <NumberInput
+                    value={localForm.prior_nil_deals}
+                    onChange={(_, v) => updateField("prior_nil_deals", v)}
+                    min={0}
+                  >
+                    <NumberInputField placeholder="e.g., 2" bg="gray.800" style={{ color: "white" }} />
+                  </NumberInput>
+                </FormControl>
+              </>
+            )}
           </Stack>
           <Flex mt={8} justify="space-between">
             <Button
               onClick={handleBack}
+              isDisabled={step === 0}
               colorScheme="green"
               variant="outline"
               style={{ color: "#fff", borderColor: "#88E788" }}
@@ -384,7 +491,7 @@ export default function FMVStep2({ formData, setFormData }) {
               px={8}
               fontWeight="bold"
             >
-              Continue
+              {step === STEPS.length - 1 ? "Continue" : "Next"}
             </Button>
           </Flex>
         </form>
@@ -395,12 +502,15 @@ export default function FMVStep2({ formData, setFormData }) {
             variant="ghost"
             style={{ color: "#88E788" }}
             onClick={() => {
-              localStorage.setItem("fpn_deal", JSON.stringify(initialFormData));
+              localStorage.setItem("fpn_profile", JSON.stringify(initialFormData));
               setLocalForm(initialFormData);
+              setStep(0);
               setTouched({});
               setErrors({});
+              setDidYouMean(null);
+              setSchoolInput("");
               toast({
-                title: "Deal form reset!",
+                title: "Form reset!",
                 status: "info",
                 duration: 1200,
                 isClosable: true
