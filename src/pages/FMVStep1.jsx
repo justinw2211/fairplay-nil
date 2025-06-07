@@ -58,13 +58,7 @@ function getStepLabel(step) {
 
 export default function FMVStep1({ formData, setFormData }) {
   const [step, setStep] = useState(0);
-  const [localForm, setLocalForm] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("fpn_profile")) || formData || initialFormData;
-    } catch {
-      return formData || initialFormData;
-    }
-  });
+  const [localForm, setLocalForm] = useState(() => formData || initialFormData);
   const [touched, setTouched] = useState({});
   const [errors, setErrors] = useState({});
   const [schoolOptions, setSchoolOptions] = useState([]);
@@ -73,7 +67,7 @@ export default function FMVStep1({ formData, setFormData }) {
   const navigate = useNavigate();
   const gpaInputRef = useRef(null);
 
-  // Autosave to localStorage
+  // Autosave
   useEffect(() => {
     localStorage.setItem("fpn_profile", JSON.stringify(localForm));
   }, [localForm]);
@@ -92,23 +86,15 @@ export default function FMVStep1({ formData, setFormData }) {
     // eslint-disable-next-line
   }, [localForm.division]);
 
-  // For accessibility: focus GPA field if error
+  // GPA validation focus
   useEffect(() => {
-    if (errors.gpa && gpaInputRef.current) {
-      gpaInputRef.current.focus();
-    }
+    if (errors.gpa && gpaInputRef.current) gpaInputRef.current.focus();
   }, [errors.gpa]);
 
-  // GPA handler — allows decimals and formats on blur
+  // GPA logic
   const handleGPAChange = (value) => {
-    // Allow: blank, 0–4, up to 2 decimals, leading .
-    if (value === "") {
-      setLocalForm(f => ({ ...f, gpa: "" }));
-      setErrors(e => ({ ...e, gpa: undefined }));
-      return;
-    }
-    // Allow up to "4", ".99", "3.99", etc.
-    if (/^([0-3]?(\.\d{0,2})?|4(\.0{0,2})?)$/.test(value) || /^\.\d{0,2}$/.test(value)) {
+    // Accept only valid numbers and one dot
+    if (value === "" || /^\d{0,1}(\.\d{0,2})?$/.test(value)) {
       setLocalForm(f => ({ ...f, gpa: value }));
       setErrors(e => ({ ...e, gpa: undefined }));
     }
@@ -117,24 +103,18 @@ export default function FMVStep1({ formData, setFormData }) {
   const handleGPABlur = () => {
     let val = localForm.gpa;
     if (val === "") return;
-    // Auto-format 3 digits as "3.72"
-    if (/^\d{3}$/.test(val)) val = `${val[0]}.${val.slice(1)}`;
-    // If just ".85" entered, make it "0.85"
-    if (/^\.\d+$/.test(val)) val = `0${val}`;
-    let num = parseFloat(val);
-    if (isNaN(num)) {
-      setLocalForm(f => ({ ...f, gpa: "" }));
-      setErrors(e => ({ ...e, gpa: "Invalid GPA format." }));
-      return;
+    // If "372", convert to "3.72"
+    if (/^\d{3}$/.test(val)) {
+      val = `${val[0]}.${val.slice(1)}`;
     }
-    if (num > 4) num = 4.00;
-    if (num < 0) num = 0.00;
-    const formatted = num.toFixed(2);
-    if (!isGPAValid(formatted)) {
+    // Remove leading zeros
+    val = val.replace(/^0+(\d)/, "$1");
+    let num = parseFloat(val);
+    if (isNaN(num) || num < 0 || num > 4) {
       setLocalForm(f => ({ ...f, gpa: "" }));
-      setErrors(e => ({ ...e, gpa: "GPA must be between 0.00 and 4.00" }));
+      setErrors(e => ({ ...e, gpa: "GPA must be 0.00–4.00" }));
     } else {
-      setLocalForm(f => ({ ...f, gpa: formatted }));
+      setLocalForm(f => ({ ...f, gpa: num.toFixed(2) }));
       setErrors(e => ({ ...e, gpa: undefined }));
     }
   };
@@ -159,7 +139,7 @@ export default function FMVStep1({ formData, setFormData }) {
     return Object.keys(stepErrors).length === 0;
   };
 
-  // Progress bar % and label
+  // Progress bar
   const progress = ((step + 1) / STEPS.length) * 100;
   const progressLabel = `Step ${step + 1} of ${STEPS.length}: ${getStepLabel(step)}`;
 
@@ -178,7 +158,7 @@ export default function FMVStep1({ formData, setFormData }) {
       return;
     }
     if (step === STEPS.length - 1) {
-      setFormData(localForm);
+      setFormData(localForm);  // Save to parent/global
       navigate("/fmvcalculator/step2");
     } else {
       setStep(s => s + 1);
