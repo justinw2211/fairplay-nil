@@ -2,10 +2,9 @@ import React, { useState } from "react";
 import {
   Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
   Input, Select, CheckboxGroup, Checkbox, NumberInput, NumberInputField,
-  useToast, Textarea, RadioGroup, Radio, Center, Text, SimpleGrid
+  useToast, Textarea, RadioGroup, Radio, Text, SimpleGrid
 } from "@chakra-ui/react";
 
-// Division and Conference options (add/remove as needed)
 const DIVISIONS = ["I", "II", "III"];
 const CONFERENCES = [
   "SEC", "ACC", "Big Ten", "Big 12", "Pac-12", "Ivy League", "AAC", "Sun Belt", "C-USA", "MWC", "WAC", "Other"
@@ -56,16 +55,13 @@ const initialFormData = {
 };
 
 export default function FMVStep1({ formData, setFormData, ...props }) {
-  // Local state for the multipage experience
   const [step, setStep] = useState(0);
   const [localForm, setLocalForm] = useState(formData || initialFormData);
   const [touched, setTouched] = useState({});
   const toast = useToast();
 
-  // Progress bar logic
   const progress = ((step + 1) / STEPS.length) * 100;
 
-  // Helper: Validate required fields for each section
   const validateStep = () => {
     switch (step) {
       case 0:
@@ -81,14 +77,13 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           localForm.graduation_year
         );
       case 2:
-        if (localForm.social_platforms.length === 0) return false;
-        // Check followers for each selected platform
-        for (const platform of localForm.social_platforms) {
+        if ((localForm.social_platforms || []).length === 0) return false;
+        for (const platform of localForm.social_platforms || []) {
           if (
-            platform === "Instagram" && !localForm.followers_instagram.trim()
-            || platform === "TikTok" && !localForm.followers_tiktok.trim()
-            || (platform === "Twitter/X" || platform === "Twitter") && !localForm.followers_twitter.trim()
-            || platform === "YouTube" && !localForm.followers_youtube.trim()
+            (platform === "Instagram" && !localForm.followers_instagram.toString().trim()) ||
+            (platform === "TikTok" && !localForm.followers_tiktok.toString().trim()) ||
+            ((platform === "Twitter/X" || platform === "Twitter") && !localForm.followers_twitter.toString().trim()) ||
+            (platform === "YouTube" && !localForm.followers_youtube.toString().trim())
           ) {
             return false;
           }
@@ -96,15 +91,14 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
         return true;
       case 3:
         return (
-          localForm.achievements.length > 0 &&
-          (!localForm.achievements.includes("Other") || localForm.achievement_other.trim())
+          (localForm.achievements || []).length > 0 &&
+          (!((localForm.achievements || []).includes("Other")) || localForm.achievement_other.trim())
         );
       default:
         return false;
     }
   };
 
-  // Next/Back handlers
   const handleNext = () => {
     if (!validateStep()) {
       toast({
@@ -118,11 +112,9 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
       return;
     }
     if (step === STEPS.length - 1) {
-      // Final step: commit form
       if (typeof setFormData === "function") {
         setFormData(localForm);
       }
-      // If using react-router, redirect to step 2:
       if (props.navigate) props.navigate("/fmvcalculator/step2");
     } else {
       setStep((s) => s + 1);
@@ -131,22 +123,17 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
 
   const handleBack = () => setStep((s) => Math.max(0, s - 1));
 
-  // Centralized change handler
   const updateField = (field, value) => setLocalForm((prev) => ({ ...prev, [field]: value }));
 
-  // Handle social platforms logic
   const handlePlatformChange = (platforms) => {
     updateField("social_platforms", platforms);
-    // Clear follower fields for unselected platforms
     if (!platforms.includes("Instagram")) updateField("followers_instagram", "");
     if (!platforms.includes("TikTok")) updateField("followers_tiktok", "");
     if (!platforms.includes("Twitter/X") && !platforms.includes("Twitter")) updateField("followers_twitter", "");
     if (!platforms.includes("YouTube")) updateField("followers_youtube", "");
   };
 
-  // --- Page Layouts ---
-
-  // 1. About You
+  // Section layouts (unchanged from previous version, but with safer array logic)
   const aboutYou = (
     <Stack spacing={6}>
       <Heading fontSize="2xl" color="white">About You</Heading>
@@ -203,7 +190,6 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
     </Stack>
   );
 
-  // 2. Academics & Athletics
   const academicsAthletics = (
     <Stack spacing={6}>
       <Heading fontSize="2xl" color="white">Academics & Athletics</Heading>
@@ -213,7 +199,7 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           value={localForm.gender}
           onChange={e => {
             updateField("gender", e.target.value);
-            updateField("sport", ""); // Reset sport on gender change
+            updateField("sport", "");
           }}
           placeholder="Select gender"
           bg="gray.800" color="white"
@@ -279,7 +265,6 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
     </Stack>
   );
 
-  // 3. Social Media
   const socials = (
     <Stack spacing={6}>
       <Heading fontSize="2xl" color="white">Social Media</Heading>
@@ -287,7 +272,7 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
         <FormLabel color="gray.200">Which social platforms do you use?</FormLabel>
         <CheckboxGroup
           colorScheme="green"
-          value={localForm.social_platforms}
+          value={localForm.social_platforms || []}
           onChange={handlePlatformChange}
         >
           <SimpleGrid columns={[1, 2]} spacing={2}>
@@ -299,7 +284,7 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           </SimpleGrid>
         </CheckboxGroup>
       </FormControl>
-      {localForm.social_platforms.includes("Instagram") && (
+      {(localForm.social_platforms || []).includes("Instagram") && (
         <FormControl isRequired>
           <FormLabel color="gray.200">Instagram Followers</FormLabel>
           <NumberInput
@@ -311,7 +296,7 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           </NumberInput>
         </FormControl>
       )}
-      {localForm.social_platforms.includes("TikTok") && (
+      {(localForm.social_platforms || []).includes("TikTok") && (
         <FormControl isRequired>
           <FormLabel color="gray.200">TikTok Followers</FormLabel>
           <NumberInput
@@ -323,7 +308,7 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           </NumberInput>
         </FormControl>
       )}
-      {(localForm.social_platforms.includes("Twitter/X") || localForm.social_platforms.includes("Twitter")) && (
+      {((localForm.social_platforms || []).includes("Twitter/X") || (localForm.social_platforms || []).includes("Twitter")) && (
         <FormControl isRequired>
           <FormLabel color="gray.200">Twitter/X Followers</FormLabel>
           <NumberInput
@@ -335,7 +320,7 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           </NumberInput>
         </FormControl>
       )}
-      {localForm.social_platforms.includes("YouTube") && (
+      {(localForm.social_platforms || []).includes("YouTube") && (
         <FormControl isRequired>
           <FormLabel color="gray.200">YouTube Followers</FormLabel>
           <NumberInput
@@ -350,7 +335,6 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
     </Stack>
   );
 
-  // 4. Achievements
   const achievements = (
     <Stack spacing={6}>
       <Heading fontSize="2xl" color="white">Athletic Achievements</Heading>
@@ -358,10 +342,10 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
         <FormLabel color="gray.200">What are your top achievements?</FormLabel>
         <CheckboxGroup
           colorScheme="green"
-          value={localForm.achievements}
+          value={localForm.achievements || []}
           onChange={v => {
             updateField("achievements", v);
-            if (!v.includes("Other")) updateField("achievement_other", "");
+            if (!(v || []).includes("Other")) updateField("achievement_other", "");
           }}
         >
           <SimpleGrid columns={[1, 2]} spacing={2}>
@@ -371,7 +355,7 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
           </SimpleGrid>
         </CheckboxGroup>
       </FormControl>
-      {localForm.achievements.includes("Other") && (
+      {(localForm.achievements || []).includes("Other") && (
         <FormControl isRequired>
           <FormLabel color="gray.200">Please specify other achievement(s)</FormLabel>
           <Textarea
@@ -385,7 +369,6 @@ export default function FMVStep1({ formData, setFormData, ...props }) {
     </Stack>
   );
 
-  // Render logic
   const renderSection = () => {
     switch (step) {
       case 0: return aboutYou;
