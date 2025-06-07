@@ -1,30 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
-  Input, Select, NumberInput, NumberInputField, RadioGroup, Radio,
-  CheckboxGroup, Checkbox, Textarea, useToast, SimpleGrid, Text, FormErrorMessage
+  NumberInput, NumberInputField, useToast, Text, CheckboxGroup, Checkbox, SimpleGrid, Input, FormErrorMessage
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
+import Select from "react-select";
 
-const PAYMENT_STRUCTURES = [
-  "One-time",
-  "Recurring",
-  "Pay per Post",
-  "Pay per Milestone",
-  "Pay per Appearance",
-  "Other"
+const PAYMENT_OPTIONS = [
+  { label: "One-time", value: "One-time" },
+  { label: "Recurring", value: "Recurring" },
+  { label: "Pay Per Post", value: "Pay Per Post" },
+  { label: "Commission-Based", value: "Commission-Based" },
+  { label: "In-Kind (Product Only)", value: "In-Kind (Product Only)" },
+  { label: "Other", value: "Other" }
 ];
-
 const DELIVERABLES = [
-  "Instagram Post", "Instagram Story", "TikTok Video", "Twitter/X Post", "YouTube Video", "Appearance", "Other"
+  "Instagram Post", "Instagram Story", "TikTok Video", "Tweet", "YouTube Video",
+  "Event Appearance", "Autograph Session", "Podcast", "Other"
+];
+const DEAL_TYPES = [
+  "Sponsorship", "Ambassador", "Content Only", "Product Only", "Social Only", "Other"
+];
+const DEAL_CATEGORIES = [
+  "Apparel", "Equipment", "Nutrition", "Financial", "Technology", "Collective", "Other"
 ];
 
-const DEAL_TYPES = ["Post", "Event", "Merch", "Apparel", "Content", "Other"];
-const DEAL_CATEGORIES = ["Apparel", "Nutrition", "Event", "Social", "Charity", "Other"];
 const STEPS = [
-  "Deal Structure",
-  "Deliverables",
-  "Additional Details"
+  { label: "Deal Info" }
 ];
 
 const initialFormData = {
@@ -33,62 +35,81 @@ const initialFormData = {
   deal_length_months: "",
   proposed_dollar_amount: "",
   deliverables: [],
-  deliverable_other: "",
   deliverables_count: {},
+  deliverable_other: "",
   deal_type: [],
   deal_category: "",
   brand_partner: "",
-  is_real_submission: ""
+  is_real_submission: "",
 };
 
 export default function FMVStep2({ formData, setFormData }) {
+  // Load step2 form from formData or localStorage if available
+  const [localForm, setLocalForm] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("fpn_deal")) || (formData.step2 || initialFormData);
+    } catch {
+      return formData.step2 || initialFormData;
+    }
+  });
   const [step, setStep] = useState(0);
-  const [localForm, setLocalForm] = useState(formData?.step2 || initialFormData);
   const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const toast = useToast();
   const navigate = useNavigate();
 
-  // Progress bar logic
-  const progress = ((step + 1) / STEPS.length) * 100;
+  // Autosave to localStorage
+  useEffect(() => {
+    localStorage.setItem("fpn_deal", JSON.stringify(localForm));
+  }, [localForm]);
 
-  // Validation per section
-  const validateStep = () => {
-    let stepErrors = {};
-    if (step === 0) {
-      if (!localForm.payment_structure) stepErrors.payment_structure = "Payment structure is required.";
-      if (localForm.payment_structure === "Other" && !localForm.payment_structure_other.trim())
-        stepErrors.payment_structure_other = "Please specify payment structure.";
-      if (!localForm.deal_length_months)
-        stepErrors.deal_length_months = "Deal length is required.";
-      if (!localForm.proposed_dollar_amount)
-        stepErrors.proposed_dollar_amount = "Total proposed dollar amount is required.";
+  useEffect(() => {
+    // Resume draft logic (basic MVP)
+    if (window.location.hash === "#resume") {
+      const saved = localStorage.getItem("fpn_deal");
+      if (saved) setLocalForm(JSON.parse(saved));
     }
-    if (step === 1) {
-      for (const del of localForm.deliverables || []) {
-        if (del === "Other") {
-          if (!localForm.deliverable_other.trim())
-            stepErrors.deliverable_other = "Please describe other deliverable.";
-          if (!localForm.deliverables_count["Other"])
-            stepErrors.deliverables_count_other = "Please specify quantity for 'Other'.";
-        } else {
-          if (!localForm.deliverables_count[del])
-            stepErrors[`deliverables_count_${del}`] = `Quantity required for ${del}.`;
-        }
+  }, []);
+
+  // Ensure "Other" fields cleared when option removed
+  useEffect(() => {
+    if (!localForm.deliverables.includes("Other")) {
+      setLocalForm(f => ({ ...f, deliverable_other: "" }));
+    }
+    if (localForm.payment_structure !== "Other") {
+      setLocalForm(f => ({ ...f, payment_structure_other: "" }));
+    }
+  }, [localForm.deliverables, localForm.payment_structure]);
+
+  // Validation
+  const validateStep = () => {
+    let errs = {};
+    if (!localForm.payment_structure) errs.payment_structure = "Payment structure is required.";
+    if (localForm.payment_structure === "Other" && !localForm.payment_structure_other)
+      errs.payment_structure_other = "Please specify payment structure.";
+    if (!localForm.deal_length_months || localForm.deal_length_months < 1)
+      errs.deal_length_months = "Deal length required.";
+    if (!localForm.proposed_dollar_amount || Number(localForm.proposed_dollar_amount) < 1)
+      errs.proposed_dollar_amount = "Total Proposed Dollar Amount is required.";
+    if (localForm.deliverables.includes("Other") && !localForm.deliverable_other)
+      errs.deliverable_other = "Please specify other deliverable.";
+    // Deliverable counts must be numeric and >0 if deliverable selected
+    for (let del of localForm.deliverables) {
+      if (
+        !localForm.deliverables_count[del] ||
+        isNaN(localForm.deliverables_count[del]) ||
+        Number(localForm.deliverables_count[del]) < 1
+      ) {
+        errs[`deliverables_count_${del}`] = `Count for "${del}" required (must be 1 or more).`;
       }
     }
-    if (step === 2) {
-      if (!localForm.deal_category)
-        stepErrors.deal_category = "Deal category is required.";
-      if (!localForm.brand_partner)
-        stepErrors.brand_partner = "Brand partner is required.";
-      if (!localForm.is_real_submission)
-        stepErrors.is_real_submission = "Please specify if this is a real submission.";
-    }
-    setErrors(stepErrors);
-    return Object.keys(stepErrors).length === 0;
+    if (!localForm.deal_category) errs.deal_category = "Deal category required.";
+    if (!localForm.brand_partner) errs.brand_partner = "Brand partner required.";
+    if (!localForm.is_real_submission) errs.is_real_submission = "Please select if this is a real or test submission.";
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
   };
 
-  // Next/Back handlers
   const handleNext = (e) => {
     e.preventDefault();
     if (!validateStep()) {
@@ -99,244 +120,41 @@ export default function FMVStep2({ formData, setFormData }) {
         isClosable: true,
         position: "top"
       });
+      setTouched(t => ({ ...t, [step]: true }));
       return;
     }
-    if (step === STEPS.length - 1) {
-      if (typeof setFormData === "function") {
-        setFormData({ ...formData, step2: localForm });
-      }
-      navigate("/fmvcalculator/review");
-    } else {
-      setStep((s) => s + 1);
-    }
+    // Save to parent formData and move to review
+    setFormData(f => ({ ...f, step2: localForm }));
+    navigate("/fmvcalculator/review");
   };
-  const handleBack = () => setStep((s) => Math.max(0, s - 1));
 
-  // Centralized change handler
+  const handleBack = () => {
+    // Go back to previous step
+    navigate("/fmvcalculator/step1");
+  };
+
   const updateField = (field, value) => {
-    setLocalForm(prev => ({ ...prev, [field]: value }));
+    setLocalForm(f => ({ ...f, [field]: value }));
     setErrors(e => ({ ...e, [field]: undefined }));
+    setTouched(t => ({ ...t, [field]: true }));
   };
 
-  // Deliverable logic
-  const handleDeliverablesChange = (selected) => {
-    updateField("deliverables", selected);
-    setLocalForm((prev) => {
-      const newCounts = { ...prev.deliverables_count };
-      Object.keys(newCounts).forEach((key) => {
-        if (!selected.includes(key)) delete newCounts[key];
-      });
-      return { ...prev, deliverables_count: newCounts };
+  // For react-select multi
+  const handleDeliverablesChange = selected => {
+    const vals = selected ? selected.map(v => v.value) : [];
+    updateField("deliverables", vals);
+    // Remove counts for deselected deliverables
+    setLocalForm(f => {
+      const newCounts = { ...f.deliverables_count };
+      for (const key of Object.keys(newCounts)) {
+        if (!vals.includes(key)) delete newCounts[key];
+      }
+      return { ...f, deliverables_count: newCounts };
     });
-    if (!selected.includes("Other")) updateField("deliverable_other", "");
   };
 
-  // --- Section renderers ---
-  const dealStructure = (
-    <Stack spacing={6}>
-      <Heading fontSize="2xl" color="white">Deal Structure</Heading>
-      <FormControl isRequired isInvalid={!!errors.payment_structure}>
-        <FormLabel color="gray.200">Payment Structure</FormLabel>
-        <RadioGroup
-          colorScheme="green"
-          value={localForm.payment_structure}
-          onChange={v => {
-            updateField("payment_structure", v);
-            if (v === "One-time") updateField("deal_length_months", "1");
-            else updateField("deal_length_months", "");
-          }}
-        >
-          <Stack direction="column" spacing={2}>
-            {PAYMENT_STRUCTURES.map(opt => (
-              <Radio key={opt} value={opt}>{opt}</Radio>
-            ))}
-          </Stack>
-        </RadioGroup>
-        <FormErrorMessage>{errors.payment_structure}</FormErrorMessage>
-      </FormControl>
-      {localForm.payment_structure === "Other" && (
-        <FormControl isRequired isInvalid={!!errors.payment_structure_other}>
-          <FormLabel color="gray.200">Other (describe)</FormLabel>
-          <Input
-            value={localForm.payment_structure_other}
-            onChange={e => updateField("payment_structure_other", e.target.value)}
-            placeholder="Describe payment structure"
-            bg="gray.800"
-            style={{ color: "white" }}
-          />
-          <FormErrorMessage>{errors.payment_structure_other}</FormErrorMessage>
-        </FormControl>
-      )}
-      <FormControl isRequired isInvalid={!!errors.deal_length_months}>
-        <FormLabel color="gray.200">Deal Length {localForm.payment_structure === "One-time" ? "(auto-filled for one-time)" : "(months)"}</FormLabel>
-        <NumberInput
-          value={localForm.deal_length_months}
-          onChange={(_, v) => updateField("deal_length_months", v)}
-          min={1}
-          isDisabled={localForm.payment_structure === "One-time"}
-        >
-          <NumberInputField
-            placeholder={localForm.payment_structure === "One-time" ? "1" : "e.g., 6"}
-            bg="gray.800"
-            style={{ color: "white" }}
-          />
-        </NumberInput>
-        <FormErrorMessage>{errors.deal_length_months}</FormErrorMessage>
-      </FormControl>
-      <FormControl isRequired isInvalid={!!errors.proposed_dollar_amount}>
-        <FormLabel color="gray.200">Total Proposed Dollar Amount</FormLabel>
-        <NumberInput
-          value={localForm.proposed_dollar_amount}
-          onChange={(_, v) => updateField("proposed_dollar_amount", v)}
-          min={1}
-        >
-          <NumberInputField placeholder="e.g., 2500" bg="gray.800" style={{ color: "white" }} />
-        </NumberInput>
-        <FormErrorMessage>{errors.proposed_dollar_amount}</FormErrorMessage>
-      </FormControl>
-    </Stack>
-  );
-
-  const deliverablesSection = (
-    <Stack spacing={6}>
-      <Heading fontSize="2xl" color="white">Deliverables</Heading>
-      <FormControl>
-        <FormLabel color="gray.200">Which deliverables are included?</FormLabel>
-        <CheckboxGroup
-          colorScheme="green"
-          value={localForm.deliverables || []}
-          onChange={handleDeliverablesChange}
-        >
-          <SimpleGrid columns={[1, 2]} spacing={2}>
-            {DELIVERABLES.map(del => (
-              <Checkbox key={del} value={del}>{del}</Checkbox>
-            ))}
-          </SimpleGrid>
-        </CheckboxGroup>
-      </FormControl>
-      {(localForm.deliverables || []).map(del => (
-        <Box key={del} mt={2}>
-          {del === "Other" ? (
-            <Stack spacing={2}>
-              <FormControl isRequired isInvalid={!!errors.deliverable_other}>
-                <FormLabel color="gray.200">Please describe other deliverable</FormLabel>
-                <Textarea
-                  value={localForm.deliverable_other}
-                  onChange={e => updateField("deliverable_other", e.target.value)}
-                  placeholder="Describe your deliverable"
-                  bg="gray.800"
-                  style={{ color: "white" }}
-                />
-                <FormErrorMessage>{errors.deliverable_other}</FormErrorMessage>
-              </FormControl>
-              <FormControl isRequired isInvalid={!!errors.deliverables_count_other}>
-                <FormLabel color="gray.200">Quantity for Other Deliverable</FormLabel>
-                <NumberInput
-                  value={localForm.deliverables_count["Other"] || ""}
-                  onChange={(_, v) =>
-                    setLocalForm(prev => ({
-                      ...prev,
-                      deliverables_count: { ...prev.deliverables_count, ["Other"]: v }
-                    }))
-                  }
-                  min={1}
-                >
-                  <NumberInputField placeholder="e.g., 2" bg="gray.800" style={{ color: "white" }} />
-                </NumberInput>
-                <FormErrorMessage>{errors.deliverables_count_other}</FormErrorMessage>
-              </FormControl>
-            </Stack>
-          ) : (
-            <FormControl isRequired isInvalid={!!errors[`deliverables_count_${del}`]}>
-              <FormLabel color="gray.200">
-                Quantity for {del}
-              </FormLabel>
-              <NumberInput
-                value={localForm.deliverables_count[del] || ""}
-                onChange={(_, v) =>
-                  setLocalForm(prev => ({
-                    ...prev,
-                    deliverables_count: { ...prev.deliverables_count, [del]: v }
-                  }))
-                }
-                min={1}
-              >
-                <NumberInputField placeholder="e.g., 3" bg="gray.800" style={{ color: "white" }} />
-              </NumberInput>
-              <FormErrorMessage>{errors[`deliverables_count_${del}`]}</FormErrorMessage>
-            </FormControl>
-          )}
-        </Box>
-      ))}
-    </Stack>
-  );
-
-  const additionalDetails = (
-    <Stack spacing={6}>
-      <Heading fontSize="2xl" color="white">Additional Details</Heading>
-      <FormControl>
-        <FormLabel color="gray.200">Deal Type</FormLabel>
-        <CheckboxGroup
-          colorScheme="green"
-          value={localForm.deal_type || []}
-          onChange={v => updateField("deal_type", v)}
-        >
-          <SimpleGrid columns={[1, 2]} spacing={2}>
-            {DEAL_TYPES.map(type => (
-              <Checkbox key={type} value={type}>{type}</Checkbox>
-            ))}
-          </SimpleGrid>
-        </CheckboxGroup>
-      </FormControl>
-      <FormControl isRequired isInvalid={!!errors.deal_category}>
-        <FormLabel color="gray.200">Deal Category</FormLabel>
-        <Select
-          value={localForm.deal_category}
-          onChange={e => updateField("deal_category", e.target.value)}
-          placeholder="Select category"
-          bg="gray.800"
-          style={{ color: "white" }}
-        >
-          {DEAL_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-        </Select>
-        <FormErrorMessage>{errors.deal_category}</FormErrorMessage>
-      </FormControl>
-      <FormControl isRequired isInvalid={!!errors.brand_partner}>
-        <FormLabel color="gray.200">Brand Partner</FormLabel>
-        <Input
-          value={localForm.brand_partner}
-          onChange={e => updateField("brand_partner", e.target.value)}
-          placeholder="Nike, Adidas, etc."
-          bg="gray.800"
-          style={{ color: "white" }}
-        />
-        <FormErrorMessage>{errors.brand_partner}</FormErrorMessage>
-      </FormControl>
-      <FormControl isRequired isInvalid={!!errors.is_real_submission}>
-        <FormLabel color="gray.200">Is this a real submission?</FormLabel>
-        <RadioGroup
-          colorScheme="green"
-          value={localForm.is_real_submission}
-          onChange={v => updateField("is_real_submission", v)}
-        >
-          <Stack direction="row">
-            <Radio value="yes">Yes</Radio>
-            <Radio value="no">No (test/demo)</Radio>
-          </Stack>
-        </RadioGroup>
-        <FormErrorMessage>{errors.is_real_submission}</FormErrorMessage>
-      </FormControl>
-    </Stack>
-  );
-
-  const renderSection = () => {
-    switch (step) {
-      case 0: return dealStructure;
-      case 1: return deliverablesSection;
-      case 2: return additionalDetails;
-      default: return dealStructure;
-    }
-  };
+  const progress = 50 + 50 * ((step + 1) / STEPS.length); // 50% done at start of deal info, 100% at submit
+  const progressLabel = `Step 2 of 3: Deal Info`;
 
   return (
     <Flex
@@ -357,18 +175,203 @@ export default function FMVStep2({ formData, setFormData }) {
       >
         <Box mb={6}>
           <Text color="gray.300" fontWeight="bold" fontSize="md" mb={2} letterSpacing="wide">
-            Step {step + 1} of {STEPS.length}: {STEPS[step]}
+            {progressLabel}
           </Text>
-          <Progress value={progress} size="sm" colorScheme="green" borderRadius="lg" />
+          <Progress
+            value={progress}
+            size="md"
+            colorScheme="green"
+            borderRadius="full"
+            hasStripe
+            isAnimated
+            mb={2}
+          />
         </Box>
-        <form onSubmit={handleNext}>
-          {renderSection()}
+        <form onSubmit={handleNext} autoComplete="off">
+          <Stack spacing={6}>
+            <Heading fontSize="2xl" color="white">Deal Info</Heading>
+            <FormControl isRequired isInvalid={!!errors.payment_structure}>
+              <FormLabel color="gray.200">Payment Structure</FormLabel>
+              <Select
+                options={PAYMENT_OPTIONS}
+                value={localForm.payment_structure ? PAYMENT_OPTIONS.find(opt => opt.value === localForm.payment_structure) : null}
+                onChange={selected => updateField("payment_structure", selected ? selected.value : "")}
+                placeholder="Select payment structure"
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    background: "#222", color: "white", borderColor: "#555"
+                  }),
+                  singleValue: (base) => ({ ...base, color: "white" }),
+                  input: (base) => ({ ...base, color: "white" }),
+                  menu: (base) => ({ ...base, background: "#23272f", color: "#fff" })
+                }}
+              />
+              {localForm.payment_structure === "Other" && (
+                <Input
+                  mt={2}
+                  bg="gray.800"
+                  color="white"
+                  placeholder="Describe payment structure"
+                  value={localForm.payment_structure_other}
+                  onChange={e => updateField("payment_structure_other", e.target.value)}
+                />
+              )}
+              <FormErrorMessage>{errors.payment_structure || errors.payment_structure_other}</FormErrorMessage>
+            </FormControl>
+
+            <FormControl isRequired isInvalid={!!errors.deal_length_months}>
+              <FormLabel color="gray.200">Deal Length (months)</FormLabel>
+              <NumberInput
+                value={localForm.deal_length_months}
+                onChange={(_, v) => updateField("deal_length_months", v)}
+                min={1} max={60} step={1}
+              >
+                <NumberInputField placeholder="e.g., 12" bg="gray.800" style={{ color: "white" }} />
+              </NumberInput>
+              <FormErrorMessage>{errors.deal_length_months}</FormErrorMessage>
+            </FormControl>
+
+            <FormControl isRequired isInvalid={!!errors.proposed_dollar_amount}>
+              <FormLabel color="gray.200">Total Proposed Dollar Amount</FormLabel>
+              <NumberInput
+                value={localForm.proposed_dollar_amount}
+                onChange={(_, v) => updateField("proposed_dollar_amount", v)}
+                min={1} step={1}
+                precision={2}
+              >
+                <NumberInputField placeholder="e.g., 1000" bg="gray.800" style={{ color: "white" }} />
+              </NumberInput>
+              <FormErrorMessage>{errors.proposed_dollar_amount}</FormErrorMessage>
+            </FormControl>
+
+            <FormControl>
+              <FormLabel color="gray.200">Deliverables (select all that apply)</FormLabel>
+              <Select
+                isMulti
+                options={DELIVERABLES.map(d => ({ label: d, value: d }))}
+                value={localForm.deliverables.map(d => ({ label: d, value: d }))}
+                onChange={handleDeliverablesChange}
+                placeholder="Choose deliverables"
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    background: "#222", color: "white", borderColor: "#555"
+                  }),
+                  multiValue: (base) => ({ ...base, background: "#23272f", color: "white" }),
+                  menu: (base) => ({ ...base, background: "#23272f", color: "#fff" }),
+                  option: (base, state) => ({
+                    ...base,
+                    color: state.isSelected ? "#88E788" : "white"
+                  })
+                }}
+              />
+              {localForm.deliverables.includes("Other") && (
+                <Input
+                  mt={2}
+                  bg="gray.800"
+                  color="white"
+                  placeholder="Describe other deliverable"
+                  value={localForm.deliverable_other}
+                  onChange={e => updateField("deliverable_other", e.target.value)}
+                />
+              )}
+              <FormErrorMessage>{errors.deliverable_other}</FormErrorMessage>
+              {(localForm.deliverables || []).map(del => (
+                <FormControl key={del} isRequired isInvalid={!!errors[`deliverables_count_${del}`]}>
+                  <FormLabel color="gray.400" fontSize="sm" mt={2}>{del} Quantity</FormLabel>
+                  <NumberInput
+                    min={1}
+                    value={localForm.deliverables_count[del] || ""}
+                    onChange={(_, v) => setLocalForm(f => ({
+                      ...f,
+                      deliverables_count: { ...f.deliverables_count, [del]: v }
+                    }))}
+                  >
+                    <NumberInputField placeholder="1" bg="gray.800" style={{ color: "white" }} />
+                  </NumberInput>
+                  <FormErrorMessage>{errors[`deliverables_count_${del}`]}</FormErrorMessage>
+                </FormControl>
+              ))}
+            </FormControl>
+
+            <FormControl>
+              <FormLabel color="gray.200">Deal Type (select all that apply)</FormLabel>
+              <Select
+                isMulti
+                options={DEAL_TYPES.map(d => ({ label: d, value: d }))}
+                value={localForm.deal_type.map(d => ({ label: d, value: d }))}
+                onChange={selected => updateField("deal_type", selected ? selected.map(s => s.value) : [])}
+                placeholder="Choose deal type"
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    background: "#222", color: "white", borderColor: "#555"
+                  }),
+                  multiValue: (base) => ({ ...base, background: "#23272f", color: "white" }),
+                  menu: (base) => ({ ...base, background: "#23272f", color: "#fff" }),
+                  option: (base, state) => ({
+                    ...base,
+                    color: state.isSelected ? "#88E788" : "white"
+                  })
+                }}
+              />
+            </FormControl>
+
+            <FormControl isRequired isInvalid={!!errors.deal_category}>
+              <FormLabel color="gray.200">Deal Category</FormLabel>
+              <Select
+                options={DEAL_CATEGORIES.map(d => ({ label: d, value: d }))}
+                value={localForm.deal_category ? { label: localForm.deal_category, value: localForm.deal_category } : null}
+                onChange={selected => updateField("deal_category", selected ? selected.value : "")}
+                placeholder="Select category"
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    background: "#222", color: "white", borderColor: "#555"
+                  }),
+                  singleValue: (base) => ({ ...base, color: "white" }),
+                  input: (base) => ({ ...base, color: "white" }),
+                  menu: (base) => ({ ...base, background: "#23272f", color: "#fff" })
+                }}
+              />
+              <FormErrorMessage>{errors.deal_category}</FormErrorMessage>
+            </FormControl>
+
+            <FormControl isRequired isInvalid={!!errors.brand_partner}>
+              <FormLabel color="gray.200">Brand Partner</FormLabel>
+              <Input
+                value={localForm.brand_partner}
+                onChange={e => updateField("brand_partner", e.target.value)}
+                placeholder="e.g., Nike"
+                bg="gray.800"
+                style={{ color: "white" }}
+              />
+              <FormErrorMessage>{errors.brand_partner}</FormErrorMessage>
+            </FormControl>
+
+            <FormControl isRequired isInvalid={!!errors.is_real_submission}>
+              <FormLabel color="gray.200">Is this a real submission?</FormLabel>
+              <CheckboxGroup
+                colorScheme="green"
+                value={localForm.is_real_submission ? [localForm.is_real_submission] : []}
+                onChange={vals => updateField("is_real_submission", vals[0] || "")}
+              >
+                <SimpleGrid columns={[1, 2]} spacing={2}>
+                  <Checkbox value="yes">Yes</Checkbox>
+                  <Checkbox value="no">No (Test/Demo Only)</Checkbox>
+                </SimpleGrid>
+              </CheckboxGroup>
+              <FormErrorMessage>{errors.is_real_submission}</FormErrorMessage>
+            </FormControl>
+          </Stack>
           <Flex mt={8} justify="space-between">
             <Button
               onClick={handleBack}
-              isDisabled={step === 0}
-              colorScheme="gray"
+              colorScheme="green"
               variant="outline"
+              style={{ color: "#fff", borderColor: "#88E788" }}
+              _hover={{ bg: "#23272f", color: "#88E788", borderColor: "#88E788" }}
             >
               Back
             </Button>
@@ -378,10 +381,49 @@ export default function FMVStep2({ formData, setFormData }) {
               px={8}
               fontWeight="bold"
             >
-              {step === STEPS.length - 1 ? "Continue" : "Next"}
+              Continue
             </Button>
           </Flex>
         </form>
+        <Flex mt={3} justify="space-between" align="center">
+          <Button
+            size="sm"
+            colorScheme="gray"
+            variant="ghost"
+            style={{ color: "#88E788" }}
+            onClick={() => {
+              localStorage.setItem("fpn_deal", JSON.stringify(initialFormData));
+              setLocalForm(initialFormData);
+              setTouched({});
+              setErrors({});
+              toast({
+                title: "Deal form reset!",
+                status: "info",
+                duration: 1200,
+                isClosable: true
+              });
+            }}
+          >
+            Reset Form
+          </Button>
+          <Button
+            size="sm"
+            colorScheme="green"
+            variant="ghost"
+            style={{ color: "#88E788" }}
+            onClick={() => {
+              toast({
+                title: "Resume link copied!",
+                status: "success",
+                duration: 1500,
+                isClosable: true
+              });
+              navigator.clipboard.writeText(window.location.href + "#resume");
+            }}
+          >
+            Save Progress & Get Link
+          </Button>
+        </Flex>
       </Box>
     </Flex>
   );

@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
-  Input, Select, CheckboxGroup, Checkbox, NumberInput, NumberInputField,
-  useToast, Textarea, Text, SimpleGrid, FormErrorMessage
+  Input, NumberInput, NumberInputField, useToast, Text, SimpleGrid, FormErrorMessage
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { NCAA_SCHOOLS } from "../data/ncaaSchools.js";
+import Select from "react-select";
+import { NCAA_SCHOOLS, NCAA_SCHOOL_OPTIONS } from "../data/ncaaSchools.js";
 
 const DIVISIONS = ["I", "II", "III"];
 const GENDERS = [
@@ -28,15 +28,9 @@ const SPORTS = {
     "Basketball", "Soccer", "Track & Field", "Cross Country", "Other"
   ],
 };
-const SOCIAL_PLATFORMS = ["Instagram", "TikTok", "Twitter/X", "YouTube"];
-const ACHIEVEMENTS = [
-  "All-American", "Conference Champion", "Team Captain", "National Team", "Starter", "Other"
-];
 const STEPS = [
-  "About You",
-  "Academics & Athletics",
-  "Social Media",
-  "Achievements"
+  { label: "Profile" },
+  { label: "Academics & Athletics" }
 ];
 
 const initialFormData = {
@@ -49,14 +43,7 @@ const initialFormData = {
   graduation_year: "",
   age: "",
   gpa: "",
-  prior_nil_deals: "",
-  social_platforms: [],
-  followers_instagram: "",
-  followers_tiktok: "",
-  followers_twitter: "",
-  followers_youtube: "",
-  achievements: [],
-  achievement_other: ""
+  prior_nil_deals: ""
 };
 
 function isGPAValid(val) {
@@ -65,47 +52,63 @@ function isGPAValid(val) {
   return !isNaN(num) && num >= 0 && num <= 4 && /^\d(\.\d{1,2})?$|^4(\.00?)?$/.test(val);
 }
 
+function getStepLabel(step) {
+  return STEPS[step] ? STEPS[step].label : "";
+}
+
 export default function FMVStep1({ formData, setFormData }) {
   const [step, setStep] = useState(0);
-  const [localForm, setLocalForm] = useState(formData || initialFormData);
+  const [localForm, setLocalForm] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("fpn_profile")) || formData || initialFormData;
+    } catch {
+      return formData || initialFormData;
+    }
+  });
   const [touched, setTouched] = useState({});
   const [errors, setErrors] = useState({});
-  const [filteredSchools, setFilteredSchools] = useState([]);
+  const [schoolOptions, setSchoolOptions] = useState([]);
+  const [schoolInput, setSchoolInput] = useState("");
+  const [didYouMean, setDidYouMean] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
+  const gpaInputRef = useRef(null);
 
+  // Autosave to localStorage
   useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      if (Object.values(localForm).some(x => x)) {
-        e.preventDefault();
-        e.returnValue = "Your data will be lost. Are you sure?";
-      }
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    localStorage.setItem("fpn_profile", JSON.stringify(localForm));
   }, [localForm]);
 
   useEffect(() => {
+    // Set options based on division
     if (localForm.division) {
-      setFilteredSchools(NCAA_SCHOOLS[localForm.division] || []);
+      const options = NCAA_SCHOOL_OPTIONS[localForm.division] || [];
+      setSchoolOptions(options);
       setLocalForm(f => ({ ...f, school: "" }));
     } else {
-      setFilteredSchools([]);
+      setSchoolOptions([]);
       setLocalForm(f => ({ ...f, school: "" }));
     }
+    setSchoolInput("");
+    setDidYouMean(null);
     // eslint-disable-next-line
   }, [localForm.division]);
 
-  // School blur logic: force user to pick from list, else blank
-  const handleSchoolBlur = () => {
-    if (
-      localForm.school &&
-      !filteredSchools.includes(localForm.school)
-    ) {
-      setLocalForm(f => ({ ...f, school: "" }));
-      setErrors(e => ({ ...e, school: "Please select a valid school from the list." }));
+  useEffect(() => {
+    // Resume draft logic (basic MVP, can improve later)
+    if (window.location.hash === "#resume") {
+      const saved = localStorage.getItem("fpn_profile");
+      if (saved) setLocalForm(JSON.parse(saved));
     }
-  };
+  }, []);
+
+  // For accessibility: focus GPA field if error
+  useEffect(() => {
+    if (errors.gpa && gpaInputRef.current) {
+      gpaInputRef.current.focus();
+    }
+  }, [errors.gpa]);
 
   const handleGpaBlur = () => {
     let val = localForm.gpa;
@@ -118,16 +121,10 @@ export default function FMVStep1({ formData, setFormData }) {
     let stepErrors = {};
     if (step === 0) {
       if (!localForm.division) stepErrors.division = "Division is required.";
-      if (!localForm.school) {
-        stepErrors.school = "School is required.";
-      } else if (
-        filteredSchools.length > 0 &&
-        !filteredSchools.includes(localForm.school)
-      ) {
-        stepErrors.school = "Please select a valid school from the list.";
-      }
+      if (!localForm.school) stepErrors.school = "School is required.";
       if (!localForm.name.trim()) stepErrors.name = "Full name is required.";
-      if (!localForm.email.trim()) stepErrors.email = "Email is required.";
+      if (!localForm.email.trim() || !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(localForm.email))
+        stepErrors.email = "Valid email is required.";
     }
     if (step === 1) {
       if (!localForm.gender) stepErrors.gender = "Gender is required.";
@@ -136,26 +133,52 @@ export default function FMVStep1({ formData, setFormData }) {
       if (localForm.gpa !== "" && !isGPAValid(localForm.gpa))
         stepErrors.gpa = "GPA must be a number between 0.00 and 4.00 (two decimals).";
     }
-    if (step === 2) {
-      for (const platform of localForm.social_platforms || []) {
-        if (
-          (platform === "Instagram" && !localForm.followers_instagram.toString().trim()) ||
-          (platform === "TikTok" && !localForm.followers_tiktok.toString().trim()) ||
-          ((platform === "Twitter/X" || platform === "Twitter") && !localForm.followers_twitter.toString().trim()) ||
-          (platform === "YouTube" && !localForm.followers_youtube.toString().trim())
-        ) {
-          stepErrors[`followers_${platform.toLowerCase().replace(/[^a-z]/g, "")}`] = `Follower count required for ${platform}.`;
-        }
-      }
-    }
-    if (step === 3) {
-      if ((localForm.achievements || []).includes("Other") && !localForm.achievement_other.trim()) {
-        stepErrors.achievement_other = "Please describe your other achievements.";
-      }
-    }
     setErrors(stepErrors);
     return Object.keys(stepErrors).length === 0;
   };
+
+  // Fuzzy match for "Did you mean"
+  const checkDidYouMean = (inputValue) => {
+    if (!inputValue || !schoolOptions.length) return null;
+    const input = inputValue.trim().toLowerCase();
+    const exact = schoolOptions.find(s => s.label.toLowerCase() === input);
+    if (exact) return null; // It's valid
+
+    // Fuzzy: find first close match by Levenshtein distance
+    let minDist = 3, best = null;
+    for (const option of schoolOptions) {
+      const label = option.label.toLowerCase();
+      const dist = levenshtein(input, label);
+      if (dist < minDist) {
+        minDist = dist;
+        best = option.label;
+      }
+    }
+    return (best && minDist < 3) ? best : null;
+  };
+
+  // Levenshtein distance for fuzzy matching
+  function levenshtein(a, b) {
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= b.length; i++) {
+      for (let j = 1; j <= a.length; j++) {
+        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j] + 1
+          );
+        }
+      }
+    }
+    return matrix[b.length][a.length];
+  }
 
   const handleNext = (e) => {
     e.preventDefault();
@@ -172,7 +195,7 @@ export default function FMVStep1({ formData, setFormData }) {
     }
     if (step === STEPS.length - 1) {
       setFormData(localForm);
-      navigate("/fmvcalculator/review");
+      navigate("/fmvcalculator/step2");
     } else {
       setStep(s => s + 1);
     }
@@ -181,287 +204,44 @@ export default function FMVStep1({ formData, setFormData }) {
   const handleBack = () => setStep(s => Math.max(0, s - 1));
 
   const updateField = (field, value) => {
-    if (field === "school") {
-      // If they clear the field, remove the error
-      if (!value) setErrors(e => ({ ...e, school: undefined }));
-    }
-    if (field.startsWith("followers_") && isNaN(value) && value !== "") return;
     setLocalForm(f => ({ ...f, [field]: value }));
     setErrors(e => ({ ...e, [field]: undefined }));
-  };
-
-  const handlePlatformChange = (platforms) => {
-    updateField("social_platforms", platforms);
-    if (!platforms.includes("Instagram")) updateField("followers_instagram", "");
-    if (!platforms.includes("TikTok")) updateField("followers_tiktok", "");
-    if (!platforms.includes("Twitter/X") && !platforms.includes("Twitter")) updateField("followers_twitter", "");
-    if (!platforms.includes("YouTube")) updateField("followers_youtube", "");
-  };
-
-  const aboutYou = (
-    <Stack spacing={6}>
-      <Heading fontSize="2xl" color="white">About You</Heading>
-      <FormControl isRequired isInvalid={!!errors.division}>
-        <FormLabel color="gray.200">Division</FormLabel>
-        <Select
-          value={localForm.division}
-          onChange={e => updateField("division", e.target.value)}
-          placeholder="Select division"
-          bg="gray.800"
-          style={{ color: "white" }}
-        >
-          {DIVISIONS.map(d => <option key={d} value={d}>{d}</option>)}
-        </Select>
-        <FormErrorMessage>{errors.division}</FormErrorMessage>
-      </FormControl>
-      <FormControl isRequired isInvalid={!!errors.school}>
-        <FormLabel color="gray.200">School</FormLabel>
-        <Input
-          value={localForm.school}
-          onChange={e => updateField("school", e.target.value)}
-          onBlur={handleSchoolBlur}
-          placeholder="Start typing your school..."
-          bg="gray.800"
-          style={{ color: "white" }}
-          list="school-list"
-          autoComplete="off"
-        />
-        <datalist id="school-list">
-          {filteredSchools.map((school) => (
-            <option key={school} value={school} />
-          ))}
-        </datalist>
-        <FormErrorMessage>{errors.school}</FormErrorMessage>
-      </FormControl>
-      <FormControl isRequired isInvalid={!!errors.name}>
-        <FormLabel color="gray.200">Full Name</FormLabel>
-        <Input
-          value={localForm.name}
-          onChange={e => updateField("name", e.target.value)}
-          placeholder="Your Name"
-          bg="gray.800"
-          style={{ color: "white" }}
-        />
-        <FormErrorMessage>{errors.name}</FormErrorMessage>
-      </FormControl>
-      <FormControl isRequired isInvalid={!!errors.email}>
-        <FormLabel color="gray.200">Email</FormLabel>
-        <Input
-          type="email"
-          value={localForm.email}
-          onChange={e => updateField("email", e.target.value)}
-          placeholder="you@email.com"
-          bg="gray.800"
-          style={{ color: "white" }}
-        />
-        <FormErrorMessage>{errors.email}</FormErrorMessage>
-      </FormControl>
-    </Stack>
-  );
-
-  const academicsAthletics = (
-    <Stack spacing={6}>
-      <Heading fontSize="2xl" color="white">Academics & Athletics</Heading>
-      <FormControl isRequired isInvalid={!!errors.gender}>
-        <FormLabel color="gray.200">Gender</FormLabel>
-        <Select
-          value={localForm.gender}
-          onChange={e => {
-            updateField("gender", e.target.value);
-            updateField("sport", "");
-          }}
-          placeholder="Select gender"
-          bg="gray.800"
-          style={{ color: "white" }}
-        >
-          {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
-        </Select>
-        <FormErrorMessage>{errors.gender}</FormErrorMessage>
-      </FormControl>
-      <FormControl isRequired isInvalid={!!errors.sport}>
-        <FormLabel color="gray.200">Sport</FormLabel>
-        <Select
-          value={localForm.sport}
-          onChange={e => updateField("sport", e.target.value)}
-          placeholder="Select sport"
-          bg="gray.800"
-          style={{ color: "white" }}
-          isDisabled={!localForm.gender}
-        >
-          {localForm.gender && SPORTS[localForm.gender].map(s => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </Select>
-        <FormErrorMessage>{errors.sport}</FormErrorMessage>
-      </FormControl>
-      <FormControl isRequired isInvalid={!!errors.graduation_year}>
-        <FormLabel color="gray.200">Graduation Year</FormLabel>
-        <NumberInput
-          value={localForm.graduation_year}
-          onChange={(_, v) => updateField("graduation_year", v)}
-          min={2024} max={2030}
-        >
-          <NumberInputField placeholder="2026" bg="gray.800" style={{ color: "white" }} />
-        </NumberInput>
-        <FormErrorMessage>{errors.graduation_year}</FormErrorMessage>
-      </FormControl>
-      <FormControl isInvalid={!!errors.gpa}>
-        <FormLabel color="gray.200">GPA (optional)</FormLabel>
-        <NumberInput
-          value={localForm.gpa}
-          onChange={(_, v) => updateField("gpa", v)}
-          precision={2}
-          min={0} max={4.0} step={0.01}
-          onBlur={handleGpaBlur}
-        >
-          <NumberInputField placeholder="e.g., 3.78" bg="gray.800" style={{ color: "white" }} />
-        </NumberInput>
-        <FormErrorMessage>{errors.gpa}</FormErrorMessage>
-      </FormControl>
-      <FormControl>
-        <FormLabel color="gray.200">Age (optional)</FormLabel>
-        <NumberInput
-          value={localForm.age}
-          onChange={(_, v) => updateField("age", v)}
-          min={15} max={30}
-        >
-          <NumberInputField placeholder="e.g., 20" bg="gray.800" style={{ color: "white" }} />
-        </NumberInput>
-      </FormControl>
-      <FormControl>
-        <FormLabel color="gray.200">Prior NIL Deals (optional)</FormLabel>
-        <NumberInput
-          value={localForm.prior_nil_deals}
-          onChange={(_, v) => updateField("prior_nil_deals", v)}
-          min={0}
-        >
-          <NumberInputField placeholder="e.g., 2" bg="gray.800" style={{ color: "white" }} />
-        </NumberInput>
-      </FormControl>
-    </Stack>
-  );
-
-  const socials = (
-    <Stack spacing={6}>
-      <Heading fontSize="2xl" color="white">Social Media</Heading>
-      <FormControl>
-        <FormLabel color="gray.200">Which social platforms do you use?</FormLabel>
-        <CheckboxGroup
-          colorScheme="green"
-          value={localForm.social_platforms || []}
-          onChange={handlePlatformChange}
-        >
-          <SimpleGrid columns={[1, 2]} spacing={2}>
-            {SOCIAL_PLATFORMS.map(platform => (
-              <Checkbox key={platform} value={platform}>
-                {platform}
-              </Checkbox>
-            ))}
-          </SimpleGrid>
-        </CheckboxGroup>
-      </FormControl>
-      {(localForm.social_platforms || []).includes("Instagram") && (
-        <FormControl isRequired isInvalid={!!errors.followers_instagram}>
-          <FormLabel color="gray.200">Instagram Followers</FormLabel>
-          <NumberInput
-            value={localForm.followers_instagram}
-            onChange={(_, v) => updateField("followers_instagram", v)}
-            min={0}
-          >
-            <NumberInputField placeholder="e.g., 5000" bg="gray.800" style={{ color: "white" }} />
-          </NumberInput>
-          <FormErrorMessage>{errors.followers_instagram}</FormErrorMessage>
-        </FormControl>
-      )}
-      {(localForm.social_platforms || []).includes("TikTok") && (
-        <FormControl isRequired isInvalid={!!errors.followers_tiktok}>
-          <FormLabel color="gray.200">TikTok Followers</FormLabel>
-          <NumberInput
-            value={localForm.followers_tiktok}
-            onChange={(_, v) => updateField("followers_tiktok", v)}
-            min={0}
-          >
-            <NumberInputField placeholder="e.g., 2500" bg="gray.800" style={{ color: "white" }} />
-          </NumberInput>
-          <FormErrorMessage>{errors.followers_tiktok}</FormErrorMessage>
-        </FormControl>
-      )}
-      {((localForm.social_platforms || []).includes("Twitter/X") || (localForm.social_platforms || []).includes("Twitter")) && (
-        <FormControl isRequired isInvalid={!!errors.followers_twitter}>
-          <FormLabel color="gray.200">Twitter/X Followers</FormLabel>
-          <NumberInput
-            value={localForm.followers_twitter}
-            onChange={(_, v) => updateField("followers_twitter", v)}
-            min={0}
-          >
-            <NumberInputField placeholder="e.g., 1200" bg="gray.800" style={{ color: "white" }} />
-          </NumberInput>
-          <FormErrorMessage>{errors.followers_twitter}</FormErrorMessage>
-        </FormControl>
-      )}
-      {(localForm.social_platforms || []).includes("YouTube") && (
-        <FormControl isRequired isInvalid={!!errors.followers_youtube}>
-          <FormLabel color="gray.200">YouTube Followers</FormLabel>
-          <NumberInput
-            value={localForm.followers_youtube}
-            onChange={(_, v) => updateField("followers_youtube", v)}
-            min={0}
-          >
-            <NumberInputField placeholder="e.g., 1000" bg="gray.800" style={{ color: "white" }} />
-          </NumberInput>
-          <FormErrorMessage>{errors.followers_youtube}</FormErrorMessage>
-        </FormControl>
-      )}
-    </Stack>
-  );
-
-  const achievements = (
-    <Stack spacing={6}>
-      <Heading fontSize="2xl" color="white">Athletic Achievements</Heading>
-      <FormControl>
-        <FormLabel color="gray.200">What are your top achievements?</FormLabel>
-        <CheckboxGroup
-          colorScheme="green"
-          value={localForm.achievements || []}
-          onChange={v => {
-            updateField("achievements", v);
-            if (!(v || []).includes("Other")) updateField("achievement_other", "");
-          }}
-        >
-          <SimpleGrid columns={[1, 2]} spacing={2}>
-            {ACHIEVEMENTS.map(a => (
-              <Checkbox key={a} value={a}>{a}</Checkbox>
-            ))}
-          </SimpleGrid>
-        </CheckboxGroup>
-      </FormControl>
-      {(localForm.achievements || []).includes("Other") && (
-        <FormControl isRequired isInvalid={!!errors.achievement_other}>
-          <FormLabel color="gray.200">Please specify other achievement(s)</FormLabel>
-          <Textarea
-            value={localForm.achievement_other}
-            onChange={e => updateField("achievement_other", e.target.value)}
-            placeholder="Describe your other achievements"
-            bg="gray.800"
-            style={{ color: "white" }}
-          />
-          <FormErrorMessage>{errors.achievement_other}</FormErrorMessage>
-        </FormControl>
-      )}
-    </Stack>
-  );
-
-  const renderSection = () => {
-    switch (step) {
-      case 0: return aboutYou;
-      case 1: return academicsAthletics;
-      case 2: return socials;
-      case 3: return achievements;
-      default: return aboutYou;
+    setTouched(t => ({ ...t, [field]: true }));
+    if (field === "school") {
+      setDidYouMean(null);
     }
   };
 
+  // School select handler
+  const handleSchoolChange = (selected) => {
+    updateField("school", selected ? selected.label : "");
+    setSchoolInput(selected ? selected.label : "");
+    setDidYouMean(null);
+  };
+
+  // Manual entry handler
+  const handleSchoolInputChange = (inputVal) => {
+    setSchoolInput(inputVal);
+    setDidYouMean(checkDidYouMean(inputVal));
+    // Don't set value yet—wait for select
+  };
+
+  // On blur, enforce only picking from valid schools
+  const handleSchoolBlur = () => {
+    const found = schoolOptions.find(opt => opt.label.toLowerCase() === (schoolInput || "").trim().toLowerCase());
+    if (found) {
+      updateField("school", found.label);
+      setDidYouMean(null);
+    } else if (schoolInput.trim()) {
+      setDidYouMean(checkDidYouMean(schoolInput));
+      updateField("school", "");
+      setErrors(e => ({ ...e, school: "Please select a valid school from the list." }));
+    }
+  };
+
+  // Progress bar % and label
   const progress = ((step + 1) / STEPS.length) * 100;
+  const progressLabel = `Step ${step + 1} of ${STEPS.length}: ${getStepLabel(step)}`;
 
   return (
     <Flex
@@ -482,18 +262,207 @@ export default function FMVStep1({ formData, setFormData }) {
       >
         <Box mb={6}>
           <Text color="gray.300" fontWeight="bold" fontSize="md" mb={2} letterSpacing="wide">
-            Step {step + 1} of {STEPS.length}: {STEPS[step]}
+            {progressLabel}
           </Text>
-          <Progress value={progress} size="sm" colorScheme="green" borderRadius="lg" />
+          <Progress
+            value={progress}
+            size="md"
+            colorScheme="green"
+            borderRadius="full"
+            hasStripe
+            isAnimated
+            mb={2}
+          />
         </Box>
-        <form onSubmit={handleNext}>
-          {renderSection()}
+        <form onSubmit={handleNext} autoComplete="off">
+          <Stack spacing={6}>
+            {step === 0 && (
+              <>
+                <Heading fontSize="2xl" color="white">Profile</Heading>
+                <FormControl isRequired isInvalid={!!errors.division}>
+                  <FormLabel color="gray.200">Division</FormLabel>
+                  <Select
+                    options={DIVISIONS.map(d => ({ label: d, value: d }))}
+                    value={localForm.division ? { label: localForm.division, value: localForm.division } : null}
+                    onChange={selected => updateField("division", selected ? selected.value : "")}
+                    placeholder="Select division"
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        background: "#222", color: "white", borderColor: "#555"
+                      }),
+                      singleValue: (base) => ({ ...base, color: "white" }),
+                      input: (base) => ({ ...base, color: "white" }),
+                      menu: (base) => ({ ...base, background: "#23272f", color: "#fff" })
+                    }}
+                  />
+                  <FormErrorMessage>{errors.division}</FormErrorMessage>
+                </FormControl>
+                <FormControl isRequired isInvalid={!!errors.school}>
+                  <FormLabel color="gray.200">School</FormLabel>
+                  <Select
+                    inputValue={schoolInput}
+                    onInputChange={handleSchoolInputChange}
+                    options={schoolOptions}
+                    value={localForm.school ? { label: localForm.school, value: localForm.school } : null}
+                    onChange={handleSchoolChange}
+                    onBlur={handleSchoolBlur}
+                    placeholder="Type to search your school..."
+                    isClearable
+                    isSearchable
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        background: "#222", color: "white", borderColor: "#555"
+                      }),
+                      singleValue: (base) => ({ ...base, color: "white" }),
+                      input: (base) => ({ ...base, color: "white" }),
+                      menu: (base) => ({ ...base, background: "#23272f", color: "#fff" })
+                    }}
+                  />
+                  {didYouMean && (
+                    <Text color="green.200" fontSize="sm" mt={1}>
+                      Did you mean <b onClick={() => {
+                        updateField("school", didYouMean);
+                        setSchoolInput(didYouMean);
+                        setDidYouMean(null);
+                      }} style={{ cursor: "pointer", textDecoration: "underline" }}>{didYouMean}</b>?
+                    </Text>
+                  )}
+                  <FormErrorMessage>{errors.school}</FormErrorMessage>
+                </FormControl>
+                <FormControl isRequired isInvalid={!!errors.name}>
+                  <FormLabel color="gray.200">Full Name</FormLabel>
+                  <Input
+                    value={localForm.name}
+                    onChange={e => updateField("name", e.target.value)}
+                    placeholder="Your Name"
+                    bg="gray.800"
+                    style={{ color: "white" }}
+                  />
+                  <FormErrorMessage>{errors.name}</FormErrorMessage>
+                </FormControl>
+                <FormControl isRequired isInvalid={!!errors.email}>
+                  <FormLabel color="gray.200">Email</FormLabel>
+                  <Input
+                    type="email"
+                    value={localForm.email}
+                    onChange={e => updateField("email", e.target.value)}
+                    placeholder="you@email.com"
+                    bg="gray.800"
+                    style={{ color: "white" }}
+                  />
+                  <FormErrorMessage>{errors.email}</FormErrorMessage>
+                </FormControl>
+              </>
+            )}
+            {step === 1 && (
+              <>
+                <Heading fontSize="2xl" color="white">Academics & Athletics</Heading>
+                <FormControl isRequired isInvalid={!!errors.gender}>
+                  <FormLabel color="gray.200">Gender</FormLabel>
+                  <Select
+                    options={GENDERS.map(g => ({ label: g, value: g }))}
+                    value={localForm.gender ? { label: localForm.gender, value: localForm.gender } : null}
+                    onChange={selected => {
+                      updateField("gender", selected ? selected.value : "");
+                      updateField("sport", "");
+                    }}
+                    placeholder="Select gender"
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        background: "#222", color: "white", borderColor: "#555"
+                      }),
+                      singleValue: (base) => ({ ...base, color: "white" }),
+                      input: (base) => ({ ...base, color: "white" }),
+                      menu: (base) => ({ ...base, background: "#23272f", color: "#fff" })
+                    }}
+                  />
+                  <FormErrorMessage>{errors.gender}</FormErrorMessage>
+                </FormControl>
+                <FormControl isRequired isInvalid={!!errors.sport}>
+                  <FormLabel color="gray.200">Sport</FormLabel>
+                  <Select
+                    options={localForm.gender ? (SPORTS[localForm.gender] || []).map(s => ({ label: s, value: s })) : []}
+                    value={localForm.sport ? { label: localForm.sport, value: localForm.sport } : null}
+                    onChange={selected => updateField("sport", selected ? selected.value : "")}
+                    placeholder="Select sport"
+                    isDisabled={!localForm.gender}
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        background: "#222", color: "white", borderColor: "#555"
+                      }),
+                      singleValue: (base) => ({ ...base, color: "white" }),
+                      input: (base) => ({ ...base, color: "white" }),
+                      menu: (base) => ({ ...base, background: "#23272f", color: "#fff" })
+                    }}
+                  />
+                  <FormErrorMessage>{errors.sport}</FormErrorMessage>
+                </FormControl>
+                <FormControl isRequired isInvalid={!!errors.graduation_year}>
+                  <FormLabel color="gray.200">Graduation Year</FormLabel>
+                  <NumberInput
+                    value={localForm.graduation_year}
+                    onChange={(_, v) => updateField("graduation_year", v)}
+                    min={2024} max={2030}
+                  >
+                    <NumberInputField placeholder="2026" bg="gray.800" style={{ color: "white" }} />
+                  </NumberInput>
+                  <FormErrorMessage>{errors.graduation_year}</FormErrorMessage>
+                </FormControl>
+                <FormControl isInvalid={!!errors.gpa}>
+                  <FormLabel color="gray.200">GPA (optional)</FormLabel>
+                  <NumberInput
+                    value={localForm.gpa}
+                    onChange={(_, v) => updateField("gpa", v)}
+                    precision={2}
+                    min={0} max={4.0} step={0.01}
+                    onBlur={handleGpaBlur}
+                  >
+                    <NumberInputField
+                      ref={gpaInputRef}
+                      placeholder="e.g., 3.78"
+                      bg="gray.800"
+                      style={{ color: "white" }}
+                      pattern="^\d+(\.\d{0,2})?$"
+                    />
+                  </NumberInput>
+                  <Text color="gray.400" fontSize="sm" mt={1}>Enter as 0.00 – 4.00 (two decimals)</Text>
+                  <FormErrorMessage>{errors.gpa}</FormErrorMessage>
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="gray.200">Age (optional)</FormLabel>
+                  <NumberInput
+                    value={localForm.age}
+                    onChange={(_, v) => updateField("age", v)}
+                    min={15} max={30}
+                  >
+                    <NumberInputField placeholder="e.g., 20" bg="gray.800" style={{ color: "white" }} />
+                  </NumberInput>
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="gray.200">Prior NIL Deals (optional)</FormLabel>
+                  <NumberInput
+                    value={localForm.prior_nil_deals}
+                    onChange={(_, v) => updateField("prior_nil_deals", v)}
+                    min={0}
+                  >
+                    <NumberInputField placeholder="e.g., 2" bg="gray.800" style={{ color: "white" }} />
+                  </NumberInput>
+                </FormControl>
+              </>
+            )}
+          </Stack>
           <Flex mt={8} justify="space-between">
             <Button
               onClick={handleBack}
               isDisabled={step === 0}
-              colorScheme="gray"
+              colorScheme="green"
               variant="outline"
+              style={{ color: "#fff", borderColor: "#88E788" }}
+              _hover={{ bg: "#23272f", color: "#88E788", borderColor: "#88E788" }}
             >
               Back
             </Button>
@@ -507,6 +476,48 @@ export default function FMVStep1({ formData, setFormData }) {
             </Button>
           </Flex>
         </form>
+        <Flex mt={3} justify="space-between" align="center">
+          <Button
+            size="sm"
+            colorScheme="gray"
+            variant="ghost"
+            style={{ color: "#88E788" }}
+            onClick={() => {
+              localStorage.setItem("fpn_profile", JSON.stringify(initialFormData));
+              setLocalForm(initialFormData);
+              setStep(0);
+              setTouched({});
+              setErrors({});
+              setDidYouMean(null);
+              setSchoolInput("");
+              toast({
+                title: "Form reset!",
+                status: "info",
+                duration: 1200,
+                isClosable: true
+              });
+            }}
+          >
+            Reset Form
+          </Button>
+          <Button
+            size="sm"
+            colorScheme="green"
+            variant="ghost"
+            style={{ color: "#88E788" }}
+            onClick={() => {
+              toast({
+                title: "Resume link copied!",
+                status: "success",
+                duration: 1500,
+                isClosable: true
+              });
+              navigator.clipboard.writeText(window.location.href + "#resume");
+            }}
+          >
+            Save Progress & Get Link
+          </Button>
+        </Flex>
       </Box>
     </Flex>
   );
