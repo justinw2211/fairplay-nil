@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
-  Input, NumberInput, NumberInputField, useToast, Text, SimpleGrid, FormErrorMessage
+  Input, NumberInput, NumberInputField, useToast, Text, FormErrorMessage
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
@@ -70,7 +70,6 @@ export default function FMVStep1({ formData, setFormData }) {
   const [schoolOptions, setSchoolOptions] = useState([]);
   const [schoolInput, setSchoolInput] = useState("");
   const [didYouMean, setDidYouMean] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
   const gpaInputRef = useRef(null);
@@ -83,7 +82,7 @@ export default function FMVStep1({ formData, setFormData }) {
   useEffect(() => {
     // Set options based on division
     if (localForm.division) {
-      const options = NCAA_SCHOOL_OPTIONS.filter(opt => opt.division === localForm.division) || [];
+      const options = NCAA_SCHOOL_OPTIONS.filter(o => o.division === localForm.division);
       setSchoolOptions(options);
       setLocalForm(f => ({ ...f, school: "" }));
     } else {
@@ -95,14 +94,6 @@ export default function FMVStep1({ formData, setFormData }) {
     // eslint-disable-next-line
   }, [localForm.division]);
 
-  useEffect(() => {
-    // Resume draft logic (basic MVP, can improve later)
-    if (window.location.hash === "#resume") {
-      const saved = localStorage.getItem("fpn_profile");
-      if (saved) setLocalForm(JSON.parse(saved));
-    }
-  }, []);
-
   // For accessibility: focus GPA field if error
   useEffect(() => {
     if (errors.gpa && gpaInputRef.current) {
@@ -110,11 +101,48 @@ export default function FMVStep1({ formData, setFormData }) {
     }
   }, [errors.gpa]);
 
-  const handleGpaBlur = () => {
+  // GPA handler — allows 0.00–4.00, two decimals, auto-formats 3 digits
+  const handleGPAChange = (value) => {
+    // Allow empty, one digit, or decimal up to two places
+    if (value === "") {
+      setLocalForm(f => ({ ...f, gpa: "" }));
+      setErrors(e => ({ ...e, gpa: undefined }));
+      return;
+    }
+    // Only allow digits and dot
+    if (!/^\d*\.?\d{0,2}$/.test(value)) return;
+
+    // If user enters 3 digits like "372", format as 3.72 on blur
+    setLocalForm(f => ({ ...f, gpa: value }));
+    setErrors(e => ({ ...e, gpa: undefined }));
+  };
+
+  const handleGPABlur = () => {
     let val = localForm.gpa;
-    if (val === "" || !isGPAValid(val)) return;
+    if (val === "") return;
+    // If user types e.g. "372" auto-convert to "3.72"
+    if (/^\d{3}$/.test(val)) {
+      val = `${val[0]}.${val.slice(1)}`;
+    }
+    // Remove leading zeros
+    val = val.replace(/^0+(\d)/, "$1");
+    // Enforce max 4.00, min 0.00, and two decimals
     let num = parseFloat(val);
-    setLocalForm(f => ({ ...f, gpa: num.toFixed(2) }));
+    if (isNaN(num)) {
+      setLocalForm(f => ({ ...f, gpa: "" }));
+      setErrors(e => ({ ...e, gpa: "Invalid GPA format." }));
+      return;
+    }
+    if (num > 4) num = 4.0;
+    if (num < 0) num = 0.0;
+    const formatted = num.toFixed(2);
+    if (!isGPAValid(formatted)) {
+      setLocalForm(f => ({ ...f, gpa: "" }));
+      setErrors(e => ({ ...e, gpa: "GPA must be between 0.00 and 4.00" }));
+    } else {
+      setLocalForm(f => ({ ...f, gpa: formatted }));
+      setErrors(e => ({ ...e, gpa: undefined }));
+    }
   };
 
   const validateStep = () => {
@@ -137,49 +165,11 @@ export default function FMVStep1({ formData, setFormData }) {
     return Object.keys(stepErrors).length === 0;
   };
 
-  // Fuzzy match for "Did you mean"
-  const checkDidYouMean = (inputValue) => {
-    if (!inputValue || !schoolOptions.length) return null;
-    const input = inputValue.trim().toLowerCase();
-    const exact = schoolOptions.find(s => s.label.toLowerCase() === input);
-    if (exact) return null; // It's valid
+  // Progress bar % and label
+  const progress = ((step + 1) / STEPS.length) * 100;
+  const progressLabel = `Step ${step + 1} of ${STEPS.length}: ${getStepLabel(step)}`;
 
-    // Fuzzy: find first close match by Levenshtein distance
-    let minDist = 3, best = null;
-    for (const option of schoolOptions) {
-      const label = option.label.toLowerCase();
-      const dist = levenshtein(input, label);
-      if (dist < minDist) {
-        minDist = dist;
-        best = option.label;
-      }
-    }
-    return (best && minDist < 3) ? best : null;
-  };
-
-  // Levenshtein distance for fuzzy matching
-  function levenshtein(a, b) {
-    if (a.length === 0) return b.length;
-    if (b.length === 0) return a.length;
-    const matrix = [];
-    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-    for (let i = 1; i <= b.length; i++) {
-      for (let j = 1; j <= a.length; j++) {
-        if (b.charAt(i - 1) === a.charAt(j - 1)) {
-          matrix[i][j] = matrix[i - 1][j - 1];
-        } else {
-          matrix[i][j] = Math.min(
-            matrix[i - 1][j - 1] + 1,
-            matrix[i][j - 1] + 1,
-            matrix[i - 1][j] + 1
-          );
-        }
-      }
-    }
-    return matrix[b.length][a.length];
-  }
-
+  // Navigation handlers
   const handleNext = (e) => {
     e.preventDefault();
     if (!validateStep()) {
@@ -201,15 +191,18 @@ export default function FMVStep1({ formData, setFormData }) {
     }
   };
 
-  const handleBack = () => setStep(s => Math.max(0, s - 1));
+  const handleBack = () => {
+    if (step === 0) {
+      navigate(-1);
+    } else {
+      setStep(s => Math.max(0, s - 1));
+    }
+  };
 
   const updateField = (field, value) => {
     setLocalForm(f => ({ ...f, [field]: value }));
     setErrors(e => ({ ...e, [field]: undefined }));
     setTouched(t => ({ ...t, [field]: true }));
-    if (field === "school") {
-      setDidYouMean(null);
-    }
   };
 
   // School select handler
@@ -222,8 +215,7 @@ export default function FMVStep1({ formData, setFormData }) {
   // Manual entry handler
   const handleSchoolInputChange = (inputVal) => {
     setSchoolInput(inputVal);
-    setDidYouMean(checkDidYouMean(inputVal));
-    // Don't set value yet—wait for select
+    setDidYouMean(null); // Could re-add fuzzy logic
   };
 
   // On blur, enforce only picking from valid schools
@@ -233,48 +225,9 @@ export default function FMVStep1({ formData, setFormData }) {
       updateField("school", found.label);
       setDidYouMean(null);
     } else if (schoolInput.trim()) {
-      setDidYouMean(checkDidYouMean(schoolInput));
       updateField("school", "");
       setErrors(e => ({ ...e, school: "Please select a valid school from the list." }));
     }
-  };
-
-  // Progress bar % and label
-  const progress = ((step + 1) / STEPS.length) * 100;
-  const progressLabel = `Step ${step + 1} of ${STEPS.length}: ${getStepLabel(step)}`;
-
-  // Reusable select styles
-  const selectStyles = {
-    control: (base, state) => ({
-      ...base,
-      background: "#222",
-      color: "white",
-      borderColor: "#555",
-      boxShadow: state.isFocused ? "0 0 0 1.5px #88E788" : base.boxShadow,
-    }),
-    singleValue: (base) => ({
-      ...base,
-      color: "white",
-    }),
-    input: (base) => ({
-      ...base,
-      color: "white",
-    }),
-    placeholder: (base) => ({
-      ...base,
-      color: "#888",
-    }),
-    menu: (base) => ({
-      ...base,
-      background: "#23272f",
-      color: "#fff"
-    }),
-    option: (base, state) => ({
-      ...base,
-      background: state.isFocused ? "#2c2f36" : "#23272f",
-      color: "white",
-      cursor: "pointer"
-    }),
   };
 
   return (
@@ -320,7 +273,15 @@ export default function FMVStep1({ formData, setFormData }) {
                     value={localForm.division ? { label: localForm.division, value: localForm.division } : null}
                     onChange={selected => updateField("division", selected ? selected.value : "")}
                     placeholder="Select division"
-                    styles={selectStyles}
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        background: "#222", color: "white", borderColor: "#555"
+                      }),
+                      singleValue: (base) => ({ ...base, color: "white" }),
+                      input: (base) => ({ ...base, color: "white" }),
+                      menu: (base) => ({ ...base, background: "#23272f", color: "#fff" })
+                    }}
                   />
                   <FormErrorMessage>{errors.division}</FormErrorMessage>
                 </FormControl>
@@ -336,17 +297,16 @@ export default function FMVStep1({ formData, setFormData }) {
                     placeholder="Type to search your school..."
                     isClearable
                     isSearchable
-                    styles={selectStyles}
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        background: "#222", color: "white", borderColor: "#555"
+                      }),
+                      singleValue: (base) => ({ ...base, color: "white" }),
+                      input: (base) => ({ ...base, color: "white" }),
+                      menu: (base) => ({ ...base, background: "#23272f", color: "#fff" })
+                    }}
                   />
-                  {didYouMean && (
-                    <Text color="green.200" fontSize="sm" mt={1}>
-                      Did you mean <b onClick={() => {
-                        updateField("school", didYouMean);
-                        setSchoolInput(didYouMean);
-                        setDidYouMean(null);
-                      }} style={{ cursor: "pointer", textDecoration: "underline" }}>{didYouMean}</b>?
-                    </Text>
-                  )}
                   <FormErrorMessage>{errors.school}</FormErrorMessage>
                 </FormControl>
                 <FormControl isRequired isInvalid={!!errors.name}>
@@ -387,7 +347,15 @@ export default function FMVStep1({ formData, setFormData }) {
                       updateField("sport", "");
                     }}
                     placeholder="Select gender"
-                    styles={selectStyles}
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        background: "#222", color: "white", borderColor: "#555"
+                      }),
+                      singleValue: (base) => ({ ...base, color: "white" }),
+                      input: (base) => ({ ...base, color: "white" }),
+                      menu: (base) => ({ ...base, background: "#23272f", color: "#fff" })
+                    }}
                   />
                   <FormErrorMessage>{errors.gender}</FormErrorMessage>
                 </FormControl>
@@ -399,7 +367,15 @@ export default function FMVStep1({ formData, setFormData }) {
                     onChange={selected => updateField("sport", selected ? selected.value : "")}
                     placeholder="Select sport"
                     isDisabled={!localForm.gender}
-                    styles={selectStyles}
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        background: "#222", color: "white", borderColor: "#555"
+                      }),
+                      singleValue: (base) => ({ ...base, color: "white" }),
+                      input: (base) => ({ ...base, color: "white" }),
+                      menu: (base) => ({ ...base, background: "#23272f", color: "#fff" })
+                    }}
                   />
                   <FormErrorMessage>{errors.sport}</FormErrorMessage>
                 </FormControl>
@@ -416,21 +392,16 @@ export default function FMVStep1({ formData, setFormData }) {
                 </FormControl>
                 <FormControl isInvalid={!!errors.gpa}>
                   <FormLabel color="gray.200">GPA (optional)</FormLabel>
-                  <NumberInput
+                  <Input
+                    ref={gpaInputRef}
                     value={localForm.gpa}
-                    onChange={(_, v) => updateField("gpa", v)}
-                    precision={2}
-                    min={0} max={4.0} step={0.01}
-                    onBlur={handleGpaBlur}
-                  >
-                    <NumberInputField
-                      ref={gpaInputRef}
-                      placeholder="e.g., 3.78"
-                      bg="gray.800"
-                      style={{ color: "white" }}
-                      pattern="^\d+(\.\d{0,2})?$"
-                    />
-                  </NumberInput>
+                    onChange={e => handleGPAChange(e.target.value)}
+                    onBlur={handleGPABlur}
+                    placeholder="e.g., 3.78"
+                    bg="gray.800"
+                    style={{ color: "white" }}
+                    inputMode="decimal"
+                  />
                   <Text color="gray.400" fontSize="sm" mt={1}>Enter as 0.00 – 4.00 (two decimals)</Text>
                   <FormErrorMessage>{errors.gpa}</FormErrorMessage>
                 </FormControl>
@@ -460,7 +431,7 @@ export default function FMVStep1({ formData, setFormData }) {
           <Flex mt={8} justify="space-between">
             <Button
               onClick={handleBack}
-              isDisabled={step === 0}
+              isDisabled={step === 0 && window.history.length <= 1}
               colorScheme="green"
               variant="outline"
               style={{ color: "#fff", borderColor: "#88E788" }}
