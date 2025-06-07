@@ -5,7 +5,7 @@ import {
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
-import { NCAA_SCHOOLS, NCAA_SCHOOL_OPTIONS } from "../data/ncaaSchools.js";
+import { NCAA_SCHOOL_OPTIONS } from "../data/ncaaSchools.js";
 
 const DIVISIONS = ["I", "II", "III"];
 const GENDERS = [
@@ -67,36 +67,31 @@ export default function FMVStep1({ formData, setFormData }) {
   });
   const [touched, setTouched] = useState({});
   const [errors, setErrors] = useState({});
-  const [schoolOptions, setSchoolOptions] = useState([]);
   const [schoolInput, setSchoolInput] = useState("");
   const [didYouMean, setDidYouMean] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
   const gpaInputRef = useRef(null);
+
+  // Filter schools by division
+  const schoolOptions = localForm.division
+    ? NCAA_SCHOOL_OPTIONS.filter(opt => opt.division === localForm.division)
+    : [];
 
   // Autosave to localStorage
   useEffect(() => {
     localStorage.setItem("fpn_profile", JSON.stringify(localForm));
   }, [localForm]);
 
+  // Reset school field if division changes
   useEffect(() => {
-    // Set options based on division
-    if (localForm.division) {
-      const options = NCAA_SCHOOL_OPTIONS[localForm.division] || [];
-      setSchoolOptions(options);
-      setLocalForm(f => ({ ...f, school: "" }));
-    } else {
-      setSchoolOptions([]);
-      setLocalForm(f => ({ ...f, school: "" }));
-    }
+    setLocalForm(f => ({ ...f, school: "" }));
     setSchoolInput("");
     setDidYouMean(null);
     // eslint-disable-next-line
   }, [localForm.division]);
 
   useEffect(() => {
-    // Resume draft logic (basic MVP, can improve later)
     if (window.location.hash === "#resume") {
       const saved = localStorage.getItem("fpn_profile");
       if (saved) setLocalForm(JSON.parse(saved));
@@ -220,10 +215,11 @@ export default function FMVStep1({ formData, setFormData }) {
   };
 
   // Manual entry handler
-  const handleSchoolInputChange = (inputVal) => {
-    setSchoolInput(inputVal);
-    setDidYouMean(checkDidYouMean(inputVal));
-    // Don't set value yet—wait for select
+  const handleSchoolInputChange = (inputVal, { action }) => {
+    if (action === "input-change") {
+      setSchoolInput(inputVal);
+      setDidYouMean(checkDidYouMean(inputVal));
+    }
   };
 
   // On blur, enforce only picking from valid schools
