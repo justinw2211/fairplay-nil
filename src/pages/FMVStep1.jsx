@@ -69,7 +69,6 @@ export default function FMVStep1({ formData, setFormData }) {
   const [errors, setErrors] = useState({});
   const [schoolOptions, setSchoolOptions] = useState([]);
   const [schoolInput, setSchoolInput] = useState("");
-  const [didYouMean, setDidYouMean] = useState(null);
   const toast = useToast();
   const navigate = useNavigate();
   const gpaInputRef = useRef(null);
@@ -90,7 +89,6 @@ export default function FMVStep1({ formData, setFormData }) {
       setLocalForm(f => ({ ...f, school: "" }));
     }
     setSchoolInput("");
-    setDidYouMean(null);
     // eslint-disable-next-line
   }, [localForm.division]);
 
@@ -101,40 +99,36 @@ export default function FMVStep1({ formData, setFormData }) {
     }
   }, [errors.gpa]);
 
-  // GPA handler — allows 0.00–4.00, two decimals, auto-formats 3 digits
+  // GPA handler — allows decimals and formats on blur
   const handleGPAChange = (value) => {
-    // Allow empty, one digit, or decimal up to two places
+    // Allow: blank, 0–4, up to 2 decimals, leading .
     if (value === "") {
       setLocalForm(f => ({ ...f, gpa: "" }));
       setErrors(e => ({ ...e, gpa: undefined }));
       return;
     }
-    // Only allow digits and dot
-    if (!/^\d*\.?\d{0,2}$/.test(value)) return;
-
-    // If user enters 3 digits like "372", format as 3.72 on blur
-    setLocalForm(f => ({ ...f, gpa: value }));
-    setErrors(e => ({ ...e, gpa: undefined }));
+    // Allow up to "4", ".99", "3.99", etc.
+    if (/^([0-3]?(\.\d{0,2})?|4(\.0{0,2})?)$/.test(value) || /^\.\d{0,2}$/.test(value)) {
+      setLocalForm(f => ({ ...f, gpa: value }));
+      setErrors(e => ({ ...e, gpa: undefined }));
+    }
   };
 
   const handleGPABlur = () => {
     let val = localForm.gpa;
     if (val === "") return;
-    // If user types e.g. "372" auto-convert to "3.72"
-    if (/^\d{3}$/.test(val)) {
-      val = `${val[0]}.${val.slice(1)}`;
-    }
-    // Remove leading zeros
-    val = val.replace(/^0+(\d)/, "$1");
-    // Enforce max 4.00, min 0.00, and two decimals
+    // Auto-format 3 digits as "3.72"
+    if (/^\d{3}$/.test(val)) val = `${val[0]}.${val.slice(1)}`;
+    // If just ".85" entered, make it "0.85"
+    if (/^\.\d+$/.test(val)) val = `0${val}`;
     let num = parseFloat(val);
     if (isNaN(num)) {
       setLocalForm(f => ({ ...f, gpa: "" }));
       setErrors(e => ({ ...e, gpa: "Invalid GPA format." }));
       return;
     }
-    if (num > 4) num = 4.0;
-    if (num < 0) num = 0.0;
+    if (num > 4) num = 4.00;
+    if (num < 0) num = 0.00;
     const formatted = num.toFixed(2);
     if (!isGPAValid(formatted)) {
       setLocalForm(f => ({ ...f, gpa: "" }));
@@ -209,13 +203,11 @@ export default function FMVStep1({ formData, setFormData }) {
   const handleSchoolChange = (selected) => {
     updateField("school", selected ? selected.label : "");
     setSchoolInput(selected ? selected.label : "");
-    setDidYouMean(null);
   };
 
   // Manual entry handler
   const handleSchoolInputChange = (inputVal) => {
     setSchoolInput(inputVal);
-    setDidYouMean(null); // Could re-add fuzzy logic
   };
 
   // On blur, enforce only picking from valid schools
@@ -223,7 +215,6 @@ export default function FMVStep1({ formData, setFormData }) {
     const found = schoolOptions.find(opt => opt.label.toLowerCase() === (schoolInput || "").trim().toLowerCase());
     if (found) {
       updateField("school", found.label);
-      setDidYouMean(null);
     } else if (schoolInput.trim()) {
       updateField("school", "");
       setErrors(e => ({ ...e, school: "Please select a valid school from the list." }));
@@ -461,7 +452,6 @@ export default function FMVStep1({ formData, setFormData }) {
               setStep(0);
               setTouched({});
               setErrors({});
-              setDidYouMean(null);
               setSchoolInput("");
               toast({
                 title: "Form reset!",
