@@ -2,23 +2,25 @@ import React, { useState } from "react";
 import {
   Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
   Input, Select, NumberInput, NumberInputField, RadioGroup, Radio,
-  CheckboxGroup, Checkbox, Textarea, useToast, SimpleGrid, Text
+  CheckboxGroup, Checkbox, Textarea, useToast, SimpleGrid, Text, FormErrorMessage
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
+
+const PAYMENT_STRUCTURES = [
+  "One-time",
+  "Recurring",
+  "Pay per Post",
+  "Pay per Milestone",
+  "Pay per Appearance",
+  "Other"
+];
 
 const DELIVERABLES = [
   "Instagram Post", "Instagram Story", "TikTok Video", "Twitter/X Post", "YouTube Video", "Appearance", "Other"
 ];
+
 const DEAL_TYPES = ["Post", "Event", "Merch", "Apparel", "Content", "Other"];
 const DEAL_CATEGORIES = ["Apparel", "Nutrition", "Event", "Social", "Charity", "Other"];
-const STATES = [
-  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia",
-  "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts",
-  "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey",
-  "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island",
-  "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia",
-  "Wisconsin", "Wyoming"
-];
 const STEPS = [
   "Deal Structure",
   "Deliverables",
@@ -26,23 +28,23 @@ const STEPS = [
 ];
 
 const initialFormData = {
+  payment_structure: "",
+  payment_structure_other: "",
+  deal_length_months: "",
+  proposed_dollar_amount: "",
   deliverables: [],
   deliverable_other: "",
   deliverables_count: {},
-  payment_structure: "",
-  deal_length_months: "",
-  proposed_dollar_amount: "",
   deal_type: [],
   deal_category: "",
   brand_partner: "",
-  geography: "",
   is_real_submission: ""
 };
 
 export default function FMVStep2({ formData, setFormData }) {
   const [step, setStep] = useState(0);
   const [localForm, setLocalForm] = useState(formData?.step2 || initialFormData);
-  const [touched, setTouched] = useState({});
+  const [errors, setErrors] = useState({});
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -51,38 +53,44 @@ export default function FMVStep2({ formData, setFormData }) {
 
   // Validation per section
   const validateStep = () => {
-    switch (step) {
-      case 0:
-        return (
-          localForm.payment_structure &&
-          localForm.deal_length_months &&
-          localForm.proposed_dollar_amount
-        );
-      case 1:
-        // Deliverables are OPTIONAL. If selected, quantity required.
-        for (const del of localForm.deliverables || []) {
-          if (del === "Other") {
-            if (!localForm.deliverable_other.trim() || !localForm.deliverables_count["Other"]) return false;
-          } else {
-            if (!localForm.deliverables_count[del]) return false;
-          }
-        }
-        return true;
-      case 2:
-        // Deal Type is OPTIONAL (multi-select). The rest required.
-        return (
-          localForm.deal_category &&
-          localForm.brand_partner &&
-          localForm.geography &&
-          localForm.is_real_submission
-        );
-      default:
-        return false;
+    let stepErrors = {};
+    if (step === 0) {
+      if (!localForm.payment_structure) stepErrors.payment_structure = "Payment structure is required.";
+      if (localForm.payment_structure === "Other" && !localForm.payment_structure_other.trim())
+        stepErrors.payment_structure_other = "Please specify payment structure.";
+      if (!localForm.deal_length_months)
+        stepErrors.deal_length_months = "Deal length is required.";
+      if (!localForm.proposed_dollar_amount)
+        stepErrors.proposed_dollar_amount = "Total proposed dollar amount is required.";
     }
+    if (step === 1) {
+      for (const del of localForm.deliverables || []) {
+        if (del === "Other") {
+          if (!localForm.deliverable_other.trim())
+            stepErrors.deliverable_other = "Please describe other deliverable.";
+          if (!localForm.deliverables_count["Other"])
+            stepErrors.deliverables_count_other = "Please specify quantity for 'Other'.";
+        } else {
+          if (!localForm.deliverables_count[del])
+            stepErrors[`deliverables_count_${del}`] = `Quantity required for ${del}.`;
+        }
+      }
+    }
+    if (step === 2) {
+      if (!localForm.deal_category)
+        stepErrors.deal_category = "Deal category is required.";
+      if (!localForm.brand_partner)
+        stepErrors.brand_partner = "Brand partner is required.";
+      if (!localForm.is_real_submission)
+        stepErrors.is_real_submission = "Please specify if this is a real submission.";
+    }
+    setErrors(stepErrors);
+    return Object.keys(stepErrors).length === 0;
   };
 
   // Next/Back handlers
-  const handleNext = () => {
+  const handleNext = (e) => {
+    e.preventDefault();
     if (!validateStep()) {
       toast({
         title: "Please complete all required fields.",
@@ -91,14 +99,13 @@ export default function FMVStep2({ formData, setFormData }) {
         isClosable: true,
         position: "top"
       });
-      setTouched((prev) => ({ ...prev, [step]: true }));
       return;
     }
     if (step === STEPS.length - 1) {
       if (typeof setFormData === "function") {
         setFormData({ ...formData, step2: localForm });
       }
-      navigate("/fmvcalculator/result");
+      navigate("/fmvcalculator/review");
     } else {
       setStep((s) => s + 1);
     }
@@ -106,7 +113,10 @@ export default function FMVStep2({ formData, setFormData }) {
   const handleBack = () => setStep((s) => Math.max(0, s - 1));
 
   // Centralized change handler
-  const updateField = (field, value) => setLocalForm((prev) => ({ ...prev, [field]: value }));
+  const updateField = (field, value) => {
+    setLocalForm(prev => ({ ...prev, [field]: value }));
+    setErrors(e => ({ ...e, [field]: undefined }));
+  };
 
   // Deliverable logic
   const handleDeliverablesChange = (selected) => {
@@ -121,11 +131,11 @@ export default function FMVStep2({ formData, setFormData }) {
     if (!selected.includes("Other")) updateField("deliverable_other", "");
   };
 
-  // Render sections
+  // --- Section renderers ---
   const dealStructure = (
     <Stack spacing={6}>
       <Heading fontSize="2xl" color="white">Deal Structure</Heading>
-      <FormControl isRequired>
+      <FormControl isRequired isInvalid={!!errors.payment_structure}>
         <FormLabel color="gray.200">Payment Structure</FormLabel>
         <RadioGroup
           colorScheme="green"
@@ -133,15 +143,31 @@ export default function FMVStep2({ formData, setFormData }) {
           onChange={v => {
             updateField("payment_structure", v);
             if (v === "One-time") updateField("deal_length_months", "1");
+            else updateField("deal_length_months", "");
           }}
         >
-          <Stack direction="row">
-            <Radio value="One-time">One-time</Radio>
-            <Radio value="Recurring">Recurring</Radio>
+          <Stack direction="column" spacing={2}>
+            {PAYMENT_STRUCTURES.map(opt => (
+              <Radio key={opt} value={opt}>{opt}</Radio>
+            ))}
           </Stack>
         </RadioGroup>
+        <FormErrorMessage>{errors.payment_structure}</FormErrorMessage>
       </FormControl>
-      <FormControl isRequired>
+      {localForm.payment_structure === "Other" && (
+        <FormControl isRequired isInvalid={!!errors.payment_structure_other}>
+          <FormLabel color="gray.200">Other (describe)</FormLabel>
+          <Input
+            value={localForm.payment_structure_other}
+            onChange={e => updateField("payment_structure_other", e.target.value)}
+            placeholder="Describe payment structure"
+            bg="gray.800"
+            style={{ color: "white" }}
+          />
+          <FormErrorMessage>{errors.payment_structure_other}</FormErrorMessage>
+        </FormControl>
+      )}
+      <FormControl isRequired isInvalid={!!errors.deal_length_months}>
         <FormLabel color="gray.200">Deal Length {localForm.payment_structure === "One-time" ? "(auto-filled for one-time)" : "(months)"}</FormLabel>
         <NumberInput
           value={localForm.deal_length_months}
@@ -155,9 +181,10 @@ export default function FMVStep2({ formData, setFormData }) {
             style={{ color: "white" }}
           />
         </NumberInput>
+        <FormErrorMessage>{errors.deal_length_months}</FormErrorMessage>
       </FormControl>
-      <FormControl isRequired>
-        <FormLabel color="gray.200">Proposed Dollar Amount</FormLabel>
+      <FormControl isRequired isInvalid={!!errors.proposed_dollar_amount}>
+        <FormLabel color="gray.200">Total Proposed Dollar Amount</FormLabel>
         <NumberInput
           value={localForm.proposed_dollar_amount}
           onChange={(_, v) => updateField("proposed_dollar_amount", v)}
@@ -165,6 +192,7 @@ export default function FMVStep2({ formData, setFormData }) {
         >
           <NumberInputField placeholder="e.g., 2500" bg="gray.800" style={{ color: "white" }} />
         </NumberInput>
+        <FormErrorMessage>{errors.proposed_dollar_amount}</FormErrorMessage>
       </FormControl>
     </Stack>
   );
@@ -190,7 +218,7 @@ export default function FMVStep2({ formData, setFormData }) {
         <Box key={del} mt={2}>
           {del === "Other" ? (
             <Stack spacing={2}>
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={!!errors.deliverable_other}>
                 <FormLabel color="gray.200">Please describe other deliverable</FormLabel>
                 <Textarea
                   value={localForm.deliverable_other}
@@ -199,8 +227,9 @@ export default function FMVStep2({ formData, setFormData }) {
                   bg="gray.800"
                   style={{ color: "white" }}
                 />
+                <FormErrorMessage>{errors.deliverable_other}</FormErrorMessage>
               </FormControl>
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={!!errors.deliverables_count_other}>
                 <FormLabel color="gray.200">Quantity for Other Deliverable</FormLabel>
                 <NumberInput
                   value={localForm.deliverables_count["Other"] || ""}
@@ -214,10 +243,11 @@ export default function FMVStep2({ formData, setFormData }) {
                 >
                   <NumberInputField placeholder="e.g., 2" bg="gray.800" style={{ color: "white" }} />
                 </NumberInput>
+                <FormErrorMessage>{errors.deliverables_count_other}</FormErrorMessage>
               </FormControl>
             </Stack>
           ) : (
-            <FormControl isRequired>
+            <FormControl isRequired isInvalid={!!errors[`deliverables_count_${del}`]}>
               <FormLabel color="gray.200">
                 Quantity for {del}
               </FormLabel>
@@ -233,6 +263,7 @@ export default function FMVStep2({ formData, setFormData }) {
               >
                 <NumberInputField placeholder="e.g., 3" bg="gray.800" style={{ color: "white" }} />
               </NumberInput>
+              <FormErrorMessage>{errors[`deliverables_count_${del}`]}</FormErrorMessage>
             </FormControl>
           )}
         </Box>
@@ -257,7 +288,7 @@ export default function FMVStep2({ formData, setFormData }) {
           </SimpleGrid>
         </CheckboxGroup>
       </FormControl>
-      <FormControl isRequired>
+      <FormControl isRequired isInvalid={!!errors.deal_category}>
         <FormLabel color="gray.200">Deal Category</FormLabel>
         <Select
           value={localForm.deal_category}
@@ -268,8 +299,9 @@ export default function FMVStep2({ formData, setFormData }) {
         >
           {DEAL_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
         </Select>
+        <FormErrorMessage>{errors.deal_category}</FormErrorMessage>
       </FormControl>
-      <FormControl isRequired>
+      <FormControl isRequired isInvalid={!!errors.brand_partner}>
         <FormLabel color="gray.200">Brand Partner</FormLabel>
         <Input
           value={localForm.brand_partner}
@@ -278,20 +310,9 @@ export default function FMVStep2({ formData, setFormData }) {
           bg="gray.800"
           style={{ color: "white" }}
         />
+        <FormErrorMessage>{errors.brand_partner}</FormErrorMessage>
       </FormControl>
-      <FormControl isRequired>
-        <FormLabel color="gray.200">Geography (State)</FormLabel>
-        <Select
-          value={localForm.geography}
-          onChange={e => updateField("geography", e.target.value)}
-          placeholder="Select your home state"
-          bg="gray.800"
-          style={{ color: "white" }}
-        >
-          {STATES.map(state => <option key={state} value={state}>{state}</option>)}
-        </Select>
-      </FormControl>
-      <FormControl isRequired>
+      <FormControl isRequired isInvalid={!!errors.is_real_submission}>
         <FormLabel color="gray.200">Is this a real submission?</FormLabel>
         <RadioGroup
           colorScheme="green"
@@ -303,6 +324,7 @@ export default function FMVStep2({ formData, setFormData }) {
             <Radio value="no">No (test/demo)</Radio>
           </Stack>
         </RadioGroup>
+        <FormErrorMessage>{errors.is_real_submission}</FormErrorMessage>
       </FormControl>
     </Stack>
   );
@@ -339,19 +361,14 @@ export default function FMVStep2({ formData, setFormData }) {
           </Text>
           <Progress value={progress} size="sm" colorScheme="green" borderRadius="lg" />
         </Box>
-        <form
-          onSubmit={e => {
-            e.preventDefault();
-            handleNext();
-          }}
-        >
+        <form onSubmit={handleNext}>
           {renderSection()}
           <Flex mt={8} justify="space-between">
             <Button
               onClick={handleBack}
               isDisabled={step === 0}
               colorScheme="gray"
-              variant="ghost"
+              variant="outline"
             >
               Back
             </Button>
@@ -361,7 +378,7 @@ export default function FMVStep2({ formData, setFormData }) {
               px={8}
               fontWeight="bold"
             >
-              {step === STEPS.length - 1 ? "Submit" : "Next"}
+              {step === STEPS.length - 1 ? "Continue" : "Next"}
             </Button>
           </Flex>
         </form>

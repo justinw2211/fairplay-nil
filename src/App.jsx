@@ -10,6 +10,7 @@ import Security from "./pages/Security";
 import Careers from "./pages/Careers";
 import FMVStep1 from "./pages/FMVStep1";
 import FMVStep2 from "./pages/FMVStep2";
+import FMVReviewStep from "./pages/FMVReviewStep"; // <-- ADDED
 import FMVResult from "./pages/FMVResult";
 import { ChakraProvider } from "@chakra-ui/react";
 
@@ -190,6 +191,17 @@ const App = () => {
       </nav>
 
       <Routes>
+        <Route path="/fmvcalculator/step1" element={
+          <FMVStep1 formData={formData} setFormData={setFormData} />
+        } />
+        <Route path="/fmvcalculator/step2" element={
+          <FMVStep2 formData={formData} setFormData={setFormData} />
+        } />
+        <Route path="/fmvcalculator/review" element={
+          <FMVReviewStep formData={formData} setFormData={setFormData} />
+        } />
+        <Route path="/fmvcalculator/result" element={<FMVResult />} />
+
         <Route path="/" element={<Home />} />
         <Route path="/athletes" element={<Athletes />} />
         <Route path="/universities" element={<Universities />} />
@@ -198,9 +210,6 @@ const App = () => {
         <Route path="/aboutus" element={<AboutUs />} />
         <Route path="/security" element={<Security />} />
         <Route path="/careers" element={<Careers />} />
-        <Route path="/fmvcalculator/step1" element={<FMVStep1 formData={formData} setFormData={setFormData} />} />
-        <Route path="/fmvcalculator/step2" element={<FMVStep2 formData={formData} setFormData={setFormData} />} />
-        <Route path="/fmvcalculator/result" element={<FMVResult />} />
         <Route path="/contact" element={<div style={{ padding: '2rem', color: 'white' }}>Contact Page Placeholder</div>} />
         <Route path="/signin" element={<div style={{ padding: '2rem', color: 'white' }}>Sign In Page Placeholder</div>} />
       </Routes>
