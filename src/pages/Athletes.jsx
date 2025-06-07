@@ -1,10 +1,12 @@
 import React from "react";
-
-const Athletes = () => (
-  <div style={{ color: "white", background: "#222", minHeight: "100vh", padding: "2rem" }}>
-    <h1>Athletes</h1>
-    <p>This page provides more context about athletes. It is part of FairPlay NIL’s mission to offer transparency and value to key stakeholders in collegiate athletics. Stay tuned as we continue building tools for insight and clarity.</p>
-  </div>
-);
-
-export default Athletes;
+import { Box, Heading, Text } from "@chakra-ui/react";
+export default function Athletes() {
+  return (
+    <Box p={12} color="white">
+      <Heading mb={4}>For Athletes</Heading>
+      <Text fontSize="lg" color="gray.200">
+        Learn how FairPlay NIL empowers athletes to know their value and stay compliant.
+      </Text>
+    </Box>
+  );
+}
