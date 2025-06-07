@@ -5,7 +5,7 @@ import {
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
-import { NCAA_SCHOOL_OPTIONS } from "../data/ncaaSchools.js";
+import { NCAA_SCHOOLS, NCAA_SCHOOL_OPTIONS } from "../data/ncaaSchools.js";
 
 const DIVISIONS = ["I", "II", "III"];
 const GENDERS = [
@@ -67,31 +67,36 @@ export default function FMVStep1({ formData, setFormData }) {
   });
   const [touched, setTouched] = useState({});
   const [errors, setErrors] = useState({});
+  const [schoolOptions, setSchoolOptions] = useState([]);
   const [schoolInput, setSchoolInput] = useState("");
   const [didYouMean, setDidYouMean] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
   const gpaInputRef = useRef(null);
-
-  // Filter schools by division
-  const schoolOptions = localForm.division
-    ? NCAA_SCHOOL_OPTIONS.filter(opt => opt.division === localForm.division)
-    : [];
 
   // Autosave to localStorage
   useEffect(() => {
     localStorage.setItem("fpn_profile", JSON.stringify(localForm));
   }, [localForm]);
 
-  // Reset school field if division changes
   useEffect(() => {
-    setLocalForm(f => ({ ...f, school: "" }));
+    // Set options based on division
+    if (localForm.division) {
+      const options = NCAA_SCHOOL_OPTIONS.filter(opt => opt.division === localForm.division) || [];
+      setSchoolOptions(options);
+      setLocalForm(f => ({ ...f, school: "" }));
+    } else {
+      setSchoolOptions([]);
+      setLocalForm(f => ({ ...f, school: "" }));
+    }
     setSchoolInput("");
     setDidYouMean(null);
     // eslint-disable-next-line
   }, [localForm.division]);
 
   useEffect(() => {
+    // Resume draft logic (basic MVP, can improve later)
     if (window.location.hash === "#resume") {
       const saved = localStorage.getItem("fpn_profile");
       if (saved) setLocalForm(JSON.parse(saved));
@@ -215,11 +220,10 @@ export default function FMVStep1({ formData, setFormData }) {
   };
 
   // Manual entry handler
-  const handleSchoolInputChange = (inputVal, { action }) => {
-    if (action === "input-change") {
-      setSchoolInput(inputVal);
-      setDidYouMean(checkDidYouMean(inputVal));
-    }
+  const handleSchoolInputChange = (inputVal) => {
+    setSchoolInput(inputVal);
+    setDidYouMean(checkDidYouMean(inputVal));
+    // Don't set value yet—wait for select
   };
 
   // On blur, enforce only picking from valid schools
@@ -238,6 +242,40 @@ export default function FMVStep1({ formData, setFormData }) {
   // Progress bar % and label
   const progress = ((step + 1) / STEPS.length) * 100;
   const progressLabel = `Step ${step + 1} of ${STEPS.length}: ${getStepLabel(step)}`;
+
+  // Reusable select styles
+  const selectStyles = {
+    control: (base, state) => ({
+      ...base,
+      background: "#222",
+      color: "white",
+      borderColor: "#555",
+      boxShadow: state.isFocused ? "0 0 0 1.5px #88E788" : base.boxShadow,
+    }),
+    singleValue: (base) => ({
+      ...base,
+      color: "white",
+    }),
+    input: (base) => ({
+      ...base,
+      color: "white",
+    }),
+    placeholder: (base) => ({
+      ...base,
+      color: "#888",
+    }),
+    menu: (base) => ({
+      ...base,
+      background: "#23272f",
+      color: "#fff"
+    }),
+    option: (base, state) => ({
+      ...base,
+      background: state.isFocused ? "#2c2f36" : "#23272f",
+      color: "white",
+      cursor: "pointer"
+    }),
+  };
 
   return (
     <Flex
@@ -282,15 +320,7 @@ export default function FMVStep1({ formData, setFormData }) {
                     value={localForm.division ? { label: localForm.division, value: localForm.division } : null}
                     onChange={selected => updateField("division", selected ? selected.value : "")}
                     placeholder="Select division"
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        background: "#222", color: "white", borderColor: "#555"
-                      }),
-                      singleValue: (base) => ({ ...base, color: "white" }),
-                      input: (base) => ({ ...base, color: "white" }),
-                      menu: (base) => ({ ...base, background: "#23272f", color: "#fff" })
-                    }}
+                    styles={selectStyles}
                   />
                   <FormErrorMessage>{errors.division}</FormErrorMessage>
                 </FormControl>
@@ -306,15 +336,7 @@ export default function FMVStep1({ formData, setFormData }) {
                     placeholder="Type to search your school..."
                     isClearable
                     isSearchable
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        background: "#222", color: "white", borderColor: "#555"
-                      }),
-                      singleValue: (base) => ({ ...base, color: "white" }),
-                      input: (base) => ({ ...base, color: "white" }),
-                      menu: (base) => ({ ...base, background: "#23272f", color: "#fff" })
-                    }}
+                    styles={selectStyles}
                   />
                   {didYouMean && (
                     <Text color="green.200" fontSize="sm" mt={1}>
@@ -365,15 +387,7 @@ export default function FMVStep1({ formData, setFormData }) {
                       updateField("sport", "");
                     }}
                     placeholder="Select gender"
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        background: "#222", color: "white", borderColor: "#555"
-                      }),
-                      singleValue: (base) => ({ ...base, color: "white" }),
-                      input: (base) => ({ ...base, color: "white" }),
-                      menu: (base) => ({ ...base, background: "#23272f", color: "#fff" })
-                    }}
+                    styles={selectStyles}
                   />
                   <FormErrorMessage>{errors.gender}</FormErrorMessage>
                 </FormControl>
@@ -385,15 +399,7 @@ export default function FMVStep1({ formData, setFormData }) {
                     onChange={selected => updateField("sport", selected ? selected.value : "")}
                     placeholder="Select sport"
                     isDisabled={!localForm.gender}
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        background: "#222", color: "white", borderColor: "#555"
-                      }),
-                      singleValue: (base) => ({ ...base, color: "white" }),
-                      input: (base) => ({ ...base, color: "white" }),
-                      menu: (base) => ({ ...base, background: "#23272f", color: "#fff" })
-                    }}
+                    styles={selectStyles}
                   />
                   <FormErrorMessage>{errors.sport}</FormErrorMessage>
                 </FormControl>
