@@ -18,42 +18,74 @@ export default function FMVReviewStep({ formData, setFormData }) {
   const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleEdit = (section) => {
-    if (section === "profile") navigate("/fmvcalculator/step1");
-    if (section === "deal") navigate("/fmvcalculator/step2");
+const handleSubmit = async () => {
+  setIsSubmitting(true);
+
+  const payload = {
+    name: formData.name || "",
+    email: formData.email || "",
+    school: formData.school || "",
+    division: Number(formData.division) || 0,
+    conference: formData.conference || "",
+    gender: formData.gender || "",
+    sport: formData.sport || "",
+    graduation_year: Number(formData.graduation_year) || 0,
+    age: Number(formData.age) || 0,
+    gpa: Number(formData.gpa) || 0,
+    achievements: formData.achievements || [],
+    athlete_status: formData.athlete_status || "",
+    followers_instagram: Number(formData.followers_instagram) || 0,
+    followers_tiktok: Number(formData.followers_tiktok) || 0,
+    followers_twitter: Number(formData.followers_twitter) || 0,
+    followers_youtube: Number(formData.followers_youtube) || 0,
+    deliverables_instagram: Number(formData.deliverables_instagram) || 0,
+    deliverables_tiktok: Number(formData.deliverables_tiktok) || 0,
+    deliverables_twitter: Number(formData.deliverables_twitter) || 0,
+    deliverables_youtube: Number(formData.deliverables_youtube) || 0,
+    deliverable_other: formData.deliverable_other || "",
+    payment_structure: formData.payment_structure || "",
+    deal_length_months: Number(formData.deal_length_months) || 0,
+    proposed_dollar_amount: Number(formData.proposed_dollar_amount) || 0,
+    deal_type: formData.deal_type || "",
+    deal_category: formData.deal_category || "",
+    brand_partner: formData.brand_partner || "",
+    geography: formData.geography || "",
+    is_real_submission: formData.is_real_submission || false,
   };
 
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      const res = await fetch("https://fairplay-nil-backend.onrender.com/api/fmv", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+  console.log("Sending data:", payload);
 
-      const data = await res.json();
+  try {
+    const res = await fetch("https://fairplay-nil-backend.onrender.com/api/fmv", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
 
-      if (!res.ok) {
-        throw new Error(data?.error || "Unknown error occurred");
-      }
+    const data = await res.json();
 
-      setFormData({ ...formData, fmv: data.fmv });
-      navigate("/fmvcalculator/result");
-    } catch (err) {
-      toast({
-        title: "Error submitting form",
-        description: err.message || "Please try again later.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setIsSubmitting(false);
+    if (!res.ok) {
+      throw new Error(data?.error || "Unknown error occurred");
     }
-  };
+
+    setFormData({ ...formData, fmv: data.fmv });
+    navigate("/fmvcalculator/result");
+  } catch (err) {
+    toast({
+      title: "Error submitting form",
+      description: err.message || "Please try again later.",
+      status: "error",
+      duration: 3000,
+      isClosable: true
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+
 
   return (
     <Flex
