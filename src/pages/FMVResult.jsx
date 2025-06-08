@@ -4,24 +4,34 @@ import {
   ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton, Input, useToast
 } from "@chakra-ui/react";
 
-export default function FMVResult() {
+export default function FMVResult({ formData }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [shareEmail, setShareEmail] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const toast = useToast();
 
-  // Placeholder FMV output; hook this up to backend/props if needed
-  const FMV = "$8,750";
+  const fmvValue = formData?.fmv ? `$${formData.fmv}` : "FMV unavailable";
+
   const fmvDetails = [
-    { label: "Sport", value: "Track & Field" },
-    { label: "Division", value: "I" },
-    { label: "Social Followers", value: "14,000" },
-    { label: "Achievements", value: "All-American" },
-    { label: "Deliverables", value: "2 Instagram posts, 1 TikTok video" }
+    { label: "Sport", value: formData?.sport || "-" },
+    { label: "Division", value: formData?.division?.toString() || "-" },
+    { label: "Social Followers", value: (
+      formData?.followers_instagram +
+      formData?.followers_tiktok +
+      formData?.followers_twitter +
+      formData?.followers_youtube
+    )?.toLocaleString() || "0" },
+    { label: "Achievements", value: formData?.achievements?.join(", ") || "-" },
+    { label: "Deliverables", value: [
+      formData?.deliverables_instagram && `${formData.deliverables_instagram} IG posts`,
+      formData?.deliverables_tiktok && `${formData.deliverables_tiktok} TikToks`,
+      formData?.deliverables_twitter && `${formData.deliverables_twitter} Tweets`,
+      formData?.deliverables_youtube && `${formData.deliverables_youtube} YouTube videos`,
+      formData?.deliverable_other
+    ].filter(Boolean).join(", ") || "-" }
   ];
 
   const handleShare = () => {
-    // Future: Trigger backend email
     setShowSuccess(true);
     onClose();
     toast({
@@ -41,7 +51,7 @@ export default function FMVResult() {
       <Box w={["95vw", "600px"]} bg="gray.900" boxShadow="2xl" borderRadius="2xl" p={[4, 8]} mx="auto">
         <Heading size="lg" mb={4}>Your NIL FMV Estimate</Heading>
         <Text color="green.300" fontSize="3xl" fontWeight="bold" mb={3}>
-          {FMV}
+          {fmvValue}
         </Text>
         <Stack spacing={2} mb={5}>
           {fmvDetails.map((d, idx) => (
