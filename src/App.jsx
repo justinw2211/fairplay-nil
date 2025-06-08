@@ -9,6 +9,7 @@ import AboutUs from "./pages/AboutUs";
 import Security from "./pages/Security";
 import Careers from "./pages/Careers";
 import FMVCalculator from "./pages/FMVCalculator"; // robust survey parent
+import FMVResult from "./pages/FMVResult"; // 🔧 added missing FMVResult
 
 const App = () => {
   const location = useLocation();
