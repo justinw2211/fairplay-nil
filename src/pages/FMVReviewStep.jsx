@@ -50,7 +50,7 @@ const handleSubmit = async () => {
     deal_category: formData.deal_category || "",
     brand_partner: formData.brand_partner || "",
     geography: formData.geography || "",
-     is_real_submission: formData.is_real_submission === "yes", // ✅ Force it explicitly
+     s_real_submission: String(formData.is_real_submission).toLowerCase() === "yes", // ✅ Force it explicitly
   };
 
   console.log("Sending data:", payload);
