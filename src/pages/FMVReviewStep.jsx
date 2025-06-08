@@ -94,7 +94,7 @@ export default function FMVReviewStep({ formData, setFormData }) {
         console.info("Skipped backend submission: not a real submission.");
       }
 
-      navigate("/result");
+      navigate("/result", { state: { formData: { ...formData, fmv: calcData.fmv } } });
     } catch (error) {
       console.error("Submission error:", error);
       toast({

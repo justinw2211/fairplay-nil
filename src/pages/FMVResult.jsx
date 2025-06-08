@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Box, Button, Flex, Heading, Text, Stack, useDisclosure, Modal,
@@ -8,12 +7,12 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 
 export default function FMVResult() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [shareEmail, setShareEmail] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const toast = useToast();
-  const location = useLocation();
-  const navigate = useNavigate();
   const formData = location.state?.formData;
 
   if (!formData) {
