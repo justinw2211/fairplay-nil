@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   Box,
@@ -18,8 +19,18 @@ export default function FMVReviewStep({ formData, setFormData }) {
   const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const handleEdit = (section) => {
+    if (section === "profile") {
+      navigate("/fmv/step1");
+    } else if (section === "deal") {
+      navigate("/fmv/step2");
+    }
+  };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
+
+    const isReal = String(formData.step2?.is_real_submission).toLowerCase() === "yes";
 
     const payload = {
       name: formData.name || "",
@@ -50,47 +61,56 @@ export default function FMVReviewStep({ formData, setFormData }) {
       deal_category: formData.deal_category || "",
       brand_partner: formData.brand_partner || "",
       geography: formData.geography || "",
-      is_real_submission: String(formData.step2?.is_real_submission).toLowerCase() === "yes",
     };
 
-    console.log("Sending data:", payload);
-
     try {
-      const res = await fetch("https://fairplay-nil-backend.onrender.com/api/fmv", {
+      const calcRes = await fetch("https://fairplay-nil-backend.onrender.com/api/fmv/calculate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      const calcData = await calcRes.json();
 
-      if (!res.ok) {
-        throw new Error(data?.error || "Unknown error occurred");
+      if (!calcRes.ok) {
+        throw new Error(calcData?.error || "FMV calculation failed");
       }
 
-      setFormData({ ...formData, fmv: data.fmv });
-      navigate("/fmvcalculator/result");
-    } catch (err) {
+      setFormData((prev) => ({ ...prev, fmv_result: calcData.fmv }));
+
+      if (isReal) {
+        const submitRes = await fetch("https://fairplay-nil-backend.onrender.com/api/fmv/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...payload, fmv: calcData.fmv }),
+        });
+
+        const submitData = await submitRes.json();
+
+        if (!submitRes.ok) {
+          throw new Error(submitData?.error || "Submission failed");
+        }
+      } else {
+        console.info("Skipped backend submission: not a real submission.");
+      }
+
+      navigate("/result");
+    } catch (error) {
+      console.error("Submission error:", error);
       toast({
-        title: "Error submitting form",
-        description: err.message || "Please try again later.",
+        title: "Error",
+        description: error.message || "Something went wrong during submission.",
         status: "error",
-        duration: 3000,
-        isClosable: true
+        duration: 6000,
+        isClosable: true,
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleEdit = (section) => {
-    if (section === "profile") navigate("/fmvcalculator");
-  };
-
   return (
-    <Flex
+<Flex
       minH="100vh"
       align="center"
       justify="center"
