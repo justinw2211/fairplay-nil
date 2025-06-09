@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Box,
@@ -76,7 +75,8 @@ export default function FMVReviewStep({ formData, setFormData }) {
         throw new Error(calcData?.error || "FMV calculation failed");
       }
 
-      setFormData((prev) => ({ ...prev, fmv_result: calcData.fmv }));
+      const fullData = { ...formData, fmv: calcData.fmv };
+      setFormData((prev) => ({ ...prev, fmv: calcData.fmv }));
 
       if (isReal) {
         const submitRes = await fetch("https://fairplay-nil-backend.onrender.com/api/fmv/submit", {
@@ -94,7 +94,9 @@ export default function FMVReviewStep({ formData, setFormData }) {
         console.info("Skipped backend submission: not a real submission.");
       }
 
-      navigate("/result", { state: { formData: { ...formData, fmv: calcData.fmv } } });
+      // ✅ Save to localStorage and pass state for FMVResult fallback support
+      localStorage.setItem("fmvFormData", JSON.stringify(fullData));
+      navigate("/result", { state: { formData: fullData } });
     } catch (error) {
       console.error("Submission error:", error);
       toast({
@@ -110,7 +112,7 @@ export default function FMVReviewStep({ formData, setFormData }) {
   };
 
   return (
-<Flex
+    <Flex
       minH="100vh"
       align="center"
       justify="center"

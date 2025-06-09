@@ -13,7 +13,10 @@ export default function FMVResult() {
   const [shareEmail, setShareEmail] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const toast = useToast();
-  const formData = location.state?.formData;
+
+  // ✅ Try to load formData from router state or localStorage
+  const fallbackData = typeof window !== "undefined" ? localStorage.getItem("fmvFormData") : null;
+  const formData = location.state?.formData || (fallbackData && JSON.parse(fallbackData));
 
   if (!formData) {
     return (
