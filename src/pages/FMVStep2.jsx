@@ -3,7 +3,7 @@ import {
   Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
   Input, NumberInput, NumberInputField, useToast, Text, Select as ChakraSelect, FormErrorMessage
 } from "@chakra-ui/react";
-// replaced CreatableSelect with Chakra UI controlled Input + Tag
+// replaced CreatableSelect with custom Chakra UI Tags + Input
 
 // Deliverable types for demonstration—customize as needed
 const DELIVERABLE_OPTIONS = [
@@ -254,7 +254,7 @@ export default function FMVStep2({ formData, setFormData, onBack, onNext }) {
             {/* Deliverables */}
             <FormControl isRequired isInvalid={!!errors.deliverables}>
               <FormLabel color="gray.200">Deliverables (select all that apply)</FormLabel>
-              <CreatableSelect
+              <Box /* Chakra placeholder for CreatableSelect */
                 isMulti
                 options={DELIVERABLE_OPTIONS}
                 value={localDeal.deliverables.map(val => ({ label: val, value: val }))}
@@ -323,7 +323,7 @@ export default function FMVStep2({ formData, setFormData, onBack, onNext }) {
             {/* Deal Type */}
             <FormControl>
               <FormLabel color="gray.200">Deal Types (optional, multi-select)</FormLabel>
-              <CreatableSelect
+              <Box /* Chakra placeholder for CreatableSelect */
                 isMulti
                 options={DEAL_TYPES}
                 value={localDeal.deal_type.map(val => ({ label: val, value: val }))}
