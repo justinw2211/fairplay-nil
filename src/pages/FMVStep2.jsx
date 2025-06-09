@@ -3,7 +3,7 @@ import {
   Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
   Input, NumberInput, NumberInputField, useToast, Text, Select as ChakraSelect, FormErrorMessage
 } from "@chakra-ui/react";
-import CreatableSelect from "react-select/creatable";
+// replaced CreatableSelect with Chakra UI controlled Input + Tag
 
 // Deliverable types for demonstration—customize as needed
 const DELIVERABLE_OPTIONS = [

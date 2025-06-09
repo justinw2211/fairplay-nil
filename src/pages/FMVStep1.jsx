@@ -3,7 +3,7 @@ import {
   Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
   Input, NumberInput, NumberInputField, useToast, Text, FormErrorMessage
 } from "@chakra-ui/react";
-import Select from "react-select";
+import { Select } from "@chakra-ui/react";
 import { NCAA_SCHOOL_OPTIONS } from "../data/ncaaSchools.js";
 
 const DIVISIONS = ["I", "II", "III"];
