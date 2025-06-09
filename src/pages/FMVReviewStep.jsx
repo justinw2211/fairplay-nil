@@ -96,7 +96,8 @@ export default function FMVReviewStep({ formData, setFormData }) {
 
       // ✅ Save to localStorage and pass state for FMVResult fallback support
       localStorage.setItem("fmvFormData", JSON.stringify(fullData));
-      navigate("/result", { state: { formData: fullData } });
+      navigate("/result", { state: {
+      fmvResult: mockFMV, formData: fullData } });
     } catch (error) {
       console.error("Submission error:", error);
       toast({
