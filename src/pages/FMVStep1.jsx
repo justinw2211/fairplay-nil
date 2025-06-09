@@ -3,7 +3,7 @@ import {
   Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
   Input, NumberInput, NumberInputField, useToast, Text, FormErrorMessage
 } from "@chakra-ui/react";
-import { Select } from "@chakra-ui/react";
+import Select from "react-select";
 import { NCAA_SCHOOL_OPTIONS } from "../data/ncaaSchools.js";
 
 const DIVISIONS = ["I", "II", "III"];
@@ -235,7 +235,7 @@ export default function FMVStep1({ formData, setFormData, onNext }) {
                 <Heading fontSize="2xl" color="white">Profile</Heading>
                 <FormControl isRequired isInvalid={!!errors.division}>
                   <FormLabel color="gray.200">Division</FormLabel>
-                  <Select variant="filled"
+                  <Select
                     options={DIVISIONS.map(d => ({ label: d, value: d }))}
                     value={localForm.division ? { label: localForm.division, value: localForm.division } : null}
                     onChange={selected => updateField("division", selected ? selected.value : "")}
@@ -254,7 +254,7 @@ export default function FMVStep1({ formData, setFormData, onNext }) {
                 </FormControl>
                 <FormControl isRequired isInvalid={!!errors.school}>
                   <FormLabel color="gray.200">School</FormLabel>
-                  <Select variant="filled"
+                  <Select
                     inputValue={schoolInput}
                     onInputChange={handleSchoolInputChange}
                     options={schoolOptions}
@@ -306,7 +306,7 @@ export default function FMVStep1({ formData, setFormData, onNext }) {
                 <Heading fontSize="2xl" color="white">Academics & Athletics</Heading>
                 <FormControl isRequired isInvalid={!!errors.gender}>
                   <FormLabel color="gray.200">Gender</FormLabel>
-                  <Select variant="filled"
+                  <Select
                     options={GENDERS.map(g => ({ label: g, value: g }))}
                     value={localForm.gender ? { label: localForm.gender, value: localForm.gender } : null}
                     onChange={selected => {
@@ -328,7 +328,7 @@ export default function FMVStep1({ formData, setFormData, onNext }) {
                 </FormControl>
                 <FormControl isRequired isInvalid={!!errors.sport}>
                   <FormLabel color="gray.200">Sport</FormLabel>
-                  <Select variant="filled"
+                  <Select
                     options={localForm.gender ? (SPORTS[localForm.gender] || []).map(s => ({ label: s, value: s })) : []}
                     value={localForm.sport ? { label: localForm.sport, value: localForm.sport } : null}
                     onChange={selected => updateField("sport", selected ? selected.value : "")}
