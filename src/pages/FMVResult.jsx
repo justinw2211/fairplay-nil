@@ -16,24 +16,31 @@ const FMVResult = () => {
   const [formData, setFormData] = useState(null);
 
   useEffect(() => {
-    if (location.state && location.state.fmvResult && location.state.formData) {
-      setFmvResult(location.state.fmvResult);
-      setFormData(location.state.formData);
-      localStorage.setItem("fmvResult", JSON.stringify(location.state.fmvResult));
-      localStorage.setItem("formData", JSON.stringify(location.state.formData));
-    } else {
-      try {
-        const storedFmv = localStorage.getItem("fmvResult");
-        const storedForm = localStorage.getItem("formData");
-        if (storedFmv && storedForm) {
-          setFmvResult(JSON.parse(storedFmv));
-          setFormData(JSON.parse(storedForm));
+    try {
+      if (location.state?.fmvResult && location.state?.formData) {
+        setFmvResult(location.state.fmvResult);
+        setFormData(location.state.formData);
+        localStorage.setItem("fmvResult", JSON.stringify(location.state.fmvResult));
+        localStorage.setItem("formData", JSON.stringify(location.state.formData));
+      } else {
+        const storedFmv = JSON.parse(localStorage.getItem("fmvResult"));
+        const storedForm = JSON.parse(localStorage.getItem("formData"));
+        if (typeof storedFmv === "number" && storedForm?.name && storedForm?.email) {
+          setFmvResult(storedFmv);
+          setFormData(storedForm);
         }
-      } catch (err) {
-        console.error("Failed to load FMV result from localStorage", err);
       }
+    } catch (err) {
+      console.error("Error loading FMV result", err);
     }
   }, [location.state]);
+
+  useEffect(() => {
+    return () => {
+      localStorage.removeItem("fmvResult");
+      localStorage.removeItem("formData");
+    };
+  }, []);
 
   if (!fmvResult || !formData) {
     return (
