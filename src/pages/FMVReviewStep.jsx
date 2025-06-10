@@ -29,6 +29,10 @@ export default function FMVReviewStep({ formData, setFormData }) {
   const handleSubmit = async () => {
     const followers = Number(formData.followers || 0);
     const mockFMV = 5000 + followers * 0.1;
+    localStorage.setItem("fmvResult", JSON.stringify(mockFMV));
+    localStorage.setItem("formData", JSON.stringify(formData));
+    const followers = Number(formData.followers || 0);
+    const mockFMV = 5000 + followers * 0.1;
     setIsSubmitting(true);
 
     const isReal = String(formData.step2?.is_real_submission).toLowerCase() === "yes";

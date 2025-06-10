@@ -8,53 +8,34 @@ import {
   Button,
   Divider,
 } from "@chakra-ui/react";
-import { useLocation, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const FMVResult = () => {
-  const location = useLocation();
   const [fmvResult, setFmvResult] = useState(null);
   const [formData, setFormData] = useState(null);
-  const [hasRendered, setHasRendered] = useState(false);
 
   useEffect(() => {
     try {
-      if (location.state?.fmvResult && location.state?.formData) {
-        setFmvResult(location.state.fmvResult);
-        setFormData(location.state.formData);
-        localStorage.setItem("fmvResult", JSON.stringify(location.state.fmvResult));
-        localStorage.setItem("formData", JSON.stringify(location.state.formData));
-      } else {
-        const storedFmv = JSON.parse(localStorage.getItem("fmvResult"));
-        const storedForm = JSON.parse(localStorage.getItem("formData"));
-        if (typeof storedFmv === "number" && storedForm?.name && storedForm?.email) {
-          setFmvResult(storedFmv);
-          setFormData(storedForm);
-        }
+      const storedFmv = JSON.parse(localStorage.getItem("fmvResult"));
+      const storedForm = JSON.parse(localStorage.getItem("formData"));
+      console.log("LocalStorage FMV:", storedFmv);
+      console.log("LocalStorage Form:", storedForm);
+
+      if (typeof storedFmv === "number" && storedForm?.name && storedForm?.email) {
+        setFmvResult(storedFmv);
+        setFormData(storedForm);
       }
     } catch (err) {
-      console.error("Error loading FMV result", err);
+      console.error("Error reading from localStorage", err);
     }
-  }, [location.state]);
-
-  useEffect(() => {
-    if (fmvResult && formData) {
-      setHasRendered(true);
-    }
-  }, [fmvResult, formData]);
-
-  useEffect(() => {
-    if (hasRendered) {
-      localStorage.removeItem("fmvResult");
-      localStorage.removeItem("formData");
-    }
-  }, [hasRendered]);
+  }, []);
 
   if (!fmvResult || !formData) {
     return (
       <Box p={10}>
         <Heading size="lg">Oops! Something went wrong.</Heading>
         <Text mt={4}>
-          It looks like you refreshed the page or accessed this result page directly.
+          Please return to the calculator and complete the form again.
         </Text>
         <Button as={Link} to="/calculator" colorScheme="green" mt={6}>
           Start Over
