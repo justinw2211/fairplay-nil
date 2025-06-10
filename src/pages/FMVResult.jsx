@@ -14,6 +14,7 @@ const FMVResult = () => {
   const location = useLocation();
   const [fmvResult, setFmvResult] = useState(null);
   const [formData, setFormData] = useState(null);
+  const [hasRendered, setHasRendered] = useState(false);
 
   useEffect(() => {
     try {
@@ -36,11 +37,17 @@ const FMVResult = () => {
   }, [location.state]);
 
   useEffect(() => {
-    return () => {
+    if (fmvResult && formData) {
+      setHasRendered(true);
+    }
+  }, [fmvResult, formData]);
+
+  useEffect(() => {
+    if (hasRendered) {
       localStorage.removeItem("fmvResult");
       localStorage.removeItem("formData");
-    };
-  }, []);
+    }
+  }, [hasRendered]);
 
   if (!fmvResult || !formData) {
     return (
