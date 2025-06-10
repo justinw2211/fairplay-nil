@@ -27,12 +27,6 @@ export default function FMVReviewStep({ formData, setFormData }) {
   };
 
   const handleSubmit = async () => {
-    const followers = Number(formData.followers || 0);
-    const mockFMV = 5000 + followers * 0.1;
-    localStorage.setItem("fmvResult", JSON.stringify(mockFMV));
-    localStorage.setItem("formData", JSON.stringify(formData));
-    const followers = Number(formData.followers || 0);
-    const mockFMV = 5000 + followers * 0.1;
     setIsSubmitting(true);
 
     const isReal = String(formData.step2?.is_real_submission).toLowerCase() === "yes";
@@ -102,9 +96,7 @@ export default function FMVReviewStep({ formData, setFormData }) {
 
       // ✅ Save to localStorage and pass state for FMVResult fallback support
       localStorage.setItem("fmvFormData", JSON.stringify(fullData));
-      navigate("/result", { state: {
-      fmvResult: mockFMV,
-      fmvResult: mockFMV, formData: fullData } });
+      navigate("/result", { state: { formData: fullData } });
     } catch (error) {
       console.error("Submission error:", error);
       toast({

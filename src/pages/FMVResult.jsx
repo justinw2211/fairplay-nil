@@ -1,73 +1,108 @@
-
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
-  Box,
-  Heading,
-  Text,
-  Stack,
-  Button,
-  Divider,
+  Box, Button, Flex, Heading, Text, Stack, useDisclosure, Modal,
+  ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter,
+  ModalCloseButton, Input, useToast
 } from "@chakra-ui/react";
-import { Link } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
-const FMVResult = () => {
-  const [fmvResult, setFmvResult] = useState(null);
-  const [formData, setFormData] = useState(null);
+export default function FMVResult() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [shareEmail, setShareEmail] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+  const toast = useToast();
 
-  useEffect(() => {
-    try {
-      const storedFmv = JSON.parse(localStorage.getItem("fmvResult"));
-      const storedForm = JSON.parse(localStorage.getItem("formData"));
-      console.log("LocalStorage FMV:", storedFmv);
-      console.log("LocalStorage Form:", storedForm);
+  // ✅ Try to load formData from router state or localStorage
+  const fallbackData = typeof window !== "undefined" ? localStorage.getItem("fmvFormData") : null;
+  const formData = location.state?.formData || (fallbackData && JSON.parse(fallbackData));
 
-      if (typeof storedFmv === "number" && storedForm?.name && storedForm?.email) {
-        setFmvResult(storedFmv);
-        setFormData(storedForm);
-      }
-    } catch (err) {
-      console.error("Error reading from localStorage", err);
-    }
-  }, []);
-
-  if (!fmvResult || !formData) {
+  if (!formData) {
     return (
       <Box p={10}>
-        <Heading size="lg">Oops! Something went wrong.</Heading>
-        <Text mt={4}>
-          Please return to the calculator and complete the form again.
-        </Text>
-        <Button as={Link} to="/calculator" colorScheme="green" mt={6}>
-          Start Over
-        </Button>
+        <Heading size="md" mb={4}>No result data found.</Heading>
+        <Button onClick={() => navigate("/")}>Return Home</Button>
       </Box>
     );
   }
 
+  const fmvValue = formData?.fmv ? `$${formData.fmv}` : "FMV unavailable";
+
+  const fmvDetails = [
+    { label: "Sport", value: formData?.sport || "-" },
+    { label: "Division", value: formData?.division?.toString() || "-" },
+    {
+      label: "Social Followers",
+      value: (
+        formData?.followers_instagram +
+        formData?.followers_tiktok +
+        formData?.followers_twitter +
+        formData?.followers_youtube
+      )?.toLocaleString() || "0"
+    },
+    { label: "Achievements", value: formData?.achievements?.join(", ") || "-" },
+    {
+      label: "Deliverables",
+      value: [
+        formData?.deliverables_instagram && `${formData.deliverables_instagram} IG posts`,
+        formData?.deliverables_tiktok && `${formData.deliverables_tiktok} TikToks`,
+        formData?.deliverables_twitter && `${formData.deliverables_twitter} Tweets`,
+        formData?.deliverables_youtube && `${formData.deliverables_youtube} YouTube videos`,
+        formData?.deliverable_other
+      ].filter(Boolean).join(", ") || "-"
+    }
+  ];
+
+  const handleShare = () => {
+    setShowSuccess(true);
+    onClose();
+    toast({
+      title: "Success!",
+      description: `Result emailed to ${shareEmail} (simulation)`,
+      status: "success",
+      duration: 3000,
+      isClosable: true
+    });
+  };
+
   return (
-    <Box maxW="700px" mx="auto" p={8}>
-      <Heading size="xl" mb={4}>
-        Your Fair Market Valuation
-      </Heading>
-      <Text fontSize="2xl" fontWeight="bold" color="green.400">
-        ${fmvResult.toLocaleString()}
-      </Text>
-      <Divider my={6} />
-      <Stack spacing={3}>
-        <Text><strong>Name:</strong> {formData.name}</Text>
-        <Text><strong>Email:</strong> {formData.email}</Text>
-        <Text><strong>School:</strong> {formData.school}</Text>
-        <Text><strong>Sport:</strong> {formData.sport}</Text>
-        <Text><strong>Social Followers:</strong> {formData.followers}</Text>
-        <Text><strong>Deliverables:</strong> {Object.entries(formData.deliverables || {}).map(
-          ([platform, count]) => `${platform}: ${count}`
-        ).join(", ")}</Text>
+    <Box maxW="2xl" mx="auto" py={10} px={6}>
+      <Heading size="lg" mb={4}>Your Fair Market Value</Heading>
+      <Text fontSize="4xl" fontWeight="bold" color="green.300">{fmvValue}</Text>
+      <Stack spacing={4} my={6}>
+        {fmvDetails.map((item, idx) => (
+          <Flex key={idx} justify="space-between">
+            <Text color="gray.400">{item.label}:</Text>
+            <Text fontWeight="medium">{item.value}</Text>
+          </Flex>
+        ))}
       </Stack>
-      <Button as={Link} to="/" mt={8} colorScheme="green">
-        Back to Home
-      </Button>
+      <Flex mt={10} justify="space-between">
+        <Button onClick={onOpen} colorScheme="blue">Email This Result</Button>
+        <Button onClick={() => navigate("/")}>Return Home</Button>
+      </Flex>
+
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Send FMV Result</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Input
+              placeholder="Enter recipient's email"
+              value={shareEmail}
+              onChange={(e) => setShareEmail(e.target.value)}
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={handleShare}>
+              Send
+            </Button>
+            <Button onClick={onClose}>Cancel</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
-};
-
-export default FMVResult;
+}

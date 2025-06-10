@@ -18,7 +18,7 @@ export default function FMVCalculator() {
     let saved = {};
     try {
       saved = JSON.parse(localStorage.getItem("fpn_profile") || "{}");
-    } catch {}
+    } catch { }
     return saved || {};
   });
 
@@ -35,7 +35,8 @@ export default function FMVCalculator() {
   const goToStep1 = () => navigate("/fmvcalculator/step1");
   const goToStep2 = () => navigate("/fmvcalculator/step2");
   const goToReview = () => navigate("/fmvcalculator/review");
-  const goToResult = () => navigate("/fmvcalculator/result");
+  // BUG FIX: The final navigation is now handled in FMVReviewStep directly to the top-level `/result` route.
+  // The goToResult function is no longer needed here.
 
   // Render each step as a sub-route under /fmvcalculator/*
   return (
@@ -68,14 +69,14 @@ export default function FMVCalculator() {
             formData={formData}
             setFormData={updateFormData}
             onBack={goToStep2}
-            onNext={goToResult}
+            // BUG FIX: The 'onNext' prop is removed as it was unused and the logic is handled within the component.
           />
         }
       />
-      <Route
-        path="/result"
-        element={<FMVResult formData={formData} />}
-      />
+      {/* BUG FIX: The redundant nested route for `/result` has been removed.
+        The top-level router in `App.jsx` now handles this path. 
+      */}
+
       {/* Default/fallback: Start at step 1 */}
       <Route path="*" element={<FMVStep1 formData={formData} setFormData={updateFormData} onNext={goToStep2} />} />
     </Routes>

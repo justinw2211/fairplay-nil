@@ -9,7 +9,7 @@ import AboutUs from "./pages/AboutUs";
 import Security from "./pages/Security";
 import Careers from "./pages/Careers";
 import FMVCalculator from "./pages/FMVCalculator"; // robust survey parent
-import FMVResult from "./pages/FMVResult"; // 🔧 added missing FMVResult
+import FMVResult from "./pages/FMVResult"; // BUG FIX: Ensure FMVResult is imported
 
 const App = () => {
   const location = useLocation();
@@ -186,6 +186,11 @@ const App = () => {
       <Routes>
         {/* Robust parent handles all survey steps */}
         <Route path="/fmvcalculator/*" element={<FMVCalculator />} />
+
+        {/* ====================================================== */}
+        {/* BUG FIX: Added a top-level route for the result page. */}
+        <Route path="/result" element={<FMVResult />} />
+        {/* ====================================================== */}
 
         {/* All your main nav pages as before */}
         <Route path="/" element={<Home />} />
