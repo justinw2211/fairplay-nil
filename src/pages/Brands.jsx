@@ -1,16 +1,19 @@
+// src/pages/Brands.jsx
+import React from 'react';
+import { Box, Heading, Text, VStack } from '@chakra-ui/react';
 
-import React from "react";
-
-const Brands = () => (
-  <div style={{
-    color: 'white',
-    fontFamily: "'Inter', sans-serif",
-    padding: '4rem',
-    textAlign: 'center'
-  }}>
-    <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Brand Partnerships</h1>
-    <p>This is a placeholder for the Brands landing page.</p>
-  </div>
-);
-
-export default Brands;
+export default function Brands() {
+  return (
+    <Box maxW="5xl" mx="auto" py={{ base: 12, md: 24 }} px={8}>
+      <VStack spacing={4} align="start">
+        <Heading as="h1" size="xl">
+          For Brands
+        </Heading>
+        <Text fontSize="lg" color="brand.textSecondary">
+          Maximize your ROI in the collegiate athlete space. Our valuation tools
+          help you structure fair and effective NIL partnerships.
+        </Text>
+      </VStack>
+    </Box>
+  );
+}
