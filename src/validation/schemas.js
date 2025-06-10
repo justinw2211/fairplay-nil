@@ -1,6 +1,6 @@
 import * as yup from 'yup';
 
-// Schema for Step 1: Profile and Academics/Athletics
+// Schema for Step 1 remains the same
 export const step1Schema = yup.object().shape({
   division: yup.string().required('Division is required.'),
   school: yup.string().required('School is required.'),
@@ -14,7 +14,7 @@ export const step1Schema = yup.object().shape({
     .max(2035, 'Invalid year')
     .required('Graduation year is required.'),
   gpa: yup.string().test('is-gpa', 'GPA must be 0.00–4.00', (value) => {
-      if (!value) return true; // Optional field
+      if (!value) return true;
       const num = parseFloat(value);
       return !isNaN(num) && num >= 0 && num <= 4;
     }).nullable(),
@@ -29,13 +29,20 @@ export const step1Schema = yup.object().shape({
     .nullable(),
 });
 
-// Schema for Step 2: Deal Details
+// Schema for Step 2 - NOW INCLUDES FOLLOWER COUNTS
 export const step2Schema = yup.object().shape({
+  // Social Follower Counts (optional numbers)
+  followers_instagram: yup.number().typeError('Must be a number').min(0).nullable(),
+  followers_tiktok: yup.number().typeError('Must be a number').min(0).nullable(),
+  followers_twitter: yup.number().typeError('Must be a number').min(0).nullable(),
+  followers_youtube: yup.number().typeError('Must be a number').min(0).nullable(),
+  
+  // Existing Deal Details Validation
   payment_structure: yup.string().required('Payment structure is required.'),
   payment_structure_other: yup.string().when('payment_structure', {
     is: 'Other',
-    then: () => yup.string().required('Please describe the payment structure.'),
-    otherwise: () => yup.string().optional(),
+    then: (schema) => schema.required('Please describe the payment structure.'),
+    otherwise: (schema) => schema.optional(),
   }),
   deal_length_months: yup.number()
     .typeError('Deal length is required.')
@@ -53,8 +60,8 @@ export const step2Schema = yup.object().shape({
     .required(),
   deliverable_other: yup.string().when('deliverables', {
       is: (deliverables) => deliverables && deliverables.includes('Other'),
-      then: () => yup.string().required('Please describe the other deliverable.'),
-      otherwise: () => yup.string().optional(),
+      then: (schema) => schema.required('Please describe the other deliverable.'),
+      otherwise: (schema) => schema.optional(),
   }),
   is_real_submission: yup.string().required('Please select an option.'),
 });

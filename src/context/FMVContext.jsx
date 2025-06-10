@@ -3,7 +3,7 @@ import React, { createContext, useState, useContext, useMemo } from 'react';
 // Create the context
 const FMVContext = createContext();
 
-// Initial state for the form
+// Initial state for the form - NOW INCLUDES FOLLOWER COUNTS
 const initialFormData = {
   // Step 1
   division: "",
@@ -17,6 +17,10 @@ const initialFormData = {
   gpa: "",
   prior_nil_deals: "",
   // Step 2
+  followers_instagram: "",
+  followers_tiktok: "",
+  followers_twitter: "",
+  followers_youtube: "",
   payment_structure: "",
   payment_structure_other: "",
   deal_length_months: "",
@@ -26,22 +30,18 @@ const initialFormData = {
   deliverables: [],
   deliverables_count: {},
   deliverable_other: "",
-
   deal_type: [],
   is_real_submission: "",
   // Result
   fmv: null,
 };
 
-
 // Create the Provider component
 export function FMVProvider({ children }) {
   const [formData, setFormData] = useState(() => {
-    // Try to recover saved profile from localStorage on refresh/resume
     try {
       const saved = localStorage.getItem("fpn_profile");
       if (saved) {
-        // Merge saved data with initial data to ensure all keys are present
         return { ...initialFormData, ...JSON.parse(saved) };
       }
     } catch (error) {
@@ -50,7 +50,6 @@ export function FMVProvider({ children }) {
     return initialFormData;
   });
 
-  // Function to update form data and persist to localStorage
   const updateFormData = (newData) => {
     setFormData(prevData => {
       const nextData = { ...prevData, ...newData };
@@ -59,13 +58,11 @@ export function FMVProvider({ children }) {
     });
   };
 
-  // Function to reset form data
   const resetFormData = () => {
     localStorage.removeItem("fpn_profile");
     setFormData(initialFormData);
   };
 
-  // Memoize the context value to prevent unnecessary re-renders
   const value = useMemo(() => ({
     formData,
     updateFormData,

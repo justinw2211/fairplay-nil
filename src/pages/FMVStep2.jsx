@@ -5,62 +5,21 @@ import { useFMV } from "../context/FMVContext";
 import { step2Schema } from '../validation/schemas';
 import {
   Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
-  Input, NumberInput, NumberInputField, useToast, Text, Select as ChakraSelect, FormErrorMessage
+  Input, NumberInput, NumberInputField, SimpleGrid, FormErrorMessage,
+  Text, Select as ChakraSelect
 } from "@chakra-ui/react";
 import CreatableSelect from "react-select/creatable";
 
-// --- Constants ---
-const DELIVERABLE_OPTIONS = [
-  { label: "Instagram Story", value: "Instagram Story" },
-  { label: "Instagram Post", value: "Instagram Post" },
-  { label: "TikTok Video", value: "TikTok Video" },
-  { label: "Autograph Signing", value: "Autograph Signing" },
-  { label: "Other", value: "Other" }
-];
-const PAYMENT_STRUCTURES = [
-  { label: "Flat Fee", value: "Flat Fee" },
-  { label: "Revenue Share", value: "Revenue Share" },
-  { label: "Other", value: "Other" }
-];
-const DEAL_CATEGORIES = [
-  { label: "Apparel", value: "Apparel" },
-  { label: "Sports Equipment", value: "Sports Equipment" },
-  { label: "Events", value: "Events" },
-  { label: "Other", value: "Other" }
-];
-const DEAL_TYPES = [
-  { label: "Social Media", value: "Social Media" },
-  { label: "In-Person", value: "In-Person" },
-  { label: "Appearances", value: "Appearances" },
-  { label: "Other", value: "Other" }
-];
-
-// Reusable style object for react-select components
-const creatableSelectStyles = {
-  control: (base) => ({
-    ...base,
-    background: "#2d3748",
-    borderColor: "#4a5568",
-    color: "white",
-    "&:hover": { borderColor: "#63b3ed" },
-  }),
-  multiValue: (base) => ({ ...base, backgroundColor: "#276749" }),
-  multiValueLabel: (base) => ({ ...base, color: "white" }),
-  multiValueRemove: (base) => ({ ...base, color: "#e2e8f0", "&:hover": { backgroundColor: "#c53030", color: "white" } }),
-  input: (base) => ({ ...base, color: "white" }),
-  menu: (base) => ({ ...base, background: "#1a202c", zIndex: 9999 }),
-  option: (base, state) => ({
-    ...base,
-    backgroundColor: state.isSelected ? "#38a169" : state.isFocused ? "#2d3748" : "transparent",
-    "&:active": { backgroundColor: "#276749" },
-  }),
-  placeholder: (base) => ({ ...base, color: "#a0aec0" }),
-};
-
+// --- Constants (remain the same) ---
+const DELIVERABLE_OPTIONS = [ { label: "Instagram Story", value: "Instagram Story" }, { label: "Instagram Post", value: "Instagram Post" }, { label: "TikTok Video", value: "TikTok Video" }, { label: "Autograph Signing", value: "Autograph Signing" }, { label: "Other", value: "Other" }];
+const PAYMENT_STRUCTURES = [ { label: "Flat Fee", value: "Flat Fee" }, { label: "Revenue Share", value: "Revenue Share" }, { label: "Other", value: "Other" }];
+const DEAL_CATEGORIES = [ { label: "Apparel", value: "Apparel" }, { label: "Sports Equipment", value: "Sports Equipment" }, { label: "Events", value: "Events" }, { label: "Other", value: "Other" }];
+const DEAL_TYPES = [ { label: "Social Media", value: "Social Media" }, { label: "In-Person", value: "In-Person" }, { label: "Appearances", value: "Appearances" }, { label: "Other", value: "Other" }];
+const creatableSelectStyles = { control: (base) => ({ ...base, background: "#2d3748", borderColor: "#4a5568", color: "white", "&:hover": { borderColor: "#63b3ed" }, }), multiValue: (base) => ({ ...base, backgroundColor: "#276749" }), multiValueLabel: (base) => ({ ...base, color: "white" }), multiValueRemove: (base) => ({ ...base, color: "#e2e8f0", "&:hover": { backgroundColor: "#c53030", color: "white" } }), input: (base) => ({ ...base, color: "white" }), menu: (base) => ({ ...base, background: "#1a202c", zIndex: 9999 }), option: (base, state) => ({ ...base, backgroundColor: state.isSelected ? "#38a169" : state.isFocused ? "#2d3748" : "transparent", "&:active": { backgroundColor: "#276749" }, }), placeholder: (base) => ({ ...base, color: "#a0aec0" }), };
 
 export default function FMVStep2({ onBack, onNext }) {
   const { formData, updateFormData } = useFMV();
-  const { control, register, handleSubmit, formState: { errors }, watch } = useForm({
+  const { control, handleSubmit, formState: { errors }, watch, register } = useForm({
     resolver: yupResolver(step2Schema),
     defaultValues: formData,
   });
@@ -83,7 +42,50 @@ export default function FMVStep2({ onBack, onNext }) {
 
         <form onSubmit={handleSubmit(onSubmit)}>
           <Stack spacing={6}>
-            <Heading fontSize="2xl" color="white">Deal Details</Heading>
+            <Heading fontSize="2xl" color="white">Social Following</Heading>
+            <Text color="gray.400" mt="-4 !important">Enter your follower counts (optional).</Text>
+            
+            {/* FOLLOWER INPUTS ADDED HERE */}
+            <SimpleGrid columns={2} spacing={4}>
+                <FormControl isInvalid={!!errors.followers_instagram}>
+                    <FormLabel color="gray.200">Instagram</FormLabel>
+                    <Controller name="followers_instagram" control={control} render={({field}) => (
+                        <NumberInput {...field} value={field.value || ''} min={0} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
+                            <NumberInputField placeholder="e.g., 10000" bg="gray.800" />
+                        </NumberInput>
+                    )} />
+                    <FormErrorMessage>{errors.followers_instagram?.message}</FormErrorMessage>
+                </FormControl>
+                <FormControl isInvalid={!!errors.followers_tiktok}>
+                    <FormLabel color="gray.200">TikTok</FormLabel>
+                    <Controller name="followers_tiktok" control={control} render={({field}) => (
+                        <NumberInput {...field} value={field.value || ''} min={0} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
+                            <NumberInputField placeholder="e.g., 5000" bg="gray.800" />
+                        </NumberInput>
+                    )} />
+                    <FormErrorMessage>{errors.followers_tiktok?.message}</FormErrorMessage>
+                </FormControl>
+                <FormControl isInvalid={!!errors.followers_twitter}>
+                    <FormLabel color="gray.200">X (Twitter)</FormLabel>
+                    <Controller name="followers_twitter" control={control} render={({field}) => (
+                        <NumberInput {...field} value={field.value || ''} min={0} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
+                            <NumberInputField placeholder="e.g., 2500" bg="gray.800" />
+                        </NumberInput>
+                    )} />
+                    <FormErrorMessage>{errors.followers_twitter?.message}</FormErrorMessage>
+                </FormControl>
+                <FormControl isInvalid={!!errors.followers_youtube}>
+                    <FormLabel color="gray.200">YouTube</FormLabel>
+                    <Controller name="followers_youtube" control={control} render={({field}) => (
+                        <NumberInput {...field} value={field.value || ''} min={0} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
+                            <NumberInputField placeholder="e.g., 1000" bg="gray.800" />
+                        </NumberInput>
+                    )} />
+                    <FormErrorMessage>{errors.followers_youtube?.message}</FormErrorMessage>
+                </FormControl>
+            </SimpleGrid>
+
+            <Heading fontSize="2xl" color="white" pt={4}>Deal Details</Heading>
             
             <FormControl isRequired isInvalid={!!errors.payment_structure}>
               <FormLabel color="gray.200">Payment Structure</FormLabel>
