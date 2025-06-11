@@ -11,7 +11,7 @@ export const step1Schema = yup.object().shape({
 // Schema for Step 2: Academics & Athletics
 export const step2Schema = yup.object().shape({
   gender: yup.string().required('Gender is required.'),
-  sport: yup.string().required('Sport is required.'),
+  sport: yup.array().of(yup.string()).min(1, 'At least one sport is required.').required('Sport is required.'),
   graduation_year: yup.number()
     .typeError('Graduation year is required.')
     .min(2024, 'Invalid year')
@@ -27,6 +27,7 @@ export const step2Schema = yup.object().shape({
     .nullable()
     .min(15, 'Must be at least 15')
     .max(99, 'Must be under 99'),
+  achievements: yup.array().of(yup.string()),
   prior_nil_deals: yup.number()
     .transform(value => (isNaN(value) || value < 0 ? null : value))
     .nullable()

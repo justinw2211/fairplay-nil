@@ -24,7 +24,7 @@ export default function FMVReviewStep({ onBack }) {
       division: formData.division || null,
       conference: formData.conference || "",
       gender: formData.gender || "",
-      sport: formData.sport || "",
+      sport: Array.isArray(formData.sport) ? formData.sport.join(', ') : formData.sport || "",
       graduation_year: formatNumber(formData.graduation_year),
       age: formatNumber(formData.age),
       gpa: formatNumber(formData.gpa),
@@ -110,7 +110,8 @@ export default function FMVReviewStep({ onBack }) {
                       <Text color="#4e6a7b">Name:</Text><Text fontWeight="500">{formData.name || "-"}</Text>
                       <Text color="#4e6a7b">Email:</Text><Text fontWeight="500">{formData.email || "-"}</Text>
                       <Text color="#4e6a7b">School:</Text><Text fontWeight="500">{formData.school || "-"}</Text>
-                      <Text color="#4e6a7b">Sport:</Text><Text fontWeight="500">{formData.sport || "-"}</Text>
+                      <Text color="#4e6a7b">Sport(s):</Text><Text fontWeight="500">{formData.sport?.join(', ') || "-"}</Text>
+                      <Text color="#4e6a7b">Achievements:</Text><Text fontWeight="500">{formData.achievements?.join(', ') || "N/A"}</Text>
                       <Text color="#4e6a7b">Total Followers:</Text><Text fontWeight="500">{totalFollowers.toLocaleString()}</Text>
                   </SimpleGrid>
               </Box>
@@ -118,7 +119,7 @@ export default function FMVReviewStep({ onBack }) {
                <Box>
                   <Flex justify="space-between" mb={3} align="center">
                       <Heading size="md" color="#282f3d">Deal Details</Heading>
-                      <Button size="sm" variant="link" color="#d0bdb5" onClick={() => navigate('/fmvcalculator/step2')}>Edit</Button>
+                      <Button size="sm" variant="link" color="#d0bdb5" onClick={() => navigate('/fmvcalculator/step3')}>Edit</Button>
                   </Flex>
                    <SimpleGrid columns={2} spacingY={2} spacingX={4}>
                       <Text color="#4e6a7b">Brand:</Text><Text fontWeight="500">{formData.brand_partner || "-"}</Text>

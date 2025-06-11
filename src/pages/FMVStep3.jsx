@@ -6,7 +6,7 @@ import { step3Schema } from '../validation/schemas';
 import {
   Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
   Input, NumberInput, NumberInputField, SimpleGrid, FormErrorMessage,
-  Text,
+  Text, FormHelperText,
 } from "@chakra-ui/react";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
@@ -254,7 +254,7 @@ export default function FMVStep3({ onBack, onNext }) {
             </FormControl>
 
             <FormControl isRequired isInvalid={!!errors.deal_category}>
-              <FormLabelWithInstructions>Deal Category</FormLabelWithInstructions>
+              <FormLabelWithInstructions>Industry of Compensating Entity</FormLabelWithInstructions>
               <Controller
                 name="deal_category"
                 control={control}
@@ -269,6 +269,7 @@ export default function FMVStep3({ onBack, onNext }) {
                   />
                 )}
               />
+              <FormHelperText>e.g., 'Food & Restaurants' for a local coffee shop, or 'Apparel & Fashion' for a sportswear brand.</FormHelperText>
               <FormErrorMessage>{errors.deal_category?.message}</FormErrorMessage>
             </FormControl>
 

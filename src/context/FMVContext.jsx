@@ -10,23 +10,25 @@ const initialFormData = {
   school: "",
   name: "",
   email: "",
+  // Step 2
   gender: "",
-  sport: "",
+  sport: [], // Changed to array
   graduation_year: "",
   age: "",
   gpa: "",
+  achievements: [], // Added
   prior_nil_deals: "",
-  // Step 2
+  // Step 3
   social_platforms: [],
   followers_instagram: "",
   followers_tiktok: "",
   followers_twitter: "",
   followers_youtube: "",
-  payment_structure: [], // Changed to array
+  payment_structure: [],
   payment_structure_other: "",
   deal_length_months: "",
   proposed_dollar_amount: "",
-  deal_category: [], // Changed to array
+  deal_category: [],
   brand_partner: "",
   deliverables: [],
   deliverables_count: {},
@@ -44,6 +46,10 @@ export function FMVProvider({ children }) {
       const saved = localStorage.getItem("fpn_profile");
       if (saved) {
         const parsed = JSON.parse(saved);
+        // Ensure sport is always an array for backward compatibility
+        if (typeof parsed.sport === 'string') {
+          parsed.sport = [parsed.sport];
+        }
         return { ...initialFormData, ...parsed };
       }
     } catch (error) {

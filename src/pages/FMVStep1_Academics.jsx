@@ -1,14 +1,14 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useFMV } from "../context/FMVContext";
 import { step2Schema } from '../validation/schemas';
-import { useNavigate } from "react-router-dom";
 import {
   Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
   Input, NumberInput, NumberInputField, Text, FormErrorMessage
 } from "@chakra-ui/react";
 import Select from "react-select";
+import CreatableSelect from "react-select/creatable";
 
 const GENDERS = ["Male", "Female", "Nonbinary", "Prefer not to say", "Other"];
 
@@ -32,6 +32,14 @@ const COMBINED_SPORTS = [
     ...WOMEN_SPORTS.map(s => ({ label: `Women's ${s}`, value: `Women's ${s}` }))
 ].sort((a, b) => a.label.localeCompare(b.label));
 
+const ACHIEVEMENT_OPTIONS = [
+  { label: "All-American", value: "All-American" },
+  { label: "All-Conference", value: "All-Conference" },
+  { label: "National Champion", value: "National Champion" },
+  { label: "Conference Champion", value: "Conference Champion" },
+  { label: "Team Captain", value: "Team Captain" },
+  { label: "Other", value: "Other" },
+];
 
 const selectStyles = {
   control: (base, state) => ({
@@ -44,7 +52,9 @@ const selectStyles = {
       borderColor: "#d0bdb5",
     },
   }),
-  singleValue: (base) => ({ ...base, color: "#282f3d" }),
+  multiValue: (base) => ({ ...base, backgroundColor: "#d6dce4" }),
+  multiValueLabel: (base) => ({ ...base, color: "#282f3d" }),
+  multiValueRemove: (base) => ({ ...base, color: "#282f3d", "&:hover": { backgroundColor: "#d0bdb5", color: "white" } }),
   input: (base) => ({ ...base, color: "#282f3d" }),
   menu: (base) => ({ ...base, background: "#ffffff", zIndex: 9999, border: "1px solid #d6dce4" }),
   option: (base, state) => ({
@@ -59,7 +69,6 @@ const selectStyles = {
 };
 
 export default function FMVStep1_Academics({ onBack, onNext }) {
-  const navigate = useNavigate();
   const { formData, updateFormData } = useFMV();
 
   const { control, register, handleSubmit, formState: { errors }, watch, setValue, trigger } = useForm({
@@ -69,7 +78,7 @@ export default function FMVStep1_Academics({ onBack, onNext }) {
 
   const genderValue = watch('gender');
 
-  const sportOptions = React.useMemo(() => {
+  const sportOptions = useMemo(() => {
     if (genderValue === 'Male') return MEN_SPORTS.map(s => ({ label: s, value: s }));
     if (genderValue === 'Female') return WOMEN_SPORTS.map(s => ({ label: s, value: s }));
     if (['Nonbinary', 'Prefer not to say', 'Other'].includes(genderValue)) {
@@ -79,7 +88,7 @@ export default function FMVStep1_Academics({ onBack, onNext }) {
   }, [genderValue]);
 
   useEffect(() => {
-    setValue('sport', '');
+    setValue('sport', []);
   }, [genderValue, setValue]);
 
   const progress = (2 / 3) * 100;
@@ -123,11 +132,38 @@ export default function FMVStep1_Academics({ onBack, onNext }) {
             </FormControl>
 
             <FormControl isRequired isInvalid={!!errors.sport}>
-              <FormLabel color="#4e6a7b">Sport</FormLabel>
-                <Controller name="sport" control={control} render={({ field }) => (
-                <Select options={sportOptions} value={field.value ? { label: field.value, value: field.value } : null} onChange={val => field.onChange(val ? val.value : '')} placeholder="Select sport" isDisabled={!genderValue} styles={selectStyles} />
+              <FormLabel color="#4e6a7b">Sport(s)</FormLabel>
+              <Controller name="sport" control={control} render={({ field }) => (
+                <Select
+                  isMulti
+                  options={sportOptions}
+                  value={sportOptions.filter(opt => field.value?.includes(opt.value))}
+                  onChange={(options) => field.onChange(options?.map(o => o.value) || [])}
+                  placeholder="Select all that apply..."
+                  isDisabled={!genderValue}
+                  styles={selectStyles}
+                />
               )} />
               <FormErrorMessage>{errors.sport?.message}</FormErrorMessage>
+            </FormControl>
+
+            <FormControl isInvalid={!!errors.achievements}>
+              <FormLabel color="#4e6a7b">Athletic Achievements (optional)</FormLabel>
+              <Controller
+                name="achievements"
+                control={control}
+                render={({ field }) => (
+                  <CreatableSelect
+                    isMulti
+                    options={ACHIEVEMENT_OPTIONS}
+                    value={field.value ? field.value.map(v => ({label: v, value: v})) : []}
+                    onChange={(options) => field.onChange(options?.map(o => o.value) || [])}
+                    placeholder="Choose or create..."
+                    styles={selectStyles}
+                  />
+                )}
+              />
+              <FormErrorMessage>{errors.achievements?.message}</FormErrorMessage>
             </FormControl>
 
             <FormControl isRequired isInvalid={!!errors.graduation_year}>
