@@ -3,7 +3,7 @@ import React, { createContext, useState, useContext, useMemo } from 'react';
 // Create the context
 const FMVContext = createContext();
 
-// Initial state for the form - NOW INCLUDES FOLLOWER COUNTS
+// Initial state for the form
 const initialFormData = {
   // Step 1
   division: "",
@@ -17,6 +17,7 @@ const initialFormData = {
   gpa: "",
   prior_nil_deals: "",
   // Step 2
+  social_platforms: [], // New field to track selected social platforms
   followers_instagram: "",
   followers_tiktok: "",
   followers_twitter: "",
@@ -42,7 +43,9 @@ export function FMVProvider({ children }) {
     try {
       const saved = localStorage.getItem("fpn_profile");
       if (saved) {
-        return { ...initialFormData, ...JSON.parse(saved) };
+        // Ensure new fields exist even if loading from older localStorage
+        const parsed = JSON.parse(saved);
+        return { ...initialFormData, ...parsed };
       }
     } catch (error) {
       console.error("Failed to parse form data from localStorage", error);

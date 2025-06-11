@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useFMV } from "../context/FMVContext";
@@ -8,14 +8,56 @@ import {
   Input, NumberInput, NumberInputField, SimpleGrid, FormErrorMessage,
   Text, Select as ChakraSelect
 } from "@chakra-ui/react";
+import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
 
+
+// --- Expanded Constants ---
+const SOCIAL_PLATFORMS = [
+    { label: "Instagram", value: "Instagram" },
+    { label: "TikTok", value: "TikTok" },
+    { label: "X (Twitter)", value: "X (Twitter)" },
+    { label: "YouTube", value: "YouTube" }
+];
+
+const PAYMENT_STRUCTURES = [
+    { label: "Flat Fee", value: "Flat Fee" },
+    { label: "Commission", value: "Commission" },
+    { label: "Revenue Share", value: "Revenue Share" },
+    { label: "Equity/Stock", value: "Equity/Stock" },
+    { label: "Product Seeding", value: "Product Seeding" },
+    { label: "Performance-Based", value: "Performance-Based" },
+    { label: "Hybrid (e.g., Fee + Commission)", value: "Hybrid" },
+    { label: "Other", value: "Other" },
+];
+
+const DEAL_CATEGORIES = [
+    { label: "Apparel & Fashion", value: "Apparel & Fashion" },
+    { label: "Automotive", value: "Automotive" },
+    { label: "Beverages (Non-Alcoholic)", value: "Beverages (Non-Alcoholic)" },
+    { label: "Camps & Clinics", value: "Camps & Clinics" },
+    { label: "Collectibles & Memorabilia", value: "Collectibles & Memorabilia" },
+    { label: "Consumer Packaged Goods (CPG)", value: "Consumer Packaged Goods (CPG)"},
+    { label: "Electronics", value: "Electronics" },
+    { label: "Events & Appearances", value: "Events & Appearances" },
+    { label: "Financial Services", value: "Financial Services" },
+    { label: "Food & Restaurants", value: "Food & Restaurants" },
+    { label: "Gaming & eSports", value: "Gaming & eSports" },
+    { label: "Health & Wellness", value: "Health & Wellness" },
+    { label: "Home Goods", value: "Home Goods" },
+    { label: "Media & Content Creation", value: "Media & Content Creation" },
+    { label: "Sports Equipment", value: "Sports Equipment" },
+    { label: "Supplements & Nutrition", value: "Supplements & Nutrition" },
+    { label: "Technology & Apps", value: "Technology & Apps" },
+    { label: "Travel & Hospitality", value: "Travel & Hospitality" },
+    { label: "Other", value: "Other" },
+];
+
 const DELIVERABLE_OPTIONS = [ { label: "Instagram Story", value: "Instagram Story" }, { label: "Instagram Post", value: "Instagram Post" }, { label: "TikTok Video", value: "TikTok Video" }, { label: "Autograph Signing", value: "Autograph Signing" }, { label: "Other", value: "Other" }];
-const PAYMENT_STRUCTURES = [ { label: "Flat Fee", value: "Flat Fee" }, { label: "Revenue Share", value: "Revenue Share" }, { label: "Other", value: "Other" }];
-const DEAL_CATEGORIES = [ { label: "Apparel", value: "Apparel" }, { label: "Sports Equipment", value: "Sports Equipment" }, { label: "Events", value: "Events" }, { label: "Other", value: "Other" }];
 const DEAL_TYPES = [ { label: "Social Media", value: "Social Media" }, { label: "In-Person", value: "In-Person" }, { label: "Appearances", value: "Appearances" }, { label: "Other", value: "Other" }];
 
-const creatableSelectStyles = {
+// --- Reusable style objects for react-select components ---
+const selectStyles = {
   control: (base, state) => ({
     ...base,
     background: "#ffffff",
@@ -45,13 +87,31 @@ const creatableSelectStyles = {
 
 export default function FMVStep2({ onBack, onNext }) {
   const { formData, updateFormData } = useFMV();
-  const { control, handleSubmit, formState: { errors }, watch, register } = useForm({
+  const { control, handleSubmit, formState: { errors }, watch, register, setValue } = useForm({
     resolver: yupResolver(step2Schema),
     defaultValues: formData,
   });
 
   const paymentStructureValue = watch('payment_structure');
   const deliverablesValue = watch('deliverables');
+  const selectedPlatforms = watch('social_platforms', []);
+
+  // Effect to clean up follower data if a platform is deselected
+  useEffect(() => {
+    const platformFollowerMap = {
+      'Instagram': 'followers_instagram',
+      'TikTok': 'followers_tiktok',
+      'X (Twitter)': 'followers_twitter',
+      'YouTube': 'followers_youtube'
+    };
+    // Get all platforms that *were* available but are not currently selected
+    const deselectedPlatforms = Object.keys(platformFollowerMap).filter(p => !selectedPlatforms.includes(p));
+    // Reset the value for each deselected platform
+    deselectedPlatforms.forEach(platform => {
+        setValue(platformFollowerMap[platform], "");
+    });
+  }, [selectedPlatforms, setValue]);
+
 
   const onSubmit = (data) => {
     updateFormData(data);
@@ -83,52 +143,80 @@ export default function FMVStep2({ onBack, onNext }) {
       <Box w={["95vw", "600px"]} bg="#ffffff" boxShadow="xl" borderRadius="xl" p={[4, 8]} mx="auto" border="1px solid #d6dce4">
         <Box mb={6}>
           <Text color="#4e6a7b" fontWeight="bold" fontSize="md" mb={2} letterSpacing="wide">Step 2 of 2: Deal Details</Text>
-          <Progress value={100} size="md" colorScheme="pink" sx={{ "& > div": { backgroundColor: "#d0bdb5" } }} borderRadius="full" mb={2} />
+          <Progress value={100} size="md" />
         </Box>
 
         <form onSubmit={handleSubmit(onSubmit)}>
           <Stack spacing={6}>
             <Heading fontSize="2xl" color="#282f3d">Social Following</Heading>
-            <Text color="#4e6a7b" mt="-4 !important">Enter your follower counts (optional).</Text>
             
-            <SimpleGrid columns={2} spacing={4}>
-                <FormControl isInvalid={!!errors.followers_instagram}>
-                    <FormLabel color="#4e6a7b">Instagram</FormLabel>
-                    <Controller name="followers_instagram" control={control} render={({field}) => (
-                        <NumberInput {...field} value={field.value || ''} min={0} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
-                            <NumberInputField placeholder="e.g., 10000" {...inputStyles} />
-                        </NumberInput>
-                    )} />
-                    <FormErrorMessage>{errors.followers_instagram?.message}</FormErrorMessage>
-                </FormControl>
-                <FormControl isInvalid={!!errors.followers_tiktok}>
-                    <FormLabel color="#4e6a7b">TikTok</FormLabel>
-                    <Controller name="followers_tiktok" control={control} render={({field}) => (
-                        <NumberInput {...field} value={field.value || ''} min={0} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
-                            <NumberInputField placeholder="e.g., 5000" {...inputStyles} />
-                        </NumberInput>
-                    )} />
-                    <FormErrorMessage>{errors.followers_tiktok?.message}</FormErrorMessage>
-                </FormControl>
-                <FormControl isInvalid={!!errors.followers_twitter}>
-                    <FormLabel color="#4e6a7b">X (Twitter)</FormLabel>
-                    <Controller name="followers_twitter" control={control} render={({field}) => (
-                        <NumberInput {...field} value={field.value || ''} min={0} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
-                            <NumberInputField placeholder="e.g., 2500" {...inputStyles} />
-                        </NumberInput>
-                    )} />
-                    <FormErrorMessage>{errors.followers_twitter?.message}</FormErrorMessage>
-                </FormControl>
-                <FormControl isInvalid={!!errors.followers_youtube}>
-                    <FormLabel color="#4e6a7b">YouTube</FormLabel>
-                    <Controller name="followers_youtube" control={control} render={({field}) => (
-                        <NumberInput {...field} value={field.value || ''} min={0} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
-                            <NumberInputField placeholder="e.g., 1000" {...inputStyles} />
-                        </NumberInput>
-                    )} />
-                    <FormErrorMessage>{errors.followers_youtube?.message}</FormErrorMessage>
-                </FormControl>
-            </SimpleGrid>
+            <FormControl isInvalid={!!errors.social_platforms}>
+                <FormLabel color="#4e6a7b">Which social media platforms do you use?</FormLabel>
+                <Controller
+                    name="social_platforms"
+                    control={control}
+                    render={({ field }) => (
+                        <Select
+                            isMulti
+                            options={SOCIAL_PLATFORMS}
+                            value={SOCIAL_PLATFORMS.filter(opt => field.value?.includes(opt.value))}
+                            onChange={(options) => field.onChange(options?.map(o => o.value) || [])}
+                            placeholder="Select your platforms..."
+                            styles={selectStyles}
+                        />
+                    )}
+                />
+                <FormErrorMessage>{errors.social_platforms?.message}</FormErrorMessage>
+            </FormControl>
+            
+            {selectedPlatforms.length > 0 && (
+                <SimpleGrid columns={2} spacing={4}>
+                    {selectedPlatforms.includes('Instagram') && (
+                        <FormControl isInvalid={!!errors.followers_instagram}>
+                            <FormLabel color="#4e6a7b">Instagram Followers</FormLabel>
+                            <Controller name="followers_instagram" control={control} render={({field}) => (
+                                <NumberInput {...field} min={0} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
+                                    <NumberInputField placeholder="e.g., 10000" {...inputStyles} />
+                                </NumberInput>
+                            )} />
+                            <FormErrorMessage>{errors.followers_instagram?.message}</FormErrorMessage>
+                        </FormControl>
+                    )}
+                    {selectedPlatforms.includes('TikTok') && (
+                        <FormControl isInvalid={!!errors.followers_tiktok}>
+                            <FormLabel color="#4e6a7b">TikTok Followers</FormLabel>
+                            <Controller name="followers_tiktok" control={control} render={({field}) => (
+                                <NumberInput {...field} min={0} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
+                                    <NumberInputField placeholder="e.g., 5000" {...inputStyles} />
+                                </NumberInput>
+                            )} />
+                            <FormErrorMessage>{errors.followers_tiktok?.message}</FormErrorMessage>
+                        </FormControl>
+                    )}
+                    {selectedPlatforms.includes('X (Twitter)') && (
+                       <FormControl isInvalid={!!errors.followers_twitter}>
+                            <FormLabel color="#4e6a7b">X (Twitter) Followers</FormLabel>
+                            <Controller name="followers_twitter" control={control} render={({field}) => (
+                                <NumberInput {...field} min={0} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
+                                    <NumberInputField placeholder="e.g., 2500" {...inputStyles} />
+                                </NumberInput>
+                            )} />
+                            <FormErrorMessage>{errors.followers_twitter?.message}</FormErrorMessage>
+                        </FormControl>
+                    )}
+                    {selectedPlatforms.includes('YouTube') && (
+                        <FormControl isInvalid={!!errors.followers_youtube}>
+                            <FormLabel color="#4e6a7b">YouTube Subscribers</FormLabel>
+                            <Controller name="followers_youtube" control={control} render={({field}) => (
+                                <NumberInput {...field} min={0} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
+                                    <NumberInputField placeholder="e.g., 1000" {...inputStyles} />
+                                </NumberInput>
+                            )} />
+                            <FormErrorMessage>{errors.followers_youtube?.message}</FormErrorMessage>
+                        </FormControl>
+                    )}
+                </SimpleGrid>
+            )}
 
             <Heading fontSize="2xl" color="#282f3d" pt={4}>Deal Details</Heading>
             
@@ -152,7 +240,7 @@ export default function FMVStep2({ onBack, onNext }) {
             <FormControl isRequired isInvalid={!!errors.deal_length_months}>
                 <FormLabel color="#4e6a7b">Deal Length (months)</FormLabel>
                 <Controller name="deal_length_months" control={control} render={({field}) => (
-                    <NumberInput {...field} value={field.value || ''} min={1} max={48} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
+                    <NumberInput {...field} value={field.value ?? ''} min={1} max={48} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
                         <NumberInputField placeholder="e.g. 6" {...inputStyles}/>
                     </NumberInput>
                 )} />
@@ -162,7 +250,7 @@ export default function FMVStep2({ onBack, onNext }) {
             <FormControl isRequired isInvalid={!!errors.proposed_dollar_amount}>
                 <FormLabel color="#4e6a7b">Total Proposed $</FormLabel>
                 <Controller name="proposed_dollar_amount" control={control} render={({field}) => (
-                    <NumberInput {...field} value={field.value || ''} min={0} precision={2} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
+                    <NumberInput {...field} value={field.value ?? ''} min={0} precision={2} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
                         <NumberInputField placeholder="e.g. 5000" {...inputStyles}/>
                     </NumberInput>
                 )} />
@@ -191,7 +279,7 @@ export default function FMVStep2({ onBack, onNext }) {
                   value={field.value ? field.value.map(v => ({label: v, value: v})) : []}
                   onChange={(options) => field.onChange(options?.map(o => o.value) || [])}
                   placeholder="Choose or create…"
-                  styles={creatableSelectStyles} />
+                  styles={selectStyles} />
               )}/>
                <FormErrorMessage>{errors.deliverables?.message}</FormErrorMessage>
             </FormControl>
@@ -211,7 +299,7 @@ export default function FMVStep2({ onBack, onNext }) {
                         value={field.value ? field.value.map(v => ({label: v, value: v})) : []}
                         onChange={(options) => field.onChange(options?.map(o => o.value) || [])}
                         placeholder="Choose or create…"
-                        styles={creatableSelectStyles}
+                        styles={selectStyles}
                     />
                 )} />
             </FormControl>
@@ -223,20 +311,13 @@ export default function FMVStep2({ onBack, onNext }) {
                         <Button
                           variant={field.value === 'yes' ? 'solid' : 'outline'}
                           onClick={() => field.onChange('yes')}
-                          bg={field.value === 'yes' ? '#d0bdb5' : 'transparent'}
-                          color={field.value === 'yes' ? '#ffffff' : '#4e6a7b'}
-                          borderColor={field.value === 'yes' ? '#d0bdb5' : '#d6dce4'}
-                          _hover={{ bg: field.value === 'yes' ? '#c9b2a9' : '#f4f4f4' }}
                         >
                           Yes
                         </Button>
                          <Button
                           variant={field.value === 'no' ? 'solid' : 'outline'}
                           onClick={() => field.onChange('no')}
-                          bg={field.value === 'no' ? '#4e6a7b' : 'transparent'}
-                          color={field.value === 'no' ? '#ffffff' : '#4e6a7b'}
-                          borderColor={field.value === 'no' ? '#4e6a7b' : '#d6dce4'}
-                           _hover={{ bg: field.value === 'no' ? '#435c6b' : '#f4f4f4' }}
+                          colorScheme="gray"
                         >
                           No (Test/Demo)
                         </Button>
@@ -247,8 +328,8 @@ export default function FMVStep2({ onBack, onNext }) {
 
           </Stack>
           <Flex mt={8} justify="space-between">
-            <Button onClick={onBack} variant="outline" borderColor="#d6dce4" color="#4e6a7b" _hover={{ bg: "#f4f4f4" }}>Back</Button>
-            <Button type="submit" bg="#d0bdb5" color="#ffffff" _hover={{ bg: "#c9b2a9" }} px={8} fontWeight="bold">Review</Button>
+            <Button onClick={onBack} variant="outline">Back</Button>
+            <Button type="submit" px={8} fontWeight="bold">Review</Button>
           </Flex>
         </form>
       </Box>

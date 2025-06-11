@@ -1,6 +1,6 @@
 import * as yup from 'yup';
 
-// Schema for Step 1 remains the same
+// Schema for Step 1
 export const step1Schema = yup.object().shape({
   division: yup.string().required('Division is required.'),
   school: yup.string().required('School is required.'),
@@ -13,35 +13,54 @@ export const step1Schema = yup.object().shape({
     .min(2024, 'Invalid year')
     .max(2035, 'Invalid year')
     .required('Graduation year is required.'),
-  gpa: yup.string().test('is-gpa', 'GPA must be 0.00–4.00', (value) => {
-      if (!value) return true;
+  gpa: yup.string().test('is-gpa', 'GPA must be between 0.00 and 4.00', (value) => {
+      if (value === null || value === "") return true; // Optional
       const num = parseFloat(value);
       return !isNaN(num) && num >= 0 && num <= 4;
     }).nullable(),
   age: yup.number()
-    .typeError('Must be a number.')
+    .transform(value => (isNaN(value) ? null : value))
+    .nullable()
     .min(15, 'Must be at least 15')
-    .max(99, 'Must be under 99')
-    .nullable(),
+    .max(99, 'Must be under 99'),
   prior_nil_deals: yup.number()
-    .typeError('Must be a number.')
-    .min(0, 'Cannot be negative')
-    .nullable(),
+    .transform(value => (isNaN(value) ? null : value))
+    .nullable()
+    .min(0, 'Cannot be negative'),
 });
 
-// Schema for Step 2 - NOW INCLUDES FOLLOWER COUNTS
+
+// Schema for Step 2
 export const step2Schema = yup.object().shape({
-  // Social Follower Counts (optional numbers)
-  followers_instagram: yup.number().typeError('Must be a number').min(0).nullable(),
-  followers_tiktok: yup.number().typeError('Must be a number').min(0).nullable(),
-  followers_twitter: yup.number().typeError('Must be a number').min(0).nullable(),
-  followers_youtube: yup.number().typeError('Must be a number').min(0).nullable(),
-  
-  // Existing Deal Details Validation
+  social_platforms: yup.array().of(yup.string()),
+  followers_instagram: yup.number().transform(value => (isNaN(value) ? null : value)).nullable()
+      .when('social_platforms', (social_platforms, schema) => {
+          return social_platforms && social_platforms.includes('Instagram')
+              ? schema.required('Follower count is required for Instagram.')
+              : schema;
+      }),
+  followers_tiktok: yup.number().transform(value => (isNaN(value) ? null : value)).nullable()
+      .when('social_platforms', (social_platforms, schema) => {
+          return social_platforms && social_platforms.includes('TikTok')
+              ? schema.required('Follower count is required for TikTok.')
+              : schema;
+      }),
+  followers_twitter: yup.number().transform(value => (isNaN(value) ? null : value)).nullable()
+      .when('social_platforms', (social_platforms, schema) => {
+          return social_platforms && social_platforms.includes('X (Twitter)')
+              ? schema.required('Follower count is required for X.')
+              : schema;
+      }),
+  followers_youtube: yup.number().transform(value => (isNaN(value) ? null : value)).nullable()
+      .when('social_platforms', (social_platforms, schema) => {
+          return social_platforms && social_platforms.includes('YouTube')
+              ? schema.required('Follower count is required for YouTube.')
+              : schema;
+      }),
   payment_structure: yup.string().required('Payment structure is required.'),
   payment_structure_other: yup.string().when('payment_structure', {
     is: 'Other',
-    then: (schema) => schema.required('Please describe the payment structure.'),
+    then: (schema) => schema.trim().required('Please describe the payment structure.'),
     otherwise: (schema) => schema.optional(),
   }),
   deal_length_months: yup.number()
@@ -60,7 +79,7 @@ export const step2Schema = yup.object().shape({
     .required(),
   deliverable_other: yup.string().when('deliverables', {
       is: (deliverables) => deliverables && deliverables.includes('Other'),
-      then: (schema) => schema.required('Please describe the other deliverable.'),
+      then: (schema) => schema.trim().required('Please describe the other deliverable.'),
       otherwise: (schema) => schema.optional(),
   }),
   is_real_submission: yup.string().required('Please select an option.'),
