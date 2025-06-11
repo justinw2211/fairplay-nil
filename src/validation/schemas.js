@@ -4,7 +4,7 @@ import * as yup from 'yup';
 export const step1Schema = yup.object().shape({
   division: yup.string().required('Division is required.'),
   school: yup.string().required('School is required.'),
-  name: y-up.string().trim().required('Full name is required.'),
+  name: yup.string().trim().required('Full name is required.'),
   email: yup.string().email('Must be a valid email.').required('Valid email is required.'),
 });
 
@@ -39,25 +39,25 @@ export const step3Schema = yup.object().shape({
   social_platforms: yup.array().of(yup.string()),
   followers_instagram: yup.number().transform(value => (isNaN(value) ? null : value)).nullable()
       .when('social_platforms', (social_platforms, schema) => {
-          return social_platforms.includes('Instagram')
+          return social_platforms[0]?.includes('Instagram')
               ? schema.required('Follower count is required for Instagram.')
               : schema;
       }),
   followers_tiktok: yup.number().transform(value => (isNaN(value) ? null : value)).nullable()
       .when('social_platforms', (social_platforms, schema) => {
-          return social_platforms.includes('TikTok')
+          return social_platforms[0]?.includes('TikTok')
               ? schema.required('Follower count is required for TikTok.')
               : schema;
       }),
   followers_twitter: yup.number().transform(value => (isNaN(value) ? null : value)).nullable()
       .when('social_platforms', (social_platforms, schema) => {
-          return social_platforms.includes('X (Twitter)')
+          return social_platforms[0]?.includes('X (Twitter)')
               ? schema.required('Follower count is required for X.')
               : schema;
       }),
   followers_youtube: yup.number().transform(value => (isNaN(value) ? null : value)).nullable()
       .when('social_platforms', (social_platforms, schema) => {
-          return social_platforms.includes('YouTube')
+          return social_platforms[0]?.includes('YouTube')
               ? schema.required('Follower count is required for YouTube.')
               : schema;
       }),
