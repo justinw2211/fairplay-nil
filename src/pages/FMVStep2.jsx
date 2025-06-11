@@ -6,13 +6,13 @@ import { step2Schema } from '../validation/schemas';
 import {
   Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
   Input, NumberInput, NumberInputField, SimpleGrid, FormErrorMessage,
-  Text, Select as ChakraSelect
+  Text,
 } from "@chakra-ui/react";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
+import { CheckSquare } from "react-feather";
 
-
-// --- Expanded Constants ---
+// --- Constants ---
 const SOCIAL_PLATFORMS = [
     { label: "Instagram", value: "Instagram" },
     { label: "TikTok", value: "TikTok" },
@@ -53,7 +53,7 @@ const DEAL_CATEGORIES = [
     { label: "Other", value: "Other" },
 ];
 
-const DELIVERABLE_OPTIONS = [ { label: "Instagram Story", value: "Instagram Story" }, { label: "Instagram Post", value: "Instagram Post" }, { label: "TikTok Video", value: "TikTok Video" }, { label: "Autograph Signing", value: "Autograph Signing" }, { label: "Other", value: "Other" }];
+const DELIVERABLE_OPTIONS = [ { label: "None", value: "None" }, { label: "Instagram Story", value: "Instagram Story" }, { label: "Instagram Post", value: "Instagram Post" }, { label: "TikTok Video", value: "TikTok Video" }, { label: "Autograph Signing", value: "Autograph Signing" }, { label: "Other", value: "Other" }];
 const DEAL_TYPES = [ { label: "Social Media", value: "Social Media" }, { label: "In-Person", value: "In-Person" }, { label: "Appearances", value: "Appearances" }, { label: "Other", value: "Other" }];
 
 // --- Reusable style objects for react-select components ---
@@ -92,11 +92,10 @@ export default function FMVStep2({ onBack, onNext }) {
     defaultValues: formData,
   });
 
-  const paymentStructureValue = watch('payment_structure');
-  const deliverablesValue = watch('deliverables');
+  const paymentStructureValue = watch('payment_structure', []);
+  const deliverablesValue = watch('deliverables', []);
   const selectedPlatforms = watch('social_platforms', []);
 
-  // Effect to clean up follower data if a platform is deselected
   useEffect(() => {
     const platformFollowerMap = {
       'Instagram': 'followers_instagram',
@@ -104,14 +103,11 @@ export default function FMVStep2({ onBack, onNext }) {
       'X (Twitter)': 'followers_twitter',
       'YouTube': 'followers_youtube'
     };
-    // Get all platforms that *were* available but are not currently selected
     const deselectedPlatforms = Object.keys(platformFollowerMap).filter(p => !selectedPlatforms.includes(p));
-    // Reset the value for each deselected platform
     deselectedPlatforms.forEach(platform => {
         setValue(platformFollowerMap[platform], "");
     });
   }, [selectedPlatforms, setValue]);
-
 
   const onSubmit = (data) => {
     updateFormData(data);
@@ -126,17 +122,13 @@ export default function FMVStep2({ onBack, onNext }) {
     _focus: { borderColor: "#d0bdb5", boxShadow: "0 0 0 1px #d0bdb5" },
   };
   
-  const chakraSelectStyles = {
-    bg: "#ffffff",
-    borderColor: "#d6dce4",
-    color: "#282f3d",
-    _hover: { borderColor: "#d0bdb5" },
-    _focus: { borderColor: "#d0bdb5", boxShadow: "0 0 0 1px #d0bdb5" },
-    "& > option": {
-        background: "#ffffff",
-        color: "#282f3d",
-    }
-  };
+  const FormLabelWithInstructions = ({ children }) => (
+    <FormLabel color="#4e6a7b" display="flex" alignItems="center">
+      <CheckSquare size={16} style={{ marginRight: '8px', flexShrink: 0 }} /> 
+      {children}
+      <Text as="span" color="brand.textSecondary" fontSize="sm" ml={2} fontWeight="normal">(Select all that apply)</Text>
+    </FormLabel>
+  );
 
   return (
     <Flex minH="100vh" align="center" justify="center" bg="#f4f4f4" color="#282f3d" py={10}>
@@ -151,7 +143,7 @@ export default function FMVStep2({ onBack, onNext }) {
             <Heading fontSize="2xl" color="#282f3d">Social Following</Heading>
             
             <FormControl isInvalid={!!errors.social_platforms}>
-                <FormLabel color="#4e6a7b">Which social media platforms do you use?</FormLabel>
+                <FormLabelWithInstructions>Which social media platforms do you use?</FormLabelWithInstructions>
                 <Controller
                     name="social_platforms"
                     control={control}
@@ -171,68 +163,49 @@ export default function FMVStep2({ onBack, onNext }) {
             
             {selectedPlatforms.length > 0 && (
                 <SimpleGrid columns={2} spacing={4}>
-                    {selectedPlatforms.includes('Instagram') && (
-                        <FormControl isInvalid={!!errors.followers_instagram}>
-                            <FormLabel color="#4e6a7b">Instagram Followers</FormLabel>
-                            <Controller name="followers_instagram" control={control} render={({field}) => (
-                                <NumberInput {...field} min={0} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
-                                    <NumberInputField placeholder="e.g., 10000" {...inputStyles} />
-                                </NumberInput>
-                            )} />
-                            <FormErrorMessage>{errors.followers_instagram?.message}</FormErrorMessage>
-                        </FormControl>
-                    )}
-                    {selectedPlatforms.includes('TikTok') && (
-                        <FormControl isInvalid={!!errors.followers_tiktok}>
-                            <FormLabel color="#4e6a7b">TikTok Followers</FormLabel>
-                            <Controller name="followers_tiktok" control={control} render={({field}) => (
-                                <NumberInput {...field} min={0} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
-                                    <NumberInputField placeholder="e.g., 5000" {...inputStyles} />
-                                </NumberInput>
-                            )} />
-                            <FormErrorMessage>{errors.followers_tiktok?.message}</FormErrorMessage>
-                        </FormControl>
-                    )}
-                    {selectedPlatforms.includes('X (Twitter)') && (
-                       <FormControl isInvalid={!!errors.followers_twitter}>
-                            <FormLabel color="#4e6a7b">X (Twitter) Followers</FormLabel>
-                            <Controller name="followers_twitter" control={control} render={({field}) => (
-                                <NumberInput {...field} min={0} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
-                                    <NumberInputField placeholder="e.g., 2500" {...inputStyles} />
-                                </NumberInput>
-                            )} />
-                            <FormErrorMessage>{errors.followers_twitter?.message}</FormErrorMessage>
-                        </FormControl>
-                    )}
-                    {selectedPlatforms.includes('YouTube') && (
-                        <FormControl isInvalid={!!errors.followers_youtube}>
-                            <FormLabel color="#4e6a7b">YouTube Subscribers</FormLabel>
-                            <Controller name="followers_youtube" control={control} render={({field}) => (
-                                <NumberInput {...field} min={0} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
-                                    <NumberInputField placeholder="e.g., 1000" {...inputStyles} />
-                                </NumberInput>
-                            )} />
-                            <FormErrorMessage>{errors.followers_youtube?.message}</FormErrorMessage>
-                        </FormControl>
-                    )}
+                    {selectedPlatforms.map(platform => {
+                        const fieldName = `followers_${platform.toLowerCase().replace(' (twitter)', '_twitter')}`;
+                        const label = `${platform} Followers`;
+                        return (
+                            <FormControl key={platform} isInvalid={!!errors[fieldName]}>
+                                <FormLabel color="#4e6a7b">{label}</FormLabel>
+                                <Controller name={fieldName} control={control} render={({field}) => (
+                                    <NumberInput {...field} min={0} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
+                                        <NumberInputField placeholder="e.g., 10000" {...inputStyles} />
+                                    </NumberInput>
+                                )} />
+                                <FormErrorMessage>{errors[fieldName]?.message}</FormErrorMessage>
+                            </FormControl>
+                        )
+                    })}
                 </SimpleGrid>
             )}
 
             <Heading fontSize="2xl" color="#282f3d" pt={4}>Deal Details</Heading>
             
             <FormControl isRequired isInvalid={!!errors.payment_structure}>
-              <FormLabel color="#4e6a7b">Payment Structure</FormLabel>
-              <ChakraSelect {...register("payment_structure")} {...chakraSelectStyles}>
-                <option value="">Select...</option>
-                {PAYMENT_STRUCTURES.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-              </ChakraSelect>
+              <FormLabelWithInstructions>Payment Structure</FormLabelWithInstructions>
+               <Controller
+                name="payment_structure"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    isMulti
+                    options={PAYMENT_STRUCTURES}
+                    value={PAYMENT_STRUCTURES.filter(opt => field.value?.includes(opt.value))}
+                    onChange={(options) => field.onChange(options?.map(o => o.value) || [])}
+                    placeholder="Select one or more..."
+                    styles={selectStyles}
+                  />
+                )}
+              />
               <FormErrorMessage>{errors.payment_structure?.message}</FormErrorMessage>
             </FormControl>
 
-            {paymentStructureValue === 'Other' && (
+            {paymentStructureValue.includes('Other') && (
               <FormControl isRequired isInvalid={!!errors.payment_structure_other}>
                 <FormLabel color="#4e6a7b">Please describe</FormLabel>
-                <Input {...register("payment_structure_other")} placeholder="Describe payment structure" {...inputStyles}/>
+                <Input {...register("payment_structure_other")} placeholder="Describe other payment structure" {...inputStyles}/>
                 <FormErrorMessage>{errors.payment_structure_other?.message}</FormErrorMessage>
               </FormControl>
             )}
@@ -248,7 +221,7 @@ export default function FMVStep2({ onBack, onNext }) {
             </FormControl>
             
             <FormControl isRequired isInvalid={!!errors.proposed_dollar_amount}>
-                <FormLabel color="#4e6a7b">Total Proposed $</FormLabel>
+                <FormLabel color="#4e6a7b">Total Value of Deal (Money + Other Goods)</FormLabel>
                 <Controller name="proposed_dollar_amount" control={control} render={({field}) => (
                     <NumberInput {...field} value={field.value ?? ''} min={0} precision={2} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
                         <NumberInputField placeholder="e.g. 5000" {...inputStyles}/>
@@ -258,11 +231,21 @@ export default function FMVStep2({ onBack, onNext }) {
             </FormControl>
 
             <FormControl isRequired isInvalid={!!errors.deal_category}>
-              <FormLabel color="#4e6a7b">Deal Category</FormLabel>
-              <ChakraSelect {...register("deal_category")} {...chakraSelectStyles}>
-                <option value="">Select...</option>
-                {DEAL_CATEGORIES.map(opt => <option key={opt.value} value={opt.value} >{opt.label}</option>)}
-              </ChakraSelect>
+              <FormLabelWithInstructions>Deal Category</FormLabelWithInstructions>
+              <Controller
+                name="deal_category"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    isMulti
+                    options={DEAL_CATEGORIES}
+                    value={DEAL_CATEGORIES.filter(opt => field.value?.includes(opt.value))}
+                    onChange={(options) => field.onChange(options?.map(o => o.value) || [])}
+                    placeholder="Select one or more..."
+                    styles={selectStyles}
+                  />
+                )}
+              />
               <FormErrorMessage>{errors.deal_category?.message}</FormErrorMessage>
             </FormControl>
 
@@ -273,18 +256,33 @@ export default function FMVStep2({ onBack, onNext }) {
             </FormControl>
 
             <FormControl isRequired isInvalid={!!errors.deliverables}>
-              <FormLabel color="#4e6a7b">Deliverables</FormLabel>
-              <Controller name="deliverables" control={control} render={({ field }) => (
-                <CreatableSelect isMulti options={DELIVERABLE_OPTIONS}
-                  value={field.value ? field.value.map(v => ({label: v, value: v})) : []}
-                  onChange={(options) => field.onChange(options?.map(o => o.value) || [])}
-                  placeholder="Choose or create…"
-                  styles={selectStyles} />
-              )}/>
+              <FormLabelWithInstructions>Deliverables</FormLabelWithInstructions>
+              <Controller
+                name="deliverables"
+                control={control}
+                render={({ field }) => (
+                  <CreatableSelect
+                    isMulti
+                    options={DELIVERABLE_OPTIONS}
+                    value={field.value ? field.value.map(v => ({label: v, value: v})) : []}
+                    onChange={(options) => {
+                        const values = options?.map(o => o.value) || [];
+                        // If "None" is selected, only keep "None"
+                        if (values.includes('None') && values.length > 1) {
+                            field.onChange(['None']);
+                        } else {
+                            field.onChange(values);
+                        }
+                    }}
+                    placeholder="Choose or create..."
+                    styles={selectStyles}
+                  />
+                )}
+              />
                <FormErrorMessage>{errors.deliverables?.message}</FormErrorMessage>
             </FormControl>
             
-            {deliverablesValue?.includes('Other') && (
+            {deliverablesValue.includes('Other') && (
                  <FormControl isRequired isInvalid={!!errors.deliverable_other}>
                     <FormLabel color="#4e6a7b">Describe Other Deliverable</FormLabel>
                     <Input {...register("deliverable_other")} placeholder="Describe the other deliverable" {...inputStyles}/>
@@ -293,7 +291,7 @@ export default function FMVStep2({ onBack, onNext }) {
             )}
             
             <FormControl>
-                <FormLabel color="#4e6a7b">Deal Types (optional)</FormLabel>
+                <FormLabelWithInstructions>Deal Types (optional)</FormLabelWithInstructions>
                 <Controller name="deal_type" control={control} render={({field}) => (
                     <CreatableSelect isMulti options={DEAL_TYPES}
                         value={field.value ? field.value.map(v => ({label: v, value: v})) : []}

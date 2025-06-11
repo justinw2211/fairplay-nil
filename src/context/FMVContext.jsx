@@ -17,16 +17,16 @@ const initialFormData = {
   gpa: "",
   prior_nil_deals: "",
   // Step 2
-  social_platforms: [], // New field to track selected social platforms
+  social_platforms: [],
   followers_instagram: "",
   followers_tiktok: "",
   followers_twitter: "",
   followers_youtube: "",
-  payment_structure: "",
+  payment_structure: [], // Changed to array
   payment_structure_other: "",
   deal_length_months: "",
   proposed_dollar_amount: "",
-  deal_category: "",
+  deal_category: [], // Changed to array
   brand_partner: "",
   deliverables: [],
   deliverables_count: {},
@@ -43,7 +43,6 @@ export function FMVProvider({ children }) {
     try {
       const saved = localStorage.getItem("fpn_profile");
       if (saved) {
-        // Ensure new fields exist even if loading from older localStorage
         const parsed = JSON.parse(saved);
         return { ...initialFormData, ...parsed };
       }

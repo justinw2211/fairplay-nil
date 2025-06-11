@@ -1,6 +1,6 @@
 import * as yup from 'yup';
 
-// Schema for Step 1
+// Schema for Step 1 remains the same
 export const step1Schema = yup.object().shape({
   division: yup.string().required('Division is required.'),
   school: yup.string().required('School is required.'),
@@ -29,37 +29,36 @@ export const step1Schema = yup.object().shape({
     .min(0, 'Cannot be negative'),
 });
 
-
 // Schema for Step 2
 export const step2Schema = yup.object().shape({
   social_platforms: yup.array().of(yup.string()),
   followers_instagram: yup.number().transform(value => (isNaN(value) ? null : value)).nullable()
       .when('social_platforms', (social_platforms, schema) => {
-          return social_platforms && social_platforms.includes('Instagram')
+          return social_platforms.includes('Instagram')
               ? schema.required('Follower count is required for Instagram.')
               : schema;
       }),
   followers_tiktok: yup.number().transform(value => (isNaN(value) ? null : value)).nullable()
       .when('social_platforms', (social_platforms, schema) => {
-          return social_platforms && social_platforms.includes('TikTok')
+          return social_platforms.includes('TikTok')
               ? schema.required('Follower count is required for TikTok.')
               : schema;
       }),
   followers_twitter: yup.number().transform(value => (isNaN(value) ? null : value)).nullable()
       .when('social_platforms', (social_platforms, schema) => {
-          return social_platforms && social_platforms.includes('X (Twitter)')
+          return social_platforms.includes('X (Twitter)')
               ? schema.required('Follower count is required for X.')
               : schema;
       }),
   followers_youtube: yup.number().transform(value => (isNaN(value) ? null : value)).nullable()
       .when('social_platforms', (social_platforms, schema) => {
-          return social_platforms && social_platforms.includes('YouTube')
+          return social_platforms.includes('YouTube')
               ? schema.required('Follower count is required for YouTube.')
               : schema;
       }),
-  payment_structure: yup.string().required('Payment structure is required.'),
+  payment_structure: yup.array().of(yup.string()).min(1, 'Payment structure is required.').required(),
   payment_structure_other: yup.string().when('payment_structure', {
-    is: 'Other',
+    is: (structures) => structures && structures.includes('Other'),
     then: (schema) => schema.trim().required('Please describe the payment structure.'),
     otherwise: (schema) => schema.optional(),
   }),
@@ -71,11 +70,16 @@ export const step2Schema = yup.object().shape({
     .typeError('Proposed amount is required.')
     .min(0, 'Amount cannot be negative')
     .required('Proposed amount is required.'),
-  deal_category: yup.string().required('Deal category is required.'),
+  deal_category: yup.array().of(yup.string()).min(1, 'Deal category is required.').required(),
   brand_partner: yup.string().trim().required('Brand partner is required.'),
   deliverables: yup.array()
     .of(yup.string())
     .min(1, 'Select at least one deliverable.')
+    .test(
+        'none-exclusive',
+        'If "None" is selected, no other deliverables can be chosen.',
+        (value) => !value || !(value.includes('None') && value.length > 1)
+    )
     .required(),
   deliverable_other: yup.string().when('deliverables', {
       is: (deliverables) => deliverables && deliverables.includes('Other'),
