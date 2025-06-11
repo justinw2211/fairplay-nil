@@ -12,11 +12,11 @@ const initialFormData = {
   email: "",
   // Step 2
   gender: "",
-  sport: [], // Changed to array
+  sport: [],
   graduation_year: "",
   age: "",
   gpa: "",
-  achievements: [], // Added
+  achievements: [],
   prior_nil_deals: "",
   // Step 3
   social_platforms: [],
@@ -31,7 +31,7 @@ const initialFormData = {
   deal_category: [],
   brand_partner: "",
   deliverables: [],
-  deliverables_count: {},
+  deliverables_count: {}, // Stores quantity for each deliverable
   deliverable_other: "",
   deal_type: [],
   is_real_submission: "",
@@ -49,6 +49,10 @@ export function FMVProvider({ children }) {
         // Ensure sport is always an array for backward compatibility
         if (typeof parsed.sport === 'string') {
           parsed.sport = [parsed.sport];
+        }
+        // Initialize deliverables_count if not present
+        if (!parsed.deliverables_count) {
+          parsed.deliverables_count = {};
         }
         return { ...initialFormData, ...parsed };
       }

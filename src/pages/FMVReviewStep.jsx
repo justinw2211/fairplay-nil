@@ -29,6 +29,15 @@ export default function FMVReviewStep({ onBack }) {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     
+    // Prepare deliverables with counts for the payload
+    const deliverablesWithCounts = formData.deliverables
+      .filter(d => d !== 'None' && d !== 'Other')
+      .map(d => `${d} (Qty: ${formData.deliverables_count[d] || 0})`);
+    
+    if (formData.deliverables.includes('Other') && formData.deliverable_other) {
+      deliverablesWithCounts.push(`Other: ${formData.deliverable_other}`);
+    }
+
     const payload = {
       name: formData.name || "",
       email: formData.email || "",
@@ -41,17 +50,12 @@ export default function FMVReviewStep({ onBack }) {
       age: formatNumber(formData.age),
       gpa: formatNumber(formData.gpa),
       achievements: formData.achievements || [],
-      athlete_status: formData.athlete_status || "",
       prior_nil_deals: formatNumber(formData.prior_nil_deals),
       followers_instagram: formatNumber(formData.followers_instagram),
       followers_tiktok: formatNumber(formData.followers_tiktok),
       followers_twitter: formatNumber(formData.followers_twitter),
       followers_youtube: formatNumber(formData.followers_youtube),
-      deliverables_instagram: 0,
-      deliverables_tiktok: 0,
-      deliverables_twitter: 0,
-      deliverables_youtube: 0,
-      deliverable_other: formData.deliverable_other || "",
+      deliverables: deliverablesWithCounts, // Use the new formatted array
       payment_structure: Array.isArray(formData.payment_structure) ? formData.payment_structure.join(', ') : formData.payment_structure || "",
       deal_length_months: formatNumber(formData.deal_length_months),
       proposed_dollar_amount: formatNumber(formData.proposed_dollar_amount),
@@ -80,7 +84,7 @@ export default function FMVReviewStep({ onBack }) {
       
       const isReal = String(formData.is_real_submission).toLowerCase() === "yes";
       if (isReal) {
-        console.log("Submitting to backend:", { ...payload, fmv: calcData.fmv });
+        console.log("Submitting to backend:", payload);
       }
 
       navigate("/result", { state: { formData: finalFormData } });
@@ -133,12 +137,24 @@ export default function FMVReviewStep({ onBack }) {
                       <Heading size="md" color="#282f3d">Deal Details</Heading>
                       <Button size="sm" variant="link" color="#d0bdb5" onClick={() => navigate('/fmvcalculator/step3')}>Edit</Button>
                   </Flex>
-                   <SimpleGrid columns={2} spacingY={2} spacingX={4}>
-                      <Text color="#4e6a7b">Brand:</Text><Text fontWeight="500">{formData.brand_partner || "-"}</Text>
-                      <Text color="#4e6a7b">Deal Value:</Text><Text fontWeight="500">${formatNumber(formData.proposed_dollar_amount).toLocaleString()}</Text>
-                      <Text color="#4e6a7b">Payment Structure:</Text><Text fontWeight="500">{formData.payment_structure?.join(', ') || "-"}</Text>
-                      <Text color="#4e6a7b">Deal Category:</Text><Text fontWeight="500">{formData.deal_category?.join(', ') || "-"}</Text>
-                      <Text color="#4e6a7b">Deliverables:</Text><Text fontWeight="500">{formData.deliverables?.join(', ') || "-"}</Text>
+                   <SimpleGrid columns={1} spacingY={2}>
+                      <Flex justify="space-between"><Text color="#4e6a7b">Brand:</Text><Text fontWeight="500" textAlign="right">{formData.brand_partner || "-"}</Text></Flex>
+                      <Flex justify="space-between"><Text color="#4e6a7b">Deal Value:</Text><Text fontWeight="500" textAlign="right">${formatNumber(formData.proposed_dollar_amount).toLocaleString()}</Text></Flex>
+                      <Flex justify="space-between"><Text color="#4e6a7b">Payment Structure:</Text><Text fontWeight="500" textAlign="right">{formData.payment_structure?.join(', ') || "-"}</Text></Flex>
+                      <Flex justify="space-between"><Text color="#4e6a7b">Industry:</Text><Text fontWeight="500" textAlign="right">{formData.deal_category?.join(', ') || "-"}</Text></Flex>
+                      
+                      <Box>
+                        <Text color="#4e6a7b">Deliverables:</Text>
+                        <Stack pl={4} mt={1} spacing={0}>
+                          {(formData.deliverables && !formData.deliverables.includes("None")) ? formData.deliverables.map(d => (
+                            <Text key={d} fontWeight="500">
+                              - {d} {d !== 'Other' && `(Qty: ${formData.deliverables_count?.[d] || 0})`}
+                              {d === 'Other' && formData.deliverable_other && `: ${formData.deliverable_other}`}
+                            </Text>
+                          )) : <Text fontWeight="500">- None</Text>}
+                        </Stack>
+                      </Box>
+
                    </SimpleGrid>
               </Box>
           </Stack>

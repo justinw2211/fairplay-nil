@@ -18,7 +18,7 @@ export const step2Schema = yup.object().shape({
     .max(2035, 'Invalid year')
     .required('Graduation year is required.'),
   gpa: yup.string().test('is-gpa', 'GPA must be between 0.00 and 4.00', (value) => {
-      if (value === null || value === "") return true; // Optional
+      if (value === null || value === "" || value === undefined) return true;
       const num = parseFloat(value);
       return !isNaN(num) && num >= 0 && num <= 4;
     }).nullable(),
@@ -91,6 +91,22 @@ export const step3Schema = yup.object().shape({
       is: (deliverables) => deliverables && deliverables.includes('Other'),
       then: (schema) => schema.trim().required('Please describe the other deliverable.'),
       otherwise: (schema) => schema.optional(),
+  }),
+  deliverables_count: yup.object().when('deliverables', (deliverables, schema) => {
+    if (!deliverables[0] || deliverables[0].includes('None')) {
+      return schema;
+    }
+    const shape = deliverables[0].reduce((acc, deliverable) => {
+      if (deliverable !== 'Other') {
+        acc[deliverable] = yup.number()
+          .transform(value => (isNaN(value) ? null : value))
+          .typeError('Must be a number')
+          .min(1, 'Quantity must be at least 1')
+          .required(`Quantity for ${deliverable} is required.`);
+      }
+      return acc;
+    }, {});
+    return yup.object().shape(shape);
   }),
   is_real_submission: yup.string().required('Please select an option.'),
 });

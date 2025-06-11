@@ -108,7 +108,6 @@ export default function FMVStep1_Academics({ onBack, onNext }) {
   const handleFormReset = () => {
     resetFormData();
     reset({
-      // Reset fields in this step
       gender: "",
       sport: [],
       graduation_year: "",
@@ -124,6 +123,29 @@ export default function FMVStep1_Academics({ onBack, onNext }) {
       duration: 2000,
       isClosable: true
     });
+  };
+
+  const handleGpaBlur = (e) => {
+    let value = e.target.value;
+    if (value === "" || value === null) return;
+  
+    // Allow only numbers and a single dot
+    value = value.replace(/[^0-9.]/g, '');
+    
+    let num = parseFloat(value);
+  
+    if (isNaN(num)) {
+      setValue("gpa", "");
+      return;
+    }
+  
+    // Clamp the value between 0 and 4
+    if (num < 0) num = 0;
+    if (num > 4) num = 4;
+  
+    // Format to 2 decimal places
+    const formattedGpa = num.toFixed(2);
+    setValue("gpa", formattedGpa, { shouldValidate: true });
   };
   
   const inputStyles = {
@@ -200,7 +222,13 @@ export default function FMVStep1_Academics({ onBack, onNext }) {
 
             <FormControl isInvalid={!!errors.gpa}>
               <FormLabel color="#4e6a7b">GPA (optional)</FormLabel>
-              <Input {...register("gpa")} placeholder="e.g., 3.78" inputMode="decimal" {...inputStyles} />
+              <Input
+                {...register("gpa")}
+                placeholder="e.g., 3.78"
+                inputMode="decimal"
+                onBlur={handleGpaBlur}
+                {...inputStyles}
+              />
               <FormErrorMessage>{errors.gpa?.message}</FormErrorMessage>
             </FormControl>
             
