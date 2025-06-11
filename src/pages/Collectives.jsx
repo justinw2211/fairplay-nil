@@ -1,19 +1,10 @@
-// src/pages/Collectives.jsx
-import React from 'react';
-import { Box, Heading, Text, VStack } from '@chakra-ui/react';
+import React from "react";
 
-export default function Collectives() {
-  return (
-    <Box maxW="5xl" mx="auto" py={{ base: 12, md: 24 }} px={8}>
-      <VStack spacing={4} align="start">
-        <Heading as="h1" size="xl">
-          For Collectives
-        </Heading>
-        <Text fontSize="lg" color="brand.textSecondary">
-          Understand the landscape and your role. FairPlay NIL provides data-driven insights
-          to help collectives make informed decisions and build sustainable models.
-        </Text>
-      </VStack>
-    </Box>
-  );
-}
+const Collectives = () => (
+  <div style={{ color: "white", background: "#222", minHeight: "100vh", padding: "2rem" }}>
+    <h1>Collectives</h1>
+    <p>This page provides more context about collectives. It is part of FairPlay NIL’s mission to offer transparency and value to key stakeholders in collegiate athletics. Stay tuned as we continue building tools for insight and clarity.</p>
+  </div>
+);
+
+export default Collectives;
