@@ -26,28 +26,29 @@ const STEPS_CONFIG = [
   { label: "Academics & Athletics", fields: ['gender', 'sport', 'graduation_year', 'gpa', 'age', 'prior_nil_deals'] }
 ];
 
-// Reusable style object for react-select components
 const selectStyles = {
-  control: (base) => ({
+  control: (base, state) => ({
     ...base,
-    background: "#2d3748", // gray.700
-    borderColor: "#4a5568", // gray.600
-    color: "white",
+    background: "#ffffff",
+    borderColor: state.isFocused ? "#d0bdb5" : "#d6dce4",
+    color: "#282f3d",
+    boxShadow: state.isFocused ? "0 0 0 1px #d0bdb5" : "none",
     "&:hover": {
-      borderColor: "#63b3ed", // blue.300
+      borderColor: "#d0bdb5",
     },
   }),
-  singleValue: (base) => ({ ...base, color: "white" }),
-  input: (base) => ({ ...base, color: "white" }),
-  menu: (base) => ({ ...base, background: "#1a202c", zIndex: 9999 }), // gray.900
+  singleValue: (base) => ({ ...base, color: "#282f3d" }),
+  input: (base) => ({ ...base, color: "#282f3d" }),
+  menu: (base) => ({ ...base, background: "#ffffff", zIndex: 9999, border: "1px solid #d6dce4" }),
   option: (base, state) => ({
     ...base,
-    backgroundColor: state.isSelected ? "#38a169" : state.isFocused ? "#2d3748" : "transparent", // green.500 : gray.700
+    backgroundColor: state.isSelected ? "#d0bdb5" : state.isFocused ? "#f4f4f4" : "transparent",
+    color: state.isSelected ? "#ffffff" : "#282f3d",
     "&:active": {
-      backgroundColor: "#276749", // green.700
+      backgroundColor: "#c9b2a9",
     },
   }),
-  placeholder: (base) => ({ ...base, color: "#a0aec0" }), // gray.400
+  placeholder: (base) => ({ ...base, color: "#4e6a7b" }),
 };
 
 export default function FMVStep1({ onNext }) {
@@ -65,26 +66,23 @@ export default function FMVStep1({ onNext }) {
   const divisionValue = watch('division');
   const schoolValue = watch('school');
 
-  // Filter school options based on division
   const schoolOptions = React.useMemo(() => {
     if (!divisionValue) return [];
     return NCAA_SCHOOL_OPTIONS.filter(o => o.division === divisionValue);
   }, [divisionValue]);
 
-  // Reset school when division changes
   useEffect(() => {
     if (divisionValue && schoolValue && !schoolOptions.find(o => o.value === schoolValue)) {
       setValue('school', '');
     }
   }, [divisionValue, schoolValue, schoolOptions, setValue]);
 
-  // Reset sport when gender changes
   useEffect(() => {
     setValue('sport', '');
   }, [genderValue, setValue]);
 
-  const progress = ((step + 1) / STEPS_CONFIG.length) * 100;
-  const progressLabel = `Step ${step + 1} of ${STEPS_CONFIG.length}: ${STEPS_CONFIG[step].label}`;
+  const progress = ((step + 1) / STEPS_CONFIG.length) * 50;
+  const progressLabel = `Step ${step + 1} of 2: ${STEPS_CONFIG[step].label}`;
 
   const handleNext = async () => {
     const fieldsToValidate = STEPS_CONFIG[step].fields;
@@ -115,13 +113,13 @@ export default function FMVStep1({ onNext }) {
     if (step > 0) {
       setStep(s => s - 1);
     } else {
-      navigate(-1); // Go back to the previous page in history
+      navigate(-1);
     }
   };
   
   const handleFormReset = () => {
     resetFormData();
-    reset(); // Reset react-hook-form's internal state
+    reset();
     setStep(0);
     toast({
       title: "Form reset!",
@@ -130,22 +128,30 @@ export default function FMVStep1({ onNext }) {
       isClosable: true
     });
   };
+  
+  const inputStyles = {
+    bg: "#ffffff",
+    borderColor: "#d6dce4",
+    color: "#282f3d",
+    _hover: { borderColor: "#d0bdb5" },
+    _focus: { borderColor: "#d0bdb5", boxShadow: "0 0 0 1px #d0bdb5" },
+  };
 
   return (
-    <Flex minH="100vh" align="center" justify="center" bg="linear-gradient(to bottom,#181a20 60%,#23272f 100%)" color="white" py={10}>
-      <Box w={["95vw", "600px"]} bg="gray.900" boxShadow="2xl" borderRadius="2xl" p={[4, 8]} mx="auto">
+    <Flex minH="100vh" align="center" justify="center" bg="#f4f4f4" color="#282f3d" py={10}>
+      <Box w={["95vw", "600px"]} bg="#ffffff" boxShadow="xl" borderRadius="xl" p={[4, 8]} mx="auto" border="1px solid #d6dce4">
         <Box mb={6}>
-          <Text color="gray.300" fontWeight="bold" fontSize="md" mb={2} letterSpacing="wide">{progressLabel}</Text>
-          <Progress value={progress} size="md" colorScheme="green" borderRadius="full" hasStripe isAnimated mb={2} />
+          <Text color="#4e6a7b" fontWeight="bold" fontSize="md" mb={2} letterSpacing="wide">{progressLabel}</Text>
+          <Progress value={progress} size="md" colorScheme="pink" sx={{ "& > div": { backgroundColor: "#d0bdb5" } }} borderRadius="full" mb={2} />
         </Box>
         
         <form onSubmit={(e) => e.preventDefault()}>
           <Stack spacing={6}>
             {step === 0 && (
               <>
-                <Heading fontSize="2xl" color="white">Profile</Heading>
+                <Heading fontSize="2xl" color="#282f3d">Profile</Heading>
                 <FormControl isRequired isInvalid={!!errors.division}>
-                  <FormLabel color="gray.200">Division</FormLabel>
+                  <FormLabel color="#4e6a7b">Division</FormLabel>
                   <Controller name="division" control={control} render={({ field }) => (
                     <Select options={DIVISIONS.map(d => ({ label: d, value: d }))} value={field.value ? { label: field.value, value: field.value } : null} onChange={val => field.onChange(val ? val.value : '')} placeholder="Select division..." styles={selectStyles} />
                   )} />
@@ -153,7 +159,7 @@ export default function FMVStep1({ onNext }) {
                 </FormControl>
                 
                 <FormControl isRequired isInvalid={!!errors.school}>
-                  <FormLabel color="gray.200">School</FormLabel>
+                  <FormLabel color="#4e6a7b">School</FormLabel>
                   <Controller name="school" control={control} render={({ field }) => (
                      <Select options={schoolOptions} value={field.value ? { label: field.value, value: field.value } : null} onChange={val => field.onChange(val ? val.value : '')} placeholder="Type to search your school..." isDisabled={!divisionValue} isClearable isSearchable styles={selectStyles} />
                   )} />
@@ -161,14 +167,14 @@ export default function FMVStep1({ onNext }) {
                 </FormControl>
 
                 <FormControl isRequired isInvalid={!!errors.name}>
-                  <FormLabel color="gray.200">Full Name</FormLabel>
-                  <Input {...register("name")} placeholder="Your Name" bg="gray.800" _hover={{ borderColor: "gray.600" }} _focus={{ borderColor: "green.300", boxShadow: "0 0 0 1px #68D391" }} />
+                  <FormLabel color="#4e6a7b">Full Name</FormLabel>
+                  <Input {...register("name")} placeholder="Your Name" {...inputStyles} />
                   <FormErrorMessage>{errors.name?.message}</FormErrorMessage>
                 </FormControl>
 
                 <FormControl isRequired isInvalid={!!errors.email}>
-                  <FormLabel color="gray.200">Email</FormLabel>
-                  <Input type="email" {...register("email")} placeholder="you@email.com" bg="gray.800" _hover={{ borderColor: "gray.600" }} _focus={{ borderColor: "green.300", boxShadow: "0 0 0 1px #68D391" }} />
+                  <FormLabel color="#4e6a7b">Email</FormLabel>
+                  <Input type="email" {...register("email")} placeholder="you@email.com" {...inputStyles} />
                   <FormErrorMessage>{errors.email?.message}</FormErrorMessage>
                 </FormControl>
               </>
@@ -176,9 +182,9 @@ export default function FMVStep1({ onNext }) {
             
             {step === 1 && (
               <>
-                <Heading fontSize="2xl" color="white">Academics & Athletics</Heading>
+                <Heading fontSize="2xl" color="#282f3d">Academics & Athletics</Heading>
                 <FormControl isRequired isInvalid={!!errors.gender}>
-                  <FormLabel color="gray.200">Gender</FormLabel>
+                  <FormLabel color="#4e6a7b">Gender</FormLabel>
                   <Controller name="gender" control={control} render={({ field }) => (
                     <Select options={GENDERS.map(g => ({ label: g, value: g }))} value={field.value ? { label: field.value, value: field.value } : null} onChange={val => field.onChange(val ? val.value : '')} placeholder="Select gender" styles={selectStyles} />
                   )} />
@@ -186,7 +192,7 @@ export default function FMVStep1({ onNext }) {
                 </FormControl>
 
                 <FormControl isRequired isInvalid={!!errors.sport}>
-                  <FormLabel color="gray.200">Sport</FormLabel>
+                  <FormLabel color="#4e6a7b">Sport</FormLabel>
                    <Controller name="sport" control={control} render={({ field }) => (
                     <Select options={(SPORTS[genderValue] || []).map(s => ({ label: s, value: s }))} value={field.value ? { label: field.value, value: field.value } : null} onChange={val => field.onChange(val ? val.value : '')} placeholder="Select sport" isDisabled={!genderValue} styles={selectStyles} />
                   )} />
@@ -194,36 +200,36 @@ export default function FMVStep1({ onNext }) {
                 </FormControl>
 
                 <FormControl isRequired isInvalid={!!errors.graduation_year}>
-                  <FormLabel color="gray.200">Graduation Year</FormLabel>
+                  <FormLabel color="#4e6a7b">Graduation Year</FormLabel>
                   <Controller name="graduation_year" control={control} render={({ field }) => (
                     <NumberInput {...field} value={field.value || ''} onChange={(val) => field.onChange(val === '' ? null : Number(val))} min={2024} max={2035}>
-                      <NumberInputField placeholder="2026" bg="gray.800" _hover={{ borderColor: "gray.600" }} _focus={{ borderColor: "green.300", boxShadow: "0 0 0 1px #68D391" }} />
+                      <NumberInputField placeholder="2026" {...inputStyles} />
                     </NumberInput>
                   )} />
                   <FormErrorMessage>{errors.graduation_year?.message}</FormErrorMessage>
                 </FormControl>
 
                 <FormControl isInvalid={!!errors.gpa}>
-                  <FormLabel color="gray.200">GPA (optional)</FormLabel>
-                  <Input {...register("gpa")} placeholder="e.g., 3.78" bg="gray.800" inputMode="decimal" _hover={{ borderColor: "gray.600" }} _focus={{ borderColor: "green.300", boxShadow: "0 0 0 1px #68D391" }} />
+                  <FormLabel color="#4e6a7b">GPA (optional)</FormLabel>
+                  <Input {...register("gpa")} placeholder="e.g., 3.78" inputMode="decimal" {...inputStyles} />
                   <FormErrorMessage>{errors.gpa?.message}</FormErrorMessage>
                 </FormControl>
                 
                 <FormControl isInvalid={!!errors.age}>
-                  <FormLabel color="gray.200">Age (optional)</FormLabel>
+                  <FormLabel color="#4e6a7b">Age (optional)</FormLabel>
                   <Controller name="age" control={control} render={({ field }) => (
                      <NumberInput {...field} value={field.value || ''} onChange={(val) => field.onChange(val === '' ? null : Number(val))} min={15} max={99}>
-                      <NumberInputField placeholder="e.g., 20" bg="gray.800" _hover={{ borderColor: "gray.600" }} _focus={{ borderColor: "green.300", boxShadow: "0 0 0 1px #68D391" }} />
+                      <NumberInputField placeholder="e.g., 20" {...inputStyles} />
                     </NumberInput>
                   )} />
                    <FormErrorMessage>{errors.age?.message}</FormErrorMessage>
                 </FormControl>
 
                  <FormControl isInvalid={!!errors.prior_nil_deals}>
-                  <FormLabel color="gray.200">Prior NIL Deals (optional)</FormLabel>
+                  <FormLabel color="#4e6a7b">Prior NIL Deals (optional)</FormLabel>
                    <Controller name="prior_nil_deals" control={control} render={({ field }) => (
                      <NumberInput {...field} value={field.value || ''} onChange={(val) => field.onChange(val === '' ? null : Number(val))} min={0}>
-                      <NumberInputField placeholder="e.g., 2" bg="gray.800" _hover={{ borderColor: "gray.600" }} _focus={{ borderColor: "green.300", boxShadow: "0 0 0 1px #68D391" }} />
+                      <NumberInputField placeholder="e.g., 2" {...inputStyles} />
                     </NumberInput>
                   )} />
                    <FormErrorMessage>{errors.prior_nil_deals?.message}</FormErrorMessage>
@@ -233,16 +239,16 @@ export default function FMVStep1({ onNext }) {
           </Stack>
           
           <Flex mt={8} justify="space-between">
-            <Button onClick={handleBack} colorScheme="green" variant="outline" _hover={{ bg: "#23272f", color: "#88E788", borderColor: "#88E788" }}>Back</Button>
-            <Button onClick={handleNext} colorScheme="green" px={8} fontWeight="bold">
+            <Button onClick={handleBack} variant="outline" borderColor="#d6dce4" color="#4e6a7b" _hover={{ bg: "#f4f4f4" }}>Back</Button>
+            <Button onClick={handleNext} bg="#d0bdb5" color="#ffffff" _hover={{ bg: "#c9b2a9" }} px={8} fontWeight="bold">
               {step === STEPS_CONFIG.length - 1 ? "Continue" : "Next"}
             </Button>
           </Flex>
         </form>
 
         <Flex mt={3} justify="space-between" align="center">
-          <Button size="sm" colorScheme="gray" variant="ghost" style={{ color: "#88E788" }} onClick={handleFormReset}>Reset Form</Button>
-          <Button size="sm" colorScheme="green" variant="ghost" style={{ color: "#88E788" }} onClick={() => {
+          <Button size="sm" variant="ghost" color="#4e6a7b" onClick={handleFormReset}>Reset Form</Button>
+          <Button size="sm" variant="ghost" color="#4e6a7b" onClick={() => {
              toast({
                 title: "Resume link copied!",
                 status: "success",
@@ -250,7 +256,7 @@ export default function FMVStep1({ onNext }) {
                 isClosable: true
               });
               navigator.clipboard.writeText(window.location.href);
-           }}>Save Progress & Get Link</Button>
+           }}>Save Progress</Button>
         </Flex>
       </Box>
     </Flex>

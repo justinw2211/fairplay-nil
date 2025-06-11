@@ -11,81 +11,75 @@ export default function FMVResult() {
   const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [shareEmail, setShareEmail] = useState("");
-  const [showSuccess, setShowSuccess] = useState(false);
   const toast = useToast();
 
-  // ✅ Try to load formData from router state or localStorage
   const fallbackData = typeof window !== "undefined" ? localStorage.getItem("fmvFormData") : null;
   const formData = location.state?.formData || (fallbackData && JSON.parse(fallbackData));
 
   if (!formData) {
     return (
-      <Box p={10}>
-        <Heading size="md" mb={4}>No result data found.</Heading>
-        <Button onClick={() => navigate("/")}>Return Home</Button>
+      <Box p={10} textAlign="center" bg="#f4f4f4">
+        <Heading size="md" mb={4} color="#282f3d">No result data found.</Heading>
+        <Button onClick={() => navigate("/")} bg="#d0bdb5" color="#ffffff" _hover={{ bg: "#c9b2a9" }}>Return Home</Button>
       </Box>
     );
   }
 
-  const fmvValue = formData?.fmv ? `$${formData.fmv}` : "FMV unavailable";
+  const fmvValue = formData?.fmv ? `$${formData.fmv.toLocaleString()}` : "FMV unavailable";
+
+  const totalFollowers = (
+    (formData?.followers_instagram || 0) +
+    (formData?.followers_tiktok || 0) +
+    (formData?.followers_twitter || 0) +
+    (formData?.followers_youtube || 0)
+  ).toLocaleString();
 
   const fmvDetails = [
     { label: "Sport", value: formData?.sport || "-" },
     { label: "Division", value: formData?.division?.toString() || "-" },
-    {
-      label: "Social Followers",
-      value: (
-        formData?.followers_instagram +
-        formData?.followers_tiktok +
-        formData?.followers_twitter +
-        formData?.followers_youtube
-      )?.toLocaleString() || "0"
-    },
-    { label: "Achievements", value: formData?.achievements?.join(", ") || "-" },
+    { label: "Social Followers", value: totalFollowers },
+    { label: "Achievements", value: formData?.achievements?.join(", ") || "Not Provided" },
     {
       label: "Deliverables",
-      value: [
-        formData?.deliverables_instagram && `${formData.deliverables_instagram} IG posts`,
-        formData?.deliverables_tiktok && `${formData.deliverables_tiktok} TikToks`,
-        formData?.deliverables_twitter && `${formData.deliverables_twitter} Tweets`,
-        formData?.deliverables_youtube && `${formData.deliverables_youtube} YouTube videos`,
-        formData?.deliverable_other
-      ].filter(Boolean).join(", ") || "-"
+      value: formData.deliverables?.join(", ") || "Not Provided"
     }
   ];
 
   const handleShare = () => {
-    setShowSuccess(true);
     onClose();
     toast({
       title: "Success!",
       description: `Result emailed to ${shareEmail} (simulation)`,
       status: "success",
       duration: 3000,
-      isClosable: true
+      isClosable: true,
+      position: "top-right"
     });
+    setShareEmail("");
   };
 
   return (
-    <Box maxW="2xl" mx="auto" py={10} px={6}>
-      <Heading size="lg" mb={4}>Your Fair Market Value</Heading>
-      <Text fontSize="4xl" fontWeight="bold" color="green.300">{fmvValue}</Text>
-      <Stack spacing={4} my={6}>
-        {fmvDetails.map((item, idx) => (
-          <Flex key={idx} justify="space-between">
-            <Text color="gray.400">{item.label}:</Text>
-            <Text fontWeight="medium">{item.value}</Text>
-          </Flex>
-        ))}
-      </Stack>
-      <Flex mt={10} justify="space-between">
-        <Button onClick={onOpen} colorScheme="blue">Email This Result</Button>
-        <Button onClick={() => navigate("/")}>Return Home</Button>
-      </Flex>
+    <Flex minH="90vh" align="center" justify="center" bg="#f4f4f4" color="#282f3d" py={10}>
+      <Box maxW="2xl" w="full" mx="auto" py={10} px={6} bg="#ffffff" borderRadius="xl" boxShadow="xl" border="1px solid #d6dce4">
+        <Heading size="lg" mb={2} textAlign="center" color="#282f3d">Your Fair Market Value</Heading>
+        <Text fontSize="5xl" fontWeight="bold" color="#4e6a7b" textAlign="center">{fmvValue}</Text>
+        <Stack spacing={4} my={8} p={6} bg="#f4f4f4" borderRadius="lg">
+          {fmvDetails.map((item, idx) => (
+            <Flex key={idx} justify="space-between" align="center">
+              <Text color="#4e6a7b">{item.label}:</Text>
+              <Text fontWeight="600" color="#282f3d">{item.value}</Text>
+            </Flex>
+          ))}
+        </Stack>
+        <Flex mt={8} justify="center" gap={4}>
+          <Button onClick={onOpen} variant="outline" borderColor="#d6dce4" color="#4e6a7b" _hover={{ bg: "#f4f4f4" }}>Email This Result</Button>
+          <Button onClick={() => navigate("/")} bg="#d0bdb5" color="#ffffff" _hover={{ bg: "#c9b2a9" }}>Return Home</Button>
+        </Flex>
+      </Box>
 
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={isOpen} onClose={onClose} isCentered>
         <ModalOverlay />
-        <ModalContent>
+        <ModalContent bg="#ffffff" color="#282f3d">
           <ModalHeader>Send FMV Result</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
@@ -93,16 +87,20 @@ export default function FMVResult() {
               placeholder="Enter recipient's email"
               value={shareEmail}
               onChange={(e) => setShareEmail(e.target.value)}
+              bg="#f4f4f4"
+              borderColor="#d6dce4"
+             _hover={{ borderColor: "#d0bdb5" }}
+             _focus={{ borderColor: "#d0bdb5", boxShadow: "0 0 0 1px #d0bdb5" }}
             />
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={handleShare}>
+            <Button variant="ghost" mr={3} onClick={onClose}>Cancel</Button>
+            <Button bg="#d0bdb5" color="#ffffff" _hover={{ bg: "#c9b2a9" }} onClick={handleShare}>
               Send
             </Button>
-            <Button onClick={onClose}>Cancel</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
-    </Box>
+    </Flex>
   );
 }

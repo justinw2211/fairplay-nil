@@ -8,13 +8,12 @@ import Brands from "./pages/Brands";
 import AboutUs from "./pages/AboutUs";
 import Security from "./pages/Security";
 import Careers from "./pages/Careers";
-import FMVCalculator from "./pages/FMVCalculator"; // robust survey parent
-import FMVResult from "./pages/FMVResult"; // BUG FIX: Ensure FMVResult is imported
+import FMVCalculator from "./pages/FMVCalculator";
+import FMVResult from "./pages/FMVResult";
 
 const App = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({});
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [companyOpen, setCompanyOpen] = useState(false);
 
@@ -39,24 +38,24 @@ const App = () => {
   const isCompanyActive = companyMenu.some(item => location.pathname === item.path);
 
   return (
-    <div>
-      <div style={{ height: '1.2rem', backgroundColor: '#88E788' }}></div>
+    <div style={{ fontFamily: "'Inter', sans-serif" }}>
+      <div style={{ height: '1.2rem', backgroundColor: '#d0bdb5' }}></div>
       <nav style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        background: 'linear-gradient(to right, #2C2F36, #1F1F23)',
+        backgroundColor: '#ffffff',
         padding: '1.4rem 2rem',
-        fontFamily: "'Helvetica Neue', sans-serif",
-        fontSize: '1.15rem',
-        boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
-        borderBottom: '1px solid #444',
-        position: 'relative'
+        fontSize: '1.1rem',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+        borderBottom: '1px solid #d6dce4',
+        position: 'relative',
+        color: '#282f3d'
       }}>
         <NavLink to="/" style={{ textDecoration: 'none' }}>
           <span style={{
-            color: 'white',
-            fontWeight: 700,
+            color: '#282f3d',
+            fontWeight: 800,
             fontSize: '1.45rem',
             letterSpacing: '0.5px'
           }}>
@@ -74,11 +73,13 @@ const App = () => {
                 onMouseEnter={() => setHoveredIndex(index)}
                 onMouseLeave={() => setHoveredIndex(null)}
                 style={{
-                  color: isHovered || isActive ? '#88E788' : 'white',
-                  fontWeight: 500,
+                  color: isHovered || isActive ? '#4e6a7b' : '#282f3d',
+                  fontWeight: 600,
                   textDecoration: 'none',
                   cursor: "pointer",
-                  transition: 'color 0.3s ease'
+                  transition: 'color 0.3s ease',
+                  borderBottom: isActive ? '2px solid #d0bdb5' : '2px solid transparent',
+                  paddingBottom: '4px'
                 }}
               >
                 {item.label}
@@ -91,17 +92,17 @@ const App = () => {
             style={{ position: "relative", height: "100%", display: "flex", alignItems: "center" }}
           >
             <div style={{
-              color: companyOpen || isCompanyActive ? "#88E788" : "white",
-              fontWeight: 500,
-              fontSize: "1.15rem",
+              color: companyOpen || isCompanyActive ? "#4e6a7b" : "#282f3d",
+              fontWeight: 600,
+              fontSize: "1.1rem",
               lineHeight: "1.5",
               display: "flex",
               alignItems: "center",
               height: "100%",
-              padding: 0,
-              paddingBottom: "0.5rem",
+              paddingBottom: "4px",
               textDecoration: "none",
-              cursor: "pointer"
+              cursor: "pointer",
+              borderBottom: isCompanyActive ? '2px solid #d0bdb5' : '2px solid transparent',
             }}>
               Company
             </div>
@@ -110,11 +111,12 @@ const App = () => {
               position: 'absolute',
               top: "calc(100% + 4px)",
               left: 0,
-              backgroundColor: '#2C2F36',
+              backgroundColor: '#ffffff',
               borderRadius: '6px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
               padding: '0.5rem 0',
-              zIndex: 1000
+              zIndex: 1000,
+              border: '1px solid #d6dce4'
             }}>
               {companyMenu.map(item => (
                 <div
@@ -122,13 +124,13 @@ const App = () => {
                   onClick={() => navigate(item.path)}
                   style={{
                     padding: '0.5rem 1.5rem',
-                    color: location.pathname === item.path ? '#88E788' : 'white',
+                    color: location.pathname === item.path ? '#4e6a7b' : '#282f3d',
                     cursor: "pointer",
                     whiteSpace: 'nowrap',
-                    fontWeight: 400,
+                    fontWeight: 500,
                     transition: 'background-color 0.2s ease'
                   }}
-                  onMouseEnter={e => e.currentTarget.style.backgroundColor = "#3A3F47"}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f4f4f4"}
                   onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
                 >
                   {item.label}
@@ -145,8 +147,8 @@ const App = () => {
                 key={item.path}
                 to={item.path}
                 style={{
-                  color: isActive ? '#88E788' : 'white',
-                  fontWeight: 500,
+                  color: isActive ? '#4e6a7b' : '#282f3d',
+                  fontWeight: 600,
                   textDecoration: 'none',
                   cursor: "pointer",
                   transition: 'color 0.3s ease'
@@ -159,8 +161,8 @@ const App = () => {
           <NavLink to="/fmvcalculator/step1">
             <button style={{
               padding: "0.7rem 1.5rem",
-              backgroundColor: "#88E788",
-              color: "#1a1a1a",
+              backgroundColor: "#d0bdb5",
+              color: "#ffffff",
               fontWeight: "700",
               fontSize: "1rem",
               borderRadius: "8px",
@@ -169,8 +171,8 @@ const App = () => {
               transition: "transform 0.2s ease, box-shadow 0.2s ease"
             }}
               onMouseOver={(e) => {
-                e.currentTarget.style.transform = "scale(1.06)";
-                e.currentTarget.style.boxShadow = "0 6px 14px rgba(136, 231, 136, 0.35)";
+                e.currentTarget.style.transform = "scale(1.05)";
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0, 0.15)";
               }}
               onMouseOut={(e) => {
                 e.currentTarget.style.transform = "scale(1)";
@@ -184,15 +186,8 @@ const App = () => {
       </nav>
 
       <Routes>
-        {/* Robust parent handles all survey steps */}
         <Route path="/fmvcalculator/*" element={<FMVCalculator />} />
-
-        {/* ====================================================== */}
-        {/* BUG FIX: Added a top-level route for the result page. */}
         <Route path="/result" element={<FMVResult />} />
-        {/* ====================================================== */}
-
-        {/* All your main nav pages as before */}
         <Route path="/" element={<Home />} />
         <Route path="/athletes" element={<Athletes />} />
         <Route path="/universities" element={<Universities />} />
@@ -201,8 +196,8 @@ const App = () => {
         <Route path="/aboutus" element={<AboutUs />} />
         <Route path="/security" element={<Security />} />
         <Route path="/careers" element={<Careers />} />
-        <Route path="/contact" element={<div style={{ padding: '2rem', color: 'white' }}>Contact Page Placeholder</div>} />
-        <Route path="/signin" element={<div style={{ padding: '2rem', color: 'white' }}>Sign In Page Placeholder</div>} />
+        <Route path="/contact" element={<div style={{ padding: '2rem', color: '#282f3d' }}>Contact Page Placeholder</div>} />
+        <Route path="/signin" element={<div style={{ padding: '2rem', color: '#282f3d' }}>Sign In Page Placeholder</div>} />
       </Routes>
     </div>
   );
