@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useFMV } from "../context/FMVContext";
@@ -6,25 +6,12 @@ import { step1Schema } from '../validation/schemas';
 import { useNavigate } from "react-router-dom";
 import {
   Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
-  Input, NumberInput, NumberInputField, useToast, Text, FormErrorMessage
+  Input, useToast, Text, FormErrorMessage, FormHelperText
 } from "@chakra-ui/react";
 import Select from "react-select";
 import { NCAA_SCHOOL_OPTIONS } from "../data/ncaaSchools.js";
 
 const DIVISIONS = ["I", "II", "III"];
-const GENDERS = ["Male", "Female", "Nonbinary", "Prefer not to say", "Other"];
-const SPORTS = {
-  Male: ["Basketball", "Football", "Baseball", "Soccer", "Track & Field", "Cross Country", "Lacrosse", "Golf", "Swimming", "Tennis", "Other"],
-  Female: ["Basketball", "Soccer", "Volleyball", "Softball", "Track & Field", "Cross Country", "Lacrosse", "Golf", "Swimming", "Tennis", "Other"],
-  Nonbinary: ["Basketball", "Soccer", "Track & Field", "Cross Country", "Other"],
-  "Prefer not to say": ["Basketball", "Soccer", "Track & Field", "Cross Country", "Other"],
-  Other: ["Basketball", "Soccer", "Track & Field", "Cross Country", "Other"],
-};
-
-const STEPS_CONFIG = [
-  { label: "Profile", fields: ['division', 'school', 'name', 'email'] },
-  { label: "Academics & Athletics", fields: ['gender', 'sport', 'graduation_year', 'gpa', 'age', 'prior_nil_deals'] }
-];
 
 const selectStyles = {
   control: (base, state) => ({
@@ -52,7 +39,6 @@ const selectStyles = {
 };
 
 export default function FMVStep1({ onNext }) {
-  const [step, setStep] = useState(0);
   const navigate = useNavigate();
   const toast = useToast();
   const { formData, updateFormData, resetFormData } = useFMV();
@@ -62,11 +48,10 @@ export default function FMVStep1({ onNext }) {
     defaultValues: formData,
   });
 
-  const genderValue = watch('gender');
   const divisionValue = watch('division');
   const schoolValue = watch('school');
 
-  const schoolOptions = React.useMemo(() => {
+  const schoolOptions = useMemo(() => {
     if (!divisionValue) return [];
     return NCAA_SCHOOL_OPTIONS.filter(o => o.division === divisionValue);
   }, [divisionValue]);
@@ -77,31 +62,12 @@ export default function FMVStep1({ onNext }) {
     }
   }, [divisionValue, schoolValue, schoolOptions, setValue]);
 
-  useEffect(() => {
-    setValue('sport', '');
-  }, [genderValue, setValue]);
-
-  const progress = ((step + 1) / STEPS_CONFIG.length) * 50;
-  const progressLabel = `Step ${step + 1} of 2: ${STEPS_CONFIG[step].label}`;
+  const progress = (1 / 3) * 100;
+  const progressLabel = "Step 1 of 3: Profile";
 
   const handleNext = async () => {
-    const fieldsToValidate = STEPS_CONFIG[step].fields;
-    const isValid = await trigger(fieldsToValidate, { shouldFocus: true });
-
-    if (!isValid) {
-      toast({
-        title: "Please complete all required fields correctly.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-        position: "top"
-      });
-      return;
-    }
-
-    if (step < STEPS_CONFIG.length - 1) {
-      setStep(s => s + 1);
-    } else {
+    const isValid = await trigger();
+    if (isValid) {
       handleSubmit(data => {
         updateFormData(data);
         if (onNext) onNext();
@@ -110,17 +76,12 @@ export default function FMVStep1({ onNext }) {
   };
 
   const handleBack = () => {
-    if (step > 0) {
-      setStep(s => s - 1);
-    } else {
       navigate(-1);
-    }
   };
   
   const handleFormReset = () => {
     resetFormData();
     reset();
-    setStep(0);
     toast({
       title: "Form reset!",
       status: "info",
@@ -147,101 +108,41 @@ export default function FMVStep1({ onNext }) {
         
         <form onSubmit={(e) => e.preventDefault()}>
           <Stack spacing={6}>
-            {step === 0 && (
-              <>
-                <Heading fontSize="2xl" color="#282f3d">Profile</Heading>
-                <FormControl isRequired isInvalid={!!errors.division}>
-                  <FormLabel color="#4e6a7b">Division</FormLabel>
-                  <Controller name="division" control={control} render={({ field }) => (
-                    <Select options={DIVISIONS.map(d => ({ label: d, value: d }))} value={field.value ? { label: field.value, value: field.value } : null} onChange={val => field.onChange(val ? val.value : '')} placeholder="Select division..." styles={selectStyles} />
-                  )} />
-                  <FormErrorMessage>{errors.division?.message}</FormErrorMessage>
-                </FormControl>
-                
-                <FormControl isRequired isInvalid={!!errors.school}>
-                  <FormLabel color="#4e6a7b">School</FormLabel>
-                  <Controller name="school" control={control} render={({ field }) => (
-                     <Select options={schoolOptions} value={field.value ? { label: field.value, value: field.value } : null} onChange={val => field.onChange(val ? val.value : '')} placeholder="Type to search your school..." isDisabled={!divisionValue} isClearable isSearchable styles={selectStyles} />
-                  )} />
-                  <FormErrorMessage>{errors.school?.message}</FormErrorMessage>
-                </FormControl>
-
-                <FormControl isRequired isInvalid={!!errors.name}>
-                  <FormLabel color="#4e6a7b">Full Name</FormLabel>
-                  <Input {...register("name")} placeholder="Your Name" {...inputStyles} />
-                  <FormErrorMessage>{errors.name?.message}</FormErrorMessage>
-                </FormControl>
-
-                <FormControl isRequired isInvalid={!!errors.email}>
-                  <FormLabel color="#4e6a7b">Email</FormLabel>
-                  <Input type="email" {...register("email")} placeholder="you@email.com" {...inputStyles} />
-                  <FormErrorMessage>{errors.email?.message}</FormErrorMessage>
-                </FormControl>
-              </>
-            )}
+            <Heading fontSize="2xl" color="#282f3d">Profile</Heading>
+            <FormControl isRequired isInvalid={!!errors.division}>
+              <FormLabel color="#4e6a7b">Division</FormLabel>
+              <Controller name="division" control={control} render={({ field }) => (
+                <Select options={DIVISIONS.map(d => ({ label: d, value: d }))} value={field.value ? { label: field.value, value: field.value } : null} onChange={val => field.onChange(val ? val.value : '')} placeholder="Select division..." styles={selectStyles} />
+              )} />
+              <FormErrorMessage>{errors.division?.message}</FormErrorMessage>
+            </FormControl>
             
-            {step === 1 && (
-              <>
-                <Heading fontSize="2xl" color="#282f3d">Academics & Athletics</Heading>
-                <FormControl isRequired isInvalid={!!errors.gender}>
-                  <FormLabel color="#4e6a7b">Gender</FormLabel>
-                  <Controller name="gender" control={control} render={({ field }) => (
-                    <Select options={GENDERS.map(g => ({ label: g, value: g }))} value={field.value ? { label: field.value, value: field.value } : null} onChange={val => field.onChange(val ? val.value : '')} placeholder="Select gender" styles={selectStyles} />
-                  )} />
-                  <FormErrorMessage>{errors.gender?.message}</FormErrorMessage>
-                </FormControl>
+            <FormControl isRequired isInvalid={!!errors.school}>
+              <FormLabel color="#4e6a7b">School</FormLabel>
+              <Controller name="school" control={control} render={({ field }) => (
+                  <Select options={schoolOptions} value={field.value ? { label: field.value, value: field.value } : null} onChange={val => field.onChange(val ? val.value : '')} placeholder="Type to search your school..." isDisabled={!divisionValue} isClearable isSearchable styles={selectStyles} />
+              )} />
+              <FormErrorMessage>{errors.school?.message}</FormErrorMessage>
+            </FormControl>
 
-                <FormControl isRequired isInvalid={!!errors.sport}>
-                  <FormLabel color="#4e6a7b">Sport</FormLabel>
-                   <Controller name="sport" control={control} render={({ field }) => (
-                    <Select options={(SPORTS[genderValue] || []).map(s => ({ label: s, value: s }))} value={field.value ? { label: field.value, value: field.value } : null} onChange={val => field.onChange(val ? val.value : '')} placeholder="Select sport" isDisabled={!genderValue} styles={selectStyles} />
-                  )} />
-                  <FormErrorMessage>{errors.sport?.message}</FormErrorMessage>
-                </FormControl>
+            <FormControl isRequired isInvalid={!!errors.name}>
+              <FormLabel color="#4e6a7b">Full Name</FormLabel>
+              <Input {...register("name")} placeholder="Your Name" {...inputStyles} />
+              <FormErrorMessage>{errors.name?.message}</FormErrorMessage>
+            </FormControl>
 
-                <FormControl isRequired isInvalid={!!errors.graduation_year}>
-                  <FormLabel color="#4e6a7b">Graduation Year</FormLabel>
-                  <Controller name="graduation_year" control={control} render={({ field }) => (
-                    <NumberInput {...field} value={field.value || ''} onChange={(val) => field.onChange(val === '' ? null : Number(val))} min={2024} max={2035}>
-                      <NumberInputField placeholder="2026" {...inputStyles} />
-                    </NumberInput>
-                  )} />
-                  <FormErrorMessage>{errors.graduation_year?.message}</FormErrorMessage>
-                </FormControl>
-
-                <FormControl isInvalid={!!errors.gpa}>
-                  <FormLabel color="#4e6a7b">GPA (optional)</FormLabel>
-                  <Input {...register("gpa")} placeholder="e.g., 3.78" inputMode="decimal" {...inputStyles} />
-                  <FormErrorMessage>{errors.gpa?.message}</FormErrorMessage>
-                </FormControl>
-                
-                <FormControl isInvalid={!!errors.age}>
-                  <FormLabel color="#4e6a7b">Age (optional)</FormLabel>
-                  <Controller name="age" control={control} render={({ field }) => (
-                     <NumberInput {...field} value={field.value || ''} onChange={(val) => field.onChange(val === '' ? null : Number(val))} min={15} max={99}>
-                      <NumberInputField placeholder="e.g., 20" {...inputStyles} />
-                    </NumberInput>
-                  )} />
-                   <FormErrorMessage>{errors.age?.message}</FormErrorMessage>
-                </FormControl>
-
-                 <FormControl isInvalid={!!errors.prior_nil_deals}>
-                  <FormLabel color="#4e6a7b">Prior NIL Deals (optional)</FormLabel>
-                   <Controller name="prior_nil_deals" control={control} render={({ field }) => (
-                     <NumberInput {...field} value={field.value || ''} onChange={(val) => field.onChange(val === '' ? null : Number(val))} min={0}>
-                      <NumberInputField placeholder="e.g., 2" {...inputStyles} />
-                    </NumberInput>
-                  )} />
-                   <FormErrorMessage>{errors.prior_nil_deals?.message}</FormErrorMessage>
-                </FormControl>
-              </>
-            )}
+            <FormControl isRequired isInvalid={!!errors.email}>
+              <FormLabel color="#4e6a7b">Email</FormLabel>
+              <Input type="email" {...register("email")} placeholder="you@email.com" {...inputStyles} />
+              <FormHelperText>Using your official university email is recommended, if possible.</FormHelperText>
+              <FormErrorMessage>{errors.email?.message}</FormErrorMessage>
+            </FormControl>
           </Stack>
           
           <Flex mt={8} justify="space-between">
             <Button onClick={handleBack} variant="outline" borderColor="#d6dce4" color="#4e6a7b" _hover={{ bg: "#f4f4f4" }}>Back</Button>
             <Button onClick={handleNext} bg="#d0bdb5" color="#ffffff" _hover={{ bg: "#c9b2a9" }} px={8} fontWeight="bold">
-              {step === STEPS_CONFIG.length - 1 ? "Continue" : "Next"}
+              Next
             </Button>
           </Flex>
         </form>
@@ -249,14 +150,14 @@ export default function FMVStep1({ onNext }) {
         <Flex mt={3} justify="space-between" align="center">
           <Button size="sm" variant="ghost" color="#4e6a7b" onClick={handleFormReset}>Reset Form</Button>
           <Button size="sm" variant="ghost" color="#4e6a7b" onClick={() => {
-             toast({
+              toast({
                 title: "Resume link copied!",
                 status: "success",
                 duration: 1500,
                 isClosable: true
               });
               navigator.clipboard.writeText(window.location.href);
-           }}>Save Progress</Button>
+            }}>Save Progress</Button>
         </Flex>
       </Box>
     </Flex>

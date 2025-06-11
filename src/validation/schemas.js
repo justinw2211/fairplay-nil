@@ -1,11 +1,15 @@
 import * as yup from 'yup';
 
-// Schema for Step 1 remains the same
+// Schema for Step 1: Profile
 export const step1Schema = yup.object().shape({
   division: yup.string().required('Division is required.'),
   school: yup.string().required('School is required.'),
-  name: yup.string().trim().required('Full name is required.'),
+  name: y-up.string().trim().required('Full name is required.'),
   email: yup.string().email('Must be a valid email.').required('Valid email is required.'),
+});
+
+// Schema for Step 2: Academics & Athletics
+export const step2Schema = yup.object().shape({
   gender: yup.string().required('Gender is required.'),
   sport: yup.string().required('Sport is required.'),
   graduation_year: yup.number()
@@ -24,13 +28,14 @@ export const step1Schema = yup.object().shape({
     .min(15, 'Must be at least 15')
     .max(99, 'Must be under 99'),
   prior_nil_deals: yup.number()
-    .transform(value => (isNaN(value) ? null : value))
+    .transform(value => (isNaN(value) || value < 0 ? null : value))
     .nullable()
     .min(0, 'Cannot be negative'),
 });
 
-// Schema for Step 2
-export const step2Schema = yup.object().shape({
+
+// Schema for Step 3: Deal Details
+export const step3Schema = yup.object().shape({
   social_platforms: yup.array().of(yup.string()),
   followers_instagram: yup.number().transform(value => (isNaN(value) ? null : value)).nullable()
       .when('social_platforms', (social_platforms, schema) => {

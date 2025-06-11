@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useFMV } from "../context/FMVContext";
-import { step2Schema } from '../validation/schemas';
+import { step3Schema } from '../validation/schemas';
 import {
   Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
   Input, NumberInput, NumberInputField, SimpleGrid, FormErrorMessage,
@@ -53,8 +53,31 @@ const DEAL_CATEGORIES = [
     { label: "Other", value: "Other" },
 ];
 
-const DELIVERABLE_OPTIONS = [ { label: "None", value: "None" }, { label: "Instagram Story", value: "Instagram Story" }, { label: "Instagram Post", value: "Instagram Post" }, { label: "TikTok Video", value: "TikTok Video" }, { label: "Autograph Signing", value: "Autograph Signing" }, { label: "Other", value: "Other" }];
-const DEAL_TYPES = [ { label: "Social Media", value: "Social Media" }, { label: "In-Person", value: "In-Person" }, { label: "Appearances", value: "Appearances" }, { label: "Other", value: "Other" }];
+const DELIVERABLE_OPTIONS = [
+    { label: "None", value: "None" },
+    { label: "Instagram Story (1 frame)", value: "Instagram Story (1 frame)" },
+    { label: "Instagram Story (multi-frame)", value: "Instagram Story (multi-frame)" },
+    { label: "Instagram Post (static)", value: "Instagram Post (static)" },
+    { label: "Instagram Reel", value: "Instagram Reel" },
+    { label: "TikTok Video", value: "TikTok Video" },
+    { label: "X (Twitter) Post", value: "X (Twitter) Post" },
+    { label: "YouTube Video (dedicated)", value: "YouTube Video (dedicated)" },
+    { label: "YouTube Video (integrated)", value: "YouTube Video (integrated)" },
+    { label: "Autograph Signing", value: "Autograph Signing" },
+    { label: "Personal Appearance", value: "Personal Appearance" },
+    { label: "Team-wide deal", value: "Team-wide deal" },
+    { label: "Other", value: "Other" }
+];
+
+const DEAL_TYPES = [
+    { label: "Social Media Endorsement", value: "Social Media Endorsement" },
+    { label: "In-Person Appearance", value: "In-Person Appearance" },
+    { label: "Digital Content Creation", value: "Digital Content Creation" },
+    { label: "Traditional Advertising (TV, Print)", value: "Traditional Advertising (TV, Print)"},
+    { label: "Licensing (Jerseys, etc.)", value: "Licensing (Jerseys, etc.)" },
+    { label: "Camps or Clinics", value: "Camps or Clinics" },
+    { label: "Other", value: "Other" }
+];
 
 // --- Reusable style objects for react-select components ---
 const selectStyles = {
@@ -85,10 +108,10 @@ const selectStyles = {
 };
 
 
-export default function FMVStep2({ onBack, onNext }) {
+export default function FMVStep3({ onBack, onNext }) {
   const { formData, updateFormData } = useFMV();
   const { control, handleSubmit, formState: { errors }, watch, register, setValue } = useForm({
-    resolver: yupResolver(step2Schema),
+    resolver: yupResolver(step3Schema),
     defaultValues: formData,
   });
 
@@ -134,7 +157,7 @@ export default function FMVStep2({ onBack, onNext }) {
     <Flex minH="100vh" align="center" justify="center" bg="#f4f4f4" color="#282f3d" py={10}>
       <Box w={["95vw", "600px"]} bg="#ffffff" boxShadow="xl" borderRadius="xl" p={[4, 8]} mx="auto" border="1px solid #d6dce4">
         <Box mb={6}>
-          <Text color="#4e6a7b" fontWeight="bold" fontSize="md" mb={2} letterSpacing="wide">Step 2 of 2: Deal Details</Text>
+          <Text color="#4e6a7b" fontWeight="bold" fontSize="md" mb={2} letterSpacing="wide">Step 3 of 3: Deal Details</Text>
           <Progress value={100} size="md" />
         </Box>
 
@@ -221,7 +244,7 @@ export default function FMVStep2({ onBack, onNext }) {
             </FormControl>
             
             <FormControl isRequired isInvalid={!!errors.proposed_dollar_amount}>
-                <FormLabel color="#4e6a7b">Total Value of Deal (Money + Other Goods)</FormLabel>
+                <FormLabel color="#4e6a7b">Total Deal Compensation (Financial & In-Kind)</FormLabel>
                 <Controller name="proposed_dollar_amount" control={control} render={({field}) => (
                     <NumberInput {...field} value={field.value ?? ''} min={0} precision={2} onChange={(val) => field.onChange(val === '' ? null : Number(val))}>
                         <NumberInputField placeholder="e.g. 5000" {...inputStyles}/>
@@ -250,8 +273,8 @@ export default function FMVStep2({ onBack, onNext }) {
             </FormControl>
 
             <FormControl isRequired isInvalid={!!errors.brand_partner}>
-              <FormLabel color="#4e6a7b">Brand Partner</FormLabel>
-              <Input {...register("brand_partner")} placeholder="e.g., Nike, Adidas" {...inputStyles}/>
+              <FormLabel color="#4e6a7b">Compensating Brand or Entity</FormLabel>
+              <Input {...register("brand_partner")} placeholder="e.g., Nike, Local Dealership, etc." {...inputStyles}/>
               <FormErrorMessage>{errors.brand_partner?.message}</FormErrorMessage>
             </FormControl>
 
