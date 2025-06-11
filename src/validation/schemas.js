@@ -92,14 +92,14 @@ export const step3Schema = yup.object().shape({
       then: (schema) => schema.trim().required('Please describe the other deliverable.'),
       otherwise: (schema) => schema.optional(),
   }),
-  deliverables_count: yup.object().when('deliverables', (deliverables, schema) => {
-    if (!deliverables[0] || deliverables[0].includes('None')) {
-      return schema;
+  deliverables_count: yup.object().when('deliverables', ([deliverables], schema) => {
+    if (!deliverables || deliverables.length === 0 || deliverables.includes('None')) {
+      return yup.object();
     }
-    const shape = deliverables[0].reduce((acc, deliverable) => {
+    const shape = deliverables.reduce((acc, deliverable) => {
       if (deliverable !== 'Other') {
         acc[deliverable] = yup.number()
-          .transform(value => (isNaN(value) ? null : value))
+          .transform(value => (isNaN(value) ? undefined : value))
           .typeError('Must be a number')
           .min(1, 'Quantity must be at least 1')
           .required(`Quantity for ${deliverable} is required.`);
