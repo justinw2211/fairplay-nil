@@ -39,28 +39,28 @@ export const step2Schema = yup.object().shape({
 export const step3Schema = yup.object().shape({
   social_platforms: yup.array().of(yup.string()),
   followers_instagram: yup.number().transform(value => (isNaN(value) ? null : value)).nullable()
-      .when('social_platforms', (social_platforms, schema) => {
-          return social_platforms[0]?.includes('Instagram')
-              ? schema.required('Follower count is required for Instagram.')
-              : schema;
+      .when('social_platforms', {
+          is: (platforms) => platforms && platforms.includes('Instagram'),
+          then: (schema) => schema.required('Follower count is required for Instagram.'),
+          otherwise: (schema) => schema.optional(),
       }),
   followers_tiktok: yup.number().transform(value => (isNaN(value) ? null : value)).nullable()
-      .when('social_platforms', (social_platforms, schema) => {
-          return social_platforms[0]?.includes('TikTok')
-              ? schema.required('Follower count is required for TikTok.')
-              : schema;
+      .when('social_platforms', {
+        is: (platforms) => platforms && platforms.includes('TikTok'),
+        then: (schema) => schema.required('Follower count is required for TikTok.'),
+        otherwise: (schema) => schema.optional(),
       }),
   followers_twitter: yup.number().transform(value => (isNaN(value) ? null : value)).nullable()
-      .when('social_platforms', (social_platforms, schema) => {
-          return social_platforms[0]?.includes('X (Twitter)')
-              ? schema.required('Follower count is required for X.')
-              : schema;
+      .when('social_platforms', {
+        is: (platforms) => platforms && platforms.includes('X (Twitter)'),
+        then: (schema) => schema.required('Follower count is required for X.'),
+        otherwise: (schema) => schema.optional(),
       }),
   followers_youtube: yup.number().transform(value => (isNaN(value) ? null : value)).nullable()
-      .when('social_platforms', (social_platforms, schema) => {
-          return social_platforms[0]?.includes('YouTube')
-              ? schema.required('Follower count is required for YouTube.')
-              : schema;
+      .when('social_platforms', {
+        is: (platforms) => platforms && platforms.includes('YouTube'),
+        then: (schema) => schema.required('Follower count is required for YouTube.'),
+        otherwise: (schema) => schema.optional(),
       }),
   payment_structure: yup.array().of(yup.string()).min(1, 'Payment structure is required.').required(),
   payment_structure_other: yup.string().when('payment_structure', {
