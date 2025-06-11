@@ -5,7 +5,7 @@ import { useFMV } from "../context/FMVContext";
 import { step2Schema } from '../validation/schemas';
 import {
   Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
-  Input, NumberInput, NumberInputField, Text, FormErrorMessage
+  Input, NumberInput, NumberInputField, Text, FormErrorMessage, useToast
 } from "@chakra-ui/react";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
@@ -69,9 +69,10 @@ const selectStyles = {
 };
 
 export default function FMVStep1_Academics({ onBack, onNext }) {
-  const { formData, updateFormData } = useFMV();
+  const toast = useToast();
+  const { formData, updateFormData, resetFormData } = useFMV();
 
-  const { control, register, handleSubmit, formState: { errors }, watch, setValue, trigger } = useForm({
+  const { control, register, handleSubmit, formState: { errors }, watch, setValue, trigger, reset } = useForm({
     resolver: yupResolver(step2Schema),
     defaultValues: formData,
   });
@@ -102,6 +103,27 @@ export default function FMVStep1_Academics({ onBack, onNext }) {
         if (onNext) onNext();
       })();
     }
+  };
+
+  const handleFormReset = () => {
+    resetFormData();
+    reset({
+      // Reset fields in this step
+      gender: "",
+      sport: [],
+      graduation_year: "",
+      age: "",
+      gpa: "",
+      achievements: [],
+      prior_nil_deals: "",
+    });
+    toast({
+      title: "Form reset!",
+      description: "You can start over from Step 1.",
+      status: "info",
+      duration: 2000,
+      isClosable: true
+    });
   };
   
   const inputStyles = {
@@ -210,6 +232,20 @@ export default function FMVStep1_Academics({ onBack, onNext }) {
             </Button>
           </Flex>
         </form>
+
+        <Flex mt={3} justify="space-between" align="center">
+          <Button size="sm" variant="ghost" color="#4e6a7b" onClick={handleFormReset}>Reset Form</Button>
+          <Button size="sm" variant="ghost" color="#4e6a7b" onClick={() => {
+              toast({
+                title: "Resume link copied!",
+                status: "success",
+                duration: 1500,
+                isClosable: true
+              });
+              navigator.clipboard.writeText(window.location.href);
+            }}>Save Progress</Button>
+        </Flex>
+
       </Box>
     </Flex>
   );

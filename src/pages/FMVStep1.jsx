@@ -134,7 +134,7 @@ export default function FMVStep1({ onNext }) {
             <FormControl isRequired isInvalid={!!errors.email}>
               <FormLabel color="#4e6a7b">Email</FormLabel>
               <Input type="email" {...register("email")} placeholder="you@email.com" {...inputStyles} />
-              <FormHelperText>Using your official university email is recommended</FormHelperText>
+              <FormHelperText>Using your official university email is recommended.</FormHelperText>
               <FormErrorMessage>{errors.email?.message}</FormErrorMessage>
             </FormControl>
           </Stack>

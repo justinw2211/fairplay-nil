@@ -6,7 +6,7 @@ import { step3Schema } from '../validation/schemas';
 import {
   Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
   Input, NumberInput, NumberInputField, SimpleGrid, FormErrorMessage,
-  Text, FormHelperText,
+  Text, useToast,
 } from "@chakra-ui/react";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
@@ -109,8 +109,9 @@ const selectStyles = {
 
 
 export default function FMVStep3({ onBack, onNext }) {
-  const { formData, updateFormData } = useFMV();
-  const { control, handleSubmit, formState: { errors }, watch, register, setValue } = useForm({
+  const toast = useToast();
+  const { formData, updateFormData, resetFormData } = useFMV();
+  const { control, handleSubmit, formState: { errors }, watch, register, setValue, reset } = useForm({
     resolver: yupResolver(step3Schema),
     defaultValues: formData,
   });
@@ -135,6 +136,18 @@ export default function FMVStep3({ onBack, onNext }) {
   const onSubmit = (data) => {
     updateFormData(data);
     if (onNext) onNext();
+  };
+
+  const handleFormReset = () => {
+    resetFormData();
+    reset();
+    toast({
+      title: "Form reset!",
+      description: "You can start over from Step 1.",
+      status: "info",
+      duration: 2000,
+      isClosable: true
+    });
   };
   
   const inputStyles = {
@@ -269,7 +282,6 @@ export default function FMVStep3({ onBack, onNext }) {
                   />
                 )}
               />
-              <FormHelperText>e.g., 'Food & Restaurants' for a local coffee shop, or 'Apparel & Fashion' for a sportswear brand.</FormHelperText>
               <FormErrorMessage>{errors.deal_category?.message}</FormErrorMessage>
             </FormControl>
 
@@ -291,7 +303,6 @@ export default function FMVStep3({ onBack, onNext }) {
                     value={field.value ? field.value.map(v => ({label: v, value: v})) : []}
                     onChange={(options) => {
                         const values = options?.map(o => o.value) || [];
-                        // If "None" is selected, only keep "None"
                         if (values.includes('None') && values.length > 1) {
                             field.onChange(['None']);
                         } else {
@@ -354,6 +365,20 @@ export default function FMVStep3({ onBack, onNext }) {
             <Button type="submit" px={8} fontWeight="bold">Review</Button>
           </Flex>
         </form>
+
+        <Flex mt={3} justify="space-between" align="center">
+          <Button size="sm" variant="ghost" color="#4e6a7b" onClick={handleFormReset}>Reset Form</Button>
+          <Button size="sm" variant="ghost" color="#4e6a7b" onClick={() => {
+              toast({
+                title: "Resume link copied!",
+                status: "success",
+                duration: 1500,
+                isClosable: true
+              });
+              navigator.clipboard.writeText(window.location.href);
+            }}>Save Progress</Button>
+        </Flex>
+
       </Box>
     </Flex>
   );

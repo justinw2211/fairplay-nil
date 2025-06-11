@@ -11,8 +11,20 @@ const formatNumber = (num) => num ? Number(num) : 0;
 export default function FMVReviewStep({ onBack }) {
   const navigate = useNavigate();
   const toast = useToast();
-  const { formData, updateFormData } = useFMV();
+  const { formData, updateFormData, resetFormData } = useFMV();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleFormReset = () => {
+    resetFormData();
+    toast({
+      title: "Form reset!",
+      description: "Your information has been cleared.",
+      status: "info",
+      duration: 2000,
+      isClosable: true
+    });
+    navigate('/fmvcalculator/step1');
+  };
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -135,6 +147,20 @@ export default function FMVReviewStep({ onBack }) {
               <Button onClick={onBack} variant="outline" isDisabled={isSubmitting}>Back</Button>
               <Button onClick={handleSubmit} isDisabled={isSubmitting}>Calculate & Submit</Button>
           </Flex>
+
+          <Flex mt={3} justify="space-between" align="center">
+            <Button size="sm" variant="ghost" color="#4e6a7b" onClick={handleFormReset}>Reset Form</Button>
+            <Button size="sm" variant="ghost" color="#4e6a7b" onClick={() => {
+                toast({
+                  title: "Progress Saved!",
+                  description: "You can close this window and your data will be saved for your next visit.",
+                  status: "success",
+                  duration: 2000,
+                  isClosable: true
+                });
+              }}>Save Progress</Button>
+          </Flex>
+
         </Box>
       </Flex>
       
