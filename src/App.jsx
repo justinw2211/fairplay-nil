@@ -1,6 +1,10 @@
 // src/App.jsx
 import React, { useState } from "react";
 import { Routes, Route, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Box, Button, Flex, Heading, Text } from "@chakra-ui/react";
+import { useAuth } from "./context/AuthContext"; // Import the useAuth hook
+
+// Import all page components
 import Home from "./pages/Home";
 import Athletes from "./pages/Athletes";
 import Universities from "./pages/Universities";
@@ -11,13 +15,22 @@ import Security from "./pages/Security";
 import Careers from "./pages/Careers";
 import FMVCalculator from "./pages/FMVCalculator";
 import FMVResult from "./pages/FMVResult";
-import { Box, Button, Flex, Heading, Text } from "@chakra-ui/react";
+import SignUp from "./pages/SignUp";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
 
 const App = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, signOut } = useAuth(); // Get user and signOut from context
+
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [companyOpen, setCompanyOpen] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   const centerLinks = [
     { path: "/athletes", label: "Athletes" },
@@ -56,6 +69,7 @@ const App = () => {
           </Heading>
         </NavLink>
         <Flex gap="32px" align="center" ml="-60px">
+          {/* Center navigation links remain unchanged */}
           {centerLinks.map((item, index) => {
             const isActive = location.pathname === item.path;
             const isHovered = hoveredIndex === index;
@@ -119,16 +133,32 @@ const App = () => {
             )}
           </Box>
         </Flex>
+
+        {/* === DYNAMIC AUTH NAVIGATION === */}
         <Flex gap="20px" align="center">
-          <NavLink to="/contact"><Text fontWeight="600">Contact</Text></NavLink>
-          <NavLink to="/signin"><Text fontWeight="600">Sign In</Text></NavLink>
-          <Button onClick={() => navigate("/fmvcalculator/step1")}>
-            Try Now
-          </Button>
+          {user ? (
+            <>
+              <NavLink to="/dashboard"><Text fontWeight="600">Dashboard</Text></NavLink>
+              <Button variant="outline" onClick={handleSignOut}>Sign Out</Button>
+            </>
+          ) : (
+            <>
+              <NavLink to="/login"><Text fontWeight="600">Sign In</Text></NavLink>
+              <Button onClick={() => navigate("/signup")}>
+                Sign Up
+              </Button>
+            </>
+          )}
         </Flex>
       </Flex>
 
       <Routes>
+        {/* === NEW ROUTES === */}
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+
+        {/* === EXISTING ROUTES === */}
         <Route path="/fmvcalculator/*" element={<FMVCalculator />} />
         <Route path="/result" element={<FMVResult />} />
         <Route path="/" element={<Home />} />
@@ -140,7 +170,8 @@ const App = () => {
         <Route path="/security" element={<Security />} />
         <Route path="/careers" element={<Careers />} />
         <Route path="/contact" element={<Box p="2rem">Contact Page Placeholder</Box>} />
-        <Route path="/signin" element={<Box p="2rem">Sign In Page Placeholder</Box>} />
+        {/* The old /signin route is now replaced by /login */}
+        <Route path="/signin" element={<Login />} />
       </Routes>
     </Box>
   );
