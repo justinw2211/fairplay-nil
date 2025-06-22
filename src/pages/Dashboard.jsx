@@ -3,10 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { Box, Heading, Text, Spinner, Flex, Button, useToast, useDisclosure,
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.js'; // Also good practice to ensure .js is here
+import { useAuth } from '../context/AuthContext.jsx'; // FIX: Corrected file extension
 import { supabase } from '../supabaseClient.js';
-import DealsTable from '../components/DealsTable.jsx'; // FIX: Added .jsx extension
-import SummaryCards from '../components/SummaryCards.jsx'; // FIX: Added .jsx extension
+import DealsTable from '../components/DealsTable.jsx';
+import SummaryCards from '../components/SummaryCards.jsx';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -16,20 +16,13 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // State for delete confirmation modal
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [dealToDelete, setDealToDelete] = useState(null);
 
   useEffect(() => {
     const fetchDeals = async () => {
+      setLoading(true);
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          throw new Error("You must be logged in to view deals.");
-        }
-        
-        // This logic is now handled by the backend API and RLS
-        // We will call our new API endpoint instead
         const { data, error } = await supabase
           .from('deals')
           .select('*')
@@ -39,7 +32,7 @@ export default function Dashboard() {
         setDeals(data);
       } catch (err) {
         setError(err.message);
-        toast({ title: "Error fetching deals", description: err.message, status: 'error', duration: 5000, isClosable: true });
+        toast({ title: "Error fetching deals", description: err.message, status: 'error' });
       } finally {
         setLoading(false);
       }
@@ -47,8 +40,6 @@ export default function Dashboard() {
 
     if (user) {
         fetchDeals();
-    } else {
-        setLoading(false);
     }
   }, [toast, user]);
 
@@ -64,7 +55,7 @@ export default function Dashboard() {
         if (error) throw error;
 
         setDeals(deals.map(d => d.id === dealId ? data : d));
-        toast({ title: "Status Updated", status: 'success', duration: 2000, isClosable: true });
+        toast({ title: "Status Updated", status: 'success', duration: 2000 });
     } catch (err) {
         toast({ title: "Error updating status", description: err.message, status: 'error' });
     }
@@ -86,7 +77,7 @@ export default function Dashboard() {
       if (error) throw error;
 
       setDeals(deals.filter(d => d.id !== dealToDelete.id));
-      toast({ title: "Deal Deleted", status: 'success', duration: 2000, isClosable: true });
+      toast({ title: "Deal Deleted", status: 'success', duration: 2000 });
       onClose();
       setDealToDelete(null);
     } catch (err) {
@@ -94,12 +85,9 @@ export default function Dashboard() {
     }
   };
 
-  if (loading) {
-    return <Flex justify="center" align="center" h="80vh"><Spinner size="xl" /></Flex>;
-  }
 
-  if (error) {
-    return <Box p={8}><Heading>Error</Heading><Text>{error}</Text></Box>;
+  if (loading && !deals.length) {
+    return <Flex justify="center" align="center" h="80vh"><Spinner size="xl" /></Flex>;
   }
 
   return (
@@ -112,7 +100,7 @@ export default function Dashboard() {
       <SummaryCards deals={deals} />
 
       <Box mt={10}>
-        {deals.length === 0 ? (
+        {deals.length === 0 && !loading ? (
           <Flex direction="column" align="center" justify="center" bg="gray.50" p={10} borderRadius="lg" textAlign="center">
             <Heading as="h3" size="md">Welcome, {user?.user_metadata?.full_name || user?.email}!</Heading>
             <Text mt={2} color="gray.600">You haven't calculated any deals yet.</Text>

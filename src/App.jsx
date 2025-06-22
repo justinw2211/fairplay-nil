@@ -2,27 +2,28 @@
 import React, { useState } from "react";
 import { Routes, Route, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Box, Button, Flex, Heading, Text } from "@chakra-ui/react";
-import { useAuth } from "./context/AuthContext"; // Import the useAuth hook
+import { useAuth } from "./context/AuthContext.jsx"; // FIX: Corrected file extension
 
 // Import all page components
-import Home from "./pages/Home";
-import Athletes from "./pages/Athletes";
-import Universities from "./pages/Universities";
-import Collectives from "./pages/Collectives";
-import Brands from "./pages/Brands";
-import AboutUs from "./pages/AboutUs";
-import Security from "./pages/Security";
-import Careers from "./pages/Careers";
-import FMVCalculator from "./pages/FMVCalculator";
-import FMVResult from "./pages/FMVResult";
-import SignUp from "./pages/SignUp";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+import Home from "./pages/Home.jsx";
+import Athletes from "./pages/Athletes.jsx";
+import Universities from "./pages/Universities.jsx";
+import Collectives from "./pages/Collectives.jsx";
+import Brands from "./pages/Brands.jsx";
+import AboutUs from "./pages/AboutUs.jsx";
+import Security from "./pages/Security.jsx";
+import Careers from "./pages/Careers.jsx";
+import FMVCalculator from "./pages/FMVCalculator.jsx";
+import FMVResult from "./pages/FMVResult.jsx";
+import SignUp from "./pages/SignUp.jsx";
+import Login from "./pages/Login.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
+import EditProfile from "./pages/EditProfile.jsx"; // Import EditProfile
 
 const App = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, signOut } = useAuth(); // Get user and signOut from context
+  const { user, signOut } = useAuth();
 
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [companyOpen, setCompanyOpen] = useState(false);
@@ -69,7 +70,6 @@ const App = () => {
           </Heading>
         </NavLink>
         <Flex gap="32px" align="center" ml="-60px">
-          {/* Center navigation links remain unchanged */}
           {centerLinks.map((item, index) => {
             const isActive = location.pathname === item.path;
             const isHovered = hoveredIndex === index;
@@ -139,7 +139,7 @@ const App = () => {
           {user ? (
             <>
               <NavLink to="/dashboard"><Text fontWeight="600">Dashboard</Text></NavLink>
-              <Button variant="outline" onClick={handleSignOut}>Sign Out</Button>
+              <Button variant="outline" onClick={handleSignOut} size="sm">Sign Out</Button>
             </>
           ) : (
             <>
@@ -153,12 +153,11 @@ const App = () => {
       </Flex>
 
       <Routes>
-        {/* === NEW ROUTES === */}
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/edit-profile" element={<EditProfile />} />
 
-        {/* === EXISTING ROUTES === */}
         <Route path="/fmvcalculator/*" element={<FMVCalculator />} />
         <Route path="/result" element={<FMVResult />} />
         <Route path="/" element={<Home />} />
@@ -170,7 +169,6 @@ const App = () => {
         <Route path="/security" element={<Security />} />
         <Route path="/careers" element={<Careers />} />
         <Route path="/contact" element={<Box p="2rem">Contact Page Placeholder</Box>} />
-        {/* The old /signin route is now replaced by /login */}
         <Route path="/signin" element={<Login />} />
       </Routes>
     </Box>

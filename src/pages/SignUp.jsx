@@ -1,10 +1,10 @@
 // src/pages/SignUp.jsx
-import React, { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import React from 'react';
+import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext.jsx'; // FIX: Corrected file extension
 import {
-  Box, Button, Flex, Heading, Text, Stack, FormControl,
+  Box, Button, Flex, Heading, Stack, FormControl,
   FormLabel, Input, Select, useToast, FormErrorMessage
 } from '@chakra-ui/react';
 
@@ -13,14 +13,14 @@ export default function SignUp() {
   const navigate = useNavigate();
   const toast = useToast();
   const { signUp } = useAuth();
-  const { register, handleSubmit, control, watch, formState: { errors, isSubmitting } } = useForm();
+  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm();
   
   const selectedRole = watch('role');
 
   const onSubmit = async (data) => {
     try {
-      // Structure the data for the backend
-      const payload = {
+      // Structure the data for Supabase Auth
+      const { error } = await signUp({
         email: data.email,
         password: data.password,
         options: {
@@ -30,13 +30,12 @@ export default function SignUp() {
             school: data.school || null,
             division: data.division || null,
             gender: data.gender || null,
-            graduation_year: data.graduation_year || null,
-            sports: data.sports ? [data.sports] : null, // Assuming single sport for now
+            graduation_year: data.graduation_year ? parseInt(data.graduation_year, 10) : null,
+            sports: data.sports ? [data.sports] : null,
           }
         }
-      };
+      });
 
-      const { error } = await signUp(payload);
       if (error) throw error;
       
       toast({
@@ -46,7 +45,8 @@ export default function SignUp() {
         duration: 5000,
         isClosable: true,
       });
-      navigate('/dashboard'); // Redirect to dashboard after signup
+      // Don't redirect immediately, user must confirm email
+      navigate('/login');
     } catch (error) {
       toast({
         title: 'Error signing up.',

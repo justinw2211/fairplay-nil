@@ -2,7 +2,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext.jsx'; // FIX: Corrected file extension
 import {
   Box, Button, Flex, Heading, Stack, FormControl,
   FormLabel, Input, useToast, FormErrorMessage
