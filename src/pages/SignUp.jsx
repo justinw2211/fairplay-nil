@@ -1,25 +1,23 @@
 // src/pages/SignUp.jsx
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import {
-  Box, Button, Flex, Heading, Text, Stack, FormControl,
-  FormLabel, Input, useToast, FormErrorMessage
+  Box, Button, Flex, Heading, Stack, FormControl,
+  FormLabel, Input, useToast, FormErrorMessage, NumberInput, NumberInputField
 } from '@chakra-ui/react';
-import ReactSelect from "react-select"; // Using 'ReactSelect' to avoid confusion with Chakra's 'Select'
+import ReactSelect from "react-select";
 import { NCAA_SCHOOL_OPTIONS } from '../data/ncaaSchools.js';
+import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, COMBINED_SPORTS } from '../data/formConstants.js'; // Import new constants
 
-// Style object for the react-select components to match the site's theme
 const selectStyles = {
   control: (base, state) => ({
     ...base,
     background: "#ffffff",
     borderColor: state.isFocused ? "#d0bdb5" : "#d6dce4",
     boxShadow: state.isFocused ? "0 0 0 1px #d0bdb5" : "none",
-    "&:hover": {
-      borderColor: "#d0bdb5",
-    },
+    "&:hover": { borderColor: "#d0bdb5" },
   }),
   menu: (base) => ({ ...base, zIndex: 99 }),
 };
@@ -35,12 +33,25 @@ export default function SignUp() {
   
   const selectedRole = watch('role');
   const selectedDivision = watch('division');
+  const selectedGender = watch('gender');
 
-  // Dynamically filter school options based on selected division
   const schoolOptions = useMemo(() => {
     if (!selectedDivision) return [];
     return NCAA_SCHOOL_OPTIONS.filter(o => o.division === selectedDivision);
   }, [selectedDivision]);
+
+  const sportOptions = useMemo(() => {
+    if (selectedGender === 'Male') return MEN_SPORTS;
+    if (selectedGender === 'Female') return WOMEN_SPORTS;
+    if (['Nonbinary', 'Prefer not to say', 'Other'].includes(selectedGender)) {
+      return COMBINED_SPORTS;
+    }
+    return [];
+  }, [selectedGender]);
+
+  useEffect(() => {
+    setValue('sports', null); // Clear sports when gender changes
+  }, [selectedGender, setValue]);
 
   const onSubmit = async (data) => {
     try {
@@ -51,12 +62,11 @@ export default function SignUp() {
           data: {
             full_name: data.full_name,
             role: data.role,
-            // Ensure profile data is included correctly
             school: data.school || null,
             division: data.division || null,
             gender: data.gender || null,
             graduation_year: data.graduation_year ? parseInt(data.graduation_year, 10) : null,
-            sports: data.sports ? [data.sports] : null,
+            sports: data.sports || null, // data.sports will now be an array
           }
         }
       });
@@ -84,129 +94,31 @@ export default function SignUp() {
 
   return (
     <Flex minH="90vh" align="center" justify="center" bg="brand.backgroundLight">
-      <Box
-        w={["95vw", "600px"]}
-        bg="brand.background"
-        boxShadow="xl"
-        borderRadius="xl"
-        p={[4, 8]}
-        mx="auto"
-        border="1px solid"
-        borderColor="brand.accentSecondary"
-      >
+      <Box w={["95vw", "600px"]} bg="brand.background" boxShadow="xl" borderRadius="xl" p={[4, 8]} mx="auto" border="1px solid" borderColor="brand.accentSecondary">
         <Heading as="h1" size="lg" mb={6} color="brand.textPrimary" textAlign="center">
           Create Your FairPlay Account
         </Heading>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Stack spacing={4}>
-            {/* Name, Email, Password, and Role fields remain the same */}
-            <FormControl isInvalid={errors.full_name}>
-              <FormLabel>Full Name</FormLabel>
-              <Input {...register('full_name', { required: 'Full name is required' })} />
-              <FormErrorMessage>{errors.full_name?.message}</FormErrorMessage>
-            </FormControl>
+            {/* --- CORE FIELDS --- */}
+            <FormControl isInvalid={errors.full_name}><FormLabel>Full Name</FormLabel><Input {...register('full_name', { required: 'Full name is required' })} /></FormControl>
+            <FormControl isInvalid={errors.email}><FormLabel>Email Address</FormLabel><Input type="email" {...register('email', { required: 'Email is required' })} /></FormControl>
+            <FormControl isInvalid={errors.password}><FormLabel>Password</FormLabel><Input type="password" {...register('password', { required: 'Password is required', minLength: { value: 6, message: 'Password must be at least 6 characters' } })} /></FormControl>
+            <FormControl isInvalid={errors.role}><FormLabel>I am a...</FormLabel><Controller name="role" control={control} rules={{ required: 'Please select a role' }} render={({ field }) => (<ReactSelect options={[{ value: 'athlete', label: 'Student-Athlete' }, { value: 'representative', label: 'Athlete Representative' }, { value: 'collective', label: 'Collective' }, { value: 'university', label: 'University' }, { value: 'brand', label: 'Brand' }, { value: 'other', label: 'Other' }]} value={field.value ? { value: field.value, label: field.value.charAt(0).toUpperCase() + field.value.slice(1).replace("_", " ") } : null} onChange={(val) => field.onChange(val ? val.value : '')} styles={selectStyles} placeholder="Select your role"/>)}/></FormControl>
 
-            <FormControl isInvalid={errors.email}>
-              <FormLabel>Email Address</FormLabel>
-              <Input type="email" {...register('email', { required: 'Email is required' })} />
-            </FormControl>
-
-            <FormControl isInvalid={errors.password}>
-              <FormLabel>Password</FormLabel>
-              <Input type="password" {...register('password', { required: 'Password is required', minLength: { value: 6, message: 'Password must be at least 6 characters' } })} />
-              <FormErrorMessage>{errors.password?.message}</FormErrorMessage>
-            </FormControl>
-            
-            <FormControl isInvalid={errors.role}>
-                <FormLabel>I am a...</FormLabel>
-                <Controller
-                    name="role"
-                    control={control}
-                    rules={{ required: 'Please select a role' }}
-                    render={({ field }) => (
-                        <ReactSelect
-                            options={[
-                                { value: 'athlete', label: 'Student-Athlete' },
-                                { value: 'representative', label: 'Athlete Representative' },
-                                { value: 'collective', label: 'Collective' },
-                                { value: 'university', label: 'University' },
-                                { value: 'brand', label: 'Brand' },
-                                { value: 'other', label: 'Other' },
-                            ]}
-                            value={field.value ? { value: field.value, label: field.value.charAt(0).toUpperCase() + field.value.slice(1) } : null}
-                            onChange={(val) => field.onChange(val ? val.value : '')}
-                            styles={selectStyles}
-                            placeholder="Select your role"
-                        />
-                    )}
-                />
-                <FormErrorMessage>{errors.role?.message}</FormErrorMessage>
-            </FormControl>
-
-
+            {/* --- ATHLETE-SPECIFIC FIELDS (NOW UPGRADED) --- */}
             {selectedRole === 'athlete' && (
               <>
                 <Heading size="md" pt={4} borderTop="1px solid" borderColor="brand.accentSecondary">Athlete Details</Heading>
-                
-                {/* --- UPGRADED DIVISION SELECTOR --- */}
-                <FormControl isInvalid={errors.division}>
-                    <FormLabel>Division</FormLabel>
-                    <Controller
-                        name="division"
-                        control={control}
-                        render={({ field }) => (
-                            <ReactSelect
-                                {...field}
-                                options={DIVISIONS}
-                                value={DIVISIONS.find(d => d.value === field.value)}
-                                onChange={val => {
-                                    field.onChange(val.value);
-                                    setValue('school', null); // Clear school when division changes
-                                }}
-                                styles={selectStyles}
-                                placeholder="Select division..."
-                            />
-                        )}
-                    />
-                </FormControl>
-
-                {/* --- UPGRADED SCHOOL SELECTOR --- */}
-                <FormControl isInvalid={errors.school}>
-                    <FormLabel>School</FormLabel>
-                    <Controller
-                        name="school"
-                        control={control}
-                        render={({ field }) => (
-                            <ReactSelect
-                                {...field}
-                                options={schoolOptions}
-                                value={schoolOptions.find(s => s.value === field.value)}
-                                onChange={val => field.onChange(val.value)}
-                                isDisabled={!selectedDivision}
-                                isSearchable
-                                styles={selectStyles}
-                                placeholder="Type to search your school..."
-                            />
-                        )}
-                    />
-                </FormControl>
-
-                {/* --- Other athlete fields --- */}
-                <FormControl><FormLabel>Gender</FormLabel><Input {...register('gender')} /></FormControl>
-                <FormControl><FormLabel>Sport(s)</FormLabel><Input {...register('sports')} /></FormControl>
-                <FormControl><FormLabel>Graduation Year</FormLabel><Input type="number" {...register('graduation_year')} /></FormControl>
+                <FormControl isInvalid={errors.division}><FormLabel>Division</FormLabel><Controller name="division" control={control} render={({ field }) => (<ReactSelect {...field} options={DIVISIONS} value={DIVISIONS.find(d => d.value === field.value)} onChange={val => { field.onChange(val.value); setValue('school', null); }} styles={selectStyles} placeholder="Select division..."/>)}/></FormControl>
+                <FormControl isInvalid={errors.school}><FormLabel>School</FormLabel><Controller name="school" control={control} render={({ field }) => (<ReactSelect {...field} options={schoolOptions} value={schoolOptions.find(s => s.value === field.value)} onChange={val => field.onChange(val.value)} isDisabled={!selectedDivision} isSearchable styles={selectStyles} placeholder="Type to search your school..."/>)}/></FormControl>
+                <FormControl isInvalid={errors.gender}><FormLabel>Gender</FormLabel><Controller name="gender" control={control} render={({ field }) => (<ReactSelect options={GENDERS} value={GENDERS.find(g => g.value === field.value)} onChange={val => field.onChange(val.value)} styles={selectStyles} placeholder="Select gender..."/>)}/></FormControl>
+                <FormControl isInvalid={errors.sports}><FormLabel>Sport(s)</FormLabel><Controller name="sports" control={control} render={({ field }) => (<ReactSelect isMulti options={sportOptions} value={field.value} onChange={val => field.onChange(val)} isDisabled={!selectedGender} styles={selectStyles} placeholder="Select sports..."/>)}/></FormControl>
+                <FormControl isInvalid={errors.graduation_year}><FormLabel>Graduation Year</FormLabel><Controller name="graduation_year" control={control} render={({ field }) => (<NumberInput {...field} onChange={(val) => field.onChange(val === '' ? null : Number(val))} min={2024} max={2035}><NumberInputField placeholder="2026" /></NumberInput>)}/></FormControl>
               </>
             )}
 
-            <Button
-              type="submit"
-              isLoading={isSubmitting}
-              mt={4}
-              w="100%"
-              size="lg"
-            >
-              Sign Up
-            </Button>
+            <Button type="submit" isLoading={isSubmitting} mt={4} w="100%" size="lg">Sign Up</Button>
           </Stack>
         </form>
       </Box>
