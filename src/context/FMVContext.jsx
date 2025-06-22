@@ -27,15 +27,14 @@ export function FMVProvider({ children }) {
     }
   });
 
-  const updateFormData = (newData) => {
+  // BEST PRACTICE: Wrap context functions in useCallback for stability
+  const updateFormData = useCallback((newData) => {
     setFormData(prevData => {
       const nextData = { ...prevData, ...newData };
-      // Save only the calculator data, not the entire user profile structure
-      const { id, created_at, updated_at, role, ...calculatorData } = nextData;
-      localStorage.setItem("fpn_profile", JSON.stringify(calculatorData));
+      localStorage.setItem("fpn_profile", JSON.stringify(nextData));
       return nextData;
     });
-  };
+  }, []);
 
   const resetFormData = useCallback(() => {
     localStorage.removeItem("fpn_profile");
@@ -46,26 +45,23 @@ export function FMVProvider({ children }) {
     resetFormData();
 
     if (user) {
-      // Fetch the user's profile safely, allowing for it to not exist yet.
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .maybeSingle(); // Use maybeSingle() to prevent errors for new users.
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching profile for pre-fill:", error.message);
       }
       
-      // Pre-fill the form with profile data if it exists, otherwise use auth metadata as a fallback.
-      // This ensures a consistent experience and maximum data pre-population.
       const prefillData = {
         name: profile?.full_name || user.user_metadata?.full_name || "",
         email: user.email || "",
         division: profile?.division || "",
         school: profile?.school || "",
         gender: profile?.gender || "",
-        sport: profile?.sports || [], // The form expects `sport`, the DB has `sports`
+        sport: profile?.sports || [],
         graduation_year: profile?.graduation_year || "",
       };
 
@@ -73,12 +69,13 @@ export function FMVProvider({ children }) {
     }
   }, [user, resetFormData, updateFormData]);
 
+  // The value passed to the provider, now with stable functions
   const value = useMemo(() => ({
     formData,
     updateFormData,
     resetFormData,
     initializeNewCalculation,
-  }), [formData, resetFormData, initializeNewCalculation, updateFormData]);
+  }), [formData, updateFormData, resetFormData, initializeNewCalculation]);
 
   return (
     <FMVContext.Provider value={value}>
