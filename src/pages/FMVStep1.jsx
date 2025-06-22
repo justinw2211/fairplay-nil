@@ -1,3 +1,4 @@
+// src/pages/FMVStep1.jsx
 import React, { useMemo, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -48,6 +49,11 @@ export default function FMVStep1({ onNext }) {
     defaultValues: formData,
   });
 
+  // THE FIX: This useEffect ensures the form stays in sync with the context data
+  useEffect(() => {
+    reset(formData);
+  }, [formData, reset]);
+
   const divisionValue = watch('division');
   const schoolValue = watch('school');
 
@@ -81,7 +87,6 @@ export default function FMVStep1({ onNext }) {
   
   const handleFormReset = () => {
     resetFormData();
-    reset();
     toast({
       title: "Form reset!",
       status: "info",
@@ -103,7 +108,7 @@ export default function FMVStep1({ onNext }) {
       <Box w={["95vw", "600px"]} bg="#ffffff" boxShadow="xl" borderRadius="xl" p={[4, 8]} mx="auto" border="1px solid #d6dce4">
         <Box mb={6}>
           <Text color="#4e6a7b" fontWeight="bold" fontSize="md" mb={2} letterSpacing="wide">{progressLabel}</Text>
-          <Progress value={progress} size="md" colorScheme="pink" sx={{ "& > div": { backgroundColor: "#d0bdb5" } }} borderRadius="full" mb={2} />
+          <Progress value={progress} size="md" />
         </Box>
         
         <form onSubmit={(e) => e.preventDefault()}>
@@ -140,8 +145,8 @@ export default function FMVStep1({ onNext }) {
           </Stack>
           
           <Flex mt={8} justify="space-between">
-            <Button onClick={handleBack} variant="outline" borderColor="#d6dce4" color="#4e6a7b" _hover={{ bg: "#f4f4f4" }}>Back</Button>
-            <Button onClick={handleNext} bg="#d0bdb5" color="#ffffff" _hover={{ bg: "#c9b2a9" }} px={8} fontWeight="bold">
+            <Button onClick={handleBack} variant="outline">Back</Button>
+            <Button onClick={handleNext} px={8} fontWeight="bold">
               Next
             </Button>
           </Flex>

@@ -1,3 +1,4 @@
+// src/pages/FMVStep3.jsx
 import React, { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -113,8 +114,14 @@ export default function FMVStep3({ onBack, onNext }) {
   const { control, handleSubmit, formState: { errors }, watch, register, setValue, reset, unregister } = useForm({
     resolver: yupResolver(step3Schema),
     defaultValues: formData,
-    context: { deliverables: formData.deliverables }, // Pass deliverables to the context for yup
+    context: { deliverables: formData.deliverables },
   });
+  
+  // THE FIX: This useEffect ensures the form stays in sync with the context data
+  useEffect(() => {
+    reset(formData);
+  }, [formData, reset]);
+
 
   const paymentStructureValue = watch('payment_structure', []);
   const deliverablesValue = watch('deliverables', []);
@@ -133,7 +140,6 @@ export default function FMVStep3({ onBack, onNext }) {
     });
   }, [selectedPlatforms, setValue]);
   
-  // Clean up deliverable counts when a deliverable is deselected
   useEffect(() => {
     const subscription = watch((value, { name }) => {
       if (name === 'deliverables') {
@@ -158,7 +164,6 @@ export default function FMVStep3({ onBack, onNext }) {
 
   const handleFormReset = () => {
     resetFormData();
-    reset();
     toast({
       title: "Form reset!",
       description: "You can start over from Step 1.",

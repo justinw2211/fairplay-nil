@@ -6,11 +6,10 @@ import { useFMV } from "../context/FMVContext.jsx";
 import { step2Schema } from '../validation/schemas.js';
 import {
   Box, Button, Flex, Heading, Progress, Stack, FormControl, FormLabel,
-  Input, NumberInput, NumberInputField, Text, FormErrorMessage, useToast
+  Input, NumberInput, NumberInputField, Text, FormErrorMessage
 } from "@chakra-ui/react";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
-// Import the constants from the new central file
 import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, COMBINED_SPORTS } from '../data/formConstants.js';
 
 const ACHIEVEMENT_OPTIONS = [
@@ -46,13 +45,17 @@ const selectStyles = {
 };
 
 export default function FMVStep1_Academics({ onBack, onNext }) {
-  const toast = useToast();
   const { formData, updateFormData } = useFMV();
 
-  const { control, register, handleSubmit, formState: { errors }, watch, setValue, trigger } = useForm({
+  const { control, register, handleSubmit, formState: { errors }, watch, setValue, trigger, reset } = useForm({
     resolver: yupResolver(step2Schema),
     defaultValues: formData,
   });
+
+  // THE FIX: This useEffect ensures the form stays in sync with the context data
+  useEffect(() => {
+    reset(formData);
+  }, [formData, reset]);
 
   const genderValue = watch('gender');
 
@@ -66,8 +69,13 @@ export default function FMVStep1_Academics({ onBack, onNext }) {
   }, [genderValue]);
 
   useEffect(() => {
-    setValue('sport', []);
-  }, [genderValue, setValue]);
+    const currentSports = watch('sport');
+    const validSports = currentSports.filter(s => sportOptions.some(o => o.value === s.value));
+    if(validSports.length !== currentSports.length) {
+        setValue('sport', validSports);
+    }
+  }, [genderValue, sportOptions, setValue, watch]);
+
 
   const progress = (2 / 3) * 100;
   const progressLabel = "Step 2 of 3: Academics & Athletics";
@@ -130,8 +138,8 @@ export default function FMVStep1_Academics({ onBack, onNext }) {
                 <Select
                   isMulti
                   options={sportOptions}
-                  value={field.value}
-                  onChange={(options) => field.onChange(options || [])}
+                  value={sportOptions.filter(option => field.value?.some(val => val === option.value))}
+                  onChange={(options) => field.onChange(options ? options.map(o => o.value) : [])}
                   placeholder="Select all that apply..."
                   isDisabled={!genderValue}
                   styles={selectStyles}
