@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { useFMV } from "../context/FMVContext";
+import { useAuth } from '../context/AuthContext'; // Import the useAuth hook
 import {
   Box, Button, Flex, Heading, Stack, Text, SimpleGrid, useToast, Divider,
   Modal, ModalOverlay, ModalContent, ModalBody, Spinner, VStack
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from '../supabaseClient.js'; // We need this for the session
 
 const formatNumber = (num) => num ? Number(num) : 0;
 
@@ -12,6 +14,7 @@ export default function FMVReviewStep({ onBack }) {
   const navigate = useNavigate();
   const toast = useToast();
   const { formData, updateFormData, resetFormData } = useFMV();
+  const { user } = useAuth(); // Get the current user state
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFormReset = () => {
@@ -29,70 +32,67 @@ export default function FMVReviewStep({ onBack }) {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     
-    // Prepare deliverables with counts for the payload
-    const deliverablesWithCounts = formData.deliverables
+    const deliverablesWithCounts = (formData.deliverables || [])
       .filter(d => d !== 'None' && d !== 'Other')
-      .map(d => `${d} (Qty: ${formData.deliverables_count[d] || 0})`);
+      .map(d => `${d} (Qty: ${formData.deliverables_count?.[d] || 0})`);
     
-    if (formData.deliverables.includes('Other') && formData.deliverable_other) {
+    if (formData.deliverables?.includes('Other') && formData.deliverable_other) {
       deliverablesWithCounts.push(`Other: ${formData.deliverable_other}`);
     }
 
-    const payload = {
-      name: formData.name || "",
-      email: formData.email || "",
-      school: formData.school || "",
-      division: formData.division || null,
-      conference: formData.conference || "",
-      gender: formData.gender || "",
-      sport: Array.isArray(formData.sport) ? formData.sport.join(', ') : formData.sport || "",
-      graduation_year: formatNumber(formData.graduation_year),
-      age: formatNumber(formData.age),
-      gpa: formatNumber(formData.gpa),
-      achievements: formData.achievements || [],
-      prior_nil_deals: formatNumber(formData.prior_nil_deals),
-      followers_instagram: formatNumber(formData.followers_instagram),
-      followers_tiktok: formatNumber(formData.followers_tiktok),
-      followers_twitter: formatNumber(formData.followers_twitter),
-      followers_youtube: formatNumber(formData.followers_youtube),
-      deliverables: deliverablesWithCounts, // Use the new formatted array
-      payment_structure: Array.isArray(formData.payment_structure) ? formData.payment_structure.join(', ') : formData.payment_structure || "",
-      deal_length_months: formatNumber(formData.deal_length_months),
-      proposed_dollar_amount: formatNumber(formData.proposed_dollar_amount),
-      deal_type: Array.isArray(formData.deal_type) ? formData.deal_type.join(', ') : formData.deal_type || "",
-      deal_category: Array.isArray(formData.deal_category) ? formData.deal_category.join(', ') : formData.deal_category || "",
-      brand_partner: formData.brand_partner || "",
-      geography: formData.geography || "",
-    };
+    const basePayload = { ...formData, deliverables: deliverablesWithCounts };
 
     try {
+      // Step 1: Always calculate FMV first from our anonymous endpoint
       const calcRes = await fetch("https://fairplay-nil-backend.onrender.com/api/fmv/calculate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(basePayload),
       });
 
       if (!calcRes.ok) {
-        const errorData = await calcRes.json().catch(() => ({ error: "Calculation failed with no error message." }));
-        throw new Error(errorData.detail || errorData.error || "FMV calculation failed");
+        throw new Error("FMV calculation failed");
       }
       
       const calcData = await calcRes.json();
       const finalFormData = { ...formData, fmv: calcData.fmv };
       updateFormData(finalFormData);
-      localStorage.setItem("fmvFormData", JSON.stringify(finalFormData));
       
-      const isReal = String(formData.is_real_submission).toLowerCase() === "yes";
-      if (isReal) {
-        console.log("Submitting to backend:", payload);
+      // Step 2: If the user is logged in, save the deal to their dashboard
+      if (user) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error("Authentication session not found.");
+        
+        // This is the full payload for our secure /api/deals endpoint
+        const dealPayload = {
+            ...formData, // Spread the original form data
+            sport: formData.sport || [],
+            fmv: calcData.fmv, // Add the calculated FMV
+        };
+
+        const dealRes = await fetch("https://fairplay-nil-backend.onrender.com/api/deals", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${session.access_token}` // Authenticate the request
+            },
+            body: JSON.stringify(dealPayload),
+        });
+
+        if (!dealRes.ok) {
+            throw new Error("Failed to save the deal to your dashboard.");
+        }
+        toast({ title: "Deal saved to your dashboard!", status: 'success' });
+        navigate("/dashboard"); // Navigate to the dashboard after saving
+
+      } else {
+        // If not logged in, navigate to the result page to prompt them to sign up
+        navigate("/result", { state: { formData: finalFormData } });
       }
 
-      navigate("/result", { state: { formData: finalFormData } });
-
     } catch (error) {
-      console.error("Submission error:", error);
       toast({
-        title: "Submission Error",
+        title: "An Error Occurred",
         description: error.message || "Something went wrong during submission.",
         status: "error",
         duration: 6000,
@@ -161,32 +161,25 @@ export default function FMVReviewStep({ onBack }) {
 
           <Flex mt={8} justify="space-between">
               <Button onClick={onBack} variant="outline" isDisabled={isSubmitting}>Back</Button>
-              <Button onClick={handleSubmit} isDisabled={isSubmitting}>Calculate & Submit</Button>
+              <Button onClick={handleSubmit} isLoading={isSubmitting} loadingText="Submitting...">
+                {user ? 'Calculate & Save to Dashboard' : 'Calculate & Submit'}
+              </Button>
           </Flex>
-
           <Flex mt={3} justify="space-between" align="center">
             <Button size="sm" variant="ghost" color="#4e6a7b" onClick={handleFormReset}>Reset Form</Button>
-            <Button size="sm" variant="ghost" color="#4e6a7b" onClick={() => {
-                toast({
-                  title: "Progress Saved!",
-                  description: "You can close this window and your data will be saved for your next visit.",
-                  status: "success",
-                  duration: 2000,
-                  isClosable: true
-                });
-              }}>Save Progress</Button>
           </Flex>
 
         </Box>
       </Flex>
       
+      {/* Loading Modal */}
       <Modal isOpen={isSubmitting} onClose={() => {}} isCentered closeOnOverlayClick={false}>
           <ModalOverlay />
           <ModalContent bg="transparent" boxShadow="none">
               <ModalBody>
                   <VStack spacing={4}>
                       <Spinner size="xl" color="#d0bdb5" thickness="4px" />
-                      <Text color="#282f3d" fontSize="lg" fontWeight="600">
+                      <Text color="white" fontSize="lg" fontWeight="600">
                           Calculating Your FMV...
                       </Text>
                   </VStack>
