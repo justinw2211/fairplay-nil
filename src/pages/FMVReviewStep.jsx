@@ -44,7 +44,6 @@ export default function FMVReviewStep({ onBack }) {
     const basePayload = { ...formData, deliverables: deliverablesWithCounts };
 
     try {
-      // Step 1: Always calculate FMV first from our anonymous endpoint
       const calcRes = await fetch("https://fairplay-nil-backend.onrender.com/api/fmv/calculate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -59,19 +58,20 @@ export default function FMVReviewStep({ onBack }) {
       const finalFormData = { ...formData, fmv: calcData.fmv };
       updateFormData(finalFormData);
       
-      // Step 2: If the user is logged in, save the deal to their dashboard
       if (user) {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) throw new Error("Authentication session not found.");
         
-        // THE FIX: Separate `sport` from the rest of the data to rename the key
-        const { sport, ...restOfFormData } = formData;
-        
-        // This is the full payload for our secure /api/deals endpoint
+        // THE FIX: Prepare a clean payload that exactly matches the backend schema.
         const dealPayload = {
-            ...restOfFormData,
-            sports: sport || [], // Rename 'sport' to 'sports' to match the backend schema
+            ...formData,
             fmv: calcData.fmv,
+            // Ensure the key is 'sport' (singular) as required by the API
+            sport: formData.sport || [],
+            // Ensure optional numeric fields are sent as numbers or null, never empty strings
+            gpa: formData.gpa ? parseFloat(formData.gpa) : null,
+            age: formData.age ? parseInt(formData.age, 10) : null,
+            prior_nil_deals: formData.prior_nil_deals ? parseInt(formData.prior_nil_deals, 10) : null,
         };
 
         const dealRes = await fetch("https://fairplay-nil-backend.onrender.com/api/deals", {
@@ -84,8 +84,10 @@ export default function FMVReviewStep({ onBack }) {
         });
 
         if (!dealRes.ok) {
-            console.error("Failed deal response:", await dealRes.text());
-            throw new Error("Failed to save the deal to your dashboard.");
+            const errorBody = await dealRes.json();
+            console.error("Failed deal response:", errorBody);
+            const errorMsg = errorBody.detail?.[0]?.msg || "Failed to save the deal to your dashboard.";
+            throw new Error(errorMsg);
         }
         toast({ title: "Deal saved to your dashboard!", status: 'success' });
         navigate("/dashboard");
