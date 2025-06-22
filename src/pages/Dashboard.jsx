@@ -4,6 +4,7 @@ import { Box, Heading, Text, Spinner, Flex, Button, useToast, useDisclosure,
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useFMV } from '../context/FMVContext.jsx'; // Import useFMV hook
 import { supabase } from '../supabaseClient.js';
 import DealsTable from '../components/DealsTable.jsx';
 import SummaryCards from '../components/SummaryCards.jsx';
@@ -12,6 +13,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+  const { initializeNewCalculation } = useFMV(); // Get the pre-fill function
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,14 +23,13 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchDeals = async () => {
-      if (!user) return; // Exit if no user
+      if (!user) return;
       setLoading(true);
       try {
-        // SECURITY BEST PRACTICE: Explicitly filter by user ID in addition to RLS
         const { data, error } = await supabase
           .from('deals')
           .select('*')
-          .eq('user_id', user.id) // Add this line for explicit filtering
+          .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -85,6 +86,12 @@ export default function Dashboard() {
       toast({ title: "Error deleting deal", description: err.message, status: 'error' });
     }
   };
+  
+  // THE FIX: Create a handler that exactly mirrors the working buttons
+  const handleStartCalculation = async () => {
+    await initializeNewCalculation();
+    navigate('/fmvcalculator/step1');
+  };
 
 
   if (loading && !deals.length) {
@@ -105,7 +112,8 @@ export default function Dashboard() {
           <Flex direction="column" align="center" justify="center" bg="gray.50" p={10} borderRadius="lg" textAlign="center">
             <Heading as="h3" size="md">Welcome, {user?.user_metadata?.full_name || user?.email}!</Heading>
             <Text mt={2} color="gray.600">You haven't calculated any deals yet.</Text>
-            <Button mt={4} onClick={() => navigate("/fmvcalculator/step1")}>Calculate Your First FMV</Button>
+            {/* THE FIX: Use the new handler for the onClick event */}
+            <Button mt={4} onClick={handleStartCalculation}>Calculate Your First FMV</Button>
           </Flex>
         ) : (
           <DealsTable deals={deals} onStatusUpdate={handleStatusUpdate} onDelete={openDeleteModal} />
