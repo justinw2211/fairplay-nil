@@ -3,11 +3,10 @@ import React from 'react';
 import { Table, Thead, Tbody, Tr, Th, Td, TableContainer, IconButton, Menu, MenuButton, MenuList, MenuItem } from '@chakra-ui/react';
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import { MoreHorizontal } from 'react-feather';
-import StatusBadge from './StatusBadge';
-import StatusMenu from './StatusMenu';
+import StatusBadge from './StatusBadge.jsx'; // FIX: Added .jsx extension
+import StatusMenu from './StatusMenu.jsx'; // FIX: Added .jsx extension
 
 const DealsTable = ({ deals, onStatusUpdate, onDelete }) => {
-  // Basic sorting state - can be expanded
   const [sortConfig, setSortConfig] = React.useState({ key: 'created_at', direction: 'descending' });
 
   const sortedDeals = React.useMemo(() => {
@@ -41,7 +40,7 @@ const DealsTable = ({ deals, onStatusUpdate, onDelete }) => {
   }
 
   const formatCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
-  const formatDate = (dateString) => new Date(dateString).toLocaleDateString();
+  const formatDate = (dateString) => new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
     <TableContainer>
