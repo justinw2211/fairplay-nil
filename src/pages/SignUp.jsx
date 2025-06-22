@@ -9,7 +9,7 @@ import {
 } from '@chakra-ui/react';
 import ReactSelect from "react-select";
 import { NCAA_SCHOOL_OPTIONS } from '../data/ncaaSchools.js';
-import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, COMBINED_SPORTS } from '../data/formConstants.js'; // Import new constants
+import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, COMBINED_SPORTS } from '../data/formConstants.js';
 
 const selectStyles = {
   control: (base, state) => ({
@@ -24,7 +24,6 @@ const selectStyles = {
 
 const DIVISIONS = [{label: "I", value: "I"}, {label: "II", value: "II"}, {label: "III", value: "III"}];
 
-// TODO: Integrate reCAPTCHA v3
 export default function SignUp() {
   const navigate = useNavigate();
   const toast = useToast();
@@ -50,7 +49,7 @@ export default function SignUp() {
   }, [selectedGender]);
 
   useEffect(() => {
-    setValue('sports', null); // Clear sports when gender changes
+    setValue('sports', []); // Clear sports when gender changes
   }, [selectedGender, setValue]);
 
   const onSubmit = async (data) => {
@@ -66,7 +65,7 @@ export default function SignUp() {
             division: data.division || null,
             gender: data.gender || null,
             graduation_year: data.graduation_year ? parseInt(data.graduation_year, 10) : null,
-            sports: data.sports || null, // data.sports will now be an array
+            sports: data.sports || [],
           }
         }
       });
@@ -100,20 +99,36 @@ export default function SignUp() {
         </Heading>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Stack spacing={4}>
-            {/* --- CORE FIELDS --- */}
             <FormControl isInvalid={errors.full_name}><FormLabel>Full Name</FormLabel><Input {...register('full_name', { required: 'Full name is required' })} /></FormControl>
             <FormControl isInvalid={errors.email}><FormLabel>Email Address</FormLabel><Input type="email" {...register('email', { required: 'Email is required' })} /></FormControl>
             <FormControl isInvalid={errors.password}><FormLabel>Password</FormLabel><Input type="password" {...register('password', { required: 'Password is required', minLength: { value: 6, message: 'Password must be at least 6 characters' } })} /></FormControl>
             <FormControl isInvalid={errors.role}><FormLabel>I am a...</FormLabel><Controller name="role" control={control} rules={{ required: 'Please select a role' }} render={({ field }) => (<ReactSelect options={[{ value: 'athlete', label: 'Student-Athlete' }, { value: 'representative', label: 'Athlete Representative' }, { value: 'collective', label: 'Collective' }, { value: 'university', label: 'University' }, { value: 'brand', label: 'Brand' }, { value: 'other', label: 'Other' }]} value={field.value ? { value: field.value, label: field.value.charAt(0).toUpperCase() + field.value.slice(1).replace("_", " ") } : null} onChange={(val) => field.onChange(val ? val.value : '')} styles={selectStyles} placeholder="Select your role"/>)}/></FormControl>
 
-            {/* --- ATHLETE-SPECIFIC FIELDS (NOW UPGRADED) --- */}
             {selectedRole === 'athlete' && (
               <>
                 <Heading size="md" pt={4} borderTop="1px solid" borderColor="brand.accentSecondary">Athlete Details</Heading>
                 <FormControl isInvalid={errors.division}><FormLabel>Division</FormLabel><Controller name="division" control={control} render={({ field }) => (<ReactSelect {...field} options={DIVISIONS} value={DIVISIONS.find(d => d.value === field.value)} onChange={val => { field.onChange(val.value); setValue('school', null); }} styles={selectStyles} placeholder="Select division..."/>)}/></FormControl>
                 <FormControl isInvalid={errors.school}><FormLabel>School</FormLabel><Controller name="school" control={control} render={({ field }) => (<ReactSelect {...field} options={schoolOptions} value={schoolOptions.find(s => s.value === field.value)} onChange={val => field.onChange(val.value)} isDisabled={!selectedDivision} isSearchable styles={selectStyles} placeholder="Type to search your school..."/>)}/></FormControl>
                 <FormControl isInvalid={errors.gender}><FormLabel>Gender</FormLabel><Controller name="gender" control={control} render={({ field }) => (<ReactSelect options={GENDERS} value={GENDERS.find(g => g.value === field.value)} onChange={val => field.onChange(val.value)} styles={selectStyles} placeholder="Select gender..."/>)}/></FormControl>
-                <FormControl isInvalid={errors.sports}><FormLabel>Sport(s)</FormLabel><Controller name="sports" control={control} render={({ field }) => (<ReactSelect isMulti options={sportOptions} value={field.value} onChange={val => field.onChange(val)} isDisabled={!selectedGender} styles={selectStyles} placeholder="Select sports..."/>)}/></FormControl>
+                <FormControl isInvalid={errors.sports}><FormLabel>Sport(s)</FormLabel>
+                  <Controller 
+                    name="sports" 
+                    control={control} 
+                    render={({ field }) => (
+                      <ReactSelect 
+                        isMulti 
+                        options={sportOptions} 
+                        // THE FIX: value prop now correctly finds the object(s)
+                        value={sportOptions.filter(option => Array.isArray(field.value) && field.value.includes(option.value))}
+                        // THE FIX: Correctly map the array of objects to an array of strings
+                        onChange={val => field.onChange(val ? val.map(c => c.value) : [])} 
+                        isDisabled={!selectedGender} 
+                        styles={selectStyles} 
+                        placeholder="Select sports..."
+                      />
+                    )}
+                  />
+                </FormControl>
                 <FormControl isInvalid={errors.graduation_year}><FormLabel>Graduation Year</FormLabel><Controller name="graduation_year" control={control} render={({ field }) => (<NumberInput {...field} onChange={(val) => field.onChange(val === '' ? null : Number(val))} min={2024} max={2035}><NumberInputField placeholder="2026" /></NumberInput>)}/></FormControl>
               </>
             )}

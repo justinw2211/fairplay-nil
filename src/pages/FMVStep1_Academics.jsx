@@ -52,7 +52,6 @@ export default function FMVStep1_Academics({ onBack, onNext }) {
     defaultValues: formData,
   });
 
-  // THE FIX: This useEffect ensures the form stays in sync with the context data
   useEffect(() => {
     reset(formData);
   }, [formData, reset]);
@@ -69,13 +68,12 @@ export default function FMVStep1_Academics({ onBack, onNext }) {
   }, [genderValue]);
 
   useEffect(() => {
-    const currentSports = watch('sport');
-    const validSports = currentSports.filter(s => sportOptions.some(o => o.value === s.value));
+    const currentSports = watch('sport') || [];
+    const validSports = currentSports.filter(sportValue => sportOptions.some(option => option.value === sportValue));
     if(validSports.length !== currentSports.length) {
         setValue('sport', validSports);
     }
   }, [genderValue, sportOptions, setValue, watch]);
-
 
   const progress = (2 / 3) * 100;
   const progressLabel = "Step 2 of 3: Academics & Athletics";
@@ -134,17 +132,22 @@ export default function FMVStep1_Academics({ onBack, onNext }) {
 
             <FormControl isRequired isInvalid={!!errors.sport}>
               <FormLabel color="#4e6a7b">Sport(s)</FormLabel>
-              <Controller name="sport" control={control} render={({ field }) => (
-                <Select
-                  isMulti
-                  options={sportOptions}
-                  value={sportOptions.filter(option => field.value?.some(val => val === option.value))}
-                  onChange={(options) => field.onChange(options ? options.map(o => o.value) : [])}
-                  placeholder="Select all that apply..."
-                  isDisabled={!genderValue}
-                  styles={selectStyles}
-                />
-              )} />
+              <Controller
+                name="sport"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    isMulti
+                    options={sportOptions}
+                    value={sportOptions.filter(option => Array.isArray(field.value) && field.value.includes(option.value))}
+                    // THE FIX: Correctly map the array of objects to an array of strings
+                    onChange={(options) => field.onChange(options ? options.map(o => o.value) : [])}
+                    placeholder="Select all that apply..."
+                    isDisabled={!genderValue}
+                    styles={selectStyles}
+                  />
+                )}
+              />
               <FormErrorMessage>{errors.sport?.message}</FormErrorMessage>
             </FormControl>
 
