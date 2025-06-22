@@ -1,12 +1,13 @@
+// src/pages/FMVReviewStep.jsx
 import React, { useState } from "react";
 import { useFMV } from "../context/FMVContext";
-import { useAuth } from '../context/AuthContext'; // Import the useAuth hook
+import { useAuth } from '../context/AuthContext';
 import {
   Box, Button, Flex, Heading, Stack, Text, SimpleGrid, useToast, Divider,
   Modal, ModalOverlay, ModalContent, ModalBody, Spinner, VStack
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from '../supabaseClient.js'; // We need this for the session
+import { supabase } from '../supabaseClient.js';
 
 const formatNumber = (num) => num ? Number(num) : 0;
 
@@ -14,7 +15,7 @@ export default function FMVReviewStep({ onBack }) {
   const navigate = useNavigate();
   const toast = useToast();
   const { formData, updateFormData, resetFormData } = useFMV();
-  const { user } = useAuth(); // Get the current user state
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFormReset = () => {
@@ -63,30 +64,33 @@ export default function FMVReviewStep({ onBack }) {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) throw new Error("Authentication session not found.");
         
+        // THE FIX: Separate `sport` from the rest of the data to rename the key
+        const { sport, ...restOfFormData } = formData;
+        
         // This is the full payload for our secure /api/deals endpoint
         const dealPayload = {
-            ...formData, // Spread the original form data
-            sport: formData.sport || [],
-            fmv: calcData.fmv, // Add the calculated FMV
+            ...restOfFormData,
+            sports: sport || [], // Rename 'sport' to 'sports' to match the backend schema
+            fmv: calcData.fmv,
         };
 
         const dealRes = await fetch("https://fairplay-nil-backend.onrender.com/api/deals", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${session.access_token}` // Authenticate the request
+                "Authorization": `Bearer ${session.access_token}`
             },
             body: JSON.stringify(dealPayload),
         });
 
         if (!dealRes.ok) {
+            console.error("Failed deal response:", await dealRes.text());
             throw new Error("Failed to save the deal to your dashboard.");
         }
         toast({ title: "Deal saved to your dashboard!", status: 'success' });
-        navigate("/dashboard"); // Navigate to the dashboard after saving
+        navigate("/dashboard");
 
       } else {
-        // If not logged in, navigate to the result page to prompt them to sign up
         navigate("/result", { state: { formData: finalFormData } });
       }
 
@@ -161,7 +165,7 @@ export default function FMVReviewStep({ onBack }) {
 
           <Flex mt={8} justify="space-between">
               <Button onClick={onBack} variant="outline" isDisabled={isSubmitting}>Back</Button>
-              <Button onClick={handleSubmit} isLoading={isSubmitting} loadingText="Submitting...">
+              <Button onClick={handleSubmit} isLoading={isSubmitting} loadingText="Saving...">
                 {user ? 'Calculate & Save to Dashboard' : 'Calculate & Submit'}
               </Button>
           </Flex>
@@ -172,7 +176,6 @@ export default function FMVReviewStep({ onBack }) {
         </Box>
       </Flex>
       
-      {/* Loading Modal */}
       <Modal isOpen={isSubmitting} onClose={() => {}} isCentered closeOnOverlayClick={false}>
           <ModalOverlay />
           <ModalContent bg="transparent" boxShadow="none">
@@ -180,7 +183,7 @@ export default function FMVReviewStep({ onBack }) {
                   <VStack spacing={4}>
                       <Spinner size="xl" color="#d0bdb5" thickness="4px" />
                       <Text color="white" fontSize="lg" fontWeight="600">
-                          Calculating Your FMV...
+                          Calculating & Saving...
                       </Text>
                   </VStack>
               </ModalBody>
