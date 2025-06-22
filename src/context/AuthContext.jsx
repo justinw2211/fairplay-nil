@@ -1,6 +1,5 @@
 // src/context/AuthContext.jsx
 import React, { createContext, useState, useContext, useEffect } from 'react';
-// The import path below is now fixed to include the .js extension
 import { supabase } from '../supabaseClient.js'; 
 
 export const AuthContext = createContext();
