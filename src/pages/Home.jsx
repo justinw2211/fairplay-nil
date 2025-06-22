@@ -2,9 +2,17 @@
 import React from "react";
 import { Box, Flex, Heading, Text, Button } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
+import { useFMV } from "../context/FMVContext.jsx";
 
 export default function Home() {
   const navigate = useNavigate();
+  const { initializeNewCalculation } = useFMV();
+
+  const handleStart = async () => {
+    await initializeNewCalculation();
+    navigate("/fmvcalculator/step1");
+  };
+
   return (
     <Flex minH="90vh" align="center" justify="center">
       <Box textAlign="center" p={12} maxW="3xl">
@@ -17,7 +25,7 @@ export default function Home() {
         <Button
           size="lg"
           px={10}
-          onClick={() => navigate("/fmvcalculator/step1")}
+          onClick={handleStart}
         >
           Estimate FMV
         </Button>

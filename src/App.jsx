@@ -2,7 +2,8 @@
 import React, { useState } from "react";
 import { Routes, Route, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Box, Button, Flex, Heading, Text } from "@chakra-ui/react";
-import { useAuth } from "./context/AuthContext.jsx"; // FIX: Corrected file extension
+import { useAuth } from "./context/AuthContext.jsx";
+import { useFMV } from "./context/FMVContext.jsx";
 
 // Import all page components
 import Home from "./pages/Home.jsx";
@@ -18,12 +19,13 @@ import FMVResult from "./pages/FMVResult.jsx";
 import SignUp from "./pages/SignUp.jsx";
 import Login from "./pages/Login.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
-import EditProfile from "./pages/EditProfile.jsx"; // Import EditProfile
+import EditProfile from "./pages/EditProfile.jsx";
 
 const App = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { initializeNewCalculation } = useFMV();
 
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [companyOpen, setCompanyOpen] = useState(false);
@@ -31,6 +33,11 @@ const App = () => {
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const handleTryNow = async () => {
+    await initializeNewCalculation();
+    navigate("/fmvcalculator/step1");
   };
 
   const centerLinks = [
@@ -134,8 +141,8 @@ const App = () => {
           </Box>
         </Flex>
 
-        {/* === DYNAMIC AUTH NAVIGATION === */}
         <Flex gap="20px" align="center">
+          <NavLink to="/contact"><Text fontWeight="600">Contact</Text></NavLink>
           {user ? (
             <>
               <NavLink to="/dashboard"><Text fontWeight="600">Dashboard</Text></NavLink>
@@ -149,6 +156,9 @@ const App = () => {
               </Button>
             </>
           )}
+           <Button onClick={handleTryNow}>
+            Try Now
+          </Button>
         </Flex>
       </Flex>
 
