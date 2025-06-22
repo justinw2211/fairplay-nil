@@ -54,14 +54,12 @@ export default function EditProfile() {
                 .from('profiles')
                 .select('*')
                 .eq('id', user.id)
-                .maybeSingle(); // Use maybeSingle() to safely fetch one or zero records
+                .maybeSingle();
 
             if (error) {
                 toast({ title: "Error fetching profile data", description: error.message, status: "error", duration: 5000, isClosable: true });
             }
 
-            // Set default data for the form. Use existing profile data if it exists,
-            // otherwise, fall back to the user's authentication metadata.
             const initialData = {
                 full_name: profileData?.full_name || user.user_metadata?.full_name || '',
                 division: profileData?.division || null,
@@ -71,7 +69,7 @@ export default function EditProfile() {
                 graduation_year: profileData?.graduation_year || null,
             };
             
-            reset(initialData); // Pre-fill form with the best available data
+            reset(initialData);
             setLoading(false);
         };
         
@@ -99,11 +97,10 @@ export default function EditProfile() {
         }
 
         try {
+            // This payload now ONLY includes fields managed by this form.
             const profilePayload = {
-                id: user.id, // Ensure the user's ID is set for the upsert
-                updated_at: new Date().toISOString(),
+                id: user.id, // The primary key for upsert
                 full_name: formData.full_name,
-                role: user.user_metadata?.role || 'athlete',
                 school: formData.school,
                 division: formData.division,
                 gender: formData.gender,
@@ -111,7 +108,6 @@ export default function EditProfile() {
                 graduation_year: formData.graduation_year ? parseInt(formData.graduation_year, 10) : null,
             };
             
-            // Upsert will CREATE the profile if it's missing, or UPDATE it if it exists.
             const { error } = await supabase
                 .from('profiles')
                 .upsert(profilePayload)
@@ -146,7 +142,7 @@ export default function EditProfile() {
                         <FormControl isInvalid={errors.division}><FormLabel color="brand.textSecondary">Division</FormLabel><Controller name="division" control={control} render={({ field }) => (<ReactSelect options={DIVISIONS} value={DIVISIONS.find(d => d.value === field.value)} onChange={val => { field.onChange(val?.value || null); setValue('school', null); }} styles={selectStyles} placeholder="Select division..." isClearable/>)}/></FormControl>
                         <FormControl isInvalid={errors.school}><FormLabel color="brand.textSecondary">School</FormLabel><Controller name="school" control={control} render={({ field }) => (<ReactSelect options={schoolOptions} value={schoolOptions.find(s => s.value === field.value)} onChange={val => field.onChange(val?.value || null)} isDisabled={!selectedDivision} isSearchable styles={selectStyles} placeholder="Type to search your school..." isClearable/>)}/></FormControl>
                         <FormControl isInvalid={errors.gender}><FormLabel color="brand.textSecondary">Gender</FormLabel><Controller name="gender" control={control} render={({ field }) => (<ReactSelect options={GENDERS} value={GENDERS.find(g => g.value === field.value)} onChange={val => { field.onChange(val?.value || null); setValue('sports', []); }} styles={selectStyles} placeholder="Select gender..." isClearable/>)}/></FormControl>
-                        <FormControl isInvalid={errors.sports}><FormLabel color="brand.textSecondary">Sport(s)</FormLabel><Controller name="sports" control={control} render={({ field }) => (<ReactSelect isMulti options={sportOptions} value={sportOptions.filter(s => field.value?.includes(s.value))} onChange={val => field.onChange(val.map(c => c.value))} isDisabled={!selectedGender} styles={selectStyles} placeholder="Select sports..."/>)}/></FormControl>
+                        <FormControl isInvalid={errors.sports}><FormLabel color="brand.textSecondary">Sport(s)</FormLabel><Controller name="sports" control={control} render={({ field }) => (<ReactSelect isMulti options={sportOptions} value={sportOptions.filter(s => Array.isArray(field.value) && field.value.includes(s.value))} onChange={val => field.onChange(val.map(c => c.value))} isDisabled={!selectedGender} styles={selectStyles} placeholder="Select sports..."/>)}/></FormControl>
                         <FormControl isInvalid={errors.graduation_year}><FormLabel color="brand.textSecondary">Graduation Year</FormLabel><Controller name="graduation_year" control={control} render={({ field }) => (<NumberInput value={field.value || ''} onChange={(val) => field.onChange(val === '' ? null : Number(val))} min={2024} max={2035}><NumberInputField placeholder="2026" /></NumberInput>)}/></FormControl>
                         
                         <Flex justify="space-between" mt={6}>
