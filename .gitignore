@@ -1,17 +1,9 @@
-# Dependencies
-node_modules
-
-# Vite / Build artifacts
-dist
-.vite/
-
-# Log files
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+# ===================================================================
+# General
+# ===================================================================
 
 # Local environment variables
+# These files often contain secret keys for Supabase, Render, etc.
 .env
 .env.local
 .env.*.local
@@ -20,3 +12,38 @@ pnpm-debug.log*
 .DS_Store
 .idea/
 .vscode/
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===================================================================
+# Frontend (Vite / React)
+# ===================================================================
+
+# Dependencies
+node_modules
+
+# Build artifacts
+dist
+
+# Vite cache
+.vite/
+
+# ===================================================================
+# Backend (Python / FastAPI)
+# ===================================================================
+
+# Virtual Environment
+# This is your local Python environment and can be very large.
+# Render creates its own fresh environment when it deploys.
+venv/
+.venv/
+env/
+.env/
+
+# Python cache files
+__pycache__/
+*.pyc
