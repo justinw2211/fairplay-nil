@@ -18,11 +18,12 @@ import Universities from "./pages/Universities.jsx";
 import Collectives from "./pages/Collectives.jsx";
 import Brands from "./pages/Brands.jsx";
 
-// *** Import the new DealWizard components ***
-import DealWizardLayout from './pages/DealWizard/DealWizardLayout';
+// Import the new DealWizard components
 import Step1_DealTerms from './pages/DealWizard/Step1_DealTerms';
 import Step2_PayorInfo from './pages/DealWizard/Step2_PayorInfo';
 import Step3_SelectActivities from './pages/DealWizard/Step3_SelectActivities';
+import ActivityRouter from './pages/DealWizard/ActivityRouter';
+import Step5_Compliance from './pages/DealWizard/Step5_Compliance'; // *** Import the new step ***
 
 // Import the layout and steps for the OLD deal wizard. We will remove these later.
 import DealWizardLayout_OLD from './pages/DealWizard/DealWizardLayout';
@@ -112,9 +113,7 @@ function App() {
               </NavLink>
             );
           })}
-          {/* Company dropdown remains the same */}
         </Flex>
-        {/* Right side links remain the same */}
         <Flex gap="24px" align="center">
             {user ? (
               <>
@@ -156,14 +155,14 @@ function App() {
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
 
-        {/* *** NEW DEAL WIZARD ROUTES *** */}
+        {/* --- NEW DEAL WIZARD ROUTES --- */}
         <Route path="/add/deal/terms/:dealId" element={<ProtectedRoute><Step1_DealTerms /></ProtectedRoute>} />
         <Route path="/add/deal/payor/:dealId" element={<ProtectedRoute><Step2_PayorInfo /></ProtectedRoute>} />
         <Route path="/add/deal/activities/select/:dealId" element={<ProtectedRoute><Step3_SelectActivities /></ProtectedRoute>} />
-        {/* We will add more routes here for the specific activity forms */}
+        <Route path="/add/deal/activity/:activityType/:dealId" element={<ProtectedRoute><ActivityRouter /></ProtectedRoute>} />
+        <Route path="/add/deal/compliance/:dealId" element={<ProtectedRoute><Step5_Compliance /></ProtectedRoute>} /> {/* *** Add the new route *** */}
 
-
-        {/* OLD Deal Wizard Routes - Untouched for now */}
+        {/* --- OLD DEAL WIZARD ROUTES (to be decommissioned) --- */}
         <Route path="/deal-wizard" element={<ProtectedRoute><DealWizardLayout_OLD /></ProtectedRoute>}>
           <Route index element={<Navigate to="step-1" replace />} />
           <Route path="step-1" element={<DealStep1 />} />

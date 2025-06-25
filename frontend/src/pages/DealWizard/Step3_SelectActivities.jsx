@@ -5,7 +5,7 @@ import { useDeal } from '../../context/DealContext';
 import DealWizardLayout from './DealWizardLayout';
 import { Box, SimpleGrid, useToast } from '@chakra-ui/react';
 
-// This is a reusable component for the selectable cards.
+// ActivityCard component remains the same...
 const ActivityCard = ({ title, isSelected, onSelect }) => {
   return (
     <Box
@@ -26,15 +26,8 @@ const ActivityCard = ({ title, isSelected, onSelect }) => {
   );
 };
 
-// Define the available activities as per the blueprint.
 const availableActivities = [
-  "Social Media",
-  "Appearance",
-  "Content for Brand",
-  "Autographs",
-  "Merch and Products",
-  "Endorsements",
-  "Other",
+  "Social Media", "Appearance", "Content for Brand", "Autographs", "Merch and Products", "Endorsements", "Other",
 ];
 
 const Step3_SelectActivities = () => {
@@ -42,11 +35,8 @@ const Step3_SelectActivities = () => {
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
   const toast = useToast();
-
-  // State to manage which activities are currently selected.
   const [selectedActivities, setSelectedActivities] = useState([]);
 
-  // When the deal data loads, initialize the selected activities from the 'obligations' field.
   useEffect(() => {
     if (deal?.obligations) {
       setSelectedActivities(Object.keys(deal.obligations));
@@ -56,8 +46,8 @@ const Step3_SelectActivities = () => {
   const handleSelect = (activityTitle) => {
     setSelectedActivities(prev => 
       prev.includes(activityTitle)
-        ? prev.filter(item => item !== activityTitle) // Deselect if already selected
-        : [...prev, activityTitle] // Select if not already selected
+        ? prev.filter(item => item !== activityTitle)
+        : [...prev, activityTitle]
     );
   };
   
@@ -65,41 +55,31 @@ const Step3_SelectActivities = () => {
     if (selectedActivities.length === 0) {
       toast({
         title: "No activities selected",
-        description: "Please select at least one activity or deliverable.",
+        description: "Please select at least one activity.",
         status: "warning",
-        duration: 5000,
         isClosable: true,
       });
       return;
     }
 
-    // Prepare the obligations object for the database.
-    // This preserves existing data for selected activities and adds new ones.
     const newObligations = { ...deal.obligations };
     availableActivities.forEach(activity => {
         if (selectedActivities.includes(activity)) {
-            // If the activity is selected but not yet in the obligations, initialize it.
             if (!newObligations[activity]) {
-                 newObligations[activity] = []; // Or some default structure
+                 // Use a more generic default structure
+                 newObligations[activity] = activity === "Social Media" ? [] : {};
             }
         } else {
-            // If the activity is NOT selected, remove it from the obligations object.
             delete newObligations[activity];
         }
     });
 
     await updateDeal(dealId, { obligations: newObligations });
 
-    // TODO: In the next chunk, we will build the logic to navigate to the
-    // first of the selected activity forms. For now, we'll placeholder a navigation.
-    navigate(`/dashboard`); // Placeholder navigation
-    toast({
-        title: "Next Step: Activity Forms",
-        description: "We will build this part next!",
-        status: "info",
-        duration: 3000,
-        isClosable: true,
-      });
+    // *** THIS IS THE KEY CHANGE ***
+    // Navigate to the activity router for the FIRST selected activity.
+    const firstActivity = selectedActivities[0];
+    navigate(`/add/deal/activity/${firstActivity}/${dealId}`);
   };
 
   return (
