@@ -15,42 +15,47 @@ export const DealProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const createDraftDeal = useCallback(async () => {
-    if (!user) {
-      setError("User must be logged in to create a deal.");
-      return;
+  // *** NEW: A centralized helper function for all authenticated API calls with detailed logging ***
+  const authenticatedFetch = async (url, options = {}) => {
+    console.log(`[DealContext] Starting API call: ${options.method || 'GET'} ${url}`);
+    
+    const sessionRes = await supabase.auth.getSession();
+    const token = sessionRes.data.session?.access_token;
+    if (!token) {
+      console.error("[DealContext] Auth fetch failed: No token available.");
+      throw new Error("Authentication error: Your session may have expired. Please log in again.");
     }
+    
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    console.log(`[DealContext] API call complete for: ${url} with status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error(`[DealContext] API Error Response for ${url}:`, { status: response.status, body: errorBody });
+      throw new Error(`API request failed with status ${response.status}.`);
+    }
+    
+    return response.json();
+  };
+
+  const createDraftDeal = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      // *** BUG FIX: Add robust token validation ***
-      const sessionRes = await supabase.auth.getSession();
-      const token = sessionRes.data.session?.access_token;
-      if (!token) {
-        throw new Error("Authentication error: Your session may have expired. Please log in again.");
-      }
-
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create draft deal.');
-      }
-
-      const newDraft = await response.json();
+      const newDraft = await authenticatedFetch(`${import.meta.env.VITE_API_URL}/api/deals`, { method: 'POST' });
       setDeal(newDraft);
-      
       navigate(`/add/deal/terms/${newDraft.id}`);
       return newDraft;
-
     } catch (err) {
       setError(err.message);
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -60,79 +65,37 @@ export const DealProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      // *** BUG FIX: Add robust token validation ***
-      const sessionRes = await supabase.auth.getSession();
-      const token = sessionRes.data.session?.access_token;
-      if (!token) {
-        throw new Error("Authentication error: Your session may have expired. Please log in again.");
-      }
-
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
+      const updatedDeal = await authenticatedFetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
         body: JSON.stringify(updateData),
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to update deal.');
-      }
-
-      const updatedDeal = await response.json();
       setDeal(updatedDeal);
       return updatedDeal;
-
     } catch (err) {
       setError(err.message);
-      console.error(err);
     } finally {
       setLoading(false);
     }
   }, []);
   
   const fetchDealById = useCallback(async (dealId) => {
-      setLoading(true);
-      setError(null);
-      try {
-          // *** BUG FIX: Add robust token validation ***
-          const sessionRes = await supabase.auth.getSession();
-          const token = sessionRes.data.session?.access_token;
-          if (!token) {
-              throw new Error("Authentication error: Your session may have expired. Please log in again.");
-          }
-
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals`, {
-               headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (!response.ok) throw new Error("Failed to fetch deals.");
-          
-          const allDeals = await response.json();
-          const specificDeal = allDeals.find(d => d.id.toString() === dealId);
-
-          if (!specificDeal) throw new Error("Deal not found.");
-
-          setDeal(specificDeal);
-          return specificDeal;
-      } catch(err) {
-          setError(err.message);
-          console.error(err);
-          navigate('/dashboard');
-      } finally {
-          setLoading(false);
-      }
+    setLoading(true);
+    setError(null);
+    try {
+      const allDeals = await authenticatedFetch(`${import.meta.env.VITE_API_URL}/api/deals`, { method: 'GET' });
+      const specificDeal = allDeals.find(d => d.id.toString() === dealId);
+      if (!specificDeal) throw new Error("Deal not found.");
+      setDeal(specificDeal);
+      return specificDeal;
+    } catch (err) {
+      setError(err.message);
+      navigate('/dashboard');
+    } finally {
+      setLoading(false);
+    }
   }, [navigate]);
 
-  const value = {
-    deal,
-    loading,
-    error,
-    createDraftDeal,
-    updateDeal,
-    fetchDealById,
-    setDeal
-  };
+  const value = { deal, loading, error, createDraftDeal, updateDeal, fetchDealById, setDeal };
 
   return <DealContext.Provider value={value}>{children}</DealContext.Provider>;
 };

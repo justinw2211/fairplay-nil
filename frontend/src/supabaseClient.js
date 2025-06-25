@@ -13,5 +13,8 @@ if (!supabaseAnonKey) {
   throw new Error("FATAL: VITE_SUPABASE_ANON_KEY is not defined in the environment. Please set it in your Vercel project settings.");
 }
 
+// *** NEW: Add console log for debugging purposes ***
+console.log(`Supabase client initialized for URL: ${supabaseUrl}`);
+
 // Create and export the Supabase client.
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
