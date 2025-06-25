@@ -5,6 +5,8 @@ import {
 } from '@chakra-ui/react';
 import { useAuth } from '../context/AuthContext';
 import { useDeal } from '../context/DealContext';
+// *** BUG FIX: Import the supabase client to make it available in this file ***
+import { supabase } from '../supabaseClient';
 import DealsTable from '../components/DealsTable';
 import { useNavigate } from 'react-router-dom';
 
@@ -16,10 +18,9 @@ const Dashboard = () => {
   const toast = useToast();
   const navigate = useNavigate();
 
-  // This effect fetches all deals (drafts and submitted) when the component mounts.
   useEffect(() => {
     const fetchDeals = async () => {
-      // The useAuth hook will provide the supabase client, but for now we get token manually.
+      // Now that 'supabase' is imported, this call will succeed.
       const sessionRes = await supabase.auth.getSession();
       const token = sessionRes.data.session?.access_token;
 
@@ -35,7 +36,6 @@ const Dashboard = () => {
         });
 
         if (!response.ok) {
-          // Provide more specific feedback for a 404 error.
           if (response.status === 404) {
              throw new Error("API endpoint not found. Please verify the VITE_API_URL environment variable.");
           }
@@ -59,13 +59,10 @@ const Dashboard = () => {
     fetchDeals();
   }, [toast]);
   
-  // This function handles the creation of a new draft deal.
   const handleAddNewDeal = async () => {
     await createDraftDeal();
-    // The createDraftDeal function in the context handles navigation.
   };
 
-  // Filter deals into drafts and submitted.
   const draftDeals = deals.filter(deal => deal.status === 'draft');
   const submittedDeals = deals.filter(deal => deal.status !== 'draft');
 
