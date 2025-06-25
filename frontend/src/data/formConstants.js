@@ -1,4 +1,4 @@
-// src/data/formConstants.js
+// frontend/src/data/formConstants.js
 
 export const GENDERS = [
   { label: "Male", value: "Male" },
@@ -23,8 +23,17 @@ export const WOMEN_SPORTS = [
   "Triathlon", "Volleyball", "Water Polo", "Wrestling"
 ].map(s => ({ label: s, value: s }));
 
-// A combined list for nonbinary/other gender selections
 export const COMBINED_SPORTS = [
     ...MEN_SPORTS.map(s => ({ label: `Men's ${s.label}`, value: `Men's ${s.value}` })),
     ...WOMEN_SPORTS.map(s => ({ label: `Women's ${s.label}`, value: `Women's ${s.value}` }))
 ].sort((a, b) => a.label.localeCompare(b.label));
+
+// [FP-REFACTOR-018] Added Industry Options
+export const industryOptions = [
+    "Apparel & Fashion", "Automotive", "Beverages (Non-Alcoholic)", "Camps & Clinics", 
+    "Collectibles & Memorabilia", "Consumer Packaged Goods (CPG)", "Electronics", 
+    "Events & Appearances", "Financial Services", "Food & Restaurants", 
+    "Gaming & eSports", "Health & Wellness", "Home Goods", "Media & Content Creation", 
+    "Sports Equipment", "Supplements & Nutrition", "Technology & Apps", 
+    "Travel & Hospitality", "Other"
+];

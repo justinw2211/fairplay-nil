@@ -1,77 +1,71 @@
 // frontend/src/context/FMVContext.jsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from './AuthContext';
+import { supabase } from '../supabaseClient';
 
 const FMVContext = createContext();
 
 export const useFMVContext = () => useContext(FMVContext);
 
+// Define the complete initial state for a new deal
+const getInitialState = () => ({
+  payor_name: '',
+  payor_industry: '',
+  deal_description: '',
+  has_relationship: '',
+  payor_relationship_details: '',
+  compensation_type: '',
+  compensation_amount: '',
+  compensation_in_kind_description: '',
+  uses_school_ip: null,
+  has_conflicts: null,
+  has_written_contract: null,
+  is_using_agent: null,
+  agent_name: '',
+  agent_agency: '',
+  contract_url: '',
+  // Include other legacy fields if needed to prevent errors
+});
+
+
 export const FMVProvider = ({ children }) => {
   const { user } = useAuth();
+  const [formData, setFormData] = useState(getInitialState());
 
-  const [formData, setFormData] = useState(() => {
-    try {
-      const savedData = localStorage.getItem('fmvFormData');
-      return savedData ? JSON.parse(savedData) : {
-        // --- Existing Fields ---
-        gender: '',
-        sport: '',
-        division: '',
-        university: '',
-        conference: '',
-        accolades: [],
-        socialMedia: {
-          instagram: { followers: '' },
-          tiktok: { followers: '' },
-          twitter: { followers: '' },
-          youtube: { followers: '' },
-        },
-        brandName: '',
-        industry: '',
-        compensation: '',
-        deliverables: [],
-        
-        // --- NEW WIZARD FIELDS [FP-REFACTOR-006] ---
-        payor_name: '',
-        payor_industry: '',
-        deal_description: '',
-        has_relationship: '', // 'yes' or 'no'
-        payor_relationship_details: '',
-        compensation_type: '',
-        compensation_in_kind_description: '',
-        has_written_contract: null,
-        uses_school_ip: null,
-        agent_name: '',
-        agent_agency: '',
-        contract_url: '',
-      };
-    } catch (error) {
-      console.error("Could not parse fmvFormData from localStorage", error);
-      return {}; // Return empty object on error
-    }
-  });
+  // Use a stable 'update' function instead of passing 'setFormData' directly
+  const updateFormData = useCallback((newData) => {
+    setFormData(prevData => ({ ...prevData, ...newData }));
+  }, []);
 
-// ... (rest of the file remains the same)
-  
-  useEffect(() => {
-    // Pre-fill from user profile if available
-    if (user?.user_metadata) {
-      setFormData(prevData => ({
-        ...prevData,
-        gender: prevData.gender || user.user_metadata.gender || '',
-        sport: prevData.sport || user.user_metadata.sport || '',
-        university: prevData.university || user.user_metadata.university || '',
-        division: prevData.division || user.user_metadata.division || '',
-      }));
+  const resetAndPrefill = useCallback(async () => {
+    let initialState = getInitialState();
+    
+    if (user) {
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        if (profile) {
+            initialState = {
+                ...initialState,
+                // Pre-fill any relevant user profile data here later if needed
+            };
+        }
     }
+    setFormData(initialState);
   }, [user]);
 
-  useEffect(() => {
-    localStorage.setItem('fmvFormData', JSON.stringify(formData));
-  }, [formData]);
+  // Expose context value through useMemo for performance
+  const value = useMemo(() => ({
+    formData,
+    updateFormData,
+    resetAndPrefill,
+  }), [formData, updateFormData, resetAndPrefill]);
 
   return (
-    <FMVContext.Provider value={{ formData, setFormData }}>
+    <FMVContext.Provider value={value}>
       {children}
     </FMVContext.Provider>
   );
