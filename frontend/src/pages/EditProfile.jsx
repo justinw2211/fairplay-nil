@@ -1,5 +1,5 @@
 // frontend/src/pages/EditProfile.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // Import useRef
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -17,7 +17,8 @@ import {
   useToast,
   Select,
   Container,
-  Flex
+  Flex,
+  Spinner
 } from '@chakra-ui/react';
 import { GENDERS, MEN_SPORTS, WOMEN_SPORTS } from '../data/formConstants';
 import { ncaaSchools } from '../data/ncaaSchools';
@@ -36,6 +37,9 @@ const EditProfile = () => {
   const [loading, setLoading] = useState(true);
   const [filteredSchools, setFilteredSchools] = useState([]);
   const [availableSports, setAvailableSports] = useState([]);
+  
+  // Use useRef to track if this is the initial data load
+  const isInitialLoad = useRef(true);
 
   const {
     control,
@@ -46,6 +50,13 @@ const EditProfile = () => {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: yupResolver(schema),
+    defaultValues: {
+      full_name: '',
+      division: '',
+      university: '',
+      gender: '',
+      sport: ''
+    }
   });
 
   const selectedDivision = watch('division');
@@ -54,6 +65,7 @@ const EditProfile = () => {
   useEffect(() => {
     if (user) {
       const fetchProfile = async () => {
+        setLoading(true);
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
@@ -61,25 +73,28 @@ const EditProfile = () => {
           .single();
 
         if (data) {
-          reset({
-            full_name: data.full_name,
-            division: data.division,
-            university: data.university,
-            gender: data.gender,
-            sport: data.sport,
-          });
+          // Set the form values with data from the database
+          reset(data);
+        } else if (error) {
+            toast({ title: 'Error fetching profile', description: error.message, status: 'error' });
         }
         setLoading(false);
+        // After the first successful load, set the ref to false
+        isInitialLoad.current = false; 
       };
       fetchProfile();
     }
-  }, [user, reset]);
+  }, [user, reset, toast]);
 
   useEffect(() => {
     if (selectedDivision) {
       setFilteredSchools(ncaaSchools[selectedDivision] || []);
+      // On division change (after initial load), reset the university
+      if (!isInitialLoad.current) {
+        setValue('university', '');
+      }
     }
-  }, [selectedDivision]);
+  }, [selectedDivision, setValue]);
 
   useEffect(() => {
     if (selectedGender === 'Male') {
@@ -89,8 +104,11 @@ const EditProfile = () => {
     } else {
       setAvailableSports([]);
     }
-    // Do not reset sport here to allow pre-filled data to persist
-  }, [selectedGender]);
+    // On gender change (after initial load), reset the sport to ensure data consistency
+    if (!isInitialLoad.current) {
+        setValue('sport', '');
+    }
+  }, [selectedGender, setValue]);
 
 
   const onSubmit = async (data) => {
@@ -127,7 +145,11 @@ const EditProfile = () => {
   };
 
   if (loading) {
-    return <Box>Loading...</Box>;
+    return (
+        <Flex justify="center" align="center" minH="50vh">
+            <Spinner size="xl" />
+        </Flex>
+    );
   }
 
   return (

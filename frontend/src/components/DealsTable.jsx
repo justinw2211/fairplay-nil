@@ -1,18 +1,43 @@
-// src/components/DealsTable.jsx
-import React from 'react';
-import { Table, Thead, Tbody, Tr, Th, Td, TableContainer, IconButton, Menu, MenuButton, MenuList, MenuItem } from '@chakra-ui/react';
-import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
-import { MoreHorizontal } from 'react-feather';
-import StatusBadge from './StatusBadge.jsx'; // FIX: Added .jsx extension
-import StatusMenu from './StatusMenu.jsx'; // FIX: Added .jsx extension
+// frontend/src/components/DealsTable.jsx
+import React, { useMemo, useState } from 'react';
+import {
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  TableContainer,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  useToast,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
+  Button
+} from '@chakra-ui/react';
+import { TriangleDownIcon, TriangleUpIcon, DeleteIcon, HamburgerIcon } from '@chakra-ui/icons'; // IMPORT Chakra Icons
+import StatusBadge from './StatusBadge';
+import StatusMenu from './StatusMenu';
+import { supabase } from '../supabaseClient';
 
-const DealsTable = ({ deals, onStatusUpdate, onDelete }) => {
-  const [sortConfig, setSortConfig] = React.useState({ key: 'created_at', direction: 'descending' });
+const DealsTable = ({ deals, setDeals }) => {
+  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'descending' });
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [dealToDelete, setDealToDelete] = useState(null);
+  const cancelRef = React.useRef();
+  const toast = useToast();
 
-  const sortedDeals = React.useMemo(() => {
-    let sortableItems = [...deals];
-    if (sortConfig !== null) {
-      sortableItems.sort((a, b) => {
+  const sortedDeals = useMemo(() => {
+    let sortableDeals = [...deals];
+    if (sortConfig.key !== null) {
+      sortableDeals.sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {
           return sortConfig.direction === 'ascending' ? -1 : 1;
         }
@@ -22,7 +47,7 @@ const DealsTable = ({ deals, onStatusUpdate, onDelete }) => {
         return 0;
       });
     }
-    return sortableItems;
+    return sortableDeals;
   }, [deals, sortConfig]);
 
   const requestSort = (key) => {
@@ -32,52 +57,143 @@ const DealsTable = ({ deals, onStatusUpdate, onDelete }) => {
     }
     setSortConfig({ key, direction });
   };
-  
+
   const getSortIcon = (key) => {
     if (sortConfig.key !== key) return null;
-    if (sortConfig.direction === 'ascending') return <TriangleUpIcon aria-label="sorted ascending" ml={1} />;
-    return <TriangleDownIcon aria-label="sorted descending" ml={1} />;
-  }
+    return sortConfig.direction === 'ascending' ? <TriangleUpIcon aria-label="sorted ascending" /> : <TriangleDownIcon aria-label="sorted descending" />;
+  };
 
-  const formatCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
-  const formatDate = (dateString) => new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const handleStatusChange = (dealId, newStatus) => {
+    setDeals(deals.map(deal => deal.id === dealId ? { ...deal, status: newStatus } : deal));
+  };
+
+  const openDeleteConfirm = (deal) => {
+    setDealToDelete(deal);
+    setIsAlertOpen(true);
+  };
+
+  const handleDeleteDeal = async () => {
+    if (!dealToDelete) return;
+
+    try {
+        const token = (await supabase.auth.getSession()).data.session?.access_token;
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealToDelete.id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Failed to delete the deal.');
+        }
+
+        setDeals(deals.filter(deal => deal.id !== dealToDelete.id));
+        toast({
+            title: "Deal Deleted",
+            description: `Deal with ${dealToDelete.brand_partner || 'N/A'} has been deleted.`,
+            status: "success",
+            duration: 5000,
+            isClosable: true,
+        });
+
+    } catch(error) {
+        toast({
+            title: "Error Deleting Deal",
+            description: error.message,
+            status: "error",
+            duration: 9000,
+            isClosable: true,
+        });
+    } finally {
+        setIsAlertOpen(false);
+        setDealToDelete(null);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
 
   return (
-    <TableContainer>
-      <Table variant="simple">
-        <Thead>
-          <Tr>
-            <Th cursor="pointer" onClick={() => requestSort('brand_partner')}>Brand {getSortIcon('brand_partner')}</Th>
-            <Th isNumeric cursor="pointer" onClick={() => requestSort('fmv')}>FMV {getSortIcon('fmv')}</Th>
-            <Th cursor="pointer" onClick={() => requestSort('created_at')}>Date {getSortIcon('created_at')}</Th>
-            <Th>Status</Th>
-            <Th>Actions</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {sortedDeals.map((deal) => (
-            <Tr key={deal.id}>
-              <Td>{deal.brand_partner}</Td>
-              <Td isNumeric>{formatCurrency(deal.fmv)}</Td>
-              <Td>{formatDate(deal.created_at)}</Td>
-              <Td>
-                <StatusMenu currentStatus={deal.status} onSelect={(newStatus) => onStatusUpdate(deal.id, newStatus)} />
-              </Td>
-              <Td>
-                <Menu>
-                  <MenuButton as={IconButton} aria-label="Options" icon={<MoreHorizontal size={16}/>} variant="ghost" />
-                  <MenuList>
-                    <MenuItem>View Details</MenuItem>
-                    <MenuItem>Download Report</MenuItem>
-                    <MenuItem onClick={() => onDelete(deal)} color="red.500">Delete</MenuItem>
-                  </MenuList>
-                </Menu>
-              </Td>
+    <>
+      <TableContainer>
+        <Table variant='simple'>
+          <Thead>
+            <Tr>
+              <Th cursor="pointer" onClick={() => requestSort('brand_partner')}>Brand {getSortIcon('brand_partner')}</Th>
+              <Th cursor="pointer" onClick={() => requestSort('fmv')}>FMV {getSortIcon('fmv')}</Th>
+              <Th cursor="pointer" onClick={() => requestSort('status')}>Status {getSortIcon('status')}</Th>
+              <Th cursor="pointer" onClick={() => requestSort('created_at')}>Date Added {getSortIcon('created_at')}</Th>
+              <Th>Actions</Th>
             </Tr>
-          ))}
-        </Tbody>
-      </Table>
-    </TableContainer>
+          </Thead>
+          <Tbody>
+            {sortedDeals.map((deal) => (
+              <Tr key={deal.id}>
+                <Td>{deal.brand_partner || deal.payor_name || 'N/A'}</Td>
+                <Td>${deal.fmv ? deal.fmv.toFixed(2) : '0.00'}</Td>
+                <Td>
+                  <StatusMenu deal={deal} onStatusChange={handleStatusChange}>
+                    <StatusBadge status={deal.status} />
+                  </StatusMenu>
+                </Td>
+                <Td>{formatDate(deal.created_at)}</Td>
+                <Td>
+                  <Menu>
+                    <MenuButton
+                      as={IconButton}
+                      aria-label='Options'
+                      // USE Chakra's HamburgerIcon instead of MoreVertical
+                      icon={<HamburgerIcon />}
+                      variant='outline'
+                    />
+                    <MenuList>
+                      <MenuItem 
+                        icon={<DeleteIcon />} // USE Chakra's DeleteIcon instead of Trash2
+                        color="red.500"
+                        onClick={() => openDeleteConfirm(deal)}
+                      >
+                        Delete Deal
+                      </MenuItem>
+                    </MenuList>
+                  </Menu>
+                </Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      </TableContainer>
+
+      <AlertDialog
+        isOpen={isAlertOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={() => setIsAlertOpen(false)}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize='lg' fontWeight='bold'>
+              Delete Deal
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to delete this deal? This action cannot be undone.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={() => setIsAlertOpen(false)}>
+                Cancel
+              </Button>
+              <Button colorScheme='red' onClick={handleDeleteDeal} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+    </>
   );
 };
 
