@@ -1,92 +1,59 @@
 # backend/app/schemas.py
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
-from typing import List, Optional
-from uuid import UUID
+from pydantic import BaseModel, EmailStr
+from typing import Optional, List, Dict, Any
 from datetime import datetime
+import uuid
 
-# --- User & Profile Schemas (Unchanged) ---
-class ProfileBase(BaseModel):
-    full_name: Optional[str] = None
-    role: Optional[str] = None
-    school: Optional[str] = None
-    division: Optional[str] = None
-    gender: Optional[str] = None
-    graduation_year: Optional[int] = None
-    sports: Optional[List[str]] = []
+# Represents a single item within the "Other Payments" section
+class OtherCompensationItem(BaseModel):
+    payment_type: str
+    description: str
+    estimated_value: float
 
-class UserCreate(BaseModel):
-    email: EmailStr
-    password: str
-    profile: ProfileBase
-
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
-
-class ProfileResponse(ProfileBase):
-    id: UUID
-
-# --- Unified Deal Schemas ---
-class DealBase(BaseModel):
-    # This class defines all common deal attributes
-    name: Optional[str] = None
-    email: Optional[EmailStr] = None
-    school: Optional[str] = None
-    division: Optional[str] = None
-    gender: Optional[str] = None
-    sport: Optional[List[str]] = []
-    graduation_year: Optional[int] = None
-    age: Optional[int] = None
-    gpa: Optional[float] = None
-    achievements: Optional[List[str]] = []
-    social_platforms: Optional[List[str]] = []
-    followers_instagram: Optional[int] = None
-    followers_tiktok: Optional[int] = None
-    followers_twitter: Optional[int] = None
-    followers_youtube: Optional[int] = None
-    payment_structure_other: Optional[str] = None
-    deal_length_months: Optional[int] = None
-    proposed_dollar_amount: Optional[float] = None
-    deal_category: Optional[List[str]] = []
-    brand_partner: Optional[str] = None
-    deliverables: Optional[List[str]] = []
-    deliverables_count: Optional[dict] = {}
-    deliverable_other: Optional[str] = None
-    deal_type: Optional[List[str]] = []
-    is_real_submission: Optional[str] = None
-    
-    payor_name: Optional[str] = None
-    payor_industry: Optional[str] = None
-    payor_relationship_details: Optional[str] = None
-    deal_description: Optional[str] = None
-    compensation_type: Optional[str] = None
-    compensation_amount: Optional[float] = None
-    compensation_in_kind_description: Optional[str] = None
-    uses_school_ip: Optional[bool] = None
-    has_written_contract: Optional[bool] = None
-    agent_name: Optional[str] = None
-    agent_agency: Optional[str] = None
-    contract_url: Optional[str] = None
-    fmv: Optional[float] = None
-    has_conflicts: Optional[str] = None
-    status: Optional[str] = 'Pending'
-
-
-class DealCreate(DealBase):
-    # Inherits all fields for creation
-    pass
-
+# The main schema for creating or updating a deal.
+# All fields are optional to allow for partial updates (draft saving).
 class DealUpdate(BaseModel):
+    # Payor Info
+    payor_name: Optional[str] = None
+    contact_name: Optional[str] = None
+    contact_email: Optional[EmailStr] = None
+    contact_phone: Optional[str] = None
+
+    # Obligations (from the dynamic activity forms)
+    obligations: Optional[Dict[str, Any]] = None
+
+    # Mid-Stage Compliance Questions
+    grant_exclusivity: Optional[str] = None
+    uses_school_ip: Optional[bool] = None # Mapping 'Is School Branding Visible?' to this existing field
+    licenses_NIL: Optional[str] = None
+
+    # Compensation
+    compensation_cash: Optional[float] = None
+    compensation_goods: Optional[Dict[str, Any]] = None
+    compensation_other: Optional[List[OtherCompensationItem]] = None
+
+    # Confirmation Info
+    is_group_deal: Optional[bool] = None
+    is_paid_to_llc: Optional[bool] = None
+
+    # Deal Terms File
+    deal_terms_url: Optional[str] = None
+
+    # The final status when submitting
+    status: Optional[str] = None
+
+# The schema for data returned by the API, including database-generated fields.
+class DealResponse(DealUpdate):
+    id: int
+    user_id: uuid.UUID
+    created_at: datetime
     status: str
 
-class Deal(DealBase):
-    # This is the comprehensive response model
-    model_config = ConfigDict(from_attributes=True, extra='ignore')
-    
+    class Config:
+        orm_mode = True
+
+# Schema for creating a new draft deal
+class DealCreateResponse(BaseModel):
     id: int
-    created_at: Optional[datetime] = None
-    user_id: Optional[UUID] = None
-    
-    # Compliance fields are also part of the response
-    compliance_score: Optional[str] = None
-    compliance_flags: Optional[List[str]] = None
+    user_id: uuid.UUID
+    status: str

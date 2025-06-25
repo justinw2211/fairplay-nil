@@ -1,107 +1,71 @@
 # backend/app/api/deals.py
-from fastapi import APIRouter, Depends, HTTPException
-from typing import List, Dict
-from .. import schemas
-from ..db import supabase
-from ..utils import get_current_user
+from fastapi import APIRouter, Depends, HTTPException, Body
+from ..dependencies import get_user_id
+from ..database import supabase
+from ..schemas import DealUpdate, DealResponse, DealCreateResponse
+from typing import List, Dict, Any
 
 router = APIRouter()
 
-def calculate_compliance_score(deal: schemas.DealCreate) -> Dict:
-    flags = []
-    score = "Green"
-
-    if not deal.has_written_contract:
-        flags.append("No Written Contract: Lacks legal protection and clarity.")
-        return {"score": "Red", "flags": flags}
-
-    if deal.uses_school_ip:
-        flags.append("Use of School IP: Requires explicit permission from the university's compliance office.")
-
-    if deal.payor_relationship_details and len(deal.payor_relationship_details) > 3:
-        flags.append("Pre-existing Relationship: Deals with boosters or insiders are scrutinized for Fair Market Value.")
-
-    if deal.has_conflicts and deal.has_conflicts in ['yes', 'unsure']:
-        flags.append("Potential Conflict: This deal may conflict with existing university or team sponsorships.")
-
-    if flags:
-        score = "Yellow"
+# Endpoint 1: Create a New Draft Deal
+# This is the very first call made when the user starts the new DealWizard.
+@router.post("/api/deals", response_model=DealCreateResponse, summary="Create a new draft deal")
+async def create_draft_deal(user_id: str = Depends(get_user_id)):
+    """
+    Creates a new, empty deal entry in the database with a 'draft' status.
+    This secures a unique ID that the frontend can use for all subsequent auto-saves.
+    """
+    try:
+        # Insert a new row with only the user_id, letting the DB set defaults
+        data, count = await supabase.from_("deals").insert({"user_id": user_id}).execute()
         
-    return {"score": score, "flags": flags}
+        if not data[1]:
+            raise HTTPException(status_code=500, detail="Failed to create draft deal.")
 
+        new_deal = data[1][0]
+        return DealCreateResponse(id=new_deal['id'], user_id=new_deal['user_id'], status=new_deal['status'])
 
-@router.post("/api/deals", response_model=schemas.Deal, status_code=201)
-def create_deal(deal: schemas.DealCreate, current_user: dict = Depends(get_current_user)):
-    user_id = current_user['id']
-    
-    compliance_result = calculate_compliance_score(deal)
-    compliance_score = compliance_result["score"]
-    compliance_flags = compliance_result["flags"]
-    
-    if compliance_score == "Red":
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Deal Denied: {compliance_flags[0]}"
-        )
-
-    deal_dict = deal.model_dump(exclude_unset=True)
-    
-    deal_dict['user_id'] = user_id
-    deal_dict['compliance_score'] = compliance_score
-    deal_dict['compliance_flags'] = compliance_flags
-    deal_dict['status'] = 'Pending' # Explicitly set status on creation
-
-    if 'division' in deal_dict and isinstance(deal_dict.get('division'), str):
-        roman_to_int = {'I': 1, 'II': 2, 'III': 3}
-        deal_dict['division'] = roman_to_int.get(deal_dict['division'].upper())
-
-    try:
-        data, count = supabase.table('deals').insert(deal_dict).execute()
-        if not data or not data[1]:
-             raise HTTPException(status_code=500, detail="Failed to create deal, no data returned from database.")
-        created_deal = data[1][0]
-        return created_deal
     except Exception as e:
-        print(f"Error creating deal: {e}")
-        raise HTTPException(status_code=500, detail=f"Error creating deal in database: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-
-@router.get("/api/deals", response_model=List[schemas.Deal])
-def get_deals(current_user: dict = Depends(get_current_user)):
-    user_id = current_user['id']
-    
+# Endpoint 2: Update (Auto-Save) a Draft Deal
+# This endpoint will be called every time the user clicks "Continue" in the wizard.
+@router.put("/api/deals/{deal_id}", response_model=DealResponse, summary="Update a deal draft")
+async def update_deal(deal_id: int, deal_data: DealUpdate, user_id: str = Depends(get_user_id)):
+    """
+    Updates a deal with the provided data. This is the core 'auto-save' function.
+    It accepts a partial DealUpdate schema and only updates the fields provided.
+    The final submission is also a call to this endpoint, where the status is changed to 'submitted'.
+    """
     try:
-        response = supabase.table('deals').select("*").eq('user_id', user_id).order('id', desc=True).execute()
+        # Convert Pydantic model to a dictionary, excluding unset fields
+        update_data = deal_data.dict(exclude_unset=True)
+
+        if not update_data:
+            raise HTTPException(status_code=400, detail="No update data provided.")
+
+        # Update the deal in the database where the ID and user_id match.
+        # This ensures a user can only update their own deals (double protection with RLS).
+        data, count = await supabase.from_("deals").update(update_data).match({"id": deal_id, "user_id": user_id}).execute()
+
+        if not data[1]:
+            raise HTTPException(status_code=404, detail="Deal not found or user does not have access.")
+
+        return DealResponse(**data[1][0])
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Error fetching deals from database.")
-    
-    return response.data
+        raise HTTPException(status_code=500, detail=str(e))
 
-
-@router.put("/api/deals/{deal_id}", response_model=schemas.Deal)
-def update_deal_status(deal_id: int, deal_update: schemas.DealUpdate, current_user: dict = Depends(get_current_user)):
-    user_id = current_user['id']
-    
-    update_data = {"status": deal_update.status}
-    
+# Endpoint 3: Get all deals for the logged-in user
+# This is needed for the dashboard to display both submitted and draft deals.
+@router.get("/api/deals", response_model=List[DealResponse], summary="Get all of a user's deals")
+async def get_deals(user_id: str = Depends(get_user_id)):
+    """
+    Fetches all deals (including drafts) associated with the authenticated user.
+    The frontend will use this to populate the dashboard tables.
+    """
     try:
-        data, count = supabase.table('deals').update(update_data).eq('id', deal_id).eq('user_id', user_id).select('*').execute()
-        if not data or not data[1]:
-            raise HTTPException(status_code=404, detail="Deal not found or you do not have permission to edit it.")
-        return data[1][0]
+        data, count = await supabase.from_("deals").select("*").eq("user_id", user_id).order("created_at", desc=True).execute()
+        return data[1]
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Error updating deal in database.")
-
-
-@router.delete("/api/deals/{deal_id}", status_code=204)
-def delete_deal(deal_id: int, current_user: dict = Depends(get_current_user)):
-    user_id = current_user['id']
-
-    try:
-        data, count = supabase.table('deals').delete().eq('id', deal_id).eq('user_id', user_id).execute()
-        if count[1] is None or len(count[1]) == 0:
-            raise HTTPException(status_code=404, detail="Deal not found or you do not have permission to delete it.")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Error deleting deal from database.")
-    
-    return None
+        raise HTTPException(status_code=500, detail=str(e))
