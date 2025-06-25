@@ -1,8 +1,9 @@
 # backend/app/api/profile.py
 from fastapi import APIRouter, Depends, HTTPException
-from ..dependencies import get_user_id
-from ..database import supabase
-from ..schemas import ProfileUpdate, ProfileResponse
+# *** BUG FIX: Changed import from relative to absolute ***
+from app.dependencies import get_user_id
+from app.database import supabase
+from app.schemas import ProfileUpdate, ProfileResponse
 
 router = APIRouter()
 

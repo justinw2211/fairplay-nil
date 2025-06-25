@@ -1,9 +1,9 @@
 # backend/app/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-# *** The "auth" import is now REMOVED ***
-from .api import profile, deals 
-from .database import supabase
+# *** BUG FIX: Changed import from relative (.api) to absolute (app.api) ***
+from app.api import profile, deals 
+from app.database import supabase
 import os
 
 app = FastAPI()
@@ -22,8 +22,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include the routers
-# *** The "auth.router" is now REMOVED ***
+# Include the routers using the imported modules
 app.include_router(profile.router)
 app.include_router(deals.router)
 
