@@ -7,23 +7,24 @@ import os
 
 app = FastAPI(title="FairPlay NIL API")
 
-# --- DEFINITIVE CORS FIX using a Regular Expression ---
-# This regex pattern will securely match:
-# 1. Your local development environment (http://localhost:any-port)
-# 2. ANY Vercel deployment URL for this project, including production and all preview deployments.
-#    e.g., https://fairplay-nil.vercel.app
-#    e.g., https://fairplay-li7sb4tai-justin-wachtels-projects.vercel.app
-#
-# This is the most robust and professional solution for this type of workflow.
-ORIGIN_REGEX = r"https://fairplay(-[a-zA-Z0-9]+)?-justin-wachtels-projects\.vercel\.app|http://localhost(:\d+)?"
+# --- DEFINITIVE CORS FIX v3 ---
+# We are now using an explicit list of allowed origins instead of a regex
+# to ensure maximum compatibility with the deployment environment.
+# This list includes your local development server and your production Vercel URL.
+allowed_origins = [
+    "http://localhost:5173",
+    "https://fairplay-nil.vercel.app",
+]
+
+# You can add any other specific Vercel preview URLs here if needed, for example:
+# "https://fairplay-nil-justin-wachtels-projects.vercel.app"
 
 app.add_middleware(
     CORSMiddleware,
-    # Use the regex for dynamic origin matching.
-    allow_origin_regex=ORIGIN_REGEX,
+    allow_origins=allowed_origins, # Use the explicit list
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"], # Allow all methods
+    allow_headers=["*"], # Allow all headers
 )
 
 # Include the API routers
