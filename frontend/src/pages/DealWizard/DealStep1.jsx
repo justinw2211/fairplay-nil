@@ -1,9 +1,10 @@
 // frontend/src/pages/DealWizard/DealStep1.jsx
+import React from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import { useFMVContext } from '../../context/FMVContext';
+import { dealStep1Schema } from '../../validation/schemas'; // IMPORT a
 import {
   FormControl,
   FormLabel,
@@ -17,29 +18,15 @@ import {
   Textarea,
   Collapse,
   useDisclosure,
-  Box,
   Flex,
   Spacer
 } from '@chakra-ui/react';
-import { industryOptions } from '../../data/formConstants'; // Assuming you have this
-
-// Validation Schema for Step 1
-const schema = yup.object().shape({
-  payor_name: yup.string().required('Payor name is required.'),
-  payor_industry: yup.string().required('Payor industry is required.'),
-  deal_description: yup.string().required('A brief deal description is required.').max(200, 'Description must be 200 characters or less.'),
-  has_relationship: yup.string().required('Please specify if a relationship exists.'),
-  payor_relationship_details: yup.string().when('has_relationship', {
-    is: 'yes',
-    then: (schema) => schema.required('Please describe the relationship.'),
-    otherwise: (schema) => schema.optional(),
-  }),
-});
+import { industryOptions } from '../../data/formConstants';
 
 
 const DealStep1 = () => {
   const navigate = useNavigate();
-  const { formData, setFormData } = useFMVContext();
+  const { formData, updateFormData } = useFMVContext(); // Use updateFormData
   const { isOpen, onToggle } = useDisclosure({
     defaultIsOpen: formData.has_relationship === 'yes'
   });
@@ -50,7 +37,7 @@ const DealStep1 = () => {
     watch,
     formState: { errors, isSubmitting },
   } = useForm({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(dealStep1Schema), // USE IMPORTED SCHEMA
     defaultValues: {
       payor_name: formData.payor_name || '',
       payor_industry: formData.payor_industry || '',
@@ -63,24 +50,19 @@ const DealStep1 = () => {
   const hasRelationship = watch('has_relationship');
 
   // Effect to toggle the collapse when the relationship question changes
-  // This is a more robust way to handle the conditional UI
-  let firstRender = true;
   React.useEffect(() => {
-    if(!firstRender && hasRelationship === 'yes'){
+    if(hasRelationship === 'yes'){
         if(!isOpen) onToggle();
-    } else if (!firstRender && hasRelationship === 'no'){
+    } else {
         if(isOpen) onToggle();
     }
-    firstRender = false;
   }, [hasRelationship, isOpen, onToggle]);
 
 
   const onSubmit = (data) => {
-    setFormData(prev => ({ ...prev, ...data }));
-    // navigate('/dashboard/new-deal/step-2'); // We will enable this in the next chunk
-    navigate('/dashboard/new-deal/step-2'); // This is now enabled.
+    updateFormData(data);
+    navigate('/dashboard/new-deal/step-2');
   };
-// ... rest of the file
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>

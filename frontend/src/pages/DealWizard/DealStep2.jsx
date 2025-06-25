@@ -2,9 +2,9 @@
 import React from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import { useFMVContext } from '../../context/FMVContext';
+import { dealStep2Schema } from '../../validation/schemas'; // IMPORT
 import {
   FormControl,
   FormLabel,
@@ -24,28 +24,9 @@ import {
   Spacer
 } from '@chakra-ui/react';
 
-// Validation Schema for Step 2
-const schema = yup.object().shape({
-  compensation_type: yup.string().required('Please select a compensation type.'),
-  compensation_amount: yup.number()
-    .transform(value => (isNaN(value) ? undefined : value))
-    .nullable()
-    .when('compensation_type', {
-        is: (val) => val === 'Cash' || val === 'Mixed',
-        then: (schema) => schema.required('Cash amount is required for this compensation type.').min(0),
-        otherwise: (schema) => schema.optional(),
-    }),
-  compensation_in_kind_description: yup.string().when('compensation_type', {
-    is: (val) => val === 'In-Kind' || val === 'Mixed',
-    then: (schema) => schema.required('Please describe the goods or services.'),
-    otherwise: (schema) => schema.optional(),
-  }),
-});
-
-
 const DealStep2 = () => {
   const navigate = useNavigate();
-  const { formData, setFormData } = useFMVContext();
+  const { formData, updateFormData } = useFMVContext(); // Use updateFormData
 
   const {
     control,
@@ -53,7 +34,7 @@ const DealStep2 = () => {
     watch,
     formState: { errors, isSubmitting },
   } = useForm({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(dealStep2Schema), // USE IMPORTED SCHEMA
     defaultValues: {
       compensation_type: formData.compensation_type || '',
       compensation_amount: formData.compensation_amount || '',
@@ -64,7 +45,7 @@ const DealStep2 = () => {
   const compensationType = watch('compensation_type');
 
   const onSubmit = (data) => {
-    setFormData(prev => ({ ...prev, ...data }));
+    updateFormData(data);
     navigate('/dashboard/new-deal/step-3');
   };
 

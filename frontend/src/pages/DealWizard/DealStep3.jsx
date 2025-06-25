@@ -2,9 +2,9 @@
 import React from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import { useFMVContext } from '../../context/FMVContext';
+import { dealStep3Schema } from '../../validation/schemas'; // IMPORT
 import {
   FormControl,
   FormLabel,
@@ -20,17 +20,13 @@ import {
   Spacer,
   Alert,
   AlertIcon,
-  Link
+  Collapse
 } from '@chakra-ui/react';
 
-const schema = yup.object().shape({
-  uses_school_ip: yup.boolean().required('This field is required.'),
-  has_conflicts: yup.boolean().required('This field is required.'),
-});
 
 const DealStep3 = () => {
   const navigate = useNavigate();
-  const { formData, setFormData } = useFMVContext();
+  const { formData, updateFormData } = useFMVContext(); // Use updateFormData
   
   const {
     control,
@@ -38,7 +34,7 @@ const DealStep3 = () => {
     watch,
     formState: { errors, isSubmitting },
   } = useForm({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(dealStep3Schema), // USE IMPORTED SCHEMA
     defaultValues: {
         uses_school_ip: formData.uses_school_ip,
         has_conflicts: formData.has_conflicts
@@ -48,9 +44,8 @@ const DealStep3 = () => {
   const usesSchoolIP = watch('uses_school_ip');
 
   const onSubmit = (data) => {
-    setFormData(prev => ({ ...prev, ...data }));
-    // navigate('/dashboard/new-deal/step-4'); // For the next chunk
-     console.log("Proceeding to next step with data:", data);
+    updateFormData(data);
+    navigate('/dashboard/new-deal/step-4');
   };
 
   return (
@@ -71,7 +66,7 @@ const DealStep3 = () => {
               <FormLabel color="brand.textPrimary">
                 Does this deal require you to use any university logos, trademarks, or facilities (e.g., wearing your jersey in a photo)?
               </FormLabel>
-              <RadioGroup onChange={onChange} value={value?.toString()}>
+              <RadioGroup onChange={(val) => onChange(val === 'true')} value={value?.toString()}>
                 <Stack direction="row" spacing={5}>
                   <Radio value="true">Yes</Radio>
                   <Radio value="false">No</Radio>
@@ -97,10 +92,10 @@ const DealStep3 = () => {
               <FormLabel color="brand.textPrimary">
                 To your knowledge, does this deal conflict with any of your university's or team's existing sponsorships (e.g., a personal shoe deal when the team is sponsored by a rival brand)?
               </FormLabel>
-              <RadioGroup onChange={onChange} value={value?.toString()}>
+              <RadioGroup onChange={onChange} value={value}>
                 <Stack direction="row" spacing={5}>
-                  <Radio value="true">Yes</Radio>
-                  <Radio value="false">No</Radio>
+                  <Radio value="yes">Yes</Radio>
+                  <Radio value="no">No</Radio>
                   <Radio value="unsure">I'm not sure</Radio>
                 </Stack>
               </RadioGroup>

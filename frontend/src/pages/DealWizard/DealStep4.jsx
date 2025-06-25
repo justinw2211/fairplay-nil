@@ -2,9 +2,9 @@
 import React from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import { useFMVContext } from '../../context/FMVContext';
+import { dealStep4Schema } from '../../validation/schemas'; // IMPORT
 import {
   FormControl,
   FormLabel,
@@ -21,27 +21,11 @@ import {
   Flex,
   Spacer
 } from '@chakra-ui/react';
-import ContractUpload from './ContractUpload'; // We will create this next
-
-const schema = yup.object().shape({
-  has_written_contract: yup.boolean().required('This field is required.'),
-  is_using_agent: yup.boolean().required('This field is required.'),
-  agent_name: yup.string().when('is_using_agent', {
-    is: true,
-    then: (schema) => schema.required("Agent's name is required."),
-    otherwise: (schema) => schema.optional(),
-  }),
-  agent_agency: yup.string().when('is_using_agent', {
-    is: true,
-    then: (schema) => schema.required("Agency name is required."),
-    otherwise: (schema) => schema.optional(),
-  }),
-});
-
+import ContractUpload from './ContractUpload';
 
 const DealStep4 = () => {
   const navigate = useNavigate();
-  const { formData, setFormData } = useFMVContext();
+  const { formData, updateFormData } = useFMVContext(); // Use updateFormData
 
   const {
     control,
@@ -50,7 +34,7 @@ const DealStep4 = () => {
     setValue,
     formState: { errors, isSubmitting },
   } = useForm({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(dealStep4Schema), // USE IMPORTED SCHEMA
     defaultValues: {
         has_written_contract: formData.has_written_contract,
         is_using_agent: formData.is_using_agent,
@@ -63,14 +47,14 @@ const DealStep4 = () => {
   const hasWrittenContract = watch('has_written_contract');
 
   const onSubmit = (data) => {
-    setFormData(prev => ({ ...prev, ...data }));
+    updateFormData(data);
     navigate('/dashboard/new-deal/review');
   };
 
   // Callback function for the uploader component
   const handleUploadComplete = (url) => {
     setValue('contract_url', url, { shouldValidate: true });
-    setFormData(prev => ({ ...prev, contract_url: url }));
+    updateFormData({ contract_url: url });
   };
 
 
@@ -90,7 +74,7 @@ const DealStep4 = () => {
           render={({ field: { onChange, value } }) => (
             <FormControl isInvalid={errors.has_written_contract}>
               <FormLabel color="brand.textPrimary">Is there a written contract for this deal?</FormLabel>
-              <RadioGroup onChange={onChange} value={value?.toString()}>
+              <RadioGroup onChange={(val) => onChange(val === 'true')} value={value?.toString()}>
                 <Stack direction="row" spacing={5}>
                   <Radio value="true">Yes</Radio>
                   <Radio value="false">No</Radio>
@@ -117,7 +101,7 @@ const DealStep4 = () => {
           render={({ field: { onChange, value } }) => (
             <FormControl isInvalid={errors.is_using_agent} mt={4}>
               <FormLabel color="brand.textPrimary">Are you using an agent or lawyer for this deal?</FormLabel>
-              <RadioGroup onChange={onChange} value={value?.toString()}>
+              <RadioGroup onChange={(val) => onChange(val === 'true')} value={value?.toString()}>
                 <Stack direction="row" spacing={5}>
                   <Radio value="true">Yes</Radio>
                   <Radio value="false">No</Radio>

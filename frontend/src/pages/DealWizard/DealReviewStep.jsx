@@ -2,8 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFMVContext } from '../../context/FMVContext';
-import { useAuth } from '../../context/AuthContext';
-import { supabase } from '../../supabaseClient'; // Direct import for API call
+import { supabase } from '../../supabaseClient';
 import {
   Box,
   Button,
@@ -14,13 +13,14 @@ import {
   Divider,
   Flex,
   Spacer,
-  useToast
+  useToast,
+  TextTransform
 } from '@chakra-ui/react';
 
 const ReviewItem = ({ label, value }) => (
   <Box>
     <Text fontSize="sm" color="brand.textSecondary">{label}</Text>
-    <Text fontWeight="medium" color="brand.textPrimary">
+    <Text fontWeight="medium" color="brand.textPrimary" textTransform="capitalize">
       {typeof value === 'boolean' ? (value ? 'Yes' : 'No') : (value || 'Not Provided')}
     </Text>
   </Box>
@@ -28,43 +28,38 @@ const ReviewItem = ({ label, value }) => (
 
 const DealReviewStep = () => {
   const navigate = useNavigate();
-  const { formData } = useFMVContext();
-  const { user } = useAuth();
+  const { formData, resetAndPrefill } = useFMVContext();
   const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmitDeal = async () => {
     setIsSubmitting(true);
-    const token = (await supabase.auth.getSession()).data.session?.access_token;
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
 
-    // The backend now expects all the new fields
-    // We can clean up the formData here to match the DealCreate schema
+    if (!token) {
+        toast({ title: 'Authentication Error', description: 'Your session has expired. Please log in again.', status: 'error' });
+        setIsSubmitting(false);
+        navigate('/login');
+        return;
+    }
+    
     const payload = {
-      // Step 1
       payor_name: formData.payor_name,
       payor_industry: formData.payor_industry,
       deal_description: formData.deal_description,
       payor_relationship_details: formData.payor_relationship_details,
-      
-      // Step 2
       compensation_type: formData.compensation_type,
       compensation_amount: parseFloat(formData.compensation_amount) || null,
       compensation_in_kind_description: formData.compensation_in_kind_description,
-      
-      // Step 3
       uses_school_ip: formData.uses_school_ip,
-      // 'has_conflicts' could be added here if needed by backend
-      
-      // Step 4
+      has_conflicts: formData.has_conflicts, // Added this field to the payload
       has_written_contract: formData.has_written_contract,
       agent_name: formData.agent_name,
       agent_agency: formData.agent_agency,
       contract_url: formData.contract_url,
-
-      // Also include legacy fields if they are still relevant
-      // Or map new fields to them
-      brand_name: formData.payor_name, // Mapping
-      industry: formData.payor_industry, // Mapping
+      brand_name: formData.payor_name,
+      industry: formData.payor_industry,
     };
 
     try {
@@ -80,10 +75,10 @@ const DealReviewStep = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.detail || 'An unknown error occurred.');
+        throw new Error(result.detail || 'An unknown error occurred during submission.');
       }
       
-      // On success, navigate to the result page with the response data
+      await resetAndPrefill();
       navigate('/dashboard/new-deal/result', { state: { result } });
 
     } catch (error) {
@@ -126,6 +121,7 @@ const DealReviewStep = () => {
         <Heading as="h3" size="md" color="brand.textPrimary" mt={4}>The Rules & Agreement</Heading>
         <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
             <ReviewItem label="Uses School IP?" value={formData.uses_school_ip} />
+            <ReviewItem label="Conflicts with existing sponsorships?" value={formData.has_conflicts} />
             <ReviewItem label="Has Written Contract?" value={formData.has_written_contract} />
             <ReviewItem label="Using an Agent?" value={formData.is_using_agent} />
             <ReviewItem label="Agent Name" value={formData.agent_name} />
