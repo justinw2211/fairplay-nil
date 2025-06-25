@@ -1,9 +1,9 @@
 # backend/app/dependencies.py
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-# *** BUG FIX: Corrected import path from 'app.db' to 'app.database' ***
 from app.database import supabase 
 import uuid
+import logging # Import the logging library
 
 # This scheme expects the token to be sent in the Authorization header.
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -18,17 +18,20 @@ async def get_user_id(token: str = Depends(oauth2_scheme)) -> uuid.UUID:
         user_response = await supabase.auth.get_user(token)
         user = user_response.user
         
-        # If no valid user is returned, the token is invalid.
         if not user:
+            # This case is when the token is validly formed but not recognized by Supabase
+            logging.error("Authentication failed: Supabase returned no user for the provided token.")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication credentials",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        # *** BUG FIX: Return only the user's ID as a UUID object. ***
+        
         return user.id
     except Exception as e:
-        # Catch any other exception during token validation.
+        # *** ENHANCED LOGGING: This will print the specific error from Supabase to your Render logs. ***
+        logging.error(f"An exception occurred during token validation: {e}")
+        # This case catches all other errors during the get_user call
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid authentication credentials: {e}",
