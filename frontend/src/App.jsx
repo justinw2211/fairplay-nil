@@ -23,7 +23,11 @@ import Step1_DealTerms from './pages/DealWizard/Step1_DealTerms';
 import Step2_PayorInfo from './pages/DealWizard/Step2_PayorInfo';
 import Step3_SelectActivities from './pages/DealWizard/Step3_SelectActivities';
 import ActivityRouter from './pages/DealWizard/ActivityRouter';
-import Step5_Compliance from './pages/DealWizard/Step5_Compliance'; // *** Import the new step ***
+import Step5_Compliance from './pages/DealWizard/Step5_Compliance';
+import Step6_Compensation from './pages/DealWizard/Step6_Compensation';
+import Step7_Confirmation from './pages/DealWizard/Step7_Confirmation';
+import Step8_Review from './pages/DealWizard/Step8_Review';
+import SubmissionSuccess from './pages/DealWizard/SubmissionSuccess';
 
 // Import the layout and steps for the OLD deal wizard. We will remove these later.
 import DealWizardLayout_OLD from './pages/DealWizard/DealWizardLayout';
@@ -160,7 +164,12 @@ function App() {
         <Route path="/add/deal/payor/:dealId" element={<ProtectedRoute><Step2_PayorInfo /></ProtectedRoute>} />
         <Route path="/add/deal/activities/select/:dealId" element={<ProtectedRoute><Step3_SelectActivities /></ProtectedRoute>} />
         <Route path="/add/deal/activity/:activityType/:dealId" element={<ProtectedRoute><ActivityRouter /></ProtectedRoute>} />
-        <Route path="/add/deal/compliance/:dealId" element={<ProtectedRoute><Step5_Compliance /></ProtectedRoute>} /> {/* *** Add the new route *** */}
+        <Route path="/add/deal/compliance/:dealId" element={<ProtectedRoute><Step5_Compliance /></ProtectedRoute>} />
+        <Route path="/add/deal/compensation/:dealId" element={<ProtectedRoute><Step6_Compensation /></ProtectedRoute>} />
+        <Route path="/add/deal/confirmation/details/:dealId" element={<ProtectedRoute><Step7_Confirmation /></ProtectedRoute>} />
+        <Route path="/add/deal/confirmation/review/:dealId" element={<ProtectedRoute><Step8_Review /></ProtectedRoute>} />
+        <Route path="/add/deal/success/:dealId" element={<ProtectedRoute><SubmissionSuccess /></ProtectedRoute>} />
+
 
         {/* --- OLD DEAL WIZARD ROUTES (to be decommissioned) --- */}
         <Route path="/deal-wizard" element={<ProtectedRoute><DealWizardLayout_OLD /></ProtectedRoute>}>
