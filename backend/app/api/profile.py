@@ -6,10 +6,10 @@ from app.schemas import ProfileUpdate, ProfileResponse
 
 router = APIRouter()
 
-# *** BUG FIX: The "/api" prefix is removed from all routes. ***
 @router.get("/profile", response_model=ProfileResponse)
 async def get_profile(user_id: str = Depends(get_user_id)):
-    data, count = await supabase.from_("profiles").select("*").eq("id", user_id).single().execute()
+    # *** BUG FIX: Removed 'await' from the .execute() call ***
+    data, count = supabase.from_("profiles").select("*").eq("id", user_id).single().execute()
     if not data[1]:
         raise HTTPException(status_code=404, detail="Profile not found")
     return data[1]
@@ -17,8 +17,10 @@ async def get_profile(user_id: str = Depends(get_user_id)):
 @router.put("/profile", response_model=ProfileResponse)
 async def update_profile(profile_data: ProfileUpdate, user_id: str = Depends(get_user_id)):
     update_data = profile_data.dict(exclude_unset=True)
-    data, count = await supabase.from_("profiles").update(update_data).eq("id", user_id).execute()
+    # *** BUG FIX: Removed 'await' from the .execute() calls ***
+    data, count = supabase.from_("profiles").update(update_data).eq("id", user_id).execute()
     if not data[1]:
         raise HTTPException(status_code=404, detail="Profile not found or update failed")
-    updated_profile, count = await supabase.from_("profiles").select("*").eq("id", user_id).single().execute()
+    
+    updated_profile, count = supabase.from_("profiles").select("*").eq("id", user_id).single().execute()
     return updated_profile[1]
