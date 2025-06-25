@@ -1,10 +1,10 @@
 // frontend/src/pages/DealWizard/DealStep1.jsx
-import React from 'react';
+import React, { useEffect, useRef } from 'react'; // Import useRef
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from 'react-router-dom';
 import { useFMVContext } from '../../context/FMVContext';
-import { dealStep1Schema } from '../../validation/schemas'; // IMPORT a
+import { dealStep1Schema } from '../../validation/schemas';
 import {
   FormControl,
   FormLabel,
@@ -26,10 +26,13 @@ import { industryOptions } from '../../data/formConstants';
 
 const DealStep1 = () => {
   const navigate = useNavigate();
-  const { formData, updateFormData } = useFMVContext(); // Use updateFormData
+  const { formData, updateFormData } = useFMVContext();
   const { isOpen, onToggle } = useDisclosure({
     defaultIsOpen: formData.has_relationship === 'yes'
   });
+
+  // Use useRef to track the initial render
+  const isInitialMount = useRef(true);
 
   const {
     control,
@@ -37,7 +40,7 @@ const DealStep1 = () => {
     watch,
     formState: { errors, isSubmitting },
   } = useForm({
-    resolver: yupResolver(dealStep1Schema), // USE IMPORTED SCHEMA
+    resolver: yupResolver(dealStep1Schema),
     defaultValues: {
       payor_name: formData.payor_name || '',
       payor_industry: formData.payor_industry || '',
@@ -49,12 +52,18 @@ const DealStep1 = () => {
 
   const hasRelationship = watch('has_relationship');
 
-  // Effect to toggle the collapse when the relationship question changes
-  React.useEffect(() => {
-    if(hasRelationship === 'yes'){
-        if(!isOpen) onToggle();
+  // This useEffect is now corrected to use useRef, the standard React practice.
+  useEffect(() => {
+    // On the first render, don't do anything, just update the ref.
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
     } else {
-        if(isOpen) onToggle();
+      // On subsequent renders, toggle the visibility based on the selection.
+      if (hasRelationship === 'yes' && !isOpen) {
+        onToggle();
+      } else if (hasRelationship === 'no' && isOpen) {
+        onToggle();
+      }
     }
   }, [hasRelationship, isOpen, onToggle]);
 
