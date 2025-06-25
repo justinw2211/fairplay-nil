@@ -7,6 +7,34 @@ import {
 } from '@chakra-ui/react';
 import { CheckCircleIcon } from '@chakra-ui/icons';
 
+// This is a new helper component to render the details of each obligation.
+const ObligationDetails = ({ obligations }) => {
+    if (!obligations || Object.keys(obligations).length === 0) {
+        return <ListItem>No obligations specified.</ListItem>;
+    }
+
+    return Object.entries(obligations).map(([activity, details]) => {
+        let detailText = "Details provided."; // Default text
+
+        if (activity === 'Social Media' && Array.isArray(details)) {
+            detailText = details.map(p => `${p.quantity} ${p.platform} post(s)`).join(', ');
+        } else if (details.quantity || details.description) {
+            detailText = `${details.quantity || ''} ${details.type || ''} - ${details.description || ''}`.replace(/^ - | - $/g, '');
+        } else if (details.description) {
+            detailText = details.description;
+        }
+
+        return (
+            <ListItem key={activity}>
+                <ListIcon as={CheckCircleIcon} color="green.500" />
+                <Text as="span" fontWeight="bold">{activity}: </Text>
+                <Text as="span">{detailText}</Text>
+            </ListItem>
+        );
+    });
+};
+
+
 const ReviewItem = ({ label, children }) => (
   <Box>
     <Heading size="sm" color="gray.500" textTransform="uppercase" mb={1}>{label}</Heading>
@@ -21,17 +49,6 @@ const Step8_Review = () => {
   const toast = useToast();
 
   const handleSubmitDeal = async () => {
-    if (!deal?.deal_terms_url) {
-        toast({
-            title: "Deal Terms Missing",
-            description: "Please go back and upload a contract or other deal terms before submitting.",
-            status: "error",
-            duration: 7000,
-            isClosable: true,
-        });
-        return;
-    }
-    
     // The final step is to update the status to 'Submitted'
     await updateDeal(dealId, { status: 'Submitted' });
     navigate(`/add/deal/success/${dealId}`);
@@ -41,10 +58,9 @@ const Step8_Review = () => {
     return <Flex justify="center" align="center" minH="80vh"><Spinner size="xl" /></Flex>;
   }
   
-  // Calculate total compensation for summary display
   const totalCompensation = (deal.compensation_cash || 0) + 
-    (deal.compensation_goods || []).reduce((sum, item) => sum + (item.estimated_value || 0), 0) +
-    (deal.compensation_other || []).reduce((sum, item) => sum + (item.estimated_value || 0), 0);
+    (deal.compensation_goods || []).reduce((sum, item) => sum + (Number(item.estimated_value) || 0), 0) +
+    (deal.compensation_other || []).reduce((sum, item) => sum + (Number(item.estimated_value) || 0), 0);
 
   return (
     <Container maxW="container.lg" py={10}>
@@ -66,18 +82,11 @@ const Step8_Review = () => {
             </SimpleGrid>
           </Box>
           
-          {/* Obligations */}
+          {/* *** BUG FIX: Obligations now shows full details *** */}
           <Box>
             <Heading size="md" mb={4}>Your Obligations</Heading>
             <List spacing={3}>
-            {deal.obligations && Object.entries(deal.obligations).map(([key, value]) => (
-                <ListItem key={key}>
-                    <ListIcon as={CheckCircleIcon} color="green.500" />
-                    <Text as="span" fontWeight="bold">{key}: </Text>
-                    {/* Add more detailed formatting here if needed in the future */}
-                    <Text as="span">Details provided</Text>
-                </ListItem>
-            ))}
+              <ObligationDetails obligations={deal.obligations} />
             </List>
           </Box>
 
@@ -95,7 +104,7 @@ const Step8_Review = () => {
             <VStack align="stretch">
                 <Tag colorScheme={deal.is_paid_to_llc ? 'green' : 'gray'}>Paid to LLC: {deal.is_paid_to_llc ? 'Yes' : 'No'}</Tag>
                 <Tag colorScheme={deal.is_group_deal ? 'green' : 'gray'}>Group Deal: {deal.is_group_deal ? 'Yes' : 'No'}</Tag>
-                <Tag colorScheme={deal.deal_terms_url ? 'green' : 'red'}>Contract Uploaded: {deal.deal_terms_url ? 'Yes' : 'No'}</Tag>
+                <Tag colorScheme={deal.deal_terms_url ? 'green' : 'gray'}>Contract Uploaded: {deal.deal_terms_url ? 'Yes' : 'No'}</Tag>
             </VStack>
           </Box>
         </VStack>
@@ -108,7 +117,7 @@ const Step8_Review = () => {
             color="white"
             onClick={handleSubmitDeal}
             isLoading={loading}
-            isDisabled={!deal.deal_terms_url} // Disable if contract is missing
+            // *** BUG FIX: Removed logic that disabled button if contract was missing ***
             _hover={{ bg: '#c8aeb0' }}
           >
             Submit Deal
