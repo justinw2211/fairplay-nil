@@ -1,108 +1,141 @@
-# app/api/deals.py
-from fastapi import APIRouter, Depends, HTTPException, status
-from app.db import supabase
-from app.schemas import DealCreate, DealUpdate, DealResponse
-from app.utils import get_current_user
-from typing import List, Optional
+# backend/app/api/deals.py
+from fastapi import APIRouter, Depends, HTTPException
+from typing import List, Dict
+from .. import schemas
+from ..db import get_supabase_client
+from ..utils import get_current_user
 
 router = APIRouter()
 
-def roman_to_int(s: Optional[str]) -> Optional[int]:
-    """Converts Roman numerals I, II, III to integers for the 'smallint' DB column."""
-    if s == 'I': return 1
-    if s == 'II': return 2
-    if s == 'III': return 3
-    return None
-
-def resolve_fmv_for_response(deal_record: dict) -> dict:
+def calculate_compliance_score(deal: schemas.DealCreate) -> Dict:
     """
-    Ensures the response 'fmv' field is correctly populated,
-    prioritizing the 'fmv' column but falling back to 'fmv_estimate'.
-    """
-    if deal_record:
-        if deal_record.get('fmv') is not None:
-            deal_record['fmv'] = float(deal_record['fmv'])
-        elif deal_record.get('fmv_estimate') is not None:
-            deal_record['fmv'] = float(deal_record['fmv_estimate'])
-    return deal_record
-
-@router.post("/deals", response_model=DealResponse, tags=["Deals"])
-async def create_deal_for_user(deal_data: DealCreate, user: dict = Depends(get_current_user)):
-    """
-    Transforms form data to match the database schema and creates a new deal.
-    """
+    Calculates the compliance score based on a set of extensible rules.
     
-    deal_to_insert = {
-        "user_id": user['id'],
-        "name": deal_data.name,
-        "email": deal_data.email,
-        "school": deal_data.school,
-        "gender": deal_data.gender,
-        "graduation_year": deal_data.graduation_year,
-        "age": deal_data.age,
-        "gpa": deal_data.gpa,
-        "brand_partner": deal_data.brand_partner,
-        "deal_length_months": deal_data.deal_length_months,
-        "proposed_dollar_amount": deal_data.proposed_dollar_amount,
-        "fmv_estimate": int(deal_data.fmv) if deal_data.fmv is not None else None,
-        "fmv": deal_data.fmv,
-        "division": roman_to_int(deal_data.division),
-        "is_real_submission": True if deal_data.is_real_submission == 'yes' else False,
-        "sport": ", ".join(deal_data.sport) if deal_data.sport else None,
-        "payment_structure": ", ".join(deal_data.payment_structure) if deal_data.payment_structure else None,
-        "deal_type": ", ".join(deal_data.deal_type) if deal_data.deal_type else None,
-        "deal_category": ", ".join(deal_data.deal_category) if deal_data.deal_category else None,
-        "achievements": deal_data.achievements,
-        "deliverables_instagram": deal_data.deliverables_count.get("Instagram Post (static)", 0) + deal_data.deliverables_count.get("Instagram Reel", 0) + deal_data.deliverables_count.get("Instagram Story (1 frame)", 0) + deal_data.deliverables_count.get("Instagram Story (multi-frame)", 0),
-        "deliverables_tiktok": deal_data.deliverables_count.get("TikTok Video", 0),
-        "deliverables_twitter": deal_data.deliverables_count.get("X (Twitter) Post", 0),
-        "deliverables_youtube": deal_data.deliverables_count.get("YouTube Video (dedicated)", 0) + deal_data.deliverables_count.get("YouTube Video (integrated)", 0),
-        "deliverable_other": deal_data.deliverable_other,
-        "followers_instagram": deal_data.followers_instagram,
-        "followers_tiktok": deal_data.followers_tiktok,
-        "followers_twitter": deal_data.followers_twitter,
-        "followers_youtube": deal_data.followers_youtube,
-    }
+    Returns:
+        A dictionary containing the 'score' (Green, Yellow, Red) and 'flags' (a list of reasons).
+    """
+    flags = []
+    score = "Green" # Start with a positive assumption
+
+    # Rule: No written contract is a deal-breaker (Red Flag)
+    if not deal.has_written_contract:
+        flags.append("No Written Contract: Lacks legal protection and clarity.")
+        return {"score": "Red", "flags": flags}
+
+    # Rule: Using school IP requires caution (Yellow Flag)
+    if deal.uses_school_ip:
+        flags.append("Use of School IP: Requires explicit permission from the university's compliance office.")
+
+    # Rule: Relationship with payor needs scrutiny (Yellow Flag)
+    if deal.payor_relationship_details and len(deal.payor_relationship_details) > 3: # Check if user provided details
+        flags.append("Pre-existing Relationship: Deals with boosters or insiders are scrutinized for Fair Market Value.")
+
+    # Determine final score based on flags
+    if flags:
+        score = "Yellow"
+        
+    return {"score": score, "flags": flags}
+
+
+@router.post("/api/deals", response_model=schemas.Deal, status_code=201)
+def create_deal(deal: schemas.DealCreate, current_user: dict = Depends(get_current_user)):
+    supabase = get_supabase_client()
+    user_id = current_user['id']
+    
+    # --- Scoring Engine ---
+    compliance_result = calculate_compliance_score(deal)
+    compliance_score = compliance_result["score"]
+    compliance_flags = compliance_result["flags"]
+    
+    # Deny deals that get a "Red" score, as per instructions
+    if compliance_score == "Red":
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Deal Denied: {compliance_flags[0]}"
+        )
+
+    # Convert Pydantic model to a dictionary
+    deal_dict = deal.dict(exclude_unset=True) # exclude_unset is important for optional fields
+    
+    # --- Add user_id and compliance results to the dictionary ---
+    deal_dict['user_id'] = user_id
+    deal_dict['compliance_score'] = compliance_score
+    deal_dict['compliance_flags'] = compliance_flags
+
+    # --- Data transformation ---
+    # This is a good place for any final data cleanup if needed
+    # For example, ensuring empty strings are stored as null, etc.
+    if 'division' in deal_dict and isinstance(deal_dict.get('division'), str):
+        roman_to_int = {'I': 1, 'II': 2, 'III': 3}
+        deal_dict['division'] = roman_to_int.get(deal_dict['division'].upper())
+
+
+    # Insert the data into the 'deals' table
+    try:
+        data, count = supabase.table('deals').insert(deal_dict).execute()
+    except Exception as e:
+        print(e) # For debugging on Render
+        raise HTTPException(status_code=500, detail="Error creating deal in database.")
+
+    if not data[1]:
+        raise HTTPException(status_code=500, detail="Failed to create deal.")
+        
+    created_deal = data[1][0]
+    return created_deal
+
+
+@router.get("/api/deals", response_model=List[schemas.Deal])
+def get_deals(current_user: dict = Depends(get_current_user)):
+    supabase = get_supabase_client()
+    user_id = current_user['id']
+    
+    try:
+        response = supabase.table('deals').select("*").eq('user_id', user_id).order('id', desc=True).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error fetching deals from database.")
+    
+    return response.data
+
+
+@router.put("/api/deals/{deal_id}", response_model=schemas.Deal)
+def update_deal_status(deal_id: int, deal_update: schemas.DealUpdate, current_user: dict = Depends(get_current_user)):
+    supabase = get_supabase_client()
+    user_id = current_user['id']
+
+    # First, verify the deal exists and belongs to the user
+    existing_deal_res = supabase.table('deals').select("id").eq('id', deal_id).eq('user_id', user_id).execute()
+    if not existing_deal_res.data:
+        raise HTTPException(status_code=404, detail="Deal not found or you do not have permission to edit it.")
+
+    update_data = deal_update.dict(exclude_unset=True)
+    
+    try:
+        updated_data, count = supabase.table('deals').update(update_data).eq('id', deal_id).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error updating deal in database.")
+
+    if not updated_data[1]:
+        raise HTTPException(status_code=404, detail="Deal not found.")
+
+    return updated_data[1][0]
+
+
+@router.delete("/api/deals/{deal_id}", status_code=204)
+def delete_deal(deal_id: int, current_user: dict = Depends(get_current_user)):
+    supabase = get_supabase_client()
+    user_id = current_user['id']
+
+    # Verify ownership before deleting
+    existing_deal_res = supabase.table('deals').select("id").eq('id', deal_id).eq('user_id', user_id).execute()
+    if not existing_deal_res.data:
+        raise HTTPException(status_code=404, detail="Deal not found or you do not have permission to delete it.")
 
     try:
-        # THE FIX: Corrected Supabase syntax. .select() is not used after .insert().
-        res = supabase.table('deals').insert(deal_to_insert).execute()
-        
-        if not res.data:
-            raise HTTPException(status_code=500, detail="Could not create deal in the database.")
-        
-        return resolve_fmv_for_response(res.data[0])
-
+        data, count = supabase.table('deals').delete().eq('id', deal_id).execute()
     except Exception as e:
-        print(f"An exception occurred during deal creation: {e}")
-        raise HTTPException(status_code=500, detail=f"Database insert error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error deleting deal from database.")
 
+    if count[1] == 0:
+        raise HTTPException(status_code=404, detail="Deal not found.")
 
-@router.get("/deals", response_model=List[DealResponse], tags=["Deals"])
-async def get_user_deals(user: dict = Depends(get_current_user)):
-    """Gets all deals for the currently authenticated user."""
-    res = supabase.table('deals').select("*").eq('user_id', user['id']).order('created_at', desc=True).execute()
-    deals_data = res.data or []
-    return [resolve_fmv_for_response(deal) for deal in deals_data]
-
-
-@router.put("/deals/{deal_id}", response_model=DealResponse, tags=["Deals"])
-async def update_deal_status(deal_id: int, status_update: DealUpdate, user: dict = Depends(get_current_user)):
-    """Updates the status of a specific deal."""
-    
-    # THE FIX: Corrected Supabase syntax. .select() is not used after .update().
-    res = supabase.table('deals').update(status_update.dict()).eq('id', deal_id).eq('user_id', user['id']).execute()
-
-    if not res.data:
-        raise HTTPException(status_code=404, detail="Deal not found or you do not have permission to edit.")
-            
-    return resolve_fmv_for_response(res.data[0])
-
-
-@router.delete("/deals/{deal_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Deals"])
-async def delete_deal(deal_id: int, user: dict = Depends(get_current_user)):
-    """Deletes a specific deal."""
-    res = supabase.table('deals').delete().eq('id', deal_id).eq('user_id', user['id']).execute()
-    if res.count == 0:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Deal not found or you do not have permission to delete.")
-    return
+    return None

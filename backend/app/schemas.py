@@ -1,105 +1,79 @@
-# app/schemas.py
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
-from typing import List, Optional
+# backend/app/schemas.py
+from pydantic import BaseModel, Field
+from typing import Optional, List
 from uuid import UUID
-from datetime import datetime
 
-# --- User & Profile Schemas (Unchanged) ---
-class ProfileBase(BaseModel):
-    full_name: Optional[str] = None
-    role: Optional[str] = None
-    school: Optional[str] = None
-    division: Optional[str] = None
-    gender: Optional[str] = None
-    graduation_year: Optional[int] = None
-    sports: Optional[List[str]] = []
-
-class UserCreate(BaseModel):
-    email: EmailStr
-    password: str
-    profile: ProfileBase
-
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
-
-class ProfileResponse(ProfileBase):
-    id: UUID
-
-# --- Deal Schemas (Corrected to Match Database and Functionality) ---
-
-class DealCreate(BaseModel):
-    name: Optional[str] = None
-    email: Optional[EmailStr] = None
-    school: Optional[str] = None
-    division: Optional[str] = None
-    gender: Optional[str] = None
-    sport: Optional[List[str]] = []
-    graduation_year: Optional[int] = None
-    age: Optional[int] = None
-    gpa: Optional[float] = None
-    achievements: Optional[List[str]] = []
-    social_platforms: Optional[List[str]] = []
-    followers_instagram: Optional[int] = None
-    followers_tiktok: Optional[int] = None
-    followers_twitter: Optional[int] = None
-    followers_youtube: Optional[int] = None
-    payment_structure: Optional[List[str]] = []
-    payment_structure_other: Optional[str] = None
-    deal_length_months: Optional[int] = None
-    proposed_dollar_amount: Optional[float] = None
-    deal_category: Optional[List[str]] = []
-    brand_partner: Optional[str] = None
-    deliverables: Optional[List[str]] = []
-    deliverables_count: Optional[dict] = {}
-    deliverable_other: Optional[str] = None
-    deal_type: Optional[List[str]] = []
-    is_real_submission: Optional[str] = None
+class DealBase(BaseModel):
+    # --- Existing Fields ---
+    brand_name: Optional[str] = None
+    industry: Optional[str] = None
+    compensation_amount: Optional[float] = None
+    deliverables: Optional[list[str]] = None
+    deal_status: Optional[str] = 'Pending'
     fmv: Optional[float] = None
+    
+    # --- New Refactored Fields from Wizard ---
+    payor_name: Optional[str] = None
+    payor_industry: Optional[str] = None
+    payor_relationship_details: Optional[str] = None
+    deal_description: Optional[str] = None
+    
+    compensation_type: Optional[str] = None # 'Cash', 'In-Kind', 'Mixed'
+    compensation_in_kind_description: Optional[str] = None
+    
+    uses_school_ip: Optional[bool] = None
+    has_written_contract: Optional[bool] = None
+    
+    agent_name: Optional[str] = None
+    agent_agency: Optional[str] = None
+    
+    contract_url: Optional[str] = None
 
-# This model is for updating the deal status from the dashboard.
+class DealCreate(DealBase):
+    # All fields from DealBase are used for creation.
+    # No extra fields needed here for now.
+    pass
+
 class DealUpdate(BaseModel):
-    status: str
+    deal_status: Optional[str] = None
+    # Add other fields that can be updated post-creation if needed
 
-class DealResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True, extra='ignore')
-
+class Deal(DealBase):
     id: int
-    created_at: Optional[datetime] = None
-    user_id: Optional[UUID] = None
-    
-    # All columns from your database, including the new 'status' field
-    status: Optional[str] = None
-    
-    name: Optional[str] = None
-    email: Optional[EmailStr] = None
-    school: Optional[str] = None
-    division: Optional[int] = None
-    conference: Optional[str] = None
+    user_id: UUID
+    compliance_score: Optional[str] = None
+    compliance_flags: Optional[List[str]] = None
+
+    class Config:
+        orm_mode = True
+        
+class UserBase(BaseModel):
+    email: str
+
+class UserCreate(UserBase):
+    password: str
+    full_name: Optional[str] = None
+    # Add other profile fields if they are part of sign-up
     gender: Optional[str] = None
     sport: Optional[str] = None
-    graduation_year: Optional[int] = None
-    age: Optional[int] = None
-    gpa: Optional[float] = None
-    achievements: Optional[List[str]] = []
-    athlete_status: Optional[str] = None
-    followers_instagram: Optional[int] = None
-    followers_tiktok: Optional[int] = None
-    followers_twitter: Optional[int] = None
-    followers_youtube: Optional[int] = None
-    deliverables_instagram: Optional[int] = None
-    deliverables_tiktok: Optional[int] = None
-    deliverables_twitter: Optional[int] = None
-    deliverables_youtube: Optional[int] = None
-    deliverable_other: Optional[str] = None
-    payment_structure: Optional[str] = None
-    deal_length_months: Optional[int] = None
-    proposed_dollar_amount: Optional[float] = None
-    deal_type: Optional[str] = None
-    deal_category: Optional[str] = None
-    brand_partner: Optional[str] = None
-    geography: Optional[str] = None
-    is_real_submission: Optional[bool] = None
-    fmv_estimate: Optional[int] = None
-    fmv: Optional[float] = None
-    compliance_pass: Optional[bool] = None
+    university: Optional[str] = None
+    division: Optional[str] = None
+
+
+class User(UserBase):
+    id: UUID
+    full_name: Optional[str]
+    gender: Optional[str] = None
+    sport: Optional[str] = None
+    university: Optional[str] = None
+    division: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
+class ProfileUpdate(BaseModel):
+    full_name: Optional[str] = None
+    gender: Optional[str] = None
+    sport: Optional[str] = None
+    university: Optional[str] = None
+    division: Optional[str] = None
