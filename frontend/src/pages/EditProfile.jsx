@@ -1,5 +1,5 @@
 // frontend/src/pages/EditProfile.jsx
-import React, { useState, useEffect, useRef } from 'react'; // Import useRef
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -20,15 +20,16 @@ import {
   Flex,
   Spinner
 } from '@chakra-ui/react';
-import { GENDERS, MEN_SPORTS, WOMEN_SPORTS } from '../data/formConstants';
-import { ncaaSchools } from '../data/ncaaSchools';
+import { GENDERS, MEN_SPORTS, WOMEN_SPORTS } from '../data/formConstants.js';
+import { NCAA_SCHOOL_OPTIONS } from '../data/ncaaSchools.js';
 
 const schema = yup.object().shape({
   full_name: yup.string().required('Full name is required'),
   division: yup.string().required('NCAA Division is required'),
-  university: yup.string().required('University is required'),
+  school: yup.string().required('University is required'),
   gender: yup.string().required('Gender is required'),
-  sport: yup.string().required('Sport is required'),
+  sports: yup.array().min(1, 'At least one sport is required').of(yup.string()).required(),
+  graduation_year: yup.number().typeError('Please enter a valid year').required('Graduation year is required').min(2024).max(2035),
 });
 
 const EditProfile = () => {
@@ -53,9 +54,10 @@ const EditProfile = () => {
     defaultValues: {
       full_name: '',
       division: '',
-      university: '',
+      school: '',
       gender: '',
-      sport: ''
+      sports: [],
+      graduation_year: '',
     }
   });
 
@@ -74,8 +76,11 @@ const EditProfile = () => {
 
         if (data) {
           // Set the form values with data from the database
-          reset(data);
-        } else if (error) {
+          reset({
+            ...data,
+            sports: data.sports || [], // Ensure sports is always an array
+          });
+        } else if (error && error.code !== 'PGRST116') { // Ignore "No rows found" error
             toast({ title: 'Error fetching profile', description: error.message, status: 'error' });
         }
         setLoading(false);
@@ -88,10 +93,10 @@ const EditProfile = () => {
 
   useEffect(() => {
     if (selectedDivision) {
-      setFilteredSchools(ncaaSchools[selectedDivision] || []);
+      setFilteredSchools(NCAA_SCHOOL_OPTIONS.filter(s => s.division === selectedDivision));
       // On division change (after initial load), reset the university
       if (!isInitialLoad.current) {
-        setValue('university', '');
+        setValue('school', '');
       }
     }
   }, [selectedDivision, setValue]);
@@ -106,7 +111,7 @@ const EditProfile = () => {
     }
     // On gender change (after initial load), reset the sport to ensure data consistency
     if (!isInitialLoad.current) {
-        setValue('sport', '');
+        setValue('sports', []);
     }
   }, [selectedGender, setValue]);
 
@@ -118,9 +123,10 @@ const EditProfile = () => {
         .update({
           full_name: data.full_name,
           division: data.division,
-          university: data.university,
+          school: data.school,
           gender: data.gender,
-          sport: data.sport,
+          sports: data.sports,
+          graduation_year: data.graduation_year,
         })
         .eq('id', user.id);
 
@@ -177,9 +183,9 @@ const EditProfile = () => {
               <FormControl isInvalid={errors.division}>
                 <FormLabel>NCAA Division</FormLabel>
                 <Select {...field} placeholder="Select Division">
-                  <option value="D1">Division I</option>
-                  <option value="D2">Division II</option>
-                  <option value="D3">Division III</option>
+                  <option value="I">Division I</option>
+                  <option value="II">Division II</option>
+                  <option value="III">Division III</option>
                 </Select>
                 <FormErrorMessage>{errors.division?.message}</FormErrorMessage>
               </FormControl>
@@ -187,17 +193,29 @@ const EditProfile = () => {
           />
 
           <Controller
-            name="university"
+            name="school"
             control={control}
             render={({ field }) => (
-              <FormControl isInvalid={errors.university}>
+              <FormControl isInvalid={errors.school}>
                 <FormLabel>University</FormLabel>
                 <Select {...field} placeholder="Select University" isDisabled={!selectedDivision}>
                   {filteredSchools.map(school => (
-                    <option key={school} value={school}>{school}</option>
+                    <option key={school.value} value={school.value}>{school.label}</option>
                   ))}
                 </Select>
-                <FormErrorMessage>{errors.university?.message}</FormErrorMessage>
+                <FormErrorMessage>{errors.school?.message}</FormErrorMessage>
+              </FormControl>
+            )}
+          />
+          
+          <Controller
+            name="graduation_year"
+            control={control}
+            render={({ field }) => (
+              <FormControl isInvalid={errors.graduation_year}>
+                <FormLabel>Graduation Year</FormLabel>
+                <Input {...field} type="number" placeholder="e.g., 2025" />
+                <FormErrorMessage>{errors.graduation_year?.message}</FormErrorMessage>
               </FormControl>
             )}
           />
@@ -216,16 +234,17 @@ const EditProfile = () => {
             )}
           />
 
+          {/* This is a simplified multi-select; for a better UX, a multi-select component would be ideal */}
           <Controller
-            name="sport"
+            name="sports"
             control={control}
             render={({ field }) => (
-              <FormControl isInvalid={errors.sport}>
-                <FormLabel>Sport</FormLabel>
-                <Select {...field} placeholder="Select Sport" isDisabled={!selectedGender}>
+              <FormControl isInvalid={errors.sports}>
+                <FormLabel>Sport(s) - Select one or more</FormLabel>
+                <Select {...field} multiple size={5} isDisabled={!selectedGender}>
                   {availableSports.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </Select>
-                <FormErrorMessage>{errors.sport?.message}</FormErrorMessage>
+                <FormErrorMessage>{errors.sports?.message}</FormErrorMessage>
               </FormControl>
             )}
           />

@@ -1,7 +1,7 @@
 // frontend/src/context/FMVContext.jsx
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { useAuth } from './AuthContext';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../supabaseClient'; // Import supabase client
 
 const FMVContext = createContext();
 
@@ -24,7 +24,11 @@ const getInitialState = () => ({
   agent_name: '',
   agent_agency: '',
   contract_url: '',
-  // Include other legacy fields if needed to prevent errors
+  // Profile fields that can be pre-filled
+  gender: '',
+  sport: '',
+  division: '',
+  university: '',
 });
 
 
@@ -32,32 +36,39 @@ export const FMVProvider = ({ children }) => {
   const { user } = useAuth();
   const [formData, setFormData] = useState(getInitialState());
 
-  // Use a stable 'update' function instead of passing 'setFormData' directly
   const updateFormData = useCallback((newData) => {
     setFormData(prevData => ({ ...prevData, ...newData }));
   }, []);
 
+  // This function now robustly resets and pre-fills the form with the LATEST profile data
   const resetAndPrefill = useCallback(async () => {
     let initialState = getInitialState();
     
+    // If a user is logged in, fetch their LATEST profile from the database
     if (user) {
-        const { data: profile } = await supabase
+        const { data: profile, error } = await supabase
             .from('profiles')
-            .select('*')
+            .select('gender, sport, division, university') // Select only needed fields
             .eq('id', user.id)
-            .maybeSingle();
+            .single();
+
+        if (error && error.code !== 'PGRST116') { // Ignore "No rows found" error
+            console.error("Error fetching profile for pre-fill:", error);
+        }
 
         if (profile) {
             initialState = {
                 ...initialState,
-                // Pre-fill any relevant user profile data here later if needed
+                gender: profile.gender || '',
+                sport: profile.sport || '',
+                division: profile.division || '',
+                university: profile.university || '',
             };
         }
     }
     setFormData(initialState);
   }, [user]);
 
-  // Expose context value through useMemo for performance
   const value = useMemo(() => ({
     formData,
     updateFormData,

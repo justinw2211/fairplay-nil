@@ -1,26 +1,32 @@
-import React from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
-import FMVStep1 from "./FMVStep1";
-import FMVStep1_Academics from "./FMVStep1_Academics";
-import FMVStep3 from "./FMVStep3"; // Renamed from FMVStep2
-import FMVReviewStep from "./FMVReviewStep";
+// frontend/src/pages/FMVCalculator.jsx
+import React from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import { useFMVContext } from '../context/FMVContext'; // CORRECTED import
+import FMVStep1 from './FMVStep1';
+import FMVStep1_Academics from './FMVStep1_Academics';
+import FMVStep3 from './FMVStep3';
+import FMVReviewStep from './FMVReviewStep';
+import { Box, Progress, Container, Heading } from '@chakra-ui/react';
 
-export default function FMVCalculator() {
-  const navigate = useNavigate();
+const FMVCalculator = () => {
+  const { formData, updateFormData } = useFMVContext(); // CORRECTED hook name
 
-  const goToStep1 = () => navigate("/fmvcalculator/step1");
-  const goToAcademics = () => navigate("/fmvcalculator/step2");
-  const goToStep3 = () => navigate("/fmvcalculator/step3");
-  const goToReview = () => navigate("/fmvcalculator/review");
+  const totalSteps = 4; // Example total steps
 
+  // This component now acts as a layout/router for the old flow
   return (
-    <Routes>
-      <Route path="/step1" element={<FMVStep1 onNext={goToAcademics} />} />
-      <Route path="/step2" element={<FMVStep1_Academics onBack={goToStep1} onNext={goToStep3} />} />
-      <Route path="/step3" element={<FMVStep3 onBack={goToAcademics} onNext={goToReview} />} />
-      <Route path="/review" element={<FMVReviewStep onBack={goToStep3} />} />
-      {/* Default/fallback: Start at step 1 */}
-      <Route path="*" element={<FMVStep1 onNext={goToAcademics} />} />
-    </Routes>
+    <Container maxW="container.xl" py={10}>
+      <Heading mb={6}>Fair Market Value Calculator (Legacy)</Heading>
+      <Box borderWidth="1px" borderRadius="lg" p={8}>
+        <Routes>
+          <Route path="step1" element={<FMVStep1 />} />
+          <Route path="step1-academics" element={<FMVStep1_Academics />} />
+          <Route path="step3" element={<FMVStep3 />} />
+          <Route path="review" element={<FMVReviewStep />} />
+        </Routes>
+      </Box>
+    </Container>
   );
-}
+};
+
+export default FMVCalculator;
