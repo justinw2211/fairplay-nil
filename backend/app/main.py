@@ -4,22 +4,35 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import profile, deals 
 from app.database import supabase
 import os
+import logging
+
+# Setup basic logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="FairPlay NIL API")
 
-# --- DEFINITIVE CORS FIX v6 (Final Regex) ---
+# --- DEFINITIVE CORS FIX v7 (Final, Corrected Regex) ---
 # This regular expression is simpler and more robust. It is designed to securely match:
 #
 # 1. http://localhost (with any port for local development)
-# 2. Your production URL: https://fairplay-nil.vercel.app
-# 3. ANY preview URL that starts with 'https://fairplay-nil-' and ends with '.vercel.app'
+# 2. Your production URL (e.g., https://fairplay-nil.vercel.app)
+# 3. ANY preview URL that starts with 'https://fairplay-' (e.g., https://fairplay-k814vunat...)
 #
-# This pattern is now flexible enough to handle all of Vercel's generated URLs for your project.
-ORIGIN_REGEX = r"https://fairplay-nil.*\.vercel\.app|http://localhost(:\d+)?"
+# This pattern is now correct and flexible enough for all of Vercel's generated URLs.
+ORIGIN_REGEX = r"https://fairplay-.*\.vercel\.app|http://localhost(:\d+)?"
+
+@app.on_event("startup")
+async def startup_event():
+    """
+    This function runs when the application starts up to log critical config.
+    """
+    logger.info("--- Application Starting Up ---")
+    logger.info(f"CORS allow_origin_regex configured: {ORIGIN_REGEX}")
+    logger.info("--- Application Startup Complete ---")
 
 app.add_middleware(
     CORSMiddleware,
-    # Use the robust regular expression for matching origins
     allow_origin_regex=ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["*"], 
