@@ -1,59 +1,70 @@
 // frontend/src/pages/DealWizard/DealWizardLayout.jsx
-import { Outlet, useLocation, Link as RouterLink } from 'react-router-dom';
-import { Box, Container, Heading, Flex, IconButton, Progress, Text } from '@chakra-ui/react';
-import { ArrowBackIcon } from '@chakra-ui/icons';
+import React, { useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useDeal } from '../../context/DealContext';
+import { Box, Button, Container, Flex, Heading, Text, Spinner, VStack } from '@chakra-ui/react';
 
-const steps = [
-  { path: '/dashboard/new-deal/step-1', title: 'The Basics' },
-  { path: '/dashboard/new-deal/step-2', title: 'Compensation' },
-  { path: '/dashboard/new-deal/step-3', title: 'The Rules' },
-  { path: '/dashboard/new-deal/step-4', title: 'The Agreement' },
-];
+const DealWizardLayout = ({ children, title, instructions, onContinue, isContinueDisabled = false }) => {
+  const { dealId } = useParams();
+  const navigate = useNavigate();
+  const { deal, fetchDealById, loading } = useDeal();
 
-const DealWizardLayout = () => {
-  const location = useLocation();
-  const currentStepIndex = steps.findIndex(step => step.path === location.pathname);
-  const progressPercent = currentStepIndex >= 0 ? ((currentStepIndex + 1) / steps.length) * 100 : 0;
+  // This effect ensures that if a user navigates directly to a wizard step URL,
+  // we fetch the correct deal data to populate the form.
+  useEffect(() => {
+    // Only fetch if there's a dealId in the URL and it doesn't match the deal in context
+    if (dealId && deal?.id?.toString() !== dealId) {
+      fetchDealById(dealId);
+    }
+  }, [dealId, deal, fetchDealById]);
+
+  // This handles the "Save and Exit" functionality.
+  const handleSaveAndExit = () => {
+    // The deal is already saved on each step, so we just navigate to the dashboard.
+    navigate('/dashboard');
+  };
+
+  // While fetching the initial deal data, show a loading spinner.
+  if (loading && !deal) {
+    return (
+      <Flex justify="center" align="center" minH="80vh">
+        <Spinner size="xl" />
+      </Flex>
+    );
+  }
 
   return (
-    <Box bg="brand.backgroundLight" minH="100vh">
-      <Container maxW="container.md" py={{ base: '8', md: '12' }}>
-        <Flex direction="column" gap={6}>
-          <Flex align="center" gap={4}>
-            <IconButton
-              as={RouterLink}
-              to="/dashboard"
-              aria-label="Back to Dashboard"
-              icon={<ArrowBackIcon />}
-              variant="outline"
-              colorScheme="gray"
-              isRound
-            />
-            <Box flex="1">
-              <Heading as="h1" size="lg" color="brand.textPrimary">
-                New Deal Compliance Check
-              </Heading>
-              <Text color="brand.textSecondary" fontSize="sm">
-                Step {currentStepIndex + 1} of {steps.length}: {steps[currentStepIndex]?.title}
-              </Text>
-            </Box>
-          </Flex>
-          
-          <Progress 
-            value={progressPercent} 
-            size="sm" 
-            colorScheme="pink" // Using pink to match the accent color family
-            bg="brand.accentSecondary"
-            borderRadius="md" 
-          />
+    <Container maxW="container.lg" py={10}>
+      <VStack spacing={8} align="stretch">
+        <Box textAlign="center">
+          <Heading as="h1" size="lg" color="brand.textPrimary">{title}</Heading>
+          {instructions && <Text mt={2} color="brand.textSecondary">{instructions}</Text>}
+        </Box>
 
-          <Box bg="brand.background" p={{ base: 6, md: 8 }} borderRadius="xl" boxShadow="md">
-            {/* The current step component will be rendered here */}
-            <Outlet />
-          </Box>
+        {/* The content for the specific wizard step (e.g., the file uploader) is rendered here */}
+        <Box minH="300px">
+          {children}
+        </Box>
+
+        {/* Navigation buttons */}
+        <Flex justify="space-between" align="center" borderTop="1px" borderColor="gray.200" pt={6}>
+          <Button variant="link" onClick={handleSaveAndExit}>
+            Save and Exit
+          </Button>
+          <Button
+            colorScheme="pink"
+            bg="brand.accentPrimary"
+            color="white"
+            onClick={onContinue}
+            isLoading={loading}
+            isDisabled={isContinueDisabled || loading}
+            _hover={{ bg: '#c8aeb0' }}
+          >
+            Continue
+          </Button>
         </Flex>
-      </Container>
-    </Box>
+      </VStack>
+    </Container>
   );
 };
 
