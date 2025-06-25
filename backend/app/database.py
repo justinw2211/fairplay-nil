@@ -1,11 +1,11 @@
-# backend/app/db.py
+# backend/app/database.py
 import os
 from supabase import create_client, Client
 
 # --- Step 1: Securely load credentials from the environment ---
 # This code reads the variables set in the Render dashboard.
 url = os.environ.get("SUPABASE_URL")
-# *** BUG FIX: This now looks for the variable name that exists in your Render settings. ***
+# This now looks for the variable name that exists in your Render settings.
 key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") 
 
 # --- Step 2: Add robust error checking ---
