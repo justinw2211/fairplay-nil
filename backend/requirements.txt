@@ -27,6 +27,7 @@ packaging==25.0
 pluggy==1.6.0
 postgrest==1.0.2
 propcache==0.3.1
+# *** BUG FIX: Changed to ensure email-validator is installed ***
 pydantic[email]==2.11.5
 pydantic_core==2.33.2
 Pygments==2.19.1

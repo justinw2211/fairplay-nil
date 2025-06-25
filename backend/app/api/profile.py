@@ -1,25 +1,38 @@
-# app/api/profile.py
+# backend/app/api/profile.py
 from fastapi import APIRouter, Depends, HTTPException
-from app.db import supabase
-from app.schemas import ProfileBase
-from app.utils import get_current_user # We will create this helper next
+from ..dependencies import get_user_id
+from ..database import supabase
+from ..schemas import ProfileUpdate, ProfileResponse
 
 router = APIRouter()
 
-@router.get("/profile", response_model=ProfileBase, tags=["Profile"])
-async def get_user_profile(user: dict = Depends(get_current_user)):
-    """Fetches the profile for the currently authenticated user."""
-    user_id = user['id']
-    res = supabase.table('profiles').select("*").eq('id', user_id).single().execute()
-    if not res.data:
-        raise HTTPException(status_code=404, detail="Profile not found")
-    return res.data
+@router.get("/api/profile", response_model=ProfileResponse)
+async def get_profile(user_id: str = Depends(get_user_id)):
+    """
+    Fetches the profile for the authenticated user.
+    """
+    try:
+        data, count = await supabase.from_("profiles").select("*").eq("id", user_id).single().execute()
+        if not data[1]:
+            raise HTTPException(status_code=404, detail="Profile not found")
+        return data[1]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/profile", response_model=ProfileBase, tags=["Profile"])
-async def update_user_profile(profile_update: ProfileBase, user: dict = Depends(get_current_user)):
-    """Updates the profile for the currently authenticated user."""
-    user_id = user['id']
-    res = supabase.table('profiles').update(profile_update.dict(exclude_unset=True)).eq('id', user_id).execute()
-    if not res.data:
-        raise HTTPException(status_code=404, detail="Profile not found or update failed")
-    return res.data[0]
+@router.put("/api/profile", response_model=ProfileResponse)
+async def update_profile(profile_data: ProfileUpdate, user_id: str = Depends(get_user_id)):
+    """
+    Updates the profile for the authenticated user.
+    """
+    try:
+        update_data = profile_data.dict(exclude_unset=True)
+        data, count = await supabase.from_("profiles").update(update_data).eq("id", user_id).execute()
+        if not data[1]:
+            raise HTTPException(status_code=404, detail="Profile not found or update failed")
+        
+        # Fetch the updated profile to return it
+        updated_profile, count = await supabase.from_("profiles").select("*").eq("id", user_id).single().execute()
+        return updated_profile[1]
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
