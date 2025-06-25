@@ -12,60 +12,57 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const setupAuthListener = useCallback(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session ? session.user : null);
+  // This is the function that will clear an invalid session.
+  const handleSignOut = useCallback(async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    navigate('/login'); // Redirect to login after sign out
+  }, [navigate]);
+
+  useEffect(() => {
+    setLoading(true);
+    // Check for a user session when the app first loads.
+    const getSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      // *** BUG FIX: If Supabase returns an error trying to get the session, sign out. ***
+      // This handles the "Session from session_id claim in JWT does not exist" error.
+      if (error || (session && !session.user)) {
+        console.error("Invalid session found, signing out.", error);
+        await handleSignOut();
+      } else {
+        setUser(session?.user ?? null);
+      }
+      setLoading(false);
+    };
+    
+    getSession();
+
+    // Listen for future authentication state changes.
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log(`Supabase auth event: ${event}`, session);
+        setUser(session?.user ?? null);
         setLoading(false);
       }
     );
+
     return () => {
-      subscription?.unsubscribe();
+      authListener.subscription.unsubscribe();
     };
-  }, []);
-
-  useEffect(() => {
-    const checkUser = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        setUser(session ? session.user : null);
-        setLoading(false);
-    };
-    
-    checkUser();
-    const unsubscribe = setupAuthListener();
-    return unsubscribe;
-  }, [setupAuthListener]);
-
-  const signUp = async (email, password, metadata) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: metadata
-      }
-    });
-    if (error) throw error;
-    return data;
-  };
-  
-  // This function is correct. It expects an object like { email: "...", password: "..." }
-  const signIn = async (data) => {
-    return await supabase.auth.signInWithPassword(data);
-  };
-
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    setUser(null);
-    navigate('/');
-  };
+  }, [handleSignOut]);
 
   const value = {
     user,
-    signIn,
-    signOut,
-    signUp,
-    loading
+    loading,
+    signIn: async (data) => {
+      return await supabase.auth.signInWithPassword(data);
+    },
+    signUp: async (email, password, metadata) => {
+      return await supabase.auth.signUp({ email, password, options: { data: metadata } });
+    },
+    // Expose the handleSignOut function so it can be used in the UI.
+    signOut: handleSignOut, 
   };
 
   return (
