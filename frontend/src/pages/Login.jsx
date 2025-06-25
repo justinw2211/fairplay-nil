@@ -1,26 +1,35 @@
 // src/pages/Login.jsx
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.jsx'; // FIX: Corrected file extension
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 import {
-  Box, Button, Flex, Heading, Stack, FormControl,
-  FormLabel, Input, useToast, FormErrorMessage
+  Box,
+  Button,
+  Flex,
+  Heading,
+  Stack,
+  FormControl,
+  FormLabel,
+  Input,
+  useToast,
+  FormErrorMessage,
+  Text,
+  Link
 } from '@chakra-ui/react';
 
-// TODO: Integrate reCAPTCHA v3
 export default function Login() {
   const navigate = useNavigate();
   const toast = useToast();
   const { signIn } = useAuth();
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm();
 
+  // This function is now corrected. It passes the 'data' object directly.
   const onSubmit = async (data) => {
     try {
-      const { error } = await signIn({
-        email: data.email,
-        password: data.password,
-      });
+      // The 'data' object from react-hook-form is already in the correct 
+      // format { email: "...", password: "..." }, which is what our signIn function expects.
+      const { error } = await signIn(data);
       if (error) throw error;
       navigate('/dashboard'); // Redirect to dashboard after login
     } catch (error) {
@@ -41,7 +50,7 @@ export default function Login() {
         bg="brand.background"
         boxShadow="xl"
         borderRadius="xl"
-        p={[4, 8]}
+        p={8}
         mx="auto"
         border="1px solid"
         borderColor="brand.accentSecondary"
@@ -54,6 +63,7 @@ export default function Login() {
             <FormControl isInvalid={errors.email}>
               <FormLabel>Email Address</FormLabel>
               <Input type="email" {...register('email', { required: 'Email is required' })} />
+              <FormErrorMessage>{errors.email?.message}</FormErrorMessage>
             </FormControl>
 
             <FormControl isInvalid={errors.password}>
@@ -68,11 +78,21 @@ export default function Login() {
               mt={4}
               w="100%"
               size="lg"
+              colorScheme="pink"
+              bg="brand.accentPrimary"
+              color="white"
+              _hover={{ bg: '#c8aeb0' }}
             >
               Sign In
             </Button>
           </Stack>
         </form>
+        <Text mt={6} textAlign="center" color="brand.textSecondary">
+            Don't have an account?{' '}
+            <Link as={RouterLink} to="/signup" color="brand.accentPrimary" fontWeight="bold">
+              Sign Up
+            </Link>
+        </Text>
       </Box>
     </Flex>
   );
