@@ -1,43 +1,73 @@
-// src/context/AuthContext.jsx
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { supabase } from '../supabaseClient.js'; 
+// frontend/src/context/AuthContext.jsx
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { supabase } from '../supabaseClient';
+import { useNavigate } from 'react-router-dom';
 
-export const AuthContext = createContext();
+const AuthContext = createContext();
+
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const getSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      setLoading(false);
-    };
-
-    getSession();
-
-    const { data: listener } = supabase.auth.onAuthStateChange(
+  const setupAuthListener = useCallback(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+        setUser(session ? session.user : null);
         setLoading(false);
       }
     );
-
     return () => {
-      listener?.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, []);
 
+  useEffect(() => {
+    const checkUser = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        setUser(session ? session.user : null);
+        setLoading(false);
+    };
+    
+    checkUser();
+    const unsubscribe = setupAuthListener();
+    return unsubscribe;
+  }, [setupAuthListener]);
+
+  const signUp = async (email, password, metadata) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: metadata // Securely pass metadata here
+      }
+    });
+    if (error) throw error;
+    // The onAuthStateChange listener will handle setting the user
+    return data;
+  };
+  
+  const signIn = async (email, password) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    // The onAuthStateChange listener will handle setting the user
+  };
+
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    setUser(null);
+    navigate('/');
+  };
+
   const value = {
-    signUp: (data) => supabase.auth.signUp(data),
-    signIn: (data) => supabase.auth.signInWithPassword(data),
-    signOut: () => supabase.auth.signOut(),
     user,
-    session,
+    signIn,
+    signOut,
+    signUp,
+    loading
   };
 
   return (
@@ -45,8 +75,4 @@ export const AuthProvider = ({ children }) => {
       {!loading && children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  return useContext(AuthContext);
 };

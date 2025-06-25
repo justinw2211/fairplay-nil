@@ -21,7 +21,6 @@ def calculate_compliance_score(deal: schemas.DealCreate) -> Dict:
     if deal.payor_relationship_details and len(deal.payor_relationship_details) > 3:
         flags.append("Pre-existing Relationship: Deals with boosters or insiders are scrutinized for Fair Market Value.")
 
-    # Added rule for conflicts
     if deal.has_conflicts and deal.has_conflicts in ['yes', 'unsure']:
         flags.append("Potential Conflict: This deal may conflict with existing university or team sponsorships.")
 
@@ -31,7 +30,7 @@ def calculate_compliance_score(deal: schemas.DealCreate) -> Dict:
     return {"score": score, "flags": flags}
 
 
-@router.post("/api/deals", response_model=schemas.DealResponse, status_code=201)
+@router.post("/api/deals", response_model=schemas.Deal, status_code=201)
 def create_deal(deal: schemas.DealCreate, current_user: dict = Depends(get_current_user)):
     user_id = current_user['id']
     
@@ -50,6 +49,7 @@ def create_deal(deal: schemas.DealCreate, current_user: dict = Depends(get_curre
     deal_dict['user_id'] = user_id
     deal_dict['compliance_score'] = compliance_score
     deal_dict['compliance_flags'] = compliance_flags
+    deal_dict['status'] = 'Pending' # Explicitly set status on creation
 
     if 'division' in deal_dict and isinstance(deal_dict.get('division'), str):
         roman_to_int = {'I': 1, 'II': 2, 'III': 3}
@@ -57,8 +57,8 @@ def create_deal(deal: schemas.DealCreate, current_user: dict = Depends(get_curre
 
     try:
         data, count = supabase.table('deals').insert(deal_dict).execute()
-        if not data[1]:
-             raise HTTPException(status_code=500, detail="Failed to create deal, no data returned.")
+        if not data or not data[1]:
+             raise HTTPException(status_code=500, detail="Failed to create deal, no data returned from database.")
         created_deal = data[1][0]
         return created_deal
     except Exception as e:
@@ -66,7 +66,7 @@ def create_deal(deal: schemas.DealCreate, current_user: dict = Depends(get_curre
         raise HTTPException(status_code=500, detail=f"Error creating deal in database: {e}")
 
 
-@router.get("/api/deals", response_model=List[schemas.DealResponse])
+@router.get("/api/deals", response_model=List[schemas.Deal])
 def get_deals(current_user: dict = Depends(get_current_user)):
     user_id = current_user['id']
     
@@ -78,17 +78,17 @@ def get_deals(current_user: dict = Depends(get_current_user)):
     return response.data
 
 
-@router.put("/api/deals/{deal_id}", response_model=schemas.DealResponse)
+@router.put("/api/deals/{deal_id}", response_model=schemas.Deal)
 def update_deal_status(deal_id: int, deal_update: schemas.DealUpdate, current_user: dict = Depends(get_current_user)):
     user_id = current_user['id']
     
     update_data = {"status": deal_update.status}
     
     try:
-        updated_data, count = supabase.table('deals').update(update_data).eq('id', deal_id).eq('user_id', user_id).execute()
-        if not updated_data[1]:
+        data, count = supabase.table('deals').update(update_data).eq('id', deal_id).eq('user_id', user_id).select('*').execute()
+        if not data or not data[1]:
             raise HTTPException(status_code=404, detail="Deal not found or you do not have permission to edit it.")
-        return updated_data[1][0]
+        return data[1][0]
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error updating deal in database.")
 
@@ -99,7 +99,7 @@ def delete_deal(deal_id: int, current_user: dict = Depends(get_current_user)):
 
     try:
         data, count = supabase.table('deals').delete().eq('id', deal_id).eq('user_id', user_id).execute()
-        if count[1] == 0:
+        if count[1] is None or len(count[1]) == 0:
             raise HTTPException(status_code=404, detail="Deal not found or you do not have permission to delete it.")
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error deleting deal from database.")

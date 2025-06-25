@@ -1,142 +1,240 @@
-// src/pages/SignUp.jsx
-import React, { useMemo, useEffect } from 'react';
+// frontend/src/pages/SignUp.jsx
 import { useForm, Controller } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.jsx';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
-  Box, Button, Flex, Heading, Stack, FormControl,
-  FormLabel, Input, useToast, FormErrorMessage, NumberInput, NumberInputField
+  Box,
+  Button,
+  FormControl,
+  FormLabel,
+  FormErrorMessage,
+  Input,
+  VStack,
+  Heading,
+  Text,
+  useToast,
+  Select,
+  Link,
+  Flex
 } from '@chakra-ui/react';
-import ReactSelect from "react-select";
-import { NCAA_SCHOOL_OPTIONS } from '../data/ncaaSchools.js';
-import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, COMBINED_SPORTS } from '../data/formConstants.js';
+import { GENDERS, MEN_SPORTS, WOMEN_SPORTS } from '../data/formConstants';
+import { ncaaSchools } from '../data/ncaaSchools';
+import React, { useState } from 'react';
 
-const selectStyles = {
-  control: (base, state) => ({
-    ...base,
-    background: "#ffffff",
-    borderColor: state.isFocused ? "#d0bdb5" : "#d6dce4",
-    boxShadow: state.isFocused ? "0 0 0 1px #d0bdb5" : "none",
-    "&:hover": { borderColor: "#d0bdb5" },
-  }),
-  menu: (base) => ({ ...base, zIndex: 99 }),
-};
+const schema = yup.object().shape({
+  fullName: yup.string().required('Full name is required'),
+  email: yup.string().email('Invalid email format').required('Email is required'),
+  password: yup.string().min(8, 'Password must be at least 8 characters').required('Password is required'),
+  division: yup.string().required('NCAA Division is required'),
+  university: yup.string().required('University is required'),
+  gender: yup.string().required('Gender is required'),
+  sport: yup.string().required('Sport is required'),
+});
 
-const DIVISIONS = [{label: "I", value: "I"}, {label: "II", value: "II"}, {label: "III", value: "III"}];
-
-export default function SignUp() {
+const SignUp = () => {
+  const { signUp } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
-  const { signUp } = useAuth();
-  const { register, handleSubmit, control, watch, setValue, formState: { errors, isSubmitting } } = useForm();
-  
-  const selectedRole = watch('role');
+  const [filteredSchools, setFilteredSchools] = useState([]);
+  const [availableSports, setAvailableSports] = useState([]);
+
+  const {
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
+
   const selectedDivision = watch('division');
   const selectedGender = watch('gender');
 
-  const schoolOptions = useMemo(() => {
-    if (!selectedDivision) return [];
-    return NCAA_SCHOOL_OPTIONS.filter(o => o.division === selectedDivision);
-  }, [selectedDivision]);
-
-  const sportOptions = useMemo(() => {
-    if (selectedGender === 'Male') return MEN_SPORTS;
-    if (selectedGender === 'Female') return WOMEN_SPORTS;
-    if (['Nonbinary', 'Prefer not to say', 'Other'].includes(selectedGender)) {
-      return COMBINED_SPORTS;
+  React.useEffect(() => {
+    if (selectedDivision) {
+      setFilteredSchools(ncaaSchools[selectedDivision] || []);
+      setValue('university', ''); // Reset university on division change
     }
-    return [];
-  }, [selectedGender]);
+  }, [selectedDivision, setValue]);
 
-  useEffect(() => {
-    setValue('sports', []); // Clear sports when gender changes
+  React.useEffect(() => {
+    if (selectedGender === 'Male') {
+      setAvailableSports(MEN_SPORTS);
+    } else if (selectedGender === 'Female') {
+      setAvailableSports(WOMEN_SPORTS);
+    } else {
+      setAvailableSports([]);
+    }
+    setValue('sport', ''); // Reset sport on gender change
   }, [selectedGender, setValue]);
 
   const onSubmit = async (data) => {
     try {
-      const { error } = await signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          data: {
-            full_name: data.full_name,
-            role: data.role,
-            school: data.school || null,
-            division: data.division || null,
-            gender: data.gender || null,
-            graduation_year: data.graduation_year ? parseInt(data.graduation_year, 10) : null,
-            sports: data.sports || [],
-          }
-        }
+      const { user, error } = await signUp(data.email, data.password, {
+        full_name: data.fullName,
+        division: data.division,
+        university: data.university,
+        gender: data.gender,
+        sport: data.sport,
       });
 
-      if (error) throw error;
-      
-      toast({
-        title: 'Account created.',
-        description: "We've sent a confirmation link to your email.",
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
-      navigate('/login');
+      if (error) {
+        throw error;
+      }
+
+      if (user) {
+        toast({
+          title: 'Account created.',
+          description: "We've created your account for you.",
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+        navigate('/dashboard');
+      }
     } catch (error) {
       toast({
-        title: 'Error signing up.',
+        title: 'Sign up failed.',
         description: error.message,
         status: 'error',
-        duration: 5000,
+        duration: 9000,
         isClosable: true,
       });
     }
   };
 
   return (
-    <Flex minH="90vh" align="center" justify="center" bg="brand.backgroundLight">
-      <Box w={["95vw", "600px"]} bg="brand.background" boxShadow="xl" borderRadius="xl" p={[4, 8]} mx="auto" border="1px solid" borderColor="brand.accentSecondary">
-        <Heading as="h1" size="lg" mb={6} color="brand.textPrimary" textAlign="center">
-          Create Your FairPlay Account
-        </Heading>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Stack spacing={4}>
-            <FormControl isInvalid={errors.full_name}><FormLabel>Full Name</FormLabel><Input {...register('full_name', { required: 'Full name is required' })} /></FormControl>
-            <FormControl isInvalid={errors.email}><FormLabel>Email Address</FormLabel><Input type="email" {...register('email', { required: 'Email is required' })} /></FormControl>
-            <FormControl isInvalid={errors.password}><FormLabel>Password</FormLabel><Input type="password" {...register('password', { required: 'Password is required', minLength: { value: 6, message: 'Password must be at least 6 characters' } })} /></FormControl>
-            <FormControl isInvalid={errors.role}><FormLabel>I am a...</FormLabel><Controller name="role" control={control} rules={{ required: 'Please select a role' }} render={({ field }) => (<ReactSelect options={[{ value: 'athlete', label: 'Student-Athlete' }, { value: 'representative', label: 'Athlete Representative' }, { value: 'collective', label: 'Collective' }, { value: 'university', label: 'University' }, { value: 'brand', label: 'Brand' }, { value: 'other', label: 'Other' }]} value={field.value ? { value: field.value, label: field.value.charAt(0).toUpperCase() + field.value.slice(1).replace("_", " ") } : null} onChange={(val) => field.onChange(val ? val.value : '')} styles={selectStyles} placeholder="Select your role"/>)}/></FormControl>
-
-            {selectedRole === 'athlete' && (
-              <>
-                <Heading size="md" pt={4} borderTop="1px solid" borderColor="brand.accentSecondary">Athlete Details</Heading>
-                <FormControl isInvalid={errors.division}><FormLabel>Division</FormLabel><Controller name="division" control={control} render={({ field }) => (<ReactSelect {...field} options={DIVISIONS} value={DIVISIONS.find(d => d.value === field.value)} onChange={val => { field.onChange(val.value); setValue('school', null); }} styles={selectStyles} placeholder="Select division..."/>)}/></FormControl>
-                <FormControl isInvalid={errors.school}><FormLabel>School</FormLabel><Controller name="school" control={control} render={({ field }) => (<ReactSelect {...field} options={schoolOptions} value={schoolOptions.find(s => s.value === field.value)} onChange={val => field.onChange(val.value)} isDisabled={!selectedDivision} isSearchable styles={selectStyles} placeholder="Type to search your school..."/>)}/></FormControl>
-                <FormControl isInvalid={errors.gender}><FormLabel>Gender</FormLabel><Controller name="gender" control={control} render={({ field }) => (<ReactSelect options={GENDERS} value={GENDERS.find(g => g.value === field.value)} onChange={val => field.onChange(val.value)} styles={selectStyles} placeholder="Select gender..."/>)}/></FormControl>
-                <FormControl isInvalid={errors.sports}><FormLabel>Sport(s)</FormLabel>
-                  <Controller 
-                    name="sports" 
-                    control={control} 
+    <Flex minH="100vh" align="center" justify="center" bg="brand.backgroundLight">
+      <Box
+        p={8}
+        maxWidth="500px"
+        borderWidth={1}
+        borderRadius="lg"
+        boxShadow="lg"
+        bg="brand.background"
+      >
+        <VStack spacing={4}>
+          <Heading color="brand.textPrimary">Create an Account</Heading>
+          <Text color="brand.textSecondary">
+            Join FairPlay NIL to manage your deals with confidence.
+          </Text>
+          <form onSubmit={handleSubmit(onSubmit)} style={{ width: '100%' }}>
+            <VStack spacing={4}>
+                <Controller
+                    name="fullName"
+                    control={control}
                     render={({ field }) => (
-                      <ReactSelect 
-                        isMulti 
-                        options={sportOptions} 
-                        // THE FIX: value prop now correctly finds the object(s)
-                        value={sportOptions.filter(option => Array.isArray(field.value) && field.value.includes(option.value))}
-                        // THE FIX: Correctly map the array of objects to an array of strings
-                        onChange={val => field.onChange(val ? val.map(c => c.value) : [])} 
-                        isDisabled={!selectedGender} 
-                        styles={selectStyles} 
-                        placeholder="Select sports..."
-                      />
+                        <FormControl isInvalid={errors.fullName}>
+                        <FormLabel>Full Name</FormLabel>
+                        <Input {...field} />
+                        <FormErrorMessage>{errors.fullName?.message}</FormErrorMessage>
+                        </FormControl>
                     )}
-                  />
-                </FormControl>
-                <FormControl isInvalid={errors.graduation_year}><FormLabel>Graduation Year</FormLabel><Controller name="graduation_year" control={control} render={({ field }) => (<NumberInput {...field} onChange={(val) => field.onChange(val === '' ? null : Number(val))} min={2024} max={2035}><NumberInputField placeholder="2026" /></NumberInput>)}/></FormControl>
-              </>
-            )}
-
-            <Button type="submit" isLoading={isSubmitting} mt={4} w="100%" size="lg">Sign Up</Button>
-          </Stack>
-        </form>
+                />
+                <Controller
+                    name="email"
+                    control={control}
+                    render={({ field }) => (
+                        <FormControl isInvalid={errors.email}>
+                        <FormLabel>Email Address</FormLabel>
+                        <Input {...field} type="email" />
+                        <FormErrorMessage>{errors.email?.message}</FormErrorMessage>
+                        </FormControl>
+                    )}
+                />
+                <Controller
+                    name="password"
+                    control={control}
+                    render={({ field }) => (
+                        <FormControl isInvalid={errors.password}>
+                        <FormLabel>Password</FormLabel>
+                        <Input {...field} type="password" />
+                        <FormErrorMessage>{errors.password?.message}</FormErrorMessage>
+                        </FormControl>
+                    )}
+                />
+                <Controller
+                    name="division"
+                    control={control}
+                    render={({ field }) => (
+                        <FormControl isInvalid={errors.division}>
+                        <FormLabel>NCAA Division</FormLabel>
+                        <Select {...field} placeholder="Select Division">
+                            <option value="D1">Division I</option>
+                            <option value="D2">Division II</option>
+                            <option value="D3">Division III</option>
+                        </Select>
+                        <FormErrorMessage>{errors.division?.message}</FormErrorMessage>
+                        </FormControl>
+                    )}
+                />
+                <Controller
+                    name="university"
+                    control={control}
+                    render={({ field }) => (
+                        <FormControl isInvalid={errors.university}>
+                        <FormLabel>University</FormLabel>
+                        <Select {...field} placeholder="Select University" isDisabled={!selectedDivision}>
+                            {filteredSchools.map(school => (
+                                <option key={school} value={school}>{school}</option>
+                            ))}
+                        </Select>
+                        <FormErrorMessage>{errors.university?.message}</FormErrorMessage>
+                        </FormControl>
+                    )}
+                />
+                <Controller
+                    name="gender"
+                    control={control}
+                    render={({ field }) => (
+                        <FormControl isInvalid={errors.gender}>
+                        <FormLabel>Gender</FormLabel>
+                        <Select {...field} placeholder="Select Gender">
+                           {GENDERS.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
+                        </Select>
+                        <FormErrorMessage>{errors.gender?.message}</FormErrorMessage>
+                        </FormControl>
+                    )}
+                />
+                <Controller
+                    name="sport"
+                    control={control}
+                    render={({ field }) => (
+                        <FormControl isInvalid={errors.sport}>
+                        <FormLabel>Sport</FormLabel>
+                        <Select {...field} placeholder="Select Sport" isDisabled={!selectedGender}>
+                            {availableSports.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                        </Select>
+                        <FormErrorMessage>{errors.sport?.message}</FormErrorMessage>
+                        </FormControl>
+                    )}
+                />
+              <Button
+                type="submit"
+                colorScheme="pink"
+                bg="brand.accentPrimary"
+                color="white"
+                width="full"
+                isLoading={isSubmitting}
+                _hover={{ bg: '#c8aeb0' }}
+              >
+                Sign Up
+              </Button>
+            </VStack>
+          </form>
+          <Text mt={4} color="brand.textSecondary">
+            Already have an account?{' '}
+            <Link as={RouterLink} to="/login" color="brand.accentPrimary" fontWeight="bold">
+              Sign In
+            </Link>
+          </Text>
+        </VStack>
       </Box>
     </Flex>
   );
-}
+};
+
+export default SignUp;

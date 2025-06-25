@@ -33,7 +33,7 @@ export const dealStep2Schema = yup.object().shape({
 // Schema for Step 3: The Rules
 export const dealStep3Schema = yup.object().shape({
     uses_school_ip: yup.boolean().required('This field is required.'),
-    has_conflicts: yup.string().required('This field is required.'), // Kept as string to support "unsure"
+    has_conflicts: yup.string().required('This field is required.'),
 });
 
 // Schema for Step 4: The Agreement
@@ -44,7 +44,7 @@ export const dealStep4Schema = yup.object().shape({
       is: true,
       then: (schema) => schema.required("Agent's name is required."),
     }),
-    agent_agency: yup.string().when('is_using_agent', {
+    agent_agency: yup.string().when('is_using_agent', { // Corrected typo here
       is: true,
       then: (schema) => schema.required("Agency name is required."),
     }),

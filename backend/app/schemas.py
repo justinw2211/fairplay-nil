@@ -27,7 +27,8 @@ class ProfileResponse(ProfileBase):
     id: UUID
 
 # --- Unified Deal Schemas ---
-class DealCreate(BaseModel):
+class DealBase(BaseModel):
+    # This class defines all common deal attributes
     name: Optional[str] = None
     email: Optional[EmailStr] = None
     school: Optional[str] = None
@@ -67,21 +68,25 @@ class DealCreate(BaseModel):
     agent_agency: Optional[str] = None
     contract_url: Optional[str] = None
     fmv: Optional[float] = None
-    has_conflicts: Optional[str] = None # Added this field
+    has_conflicts: Optional[str] = None
+    status: Optional[str] = 'Pending'
+
+
+class DealCreate(DealBase):
+    # Inherits all fields for creation
+    pass
 
 class DealUpdate(BaseModel):
     status: str
 
-class DealResponse(BaseModel):
+class Deal(DealBase):
+    # This is the comprehensive response model
     model_config = ConfigDict(from_attributes=True, extra='ignore')
+    
     id: int
     created_at: Optional[datetime] = None
     user_id: Optional[UUID] = None
-    status: Optional[str] = None
-    payor_name: Optional[str] = None
-    payor_industry: Optional[str] = None
+    
+    # Compliance fields are also part of the response
     compliance_score: Optional[str] = None
     compliance_flags: Optional[List[str]] = None
-    brand_partner: Optional[str] = None
-    fmv: Optional[float] = None
-    has_conflicts: Optional[str] = None # Added this field
