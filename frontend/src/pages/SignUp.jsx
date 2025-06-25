@@ -1,4 +1,5 @@
 // frontend/src/pages/SignUp.jsx
+import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -20,8 +21,7 @@ import {
   Flex
 } from '@chakra-ui/react';
 import { GENDERS, MEN_SPORTS, WOMEN_SPORTS } from '../data/formConstants';
-import { ncaaSchools } from '../data/ncaaSchools';
-import React, { useState } from 'react';
+import { NCAA_SCHOOL_OPTIONS } from '../data/ncaaSchools'; // CORRECTED import
 
 const schema = yup.object().shape({
   fullName: yup.string().required('Full name is required'),
@@ -53,14 +53,17 @@ const SignUp = () => {
   const selectedDivision = watch('division');
   const selectedGender = watch('gender');
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedDivision) {
-      setFilteredSchools(ncaaSchools[selectedDivision] || []);
-      setValue('university', ''); // Reset university on division change
+      // CORRECTED filtering logic
+      setFilteredSchools(NCAA_SCHOOL_OPTIONS.filter(school => school.division === selectedDivision));
+      setValue('university', '');
+    } else {
+      setFilteredSchools([]);
     }
   }, [selectedDivision, setValue]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedGender === 'Male') {
       setAvailableSports(MEN_SPORTS);
     } else if (selectedGender === 'Female') {
@@ -68,7 +71,7 @@ const SignUp = () => {
     } else {
       setAvailableSports([]);
     }
-    setValue('sport', ''); // Reset sport on gender change
+    setValue('sport', '');
   }, [selectedGender, setValue]);
 
   const onSubmit = async (data) => {
@@ -81,9 +84,7 @@ const SignUp = () => {
         sport: data.sport,
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       if (user) {
         toast({
@@ -108,129 +109,23 @@ const SignUp = () => {
 
   return (
     <Flex minH="100vh" align="center" justify="center" bg="brand.backgroundLight">
-      <Box
-        p={8}
-        maxWidth="500px"
-        borderWidth={1}
-        borderRadius="lg"
-        boxShadow="lg"
-        bg="brand.background"
-      >
+      <Box p={8} maxWidth="500px" borderWidth={1} borderRadius="lg" boxShadow="lg" bg="brand.background">
         <VStack spacing={4}>
           <Heading color="brand.textPrimary">Create an Account</Heading>
-          <Text color="brand.textSecondary">
-            Join FairPlay NIL to manage your deals with confidence.
-          </Text>
+          <Text color="brand.textSecondary">Join FairPlay NIL to manage your deals with confidence.</Text>
           <form onSubmit={handleSubmit(onSubmit)} style={{ width: '100%' }}>
             <VStack spacing={4}>
-                <Controller
-                    name="fullName"
-                    control={control}
-                    render={({ field }) => (
-                        <FormControl isInvalid={errors.fullName}>
-                        <FormLabel>Full Name</FormLabel>
-                        <Input {...field} />
-                        <FormErrorMessage>{errors.fullName?.message}</FormErrorMessage>
-                        </FormControl>
-                    )}
-                />
-                <Controller
-                    name="email"
-                    control={control}
-                    render={({ field }) => (
-                        <FormControl isInvalid={errors.email}>
-                        <FormLabel>Email Address</FormLabel>
-                        <Input {...field} type="email" />
-                        <FormErrorMessage>{errors.email?.message}</FormErrorMessage>
-                        </FormControl>
-                    )}
-                />
-                <Controller
-                    name="password"
-                    control={control}
-                    render={({ field }) => (
-                        <FormControl isInvalid={errors.password}>
-                        <FormLabel>Password</FormLabel>
-                        <Input {...field} type="password" />
-                        <FormErrorMessage>{errors.password?.message}</FormErrorMessage>
-                        </FormControl>
-                    )}
-                />
-                <Controller
-                    name="division"
-                    control={control}
-                    render={({ field }) => (
-                        <FormControl isInvalid={errors.division}>
-                        <FormLabel>NCAA Division</FormLabel>
-                        <Select {...field} placeholder="Select Division">
-                            <option value="D1">Division I</option>
-                            <option value="D2">Division II</option>
-                            <option value="D3">Division III</option>
-                        </Select>
-                        <FormErrorMessage>{errors.division?.message}</FormErrorMessage>
-                        </FormControl>
-                    )}
-                />
-                <Controller
-                    name="university"
-                    control={control}
-                    render={({ field }) => (
-                        <FormControl isInvalid={errors.university}>
-                        <FormLabel>University</FormLabel>
-                        <Select {...field} placeholder="Select University" isDisabled={!selectedDivision}>
-                            {filteredSchools.map(school => (
-                                <option key={school} value={school}>{school}</option>
-                            ))}
-                        </Select>
-                        <FormErrorMessage>{errors.university?.message}</FormErrorMessage>
-                        </FormControl>
-                    )}
-                />
-                <Controller
-                    name="gender"
-                    control={control}
-                    render={({ field }) => (
-                        <FormControl isInvalid={errors.gender}>
-                        <FormLabel>Gender</FormLabel>
-                        <Select {...field} placeholder="Select Gender">
-                           {GENDERS.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
-                        </Select>
-                        <FormErrorMessage>{errors.gender?.message}</FormErrorMessage>
-                        </FormControl>
-                    )}
-                />
-                <Controller
-                    name="sport"
-                    control={control}
-                    render={({ field }) => (
-                        <FormControl isInvalid={errors.sport}>
-                        <FormLabel>Sport</FormLabel>
-                        <Select {...field} placeholder="Select Sport" isDisabled={!selectedGender}>
-                            {availableSports.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                        </Select>
-                        <FormErrorMessage>{errors.sport?.message}</FormErrorMessage>
-                        </FormControl>
-                    )}
-                />
-              <Button
-                type="submit"
-                colorScheme="pink"
-                bg="brand.accentPrimary"
-                color="white"
-                width="full"
-                isLoading={isSubmitting}
-                _hover={{ bg: '#c8aeb0' }}
-              >
-                Sign Up
-              </Button>
+                <Controller name="fullName" control={control} render={({ field }) => (<FormControl isInvalid={errors.fullName}><FormLabel>Full Name</FormLabel><Input {...field} /><FormErrorMessage>{errors.fullName?.message}</FormErrorMessage></FormControl>)} />
+                <Controller name="email" control={control} render={({ field }) => (<FormControl isInvalid={errors.email}><FormLabel>Email Address</FormLabel><Input {...field} type="email" /><FormErrorMessage>{errors.email?.message}</FormErrorMessage></FormControl>)} />
+                <Controller name="password" control={control} render={({ field }) => (<FormControl isInvalid={errors.password}><FormLabel>Password</FormLabel><Input {...field} type="password" /><FormErrorMessage>{errors.password?.message}</FormErrorMessage></FormControl>)} />
+                <Controller name="division" control={control} render={({ field }) => (<FormControl isInvalid={errors.division}><FormLabel>NCAA Division</FormLabel><Select {...field} placeholder="Select Division"><option value="D1">Division I</option><option value="D2">Division II</option><option value="D3">Division III</option></Select><FormErrorMessage>{errors.division?.message}</FormErrorMessage></FormControl>)} />
+                <Controller name="university" control={control} render={({ field }) => (<FormControl isInvalid={errors.university}><FormLabel>University</FormLabel><Select {...field} placeholder="Select University" isDisabled={!selectedDivision}>{filteredSchools.map(school => (<option key={school.value} value={school.value}>{school.label}</option>))}</Select><FormErrorMessage>{errors.university?.message}</FormErrorMessage></FormControl>)} />
+                <Controller name="gender" control={control} render={({ field }) => (<FormControl isInvalid={errors.gender}><FormLabel>Gender</FormLabel><Select {...field} placeholder="Select Gender">{GENDERS.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}</Select><FormErrorMessage>{errors.gender?.message}</FormErrorMessage></FormControl>)} />
+                <Controller name="sport" control={control} render={({ field }) => (<FormControl isInvalid={errors.sport}><FormLabel>Sport</FormLabel><Select {...field} placeholder="Select Sport" isDisabled={!selectedGender}>{availableSports.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}</Select><FormErrorMessage>{errors.sport?.message}</FormErrorMessage></FormControl>)} />
+              <Button type="submit" colorScheme="pink" bg="brand.accentPrimary" color="white" width="full" isLoading={isSubmitting} _hover={{ bg: '#c8aeb0' }}>Sign Up</Button>
             </VStack>
           </form>
-          <Text mt={4} color="brand.textSecondary">
-            Already have an account?{' '}
-            <Link as={RouterLink} to="/login" color="brand.accentPrimary" fontWeight="bold">
-              Sign In
-            </Link>
-          </Text>
+          <Text mt={4} color="brand.textSecondary">Already have an account?{' '}<Link as={RouterLink} to="/login" color="brand.accentPrimary" fontWeight="bold">Sign In</Link></Text>
         </VStack>
       </Box>
     </Flex>
