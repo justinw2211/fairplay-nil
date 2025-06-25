@@ -12,13 +12,14 @@ app = FastAPI(title="FairPlay NIL API")
 #
 # 1. http://localhost (with any port for local development)
 # 2. Your production URL: https://fairplay-nil.vercel.app
-# 3. ANY preview URL that starts with 'https://fairplay-' and ends with '.vercel.app'
+# 3. ANY preview URL that starts with 'https://fairplay-nil-' and ends with '.vercel.app'
 #
 # This pattern is now flexible enough to handle all of Vercel's generated URLs for your project.
-ORIGIN_REGEX = r"https://fairplay-.*\.vercel\.app|http://localhost(:\d+)?"
+ORIGIN_REGEX = r"https://fairplay-nil.*\.vercel\.app|http://localhost(:\d+)?"
 
 app.add_middleware(
     CORSMiddleware,
+    # Use the robust regular expression for matching origins
     allow_origin_regex=ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["*"], 
