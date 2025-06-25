@@ -1,144 +1,101 @@
-// src/pages/Dashboard.jsx
+// frontend/src/pages/Dashboard.jsx
 import React, { useState, useEffect } from 'react';
-import { Box, Heading, Text, Spinner, Flex, Button, useToast, useDisclosure,
-  Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton } from '@chakra-ui/react';
+import { Box, Heading, Flex, Button, Spinner, Text, useToast } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { useFMV } from '../context/FMVContext.jsx'; // Import useFMV hook
+import { useFMVContext } from '../context/FMVContext.jsx'; // CORRECTED: Import useFMVContext
 import { supabase } from '../supabaseClient.js';
 import DealsTable from '../components/DealsTable.jsx';
 import SummaryCards from '../components/SummaryCards.jsx';
 
-export default function Dashboard() {
-  const { user } = useAuth();
+const Dashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const toast = useToast();
-  const { initializeNewCalculation } = useFMV(); // Get the pre-fill function
+  // CORRECTED: Call the correct hook and get the correct function
+  const { resetAndPrefill } = useFMVContext(); 
+  
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const [dealToDelete, setDealToDelete] = useState(null);
 
   useEffect(() => {
     const fetchDeals = async () => {
       if (!user) return;
       setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('deals')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
+        const token = (await supabase.auth.getSession()).data.session?.access_token;
+        if (!token) throw new Error("Authentication token not found.");
 
-        if (error) throw error;
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch deals.');
+        }
+
+        const data = await response.json();
         setDeals(data);
-      } catch (err) {
-        setError(err.message);
-        toast({ title: "Error fetching deals", description: err.message, status: 'error' });
+      } catch (error) {
+        toast({
+          title: 'Error fetching deals.',
+          description: error.message,
+          status: 'error',
+          duration: 9000,
+          isClosable: true,
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchDeals();
-  }, [toast, user]);
+  }, [user, toast]);
 
-  const handleStatusUpdate = async (dealId, newStatus) => {
-    try {
-        const { data, error } = await supabase
-            .from('deals')
-            .update({ status: newStatus })
-            .eq('id', dealId)
-            .select()
-            .single();
-
-        if (error) throw error;
-
-        setDeals(deals.map(d => d.id === dealId ? data : d));
-        toast({ title: "Status Updated", status: 'success', duration: 2000 });
-    } catch (err) {
-        toast({ title: "Error updating status", description: err.message, status: 'error' });
-    }
+  const handleNewDeal = () => {
+    // CORRECTED: Call the renamed function to clear form state before navigating
+    resetAndPrefill();
+    navigate('/dashboard/new-deal');
   };
 
-  const openDeleteModal = (deal) => {
-    setDealToDelete(deal);
-    onOpen();
-  };
-
-  const handleDeleteDeal = async () => {
-    if (!dealToDelete) return;
-    try {
-      const { error } = await supabase
-        .from('deals')
-        .delete()
-        .eq('id', dealToDelete.id);
-
-      if (error) throw error;
-
-      setDeals(deals.filter(d => d.id !== dealToDelete.id));
-      toast({ title: "Deal Deleted", status: 'success', duration: 2000 });
-      onClose();
-      setDealToDelete(null);
-    } catch (err) {
-      toast({ title: "Error deleting deal", description: err.message, status: 'error' });
-    }
-  };
-  
-  // THE FIX: Create a handler that exactly mirrors the working buttons
-  const handleStartCalculation = async () => {
-    await initializeNewCalculation();
-    navigate('/fmvcalculator/step1');
-  };
-
-
-  if (loading && !deals.length) {
-    return <Flex justify="center" align="center" h="80vh"><Spinner size="xl" /></Flex>;
+  if (loading) {
+    return (
+      <Flex justify="center" align="center" minH="80vh">
+        <Spinner size="xl" />
+      </Flex>
+    );
   }
 
   return (
-    <Box p={{ base: 4, md: 8 }} maxW="1200px" mx="auto">
+    <Box p={8}>
       <Flex justify="space-between" align="center" mb={6}>
-        <Heading as="h1" size={{ base: 'lg', md: 'xl' }}>Your Dashboard</Heading>
-        <Button onClick={() => navigate('/edit-profile')}>Edit Profile</Button>
+        <Heading as="h1" size="xl">
+          My Deals
+        </Heading>
+        <Button 
+          colorScheme="pink" 
+          bg="brand.accentPrimary" 
+          color="white" 
+          _hover={{ bg: '#c8aeb0' }}
+          onClick={handleNewDeal}
+        >
+          New Deal Compliance Check
+        </Button>
       </Flex>
 
       <SummaryCards deals={deals} />
 
-      <Box mt={10}>
-        {deals.length === 0 && !loading ? (
-          <Flex direction="column" align="center" justify="center" bg="gray.50" p={10} borderRadius="lg" textAlign="center">
-            <Heading as="h3" size="md">Welcome, {user?.user_metadata?.full_name || user?.email}!</Heading>
-            <Text mt={2} color="gray.600">You haven't calculated any deals yet.</Text>
-            {/* THE FIX: Use the new handler for the onClick event */}
-            <Button mt={4} onClick={handleStartCalculation}>Calculate Your First FMV</Button>
-          </Flex>
-        ) : (
-          <DealsTable deals={deals} onStatusUpdate={handleStatusUpdate} onDelete={openDeleteModal} />
-        )}
-      </Box>
-
-      {/* Delete Confirmation Modal */}
-      <Modal isOpen={isOpen} onClose={onClose} isCentered>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Confirm Deletion</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            Are you sure you want to delete the deal with "{dealToDelete?.brand_partner}"? This action cannot be undone.
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onClose}>
-              Cancel
-            </Button>
-            <Button colorScheme="red" onClick={handleDeleteDeal}>
-              Delete
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+      {deals.length > 0 ? (
+        <DealsTable deals={deals} setDeals={setDeals} />
+      ) : (
+        <Flex justify="center" align="center" minH="40vh" borderWidth="2px" borderStyle="dashed" borderRadius="md" mt={8}>
+            <Text fontSize="lg" color="gray.500">You have no deals yet. Start a new compliance check to add one!</Text>
+        </Flex>
+      )}
     </Box>
   );
-}
+};
+
+export default Dashboard;

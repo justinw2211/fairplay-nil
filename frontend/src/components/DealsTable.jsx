@@ -22,7 +22,7 @@ import {
   AlertDialogOverlay,
   Button
 } from '@chakra-ui/react';
-import { TriangleDownIcon, TriangleUpIcon, DeleteIcon, HamburgerIcon } from '@chakra-ui/icons'; // IMPORT Chakra Icons
+import { TriangleDownIcon, TriangleUpIcon, DeleteIcon, HamburgerIcon } from '@chakra-ui/icons';
 import StatusBadge from './StatusBadge';
 import StatusMenu from './StatusMenu';
 import { supabase } from '../supabaseClient';
@@ -112,9 +112,19 @@ const DealsTable = ({ deals, setDeals }) => {
     }
   };
 
+  // Defensive function to prevent crashing on invalid dates
   const formatDate = (dateString) => {
+    // Check for null, undefined, or empty string
+    if (!dateString) {
+      return 'N/A';
+    }
+    const date = new Date(dateString);
+    // Check if the created date is valid
+    if (isNaN(date.getTime())) {
+      return 'Invalid Date';
+    }
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+    return date.toLocaleDateString(undefined, options);
   };
 
   return (
@@ -146,13 +156,12 @@ const DealsTable = ({ deals, setDeals }) => {
                     <MenuButton
                       as={IconButton}
                       aria-label='Options'
-                      // USE Chakra's HamburgerIcon instead of MoreVertical
                       icon={<HamburgerIcon />}
                       variant='outline'
                     />
                     <MenuList>
                       <MenuItem 
-                        icon={<DeleteIcon />} // USE Chakra's DeleteIcon instead of Trash2
+                        icon={<DeleteIcon />}
                         color="red.500"
                         onClick={() => openDeleteConfirm(deal)}
                       >
@@ -177,11 +186,9 @@ const DealsTable = ({ deals, setDeals }) => {
             <AlertDialogHeader fontSize='lg' fontWeight='bold'>
               Delete Deal
             </AlertDialogHeader>
-
             <AlertDialogBody>
               Are you sure you want to delete this deal? This action cannot be undone.
             </AlertDialogBody>
-
             <AlertDialogFooter>
               <Button ref={cancelRef} onClick={() => setIsAlertOpen(false)}>
                 Cancel
