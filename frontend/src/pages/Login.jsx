@@ -1,21 +1,10 @@
-// src/pages/Login.jsx
+// frontend/src/pages/Login.jsx
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import {
-  Box,
-  Button,
-  Flex,
-  Heading,
-  Stack,
-  FormControl,
-  FormLabel,
-  Input,
-  useToast,
-  FormErrorMessage,
-  Text,
-  Link
+  Box, Button, Flex, Heading, Stack, FormControl, FormLabel, Input, useToast, FormErrorMessage, Text, Link
 } from '@chakra-ui/react';
 
 export default function Login() {
@@ -24,14 +13,16 @@ export default function Login() {
   const { signIn } = useAuth();
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm();
 
-  // This function is now corrected. It passes the 'data' object directly.
   const onSubmit = async (data) => {
+    // --- THIS IS OUR DEBUGGING LINE ---
+    // It will print the data structure to the browser console just before sending it.
+    console.log("LOGIN ATTEMPT: Submitting with data object:", data);
+
     try {
-      // The 'data' object from react-hook-form is already in the correct 
-      // format { email: "...", password: "..." }, which is what our signIn function expects.
+      // The 'data' object from react-hook-form is already in the correct format.
       const { error } = await signIn(data);
       if (error) throw error;
-      navigate('/dashboard'); // Redirect to dashboard after login
+      navigate('/dashboard'); 
     } catch (error) {
       toast({
         title: 'Error signing in.',
@@ -45,16 +36,7 @@ export default function Login() {
 
   return (
     <Flex minH="90vh" align="center" justify="center" bg="brand.backgroundLight">
-      <Box
-        w={["95vw", "500px"]}
-        bg="brand.background"
-        boxShadow="xl"
-        borderRadius="xl"
-        p={8}
-        mx="auto"
-        border="1px solid"
-        borderColor="brand.accentSecondary"
-      >
+      <Box w={["95vw", "500px"]} bg="brand.background" boxShadow="xl" borderRadius="xl" p={8} mx="auto" border="1px solid" borderColor="brand.accentSecondary">
         <Heading as="h1" size="lg" mb={6} color="brand.textPrimary" textAlign="center">
           Sign In to FairPlay
         </Heading>
@@ -65,24 +47,12 @@ export default function Login() {
               <Input type="email" {...register('email', { required: 'Email is required' })} />
               <FormErrorMessage>{errors.email?.message}</FormErrorMessage>
             </FormControl>
-
             <FormControl isInvalid={errors.password}>
               <FormLabel>Password</FormLabel>
               <Input type="password" {...register('password', { required: 'Password is required' })} />
               <FormErrorMessage>{errors.password?.message}</FormErrorMessage>
             </FormControl>
-
-            <Button
-              type="submit"
-              isLoading={isSubmitting}
-              mt={4}
-              w="100%"
-              size="lg"
-              colorScheme="pink"
-              bg="brand.accentPrimary"
-              color="white"
-              _hover={{ bg: '#c8aeb0' }}
-            >
+            <Button type="submit" isLoading={isSubmitting} mt={4} w="100%" size="lg" colorScheme="pink" bg="brand.accentPrimary" color="white" _hover={{ bg: '#c8aeb0' }}>
               Sign In
             </Button>
           </Stack>

@@ -41,18 +41,16 @@ export const AuthProvider = ({ children }) => {
       email,
       password,
       options: {
-        data: metadata // Securely pass metadata here
+        data: metadata
       }
     });
     if (error) throw error;
-    // The onAuthStateChange listener will handle setting the user
     return data;
   };
   
-  const signIn = async (email, password) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    // The onAuthStateChange listener will handle setting the user
+  // This function is correct. It expects an object like { email: "...", password: "..." }
+  const signIn = async (data) => {
+    return await supabase.auth.signInWithPassword(data);
   };
 
   const signOut = async () => {
