@@ -5,12 +5,15 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
+// *** BUG FIX: Import useNavigate from react-router-dom ***
+import { useNavigate } from 'react-router-dom'; 
 import {
   Box, Button, FormControl, FormLabel, FormErrorMessage, Input, VStack, Heading, useToast, Select, Container, Flex, Spinner
 } from '@chakra-ui/react';
 import { GENDERS, MEN_SPORTS, WOMEN_SPORTS } from '../data/formConstants.js';
-import { NCAA_SCHOOL_OPTIONS } from '../data/ncaaSchools.js'; // CORRECTED import
+import { NCAA_SCHOOL_OPTIONS } from '../data/ncaaSchools.js';
 
+// The validation schema remains unchanged.
 const schema = yup.object().shape({
   full_name: yup.string().required('Full name is required'),
   division: yup.string().required('NCAA Division is required'),
@@ -22,6 +25,8 @@ const schema = yup.object().shape({
 const EditProfile = () => {
   const { user } = useAuth();
   const toast = useToast();
+  // *** BUG FIX: Initialize the navigate function ***
+  const navigate = useNavigate(); 
   const [loading, setLoading] = useState(true);
   const [filteredSchools, setFilteredSchools] = useState([]);
   const [availableSports, setAvailableSports] = useState([]);
@@ -37,13 +42,14 @@ const EditProfile = () => {
   const selectedDivision = watch('division');
   const selectedGender = watch('gender');
 
+  // This useEffect hook fetches the user's profile when the component mounts.
   useEffect(() => {
     if (user) {
       const fetchProfile = async () => {
         setLoading(true);
         const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
         if (data) {
-          reset(data);
+          reset(data); // Populate the form with the fetched profile data.
         } else if (error && error.code !== 'PGRST116') {
           toast({ title: 'Error fetching profile', description: error.message, status: 'error' });
         }
@@ -53,19 +59,20 @@ const EditProfile = () => {
       fetchProfile();
     }
   }, [user, reset, toast]);
-
+  
+  // This useEffect hook filters the list of schools based on the selected division.
   useEffect(() => {
     if (selectedDivision) {
-      // CORRECTED filtering logic
       setFilteredSchools(NCAA_SCHOOL_OPTIONS.filter(school => school.division === selectedDivision));
       if (!isInitialLoad.current) {
-        setValue('university', '');
+        setValue('university', ''); // Reset university when division changes.
       }
     } else {
       setFilteredSchools([]);
     }
   }, [selectedDivision, setValue]);
-
+  
+  // This useEffect hook filters the list of sports based on the selected gender.
   useEffect(() => {
     if (selectedGender === 'Male') {
       setAvailableSports(MEN_SPORTS);
@@ -75,26 +82,35 @@ const EditProfile = () => {
       setAvailableSports([]);
     }
     if (!isInitialLoad.current) {
-      setValue('sport', '');
+      setValue('sport', ''); // Reset sport when gender changes.
     }
   }, [selectedGender, setValue]);
 
+  // This function handles the form submission.
   const onSubmit = async (data) => {
     try {
       const { error } = await supabase.from('profiles').update({ ...data }).eq('id', user.id);
       if (error) throw error;
+      // Show a success notification.
       toast({
         title: 'Profile updated.', description: 'Your profile has been successfully updated.', status: 'success', duration: 5000, isClosable: true,
       });
+      // *** BUG FIX: Navigate the user to the dashboard after a successful update. ***
+      // A short delay allows the user to read the toast message before redirecting.
+      setTimeout(() => navigate('/dashboard'), 1500); 
+
     } catch (error) {
+      // Show an error notification if the update fails.
       toast({
         title: 'Update failed.', description: error.message, status: 'error', duration: 9000, isClosable: true,
       });
     }
   };
 
+  // Display a spinner while the profile data is loading.
   if (loading) { return (<Flex justify="center" align="center" minH="50vh"><Spinner size="xl" /></Flex>); }
 
+  // Render the form.
   return (
     <Container maxW="container.md" py={12}>
       <Box bg="brand.background" p={8} borderRadius="lg" boxShadow="md">
