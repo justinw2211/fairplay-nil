@@ -4,35 +4,49 @@ import {
   Box, Flex, Heading, Button, Spinner, Text, VStack, useToast
 } from '@chakra-ui/react';
 import { useAuth } from '../context/AuthContext';
-// *** Import the useDeal hook to create new drafts ***
 import { useDeal } from '../context/DealContext';
-import { supabase } from '../supabaseClient';
 import DealsTable from '../components/DealsTable';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  // *** Use our new DealContext functions ***
   const { createDraftDeal, loading: isCreatingDeal } = useDeal();
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const toast = useToast();
   const navigate = useNavigate();
 
-  // Fetch all deals (drafts and submitted) when the component mounts
+  // This effect fetches all deals (drafts and submitted) when the component mounts.
   useEffect(() => {
     const fetchDeals = async () => {
+      // The useAuth hook will provide the supabase client, but for now we get token manually.
+      const sessionRes = await supabase.auth.getSession();
+      const token = sessionRes.data.session?.access_token;
+
+      if (!token) {
+        toast({ title: "Authentication Error", description: "Could not get user session. Please log in again.", status: "error" });
+        setLoading(false);
+        return;
+      }
+
       try {
-        const token = (await supabase.auth.getSession()).data.session?.access_token;
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!response.ok) throw new Error("Failed to fetch deals.");
+
+        if (!response.ok) {
+          // Provide more specific feedback for a 404 error.
+          if (response.status === 404) {
+             throw new Error("API endpoint not found. Please verify the VITE_API_URL environment variable.");
+          }
+          throw new Error("Failed to fetch deals from the server.");
+        }
+        
         const data = await response.json();
         setDeals(data);
       } catch (error) {
         toast({
-          title: 'Error fetching deals',
+          title: 'Error Fetching Deals',
           description: error.message,
           status: 'error',
           duration: 9000,
@@ -45,13 +59,13 @@ const Dashboard = () => {
     fetchDeals();
   }, [toast]);
   
-  // *** This new function handles the creation of a new draft deal ***
+  // This function handles the creation of a new draft deal.
   const handleAddNewDeal = async () => {
     await createDraftDeal();
-    // The createDraftDeal function will handle navigation automatically
+    // The createDraftDeal function in the context handles navigation.
   };
 
-  // Filter deals into drafts and submitted
+  // Filter deals into drafts and submitted.
   const draftDeals = deals.filter(deal => deal.status === 'draft');
   const submittedDeals = deals.filter(deal => deal.status !== 'draft');
 
@@ -78,19 +92,15 @@ const Dashboard = () => {
         </Button>
       </Flex>
       
-      {/* Drafts Section */}
       <Box mb={10}>
         <Heading as="h2" size="md" mb={4}>Draft Deals</Heading>
         {draftDeals.length > 0 ? (
-          // In a future step, we can make this table more draft-specific
-          // For now, re-using DealsTable is efficient.
           <DealsTable deals={draftDeals} setDeals={setDeals} />
         ) : (
           <Text>You have no deals currently in progress. Click "Add New Deal" to get started.</Text>
         )}
       </Box>
 
-      {/* Submitted Deals Section */}
       <Box>
         <Heading as="h2" size="md" mb={4}>Submitted Deals</Heading>
         {submittedDeals.length > 0 ? (
