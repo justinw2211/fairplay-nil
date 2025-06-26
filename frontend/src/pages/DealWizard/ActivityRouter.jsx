@@ -1,6 +1,6 @@
 // frontend/src/pages/DealWizard/ActivityRouter.jsx
-import React from 'react';
-import { useParams, Navigate, useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react'; // Import useEffect
+import { useParams, Navigate } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import { Spinner, Flex } from '@chakra-ui/react';
 
@@ -25,12 +25,20 @@ const activityComponentMap = {
 
 const ActivityRouter = () => {
   const { dealId, activityType } = useParams();
-  const { deal, loading } = useDeal();
-  const navigate = useNavigate();
+  // *** BUG FIX: fetchDealById is now imported to handle the race condition ***
+  const { deal, loading, fetchDealById } = useDeal();
 
-  // Show loading spinner ONLY if the deal object isn't available yet.
-  // This prevents getting stuck on a loading screen after an update.
-  if (loading && !deal) {
+  // This effect hook makes the component more robust.
+  // If it loads and doesn't have the deal data, it fetches it.
+  useEffect(() => {
+    if (!deal && dealId) {
+      fetchDealById(dealId);
+    }
+  }, [deal, dealId, fetchDealById]);
+
+
+  // While loading, show a spinner. This now correctly waits for the fetch to complete.
+  if (loading || !deal) {
     return (
       <Flex justify="center" align="center" minH="80vh">
         <Spinner size="xl" />
@@ -38,14 +46,6 @@ const ActivityRouter = () => {
     );
   }
 
-  // If there's no deal data at all, we can't proceed.
-  if (!deal) {
-      // You can add logic here to fetch the deal or redirect.
-      // For now, redirecting to the dashboard is safest.
-      return <Navigate to="/dashboard" replace />;
-  }
-
-  // *** BUG FIX: Use decodeURIComponent to correctly handle spaces from the URL. ***
   const decodedActivityType = decodeURIComponent(activityType);
   const ActivityComponent = activityComponentMap[decodedActivityType];
 
