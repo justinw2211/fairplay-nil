@@ -15,7 +15,7 @@ export const DealProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // *** NEW: A centralized helper function for all authenticated API calls with detailed logging ***
+  // Centralized helper for all authenticated API calls with logging
   const authenticatedFetch = async (url, options = {}) => {
     console.log(`[DealContext] Starting API call: ${options.method || 'GET'} ${url}`);
     
@@ -95,7 +95,18 @@ export const DealProvider = ({ children }) => {
     }
   }, [navigate]);
 
-  const value = { deal, loading, error, createDraftDeal, updateDeal, fetchDealById, setDeal };
+  const value = {
+    deal,
+    loading,
+    error,
+    createDraftDeal,
+    updateDeal,
+    fetchDealById,
+    setDeal,
+  };
 
   return <DealContext.Provider value={value}>{children}</DealContext.Provider>;
 };
+
+// ✅ This enables named import: { DealContext }
+export { DealContext };
