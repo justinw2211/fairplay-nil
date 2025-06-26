@@ -10,7 +10,7 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { useNavigate, useParams } from "react-router-dom";
-import { DealContext } from "@/context/DealContext";
+import { DealContext } from "../../context/DealContext";
 
 const Step5_Compliance = () => {
   const toast = useToast();
@@ -22,7 +22,7 @@ const Step5_Compliance = () => {
     try {
       const update = {
         licenses_nil: formData.licenses_nil,
-        grant_exclusivity: formData.grant_exclusivity === true ? "Yes" : "No", // 🔥 Patched to send string
+        grant_exclusivity: formData.grant_exclusivity === true ? "Yes" : "No",
         compliance_confirmed: true,
       };
 
