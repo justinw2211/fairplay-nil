@@ -5,7 +5,6 @@ import { useDeal } from '../../context/DealContext';
 import DealWizardLayout from './DealWizardLayout';
 import { Box, SimpleGrid, useToast } from '@chakra-ui/react';
 
-// ActivityCard component remains the same...
 const ActivityCard = ({ title, isSelected, onSelect }) => {
   return (
     <Box
@@ -66,7 +65,6 @@ const Step3_SelectActivities = () => {
     availableActivities.forEach(activity => {
         if (selectedActivities.includes(activity)) {
             if (!newObligations[activity]) {
-                 // Use a more generic default structure
                  newObligations[activity] = activity === "Social Media" ? [] : {};
             }
         } else {
@@ -76,10 +74,10 @@ const Step3_SelectActivities = () => {
 
     await updateDeal(dealId, { obligations: newObligations });
 
-    // *** THIS IS THE KEY CHANGE ***
-    // Navigate to the activity router for the FIRST selected activity.
     const firstActivity = selectedActivities[0];
-    navigate(`/add/deal/activity/${firstActivity}/${dealId}`);
+    // *** BUG FIX: Use encodeURIComponent to handle spaces and special characters in URLs. ***
+    const encodedActivity = encodeURIComponent(firstActivity);
+    navigate(`/add/deal/activity/${encodedActivity}/${dealId}`);
   };
 
   return (

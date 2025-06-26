@@ -1,6 +1,6 @@
 // frontend/src/pages/DealWizard/ActivityRouter.jsx
 import React from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import { Spinner, Flex } from '@chakra-ui/react';
 
@@ -26,8 +26,11 @@ const activityComponentMap = {
 const ActivityRouter = () => {
   const { dealId, activityType } = useParams();
   const { deal, loading } = useDeal();
+  const navigate = useNavigate();
 
-  if (loading || !deal) {
+  // Show loading spinner ONLY if the deal object isn't available yet.
+  // This prevents getting stuck on a loading screen after an update.
+  if (loading && !deal) {
     return (
       <Flex justify="center" align="center" minH="80vh">
         <Spinner size="xl" />
@@ -35,23 +38,31 @@ const ActivityRouter = () => {
     );
   }
 
-  const sanitizedActivityType = activityType.replace(/%20/g, ' ').replace(/%26/g, '&');
-  const ActivityComponent = activityComponentMap[sanitizedActivityType];
+  // If there's no deal data at all, we can't proceed.
+  if (!deal) {
+      // You can add logic here to fetch the deal or redirect.
+      // For now, redirecting to the dashboard is safest.
+      return <Navigate to="/dashboard" replace />;
+  }
+
+  // *** BUG FIX: Use decodeURIComponent to correctly handle spaces from the URL. ***
+  const decodedActivityType = decodeURIComponent(activityType);
+  const ActivityComponent = activityComponentMap[decodedActivityType];
 
   if (!ActivityComponent) {
-    console.error(`No component found for activity type: ${sanitizedActivityType}`);
+    console.error(`No component found for activity type: ${decodedActivityType}`);
     return <Navigate to={`/dashboard`} replace />;
   }
 
   const selectedActivities = Object.keys(deal.obligations || {});
-  const currentIndex = selectedActivities.indexOf(sanitizedActivityType);
+  const currentIndex = selectedActivities.indexOf(decodedActivityType);
 
   let nextStepUrl = '';
   if (currentIndex < selectedActivities.length - 1) {
     const nextActivity = selectedActivities[currentIndex + 1];
-    nextStepUrl = `/add/deal/activity/${encodeURIComponent(nextActivity)}/${dealId}`;
+    const encodedNextActivity = encodeURIComponent(nextActivity);
+    nextStepUrl = `/add/deal/activity/${encodedNextActivity}/${dealId}`;
   } else {
-    // *** This line correctly navigates to the new compliance step ***
     nextStepUrl = `/add/deal/compliance/${dealId}`;
   }
   
