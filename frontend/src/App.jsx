@@ -18,7 +18,7 @@ import Universities from "./pages/Universities.jsx";
 import Collectives from "./pages/Collectives.jsx";
 import Brands from "./pages/Brands.jsx";
 
-// Import the new DealWizard components
+// Import ONLY the new DealWizard components
 import Step1_DealTerms from './pages/DealWizard/Step1_DealTerms';
 import Step2_PayorInfo from './pages/DealWizard/Step2_PayorInfo';
 import Step3_SelectActivities from './pages/DealWizard/Step3_SelectActivities';
@@ -29,21 +29,13 @@ import Step7_Confirmation from './pages/DealWizard/Step7_Confirmation';
 import Step8_Review from './pages/DealWizard/Step8_Review';
 import SubmissionSuccess from './pages/DealWizard/SubmissionSuccess';
 
-// Import the layout and steps for the OLD deal wizard. We will remove these later.
-import DealWizardLayout_OLD from './pages/DealWizard/DealWizardLayout';
-import DealStep1 from './pages/DealWizard/DealStep1';
-import DealStep2 from './pages/DealWizard/DealStep2';
-import DealStep3 from './pages/DealWizard/DealStep3';
-import DealStep4 from './pages/DealWizard/DealStep4';
-import DealReviewStep from './pages/DealWizard/DealReviewStep';
-import DealResultPage from './pages/DealWizard/DealResultPage';
+// *** BUG FIX: All imports related to the OLD deal wizard have been removed. ***
 
 function App() {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [hoveredIndex, setHoveredIndex] = useState(null);
-  const [companyOpen, setCompanyOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -169,11 +161,9 @@ function App() {
         <Route path="/add/deal/confirmation/details/:dealId" element={<ProtectedRoute><Step7_Confirmation /></ProtectedRoute>} />
         <Route path="/add/deal/confirmation/review/:dealId" element={<ProtectedRoute><Step8_Review /></ProtectedRoute>} />
         <Route path="/add/deal/success/:dealId" element={<ProtectedRoute><SubmissionSuccess /></ProtectedRoute>} />
+        
+        {/* *** BUG FIX: All <Route> components for the old wizard have been removed. *** */}
 
-
-      
-
-        <Route path="/deal-result" element={<ProtectedRoute><DealResultPage /></ProtectedRoute>} />
       </Routes>
     </Box>
   );
