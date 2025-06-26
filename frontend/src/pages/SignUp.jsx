@@ -21,7 +21,7 @@ import {
   Flex
 } from '@chakra-ui/react';
 import { GENDERS, MEN_SPORTS, WOMEN_SPORTS } from '../data/formConstants';
-import { NCAA_SCHOOL_OPTIONS } from '../data/ncaaSchools'; // CORRECTED import
+import { NCAA_SCHOOL_OPTIONS } from '../data/ncaaSchools';
 
 const schema = yup.object().shape({
   fullName: yup.string().required('Full name is required'),
@@ -55,7 +55,6 @@ const SignUp = () => {
 
   useEffect(() => {
     if (selectedDivision) {
-      // CORRECTED filtering logic
       setFilteredSchools(NCAA_SCHOOL_OPTIONS.filter(school => school.division === selectedDivision));
       setValue('university', '');
     } else {
@@ -84,12 +83,23 @@ const SignUp = () => {
         sport: data.sport,
       });
 
-      if (error) throw error;
-
-      if (user) {
+      if (error) {
+        // *** NEW: Add user-friendly error handling for existing users ***
+        if (error.message.includes("User already registered")) {
+            toast({
+                title: 'Account Exists',
+                description: "An account with this email already exists. Please log in.",
+                status: 'warning',
+                duration: 7000,
+                isClosable: true,
+            });
+        } else {
+            throw error; // Re-throw other errors to be caught below
+        }
+      } else if (user) {
         toast({
           title: 'Account created.',
-          description: "We've created your account for you.",
+          description: "We've created your account for you. Welcome!",
           status: 'success',
           duration: 5000,
           isClosable: true,
