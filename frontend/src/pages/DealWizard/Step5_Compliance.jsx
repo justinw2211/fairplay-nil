@@ -10,8 +10,7 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { useNavigate, useParams } from "react-router-dom";
-import { DealContext } from "../../context/DealContext";
-
+import DealContext from "../../context/DealContext"
 const Step5_Compliance = () => {
   const toast = useToast();
   const navigate = useNavigate();
