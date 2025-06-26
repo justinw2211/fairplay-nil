@@ -2,6 +2,7 @@
 import React, { useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
+// *** BUG FIX: Ensured the import path is correct and consistent. ***
 import DealWizardLayout from './DealWizardLayout';
 import { Box, Button, Input, Text, VStack, Icon, useToast, Progress } from '@chakra-ui/react';
 import { CheckCircleIcon, WarningIcon } from '@chakra-ui/icons';
@@ -33,11 +34,6 @@ const Step1_DealTerms = () => {
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false,
-          // Track upload progress
-          onUploadProgress: (progressEvent) => {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            setUploadProgress(percentCompleted);
-          }
         });
 
       if (uploadError) {
@@ -87,7 +83,6 @@ const Step1_DealTerms = () => {
             Uploading a contract is recommended but optional to proceed.
         </Text>
         
-        {/* Display feedback based on whether a contract has been uploaded */}
         {deal?.deal_terms_url ? (
             <VStack spacing={3} color="green.500">
                 <Icon as={CheckCircleIcon} w={8} h={8} />
@@ -101,7 +96,6 @@ const Step1_DealTerms = () => {
             </VStack>
         )}
         
-        {/* File input button */}
         <Box>
             <Button as="label" htmlFor="file-upload" cursor="pointer" isLoading={uploading}>
                 {deal?.deal_terms_url ? 'Upload a Different File' : 'Upload File'}
@@ -109,7 +103,6 @@ const Step1_DealTerms = () => {
             <Input id="file-upload" type="file" onChange={handleFileChange} style={{ display: 'none' }} accept=".pdf,.jpg,.jpeg,.png,.docx" />
         </Box>
 
-        {/* Progress bar during upload */}
         {uploading && (
             <Box w="full">
                 <Progress value={uploadProgress} size="sm" colorScheme="pink" hasStripe isAnimated />
