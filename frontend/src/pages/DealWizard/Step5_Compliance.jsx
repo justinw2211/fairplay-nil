@@ -11,8 +11,8 @@ import { FormControl, FormLabel, Radio, RadioGroup, Stack, VStack, FormErrorMess
 // Validation schema to ensure all questions are answered.
 const schema = yup.object().shape({
   grant_exclusivity: yup.string().required('An answer is required.'),
-  uses_school_ip: yup.string().required('An answer is required.'), // We use a string here for 'Yes'/'No'/'I'm not sure'
-  licenses_NIL: yup.string().required('An answer is required.'),
+  uses_school_ip: yup.string().required('An answer is required.'),
+  licenses_nil: yup.string().required('An answer is required.'),
 });
 
 const Step5_Compliance = () => {
@@ -26,103 +26,101 @@ const Step5_Compliance = () => {
     defaultValues: {
       grant_exclusivity: '',
       uses_school_ip: '',
-      licenses_NIL: '',
+      licenses_nil: '',
     },
   });
 
-  // This function converts the boolean from the DB to the string 'Yes'/'No' for the form
   const boolToString = (val) => {
     if (val === true) return 'Yes';
     if (val === false) return 'No';
-    return ''; // Handle null or undefined
-  }
+    return '';
+  };
 
-  // Populate the form when deal data is available.
+  const stringToBool = (val) => {
+    if (val === 'Yes') return true;
+    if (val === 'No') return false;
+    return null;
+  };
+
   useEffect(() => {
     if (deal) {
       reset({
-        grant_exclusivity: deal.grant_exclusivity || '',
+        grant_exclusivity: boolToString(deal.grant_exclusivity),
         uses_school_ip: boolToString(deal.uses_school_ip),
-        licenses_NIL: deal.licenses_NIL || '',
+        licenses_nil: boolToString(deal.licenses_nil),
       });
     }
   }, [deal, reset]);
 
   const onContinue = async (formData) => {
-    // Convert 'Yes'/'No' back to boolean for uses_school_ip for DB consistency
-    const updateData = {
-      ...formData,
-      uses_school_ip: formData.uses_school_ip === 'Yes' ? true : (formData.uses_school_ip === 'No' ? false : null)
-    };
-    await updateDeal(dealId, updateData);
-    // Navigate to the next step
-    navigate(`/add/deal/compensation/${dealId}`);
+    await updateDeal(dealId, {
+      grant_exclusivity: stringToBool(formData.grant_exclusivity),
+      uses_school_ip: stringToBool(formData.uses_school_ip),
+      licenses_nil: stringToBool(formData.licenses_nil),
+    });
+    navigate(`/add/deal/compliance/docs/${dealId}`);
   };
 
   return (
     <DealWizardLayout
-      title="Compliance Questions"
-      instructions="Please answer the following questions to the best of your ability."
+      title="Compliance Check"
+      instructions="Answer the following to help determine whether this deal meets NCAA guidelines."
       onContinue={handleSubmit(onContinue)}
-      isContinueDisabled={!isValid}
     >
-      <VStack as="form" spacing={8} align="stretch" onSubmit={handleSubmit(onContinue)}>
-        {/* Question 1: Granting Exclusive Rights? */}
-        <Controller
-          name="grant_exclusivity"
-          control={control}
-          render={({ field }) => (
-            <FormControl isInvalid={errors.grant_exclusivity}>
-              <FormLabel>Are you granting the payor exclusive rights to your NIL in any area (e.g., exclusive beverage partner)?</FormLabel>
+      <VStack spacing={6} align="stretch">
+        <FormControl isInvalid={!!errors.grant_exclusivity}>
+          <FormLabel>Does this deal give the sponsor exclusive rights (e.g., you cannot work with competitors)?</FormLabel>
+          <Controller
+            name="grant_exclusivity"
+            control={control}
+            render={({ field }) => (
               <RadioGroup {...field}>
-                <Stack direction="row" spacing={6}>
+                <Stack direction="column">
                   <Radio value="Yes">Yes</Radio>
                   <Radio value="No">No</Radio>
-                  <Radio value="I’m not sure">I’m not sure</Radio>
+                  <Radio value="I'm not sure">I'm not sure</Radio>
                 </Stack>
               </RadioGroup>
-              <FormErrorMessage>{errors.grant_exclusivity?.message}</FormErrorMessage>
-            </FormControl>
-          )}
-        />
+            )}
+          />
+          <FormErrorMessage>{errors.grant_exclusivity?.message}</FormErrorMessage>
+        </FormControl>
 
-        {/* Question 2: Is School Branding Visible? */}
-        <Controller
-          name="uses_school_ip"
-          control={control}
-          render={({ field }) => (
-            <FormControl isInvalid={errors.uses_school_ip}>
-              <FormLabel>Will any of your school's branding (e.g., logos, facilities, uniforms) be visible in the content you create?</FormLabel>
+        <FormControl isInvalid={!!errors.uses_school_ip}>
+          <FormLabel>Does this deal involve use of your school's logo, facilities, or reputation?</FormLabel>
+          <Controller
+            name="uses_school_ip"
+            control={control}
+            render={({ field }) => (
               <RadioGroup {...field}>
-                <Stack direction="row" spacing={6}>
+                <Stack direction="column">
                   <Radio value="Yes">Yes</Radio>
                   <Radio value="No">No</Radio>
-                  <Radio value="I’m not sure">I’m not sure</Radio>
+                  <Radio value="I'm not sure">I'm not sure</Radio>
                 </Stack>
               </RadioGroup>
-              <FormErrorMessage>{errors.uses_school_ip?.message}</FormErrorMessage>
-            </FormControl>
-          )}
-        />
+            )}
+          />
+          <FormErrorMessage>{errors.uses_school_ip?.message}</FormErrorMessage>
+        </FormControl>
 
-        {/* Question 3: Are You Licensing Your NIL? */}
-        <Controller
-          name="licenses_NIL"
-          control={control}
-          render={({ field }) => (
-            <FormControl isInvalid={errors.licenses_NIL}>
-              <FormLabel>Are you licensing your NIL for use in merchandise or products (e.g., on a t-shirt or video game)?</FormLabel>
+        <FormControl isInvalid={!!errors.licenses_nil}>
+          <FormLabel>Does this deal involve licensing your NIL to a third party (e.g., video game company)?</FormLabel>
+          <Controller
+            name="licenses_nil"
+            control={control}
+            render={({ field }) => (
               <RadioGroup {...field}>
-                <Stack direction="row" spacing={6}>
+                <Stack direction="column">
                   <Radio value="Yes">Yes</Radio>
                   <Radio value="No">No</Radio>
-                  <Radio value="I’m not sure">I’m not sure</Radio>
+                  <Radio value="I'm not sure">I'm not sure</Radio>
                 </Stack>
               </RadioGroup>
-              <FormErrorMessage>{errors.licenses_NIL?.message}</FormErrorMessage>
-            </FormControl>
-          )}
-        />
+            )}
+          />
+          <FormErrorMessage>{errors.licenses_nil?.message}</FormErrorMessage>
+        </FormControl>
       </VStack>
     </DealWizardLayout>
   );
