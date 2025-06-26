@@ -171,15 +171,8 @@ function App() {
         <Route path="/add/deal/success/:dealId" element={<ProtectedRoute><SubmissionSuccess /></ProtectedRoute>} />
 
 
-        {/* --- OLD DEAL WIZARD ROUTES (to be decommissioned) --- */}
-        <Route path="/deal-wizard" element={<ProtectedRoute><DealWizardLayout_OLD /></ProtectedRoute>}>
-          <Route index element={<Navigate to="step-1" replace />} />
-          <Route path="step-1" element={<DealStep1 />} />
-          <Route path="step-2" element={<DealStep2 />} />
-          <Route path="step-3" element={<DealStep3 />} />
-          <Route path="step-4" element={<DealStep4 />} />
-          <Route path="review" element={<DealReviewStep />} />
-        </Route>
+      
+
         <Route path="/deal-result" element={<ProtectedRoute><DealResultPage /></ProtectedRoute>} />
       </Routes>
     </Box>
