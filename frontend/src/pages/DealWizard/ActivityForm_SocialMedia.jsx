@@ -6,34 +6,18 @@ import DealWizardLayout from './DealWizardLayout';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import {
-  FormControl,
-  FormLabel,
-  Input,
-  Select,
-  Button,
-  VStack,
-  HStack,
-  IconButton,
-  Text,
-} from '@chakra-ui/react';
+import { FormControl, FormLabel, Input, Select, Button, VStack, HStack, IconButton, Text } from '@chakra-ui/react';
 import { DeleteIcon, AddIcon } from '@chakra-ui/icons';
 
-// Validation schema
+// Validation schema for a single platform entry
 const platformSchema = yup.object().shape({
   platform: yup.string().required('Platform is required.'),
-  quantity: yup
-    .number()
-    .typeError('Must be a number')
-    .min(1, 'Quantity must be at least 1')
-    .required('Quantity is required.'),
+  quantity: yup.number().typeError('Must be a number').min(1, 'Quantity must be at least 1').required('Quantity is required.'),
 });
 
+// Main schema for the social media form
 const schema = yup.object().shape({
-  platforms: yup
-    .array()
-    .of(platformSchema)
-    .min(1, 'Please add at least one social media deliverable.'),
+  platforms: yup.array().of(platformSchema).min(1, 'Please add at least one social media deliverable.'),
 });
 
 const ActivityForm_SocialMedia = ({ nextStepUrl }) => {
@@ -41,39 +25,30 @@ const ActivityForm_SocialMedia = ({ nextStepUrl }) => {
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors, isValid },
-  } = useForm({
+  const { control, handleSubmit, reset, formState: { errors, isValid } } = useForm({
     resolver: yupResolver(schema),
     mode: 'onChange',
     defaultValues: { platforms: [] },
   });
 
+  // 'useFieldArray' is a powerful custom hook from react-hook-form for dynamic fields
   const { fields, append, remove } = useFieldArray({
     control,
-    name: 'platforms',
+    name: "platforms",
   });
 
-  // Preload or append at least one row
+  // When deal data loads, populate the form with existing social media obligations
   useEffect(() => {
-    const existing = deal?.obligations?.['Social Media'];
-    if (existing && existing.length > 0) {
-      reset({ platforms: existing });
-    } else if (fields.length === 0) {
-      append({ platform: '', quantity: 1 });
+    if (deal?.obligations?.['Social Media']) {
+      reset({ platforms: deal.obligations['Social Media'] });
     }
-  }, [deal, reset, append, fields.length]);
+  }, [deal, reset]);
 
   const onContinue = async (formData) => {
-    const newObligations = {
-      ...deal.obligations,
-      'Social Media': formData.platforms,
-    };
+    // We update the 'Social Media' key within the larger 'obligations' object
+    const newObligations = { ...deal.obligations, "Social Media": formData.platforms };
     await updateDeal(dealId, { obligations: newObligations });
-    navigate(nextStepUrl);
+    navigate(nextStepUrl); // Navigate to the next step calculated by the router
   };
 
   return (
@@ -90,7 +65,7 @@ const ActivityForm_SocialMedia = ({ nextStepUrl }) => {
               name={`platforms.${index}.platform`}
               control={control}
               render={({ field }) => (
-                <FormControl isInvalid={!!errors.platforms?.[index]?.platform}>
+                <FormControl>
                   <FormLabel>Platform</FormLabel>
                   <Select {...field} placeholder="Select Platform">
                     <option value="Instagram">Instagram</option>
@@ -100,11 +75,6 @@ const ActivityForm_SocialMedia = ({ nextStepUrl }) => {
                     <option value="YouTube">YouTube</option>
                     <option value="Twitch">Twitch</option>
                   </Select>
-                  {errors.platforms?.[index]?.platform && (
-                    <Text color="red.500" fontSize="sm">
-                      {errors.platforms[index].platform.message}
-                    </Text>
-                  )}
                 </FormControl>
               )}
             />
@@ -112,14 +82,9 @@ const ActivityForm_SocialMedia = ({ nextStepUrl }) => {
               name={`platforms.${index}.quantity`}
               control={control}
               render={({ field }) => (
-                <FormControl isInvalid={!!errors.platforms?.[index]?.quantity}>
+                <FormControl isInvalid={errors.platforms?.[index]?.quantity}>
                   <FormLabel>Quantity</FormLabel>
                   <Input {...field} type="number" />
-                  {errors.platforms?.[index]?.quantity && (
-                    <Text color="red.500" fontSize="sm">
-                      {errors.platforms[index].quantity.message}
-                    </Text>
-                  )}
                 </FormControl>
               )}
             />
@@ -132,13 +97,7 @@ const ActivityForm_SocialMedia = ({ nextStepUrl }) => {
             />
           </HStack>
         ))}
-
-        {errors.platforms && typeof errors.platforms.message === 'string' && (
-          <Text color="red.500" fontSize="sm">
-            {errors.platforms.message}
-          </Text>
-        )}
-
+        {errors.platforms && <Text color="red.500" fontSize="sm">{errors.platforms.message}</Text>}
         <Button
           leftIcon={<AddIcon />}
           onClick={() => append({ platform: '', quantity: 1 })}
