@@ -16,7 +16,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircleIcon, ShieldIcon } from '@chakra-ui/icons';
+import { CheckCircleIcon, InfoIcon } from '@chakra-ui/icons';
 import { TrendingUp, Twitter, Instagram, Linkedin } from 'lucide-react';
 
 const Feature = ({ icon, title, text }) => {
@@ -113,7 +113,7 @@ const Home = () => {
 
             <Grid templateColumns={{ base: '1fr', md: 'repeat(3, 1fr)' }} gap={8}>
               <Feature
-                icon={ShieldIcon}
+                icon={InfoIcon}
                 title="Total Compliance"
                 text="Stay ahead of the rules. Our platform helps you track and report your activities to ensure you're always compliant with NCAA and school policies."
               />
