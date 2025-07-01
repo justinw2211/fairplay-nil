@@ -89,10 +89,13 @@ const Home = () => {
           </VStack>
           <Box>
             <Image
-              src="/logo.png"
-              alt="Diverse group of student-athletes"
+              src="/nil-deal-signing.jpg"
+              alt="Student athlete signing NIL deal"
               rounded="lg"
               shadow="lg"
+              width="full"
+              height="auto"
+              objectFit="cover"
             />
           </Box>
         </Grid>
