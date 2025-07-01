@@ -14,13 +14,24 @@ import ActivityForm_Endorsements from './ActivityForm_Endorsements';
 import ActivityForm_Other from './ActivityForm_Other';
 
 const activityComponentMap = {
-  "Social Media": ActivityForm_SocialMedia,
-  "Appearance": ActivityForm_Appearance,
-  "Content for Brand": ActivityForm_Content,
-  "Autographs": ActivityForm_Autographs,
-  "Merch and Products": ActivityForm_Merch,
-  "Endorsements": ActivityForm_Endorsements,
-  "Other": ActivityForm_Other,
+  "social-media": ActivityForm_SocialMedia,
+  "appearance": ActivityForm_Appearance,
+  "content-for-brand": ActivityForm_Content,
+  "autographs": ActivityForm_Autographs,
+  "merch-and-products": ActivityForm_Merch,
+  "endorsements": ActivityForm_Endorsements,
+  "other": ActivityForm_Other,
+};
+
+// Map to convert between kebab-case IDs and display titles
+const activityTitleMap = {
+  "social-media": "Social Media",
+  "appearance": "Appearance",
+  "content-for-brand": "Content for Brand",
+  "autographs": "Autographs",
+  "merch-and-products": "Merch and Products",
+  "endorsements": "Endorsements",
+  "other": "Other",
 };
 
 const ActivityRouter = () => {
@@ -41,7 +52,7 @@ const ActivityRouter = () => {
   if (loading || !deal) {
     return (
       <Flex justify="center" align="center" minH="80vh">
-        <Spinner size="xl" />
+        <Spinner size="xl" color="brand.accentPrimary" />
       </Flex>
     );
   }
@@ -51,10 +62,13 @@ const ActivityRouter = () => {
 
   if (!ActivityComponent) {
     console.error(`No component found for activity type: ${decodedActivityType}`);
-    return <Navigate to={`/dashboard`} replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
-  const selectedActivities = Object.keys(deal.obligations || {});
+  const selectedActivities = Object.keys(deal.obligations || {}).map(title => 
+    Object.entries(activityTitleMap).find(([id, t]) => t === title)?.[0] || title
+  );
+  
   const currentIndex = selectedActivities.indexOf(decodedActivityType);
 
   let nextStepUrl = '';

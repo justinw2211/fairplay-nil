@@ -178,7 +178,14 @@ const Step3_SelectActivities = () => {
                             handleActivityChange(activity.id, e.target.checked);
                           }}
                           borderColor="brand.accentSecondary"
-                          colorScheme="brand"
+                          sx={{
+                            'span.chakra-checkbox__control': {
+                              _checked: {
+                                bg: 'brand.accentPrimary',
+                                borderColor: 'brand.accentPrimary',
+                              },
+                            },
+                          }}
                           mt={1}
                         />
                         <Box flex="1">
