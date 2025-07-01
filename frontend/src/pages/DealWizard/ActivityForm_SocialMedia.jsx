@@ -5,16 +5,31 @@ import { useDeal } from '../../context/DealContext';
 import {
   Box,
   Button,
+  Container,
   Flex,
   FormControl,
   FormLabel,
+  Grid,
   Icon,
   Text,
   VStack,
   Textarea,
+  Badge,
 } from '@chakra-ui/react';
-import { Plus, Minus, ChevronRight, ChevronLeft, Clock } from 'lucide-react';
-import SurveyLayout from './SurveyLayout';
+import {
+  Plus,
+  Minus,
+  ChevronRight,
+  ChevronLeft,
+  Clock,
+  Camera,
+  MessageSquare,
+  Radio,
+  Hash,
+  Monitor,
+  Smartphone,
+  Globe,
+} from 'lucide-react';
 
 const platforms = [
   {
@@ -22,36 +37,42 @@ const platforms = [
     name: "Instagram",
     description: "Posts, reels, stories, or livestreams uploaded to or hosted on Instagram",
     contentTypes: ["Posts", "Reels", "Stories", "Livestreams"],
+    icon: Camera,
   },
   {
     id: "tiktok",
     name: "TikTok",
     description: "Video posts or livestreams uploaded to or hosted on TikTok",
     contentTypes: ["Video Posts", "Livestreams"],
+    icon: Smartphone,
   },
   {
     id: "snapchat",
     name: "Snapchat",
     description: "Stories or spotlights uploaded to Snapchat",
     contentTypes: ["Stories", "Spotlights"],
+    icon: MessageSquare,
   },
   {
     id: "x",
     name: "X",
     description: "Text, image, or video posts uploaded to X",
     contentTypes: ["Text Posts", "Image Posts", "Video Posts"],
+    icon: Hash,
   },
   {
     id: "youtube",
     name: "YouTube",
     description: "Videos or shorts uploaded to a user's channel on YouTube",
     contentTypes: ["Videos", "Shorts"],
+    icon: Monitor,
   },
   {
     id: "twitch",
     name: "Twitch",
     description: "Livestreams hosted on Twitch",
     contentTypes: ["Livestreams"],
+    icon: Radio,
   },
 ];
 
@@ -67,7 +88,6 @@ const ActivityForm_SocialMedia = ({ nextStepUrl }) => {
   useEffect(() => {
     if (deal?.obligations?.['Social Media']) {
       const socialMediaData = deal.obligations['Social Media'];
-      // Convert existing data to new format if needed
       if (Array.isArray(socialMediaData)) {
         const converted = {};
         socialMediaData.forEach(item => {
@@ -120,6 +140,12 @@ const ActivityForm_SocialMedia = ({ nextStepUrl }) => {
     });
   };
 
+  const getTotalContent = () => {
+    return selectedPlatforms.reduce((total, platformId) => {
+      return total + (platformContent[platformId]?.reduce((sum, content) => sum + content.quantity, 0) || 0);
+    }, 0);
+  };
+
   const isFormValid = () => {
     if (selectedPlatforms.length === 0) return false;
     return selectedPlatforms.some(platformId => 
@@ -128,7 +154,6 @@ const ActivityForm_SocialMedia = ({ nextStepUrl }) => {
   };
 
   const handleNext = async () => {
-    // Convert the new format back to the expected format for the API
     const formattedData = {
       platforms: selectedPlatforms.flatMap(platformId => {
         const platform = platforms.find(p => p.id === platformId);
@@ -153,156 +178,421 @@ const ActivityForm_SocialMedia = ({ nextStepUrl }) => {
   };
 
   return (
-    <SurveyLayout
-      currentStep={4}
-      totalSteps={8}
-      title="Activity Details: Social Media"
-      description="Sponsored photo or video posted to your personal social media account."
-      isNextDisabled={!isFormValid()}
-      onNext={handleNext}
-      backUrl={`/add/deal/activities/select/${dealId}`}
-    >
-      <VStack spacing={8} align="stretch">
-        {/* Platform Selection */}
-        <FormControl>
-          <FormLabel color="brand.textPrimary" fontWeight="semibold">
-            Select Platforms *
-          </FormLabel>
-          <VStack spacing={3} align="stretch">
-            {platforms.map((platform) => {
-              const isSelected = selectedPlatforms.includes(platform.id);
+    <Container maxW="4xl" py={6}>
+      <Box
+        borderWidth="1px"
+        borderColor="brand.accentSecondary"
+        shadow="xl"
+        bg="white"
+        rounded="xl"
+        overflow="hidden"
+      >
+        {/* Header Section */}
+        <Box
+          p={8}
+          pb={10}
+          bgGradient="linear(to-r, brand.backgroundLight, white)"
+        >
+          {/* Progress Indicator */}
+          <VStack spacing={4} mb={8}>
+            <Flex justify="space-between" w="full" fontSize="sm">
+              <Text color="brand.textSecondary" fontWeight="semibold">
+                Step 4 of 8
+              </Text>
+              <Text color="brand.textSecondary">50% Complete</Text>
+            </Flex>
+            <Box w="full" h="3" bg="brand.accentSecondary" opacity={0.3} rounded="full" overflow="hidden">
+              <Box
+                bg="brand.accentPrimary"
+                h="full"
+                w="50%"
+                rounded="full"
+                transition="width 0.7s ease-out"
+                bgGradient="linear(to-r, brand.accentPrimary, brand.accentPrimary)"
+                shadow="sm"
+              />
+            </Box>
+          </VStack>
 
-              return (
-                <Box
-                  key={platform.id}
-                  border="1px"
-                  borderColor={isSelected ? "brand.accentPrimary" : "brand.accentSecondary"}
-                  rounded="lg"
-                  p={4}
-                  cursor="pointer"
-                  bg={isSelected ? "brand.backgroundLight" : "white"}
-                  onClick={() => handlePlatformToggle(platform.id)}
-                  _hover={{
-                    borderColor: "brand.accentPrimary",
-                    bg: "brand.backgroundLight",
-                  }}
+          {/* Title Section */}
+          <Flex gap={3} mb={selectedPlatforms.length > 0 ? 4 : 0}>
+            <Box
+              w="12"
+              h="12"
+              bg="brand.accentPrimary"
+              rounded="xl"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              shadow="lg"
+            >
+              <Icon as={Globe} w="6" h="6" color="white" />
+            </Box>
+            <Box>
+              <Text fontSize="3xl" fontWeight="bold" color="brand.textPrimary">
+                Social Media Details
+              </Text>
+              <Text fontSize="lg" color="brand.textSecondary">
+                Configure your sponsored content requirements
+              </Text>
+            </Box>
+          </Flex>
+
+          {/* Status Badges */}
+          {selectedPlatforms.length > 0 && (
+            <Flex gap={2} mt={2}>
+              <Badge
+                px={3}
+                py={1}
+                bg="brand.accentPrimary"
+                color="white"
+                opacity={0.9}
+                rounded="full"
+              >
+                {selectedPlatforms.length} platform{selectedPlatforms.length !== 1 ? "s" : ""} selected
+              </Badge>
+              {getTotalContent() > 0 && (
+                <Badge
+                  px={3}
+                  py={1}
+                  bg="green.100"
+                  color="green.700"
+                  rounded="full"
                 >
-                  <Flex justify="space-between" align="center">
-                    <Box flex="1">
-                      <Text fontWeight="semibold" color="brand.textPrimary">
-                        {platform.name}
-                      </Text>
-                      <Text fontSize="sm" color="brand.textSecondary" mt={1}>
-                        {platform.description}
-                      </Text>
-                    </Box>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      w="8"
-                      h="8"
-                      rounded="full"
-                      p="0"
-                      bg={isSelected ? "brand.accentPrimary" : "brand.accentSecondary"}
-                      color={isSelected ? "white" : "brand.textSecondary"}
+                  {getTotalContent()} piece{getTotalContent() !== 1 ? "s" : ""} of content
+                </Badge>
+              )}
+            </Flex>
+          )}
+        </Box>
+
+        {/* Content Section */}
+        <Box p={8} pt={10} space={10}>
+          <VStack spacing={10}>
+            {/* Platform Selection */}
+            <FormControl>
+              <Flex justify="space-between" mb={6}>
+                <FormLabel color="brand.textPrimary" fontSize="xl" fontWeight="bold" m={0}>
+                  Select Platforms
+                </FormLabel>
+                <Text fontSize="sm" color="brand.textSecondary">
+                  Choose where you'll post content
+                </Text>
+              </Flex>
+
+              <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={4}>
+                {platforms.map((platform) => {
+                  const isSelected = selectedPlatforms.includes(platform.id);
+                  return (
+                    <Box
+                      key={platform.id}
+                      borderWidth="2px"
+                      borderColor={isSelected ? "brand.accentPrimary" : "brand.accentSecondary"}
+                      rounded="2xl"
+                      p={6}
+                      cursor="pointer"
+                      bg={isSelected ? "brand.backgroundLight" : "white"}
+                      onClick={() => handlePlatformToggle(platform.id)}
+                      transition="all 0.3s"
+                      transform={isSelected ? "scale(1.02)" : "scale(1)"}
                       _hover={{
-                        bg: isSelected ? "brand.accentPrimary" : "brand.accentPrimary",
-                        color: "white",
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePlatformToggle(platform.id);
+                        borderColor: "brand.accentPrimary",
+                        bg: "brand.backgroundLight",
+                        transform: "scale(1.02)",
+                        shadow: "lg",
                       }}
                     >
-                      <Icon as={isSelected ? Minus : Plus} boxSize={4} />
-                    </Button>
-                  </Flex>
-                </Box>
-              );
-            })}
-          </VStack>
-        </FormControl>
+                      <Flex align="start" justify="space-between">
+                        <Flex gap={4}>
+                          <Box
+                            w="12"
+                            h="12"
+                            bg={isSelected ? "brand.accentPrimary" : "brand.accentSecondary"}
+                            color={isSelected ? "white" : "brand.textSecondary"}
+                            rounded="xl"
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                            transition="all 0.3s"
+                          >
+                            <Icon as={platform.icon} w="5" h="5" />
+                          </Box>
+                          <Box flex="1">
+                            <Text
+                              fontSize="lg"
+                              fontWeight="bold"
+                              color="brand.textPrimary"
+                              mb={2}
+                            >
+                              {platform.name}
+                            </Text>
+                            <Text
+                              fontSize="sm"
+                              color="brand.textSecondary"
+                              lineHeight="relaxed"
+                            >
+                              {platform.description}
+                            </Text>
+                          </Box>
+                        </Flex>
+                        <Box
+                          w="8"
+                          h="8"
+                          rounded="full"
+                          bg={isSelected ? "brand.accentPrimary" : "brand.accentSecondary"}
+                          color={isSelected ? "white" : "brand.textSecondary"}
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="center"
+                          shadow="sm"
+                          transform={isSelected ? "scale(1.1)" : "scale(1)"}
+                          transition="all 0.2s"
+                        >
+                          <Icon as={isSelected ? Minus : Plus} w="4" h="4" />
+                        </Box>
+                      </Flex>
+                    </Box>
+                  );
+                })}
+              </Grid>
+            </FormControl>
 
-        {/* Content Type Quantities for Selected Platforms */}
-        {selectedPlatforms.map((platformId) => {
-          const platform = platforms.find((p) => p.id === platformId);
-          const content = platformContent[platformId] || [];
+            {/* Content Requirements */}
+            {selectedPlatforms.length > 0 && (
+              <FormControl>
+                <Flex justify="space-between" mb={6}>
+                  <FormLabel color="brand.textPrimary" fontSize="xl" fontWeight="bold" m={0}>
+                    Content Requirements
+                  </FormLabel>
+                  <Text fontSize="sm" color="brand.textSecondary">
+                    Specify quantities for each content type
+                  </Text>
+                </Flex>
 
-          return (
-            <Box
-              key={platformId}
-              p={6}
-              bg="brand.backgroundLight"
-              rounded="lg"
-              border="1px"
+                <VStack spacing={4}>
+                  {selectedPlatforms.map((platformId) => {
+                    const platform = platforms.find((p) => p.id === platformId);
+                    const content = platformContent[platformId] || [];
+
+                    return (
+                      <Box
+                        key={platformId}
+                        w="full"
+                        borderWidth="1px"
+                        borderColor="brand.accentSecondary"
+                        rounded="xl"
+                        p={4}
+                        bg="brand.backgroundLight"
+                      >
+                        <Flex align="center" gap={3} mb={4}>
+                          <Box
+                            w="8"
+                            h="8"
+                            bg="brand.accentSecondary"
+                            rounded="lg"
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                            color="brand.textSecondary"
+                          >
+                            <Icon as={platform.icon} w="4" h="4" />
+                          </Box>
+                          <Text fontSize="lg" fontWeight="bold" color="brand.textPrimary">
+                            {platform.name}
+                          </Text>
+                        </Flex>
+
+                        <VStack spacing={3}>
+                          {content.map((contentType) => (
+                            <Flex
+                              key={contentType.id}
+                              justify="space-between"
+                              align="center"
+                              p={3}
+                              bg="white"
+                              rounded="lg"
+                              borderWidth="1px"
+                              borderColor="brand.accentSecondary"
+                              opacity={0.9}
+                            >
+                              <Text fontWeight="medium" color="brand.textPrimary">
+                                {contentType.name}
+                              </Text>
+                              <Flex align="center" gap={3}>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  w="8"
+                                  h="8"
+                                  p="0"
+                                  rounded="full"
+                                  borderColor="brand.accentSecondary"
+                                  onClick={() => updateContentQuantity(platformId, contentType.id, contentType.quantity - 1)}
+                                  isDisabled={contentType.quantity <= 0}
+                                  _hover={{
+                                    bg: "brand.accentPrimary",
+                                    color: "white",
+                                    borderColor: "brand.accentPrimary",
+                                  }}
+                                >
+                                  <Icon as={Minus} w="3" h="3" />
+                                </Button>
+                                <Text w="8" textAlign="center" fontWeight="bold" color="brand.textPrimary">
+                                  {contentType.quantity}
+                                </Text>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  w="8"
+                                  h="8"
+                                  p="0"
+                                  rounded="full"
+                                  borderColor="brand.accentSecondary"
+                                  onClick={() => updateContentQuantity(platformId, contentType.id, contentType.quantity + 1)}
+                                  _hover={{
+                                    bg: "brand.accentPrimary",
+                                    color: "white",
+                                    borderColor: "brand.accentPrimary",
+                                  }}
+                                >
+                                  <Icon as={Plus} w="3" h="3" />
+                                </Button>
+                              </Flex>
+                            </Flex>
+                          ))}
+                        </VStack>
+                      </Box>
+                    );
+                  })}
+                </VStack>
+              </FormControl>
+            )}
+
+            {/* Content Guidelines */}
+            <FormControl>
+              <Flex justify="space-between" mb={4}>
+                <FormLabel htmlFor="description" color="brand.textPrimary" fontSize="xl" fontWeight="bold" m={0}>
+                  Content Guidelines
+                </FormLabel>
+                <Text fontSize="sm" color="brand.textSecondary">
+                  Optional but recommended
+                </Text>
+              </Flex>
+
+              <Box position="relative">
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Provide specific instructions, hashtags, mentions, or content requirements. For example: 'Post a 60-second video reviewing the new protein powder, highlighting taste and effectiveness. Include #PowerUp hashtag and tag @BrandName. Use upbeat music and good lighting.'"
+                  minH="140px"
+                  rows={6}
+                  fontSize="base"
+                  borderWidth="2px"
+                  borderColor="brand.accentSecondary"
+                  bg="brand.backgroundLight"
+                  rounded="xl"
+                  p={4}
+                  _focus={{
+                    borderColor: "brand.accentPrimary",
+                    boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
+                  }}
+                  resize="none"
+                  maxLength={1000}
+                />
+                <Text
+                  position="absolute"
+                  bottom="3"
+                  right="3"
+                  fontSize="xs"
+                  color="brand.textSecondary"
+                >
+                  {description.length}/1000
+                </Text>
+              </Box>
+            </FormControl>
+
+            {/* Navigation */}
+            <Flex
+              justify="space-between"
+              align="center"
+              pt={8}
+              borderTopWidth="1px"
               borderColor="brand.accentSecondary"
+              opacity={0.9}
             >
-              <Text fontWeight="semibold" color="brand.textPrimary" fontSize="lg" mb={4}>
-                {platform?.name} Content
-              </Text>
-              <VStack spacing={4} align="stretch">
-                {content.map((contentType) => (
-                  <Flex key={contentType.id} justify="space-between" align="center">
-                    <Text fontWeight="medium" color="brand.textPrimary">
-                      {contentType.name}
-                    </Text>
-                    <Flex align="center" gap={3}>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        w="8"
-                        h="8"
-                        p="0"
-                        borderColor="brand.accentSecondary"
-                        onClick={() => updateContentQuantity(platformId, contentType.id, contentType.quantity - 1)}
-                        isDisabled={contentType.quantity <= 0}
-                      >
-                        <Icon as={Minus} boxSize={4} />
-                      </Button>
-                      <Text w="12" textAlign="center" fontWeight="medium" color="brand.textPrimary">
-                        {contentType.quantity}
-                      </Text>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        w="8"
-                        h="8"
-                        p="0"
-                        borderColor="brand.accentSecondary"
-                        onClick={() => updateContentQuantity(platformId, contentType.id, contentType.quantity + 1)}
-                      >
-                        <Icon as={Plus} boxSize={4} />
-                      </Button>
-                    </Flex>
-                  </Flex>
-                ))}
-              </VStack>
-            </Box>
-          );
-        })}
+              <Button
+                leftIcon={<Icon as={Clock} w="5" h="5" />}
+                variant="ghost"
+                h="12"
+                px="6"
+                fontSize="base"
+                fontWeight="medium"
+                color="brand.textSecondary"
+                onClick={() => navigate('/dashboard')}
+                rounded="xl"
+                _hover={{
+                  bg: "brand.backgroundLight",
+                  color: "brand.textPrimary",
+                }}
+              >
+                Finish Later
+              </Button>
 
-        {/* Description/Instructions Textarea */}
-        <FormControl>
-          <FormLabel color="brand.textPrimary" fontWeight="semibold">
-            Description or Specific Instructions (optional)
-          </FormLabel>
-          <Textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="e.g., 'Post a 60-second video reviewing the new protein powder, highlighting taste and effectiveness. Include #PowerUp hashtag and tag @BrandName.'"
-            minH="120px"
-            rows={5}
-            fontSize="base"
-            borderColor="brand.accentSecondary"
-            _focus={{
-              borderColor: "brand.accentPrimary",
-              boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
-            }}
-            resize="none"
-          />
-        </FormControl>
-      </VStack>
-    </SurveyLayout>
+              <Flex gap={4}>
+                <Button
+                  leftIcon={<Icon as={ChevronLeft} w="5" h="5" />}
+                  variant="outline"
+                  h="12"
+                  px="6"
+                  fontSize="base"
+                  fontWeight="semibold"
+                  borderWidth="2px"
+                  borderColor="brand.accentSecondary"
+                  color="brand.textSecondary"
+                  onClick={() => navigate(`/add/deal/activities/select/${dealId}`)}
+                  rounded="xl"
+                  _hover={{
+                    bg: "brand.backgroundLight",
+                    borderColor: "brand.accentPrimary",
+                    color: "brand.textPrimary",
+                  }}
+                >
+                  Back
+                </Button>
+                <Button
+                  rightIcon={<Icon as={ChevronRight} w="5" h="5" />}
+                  h="12"
+                  px="8"
+                  fontSize="base"
+                  fontWeight="bold"
+                  bg={isFormValid() ? "brand.accentPrimary" : "brand.accentSecondary"}
+                  color="white"
+                  isDisabled={!isFormValid()}
+                  onClick={handleNext}
+                  rounded="xl"
+                  transition="all 0.3s"
+                  _hover={
+                    isFormValid()
+                      ? {
+                          transform: "scale(1.05)",
+                          shadow: "xl",
+                        }
+                      : {}
+                  }
+                  _disabled={{
+                    opacity: 0.6,
+                    cursor: "not-allowed",
+                  }}
+                >
+                  Continue
+                </Button>
+              </Flex>
+            </Flex>
+          </VStack>
+        </Box>
+      </Box>
+    </Container>
   );
 };
 
