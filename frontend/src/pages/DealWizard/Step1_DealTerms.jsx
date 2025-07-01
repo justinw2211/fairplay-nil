@@ -56,8 +56,13 @@ const Step1_DealTerms = () => {
     }
   };
 
+  const getFileExtension = (filename) => {
+    return filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2).toLowerCase();
+  };
+
   const handleFileUpload = async (file) => {
-    // Validate file type and size
+    // Enhanced file type validation
+    const validExtensions = ['pdf', 'docx', 'png', 'jpg', 'jpeg'];
     const validTypes = [
       'application/pdf',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -67,7 +72,9 @@ const Step1_DealTerms = () => {
     ];
     const maxSize = 10 * 1024 * 1024; // 10MB
 
-    if (!validTypes.includes(file.type)) {
+    const fileExtension = getFileExtension(file.name);
+    
+    if (!validExtensions.includes(fileExtension) || !validTypes.includes(file.type)) {
       toast({
         title: 'Invalid file type',
         description: 'Please upload a PDF, DOCX, PNG, or JPG file.',
@@ -91,12 +98,20 @@ const Step1_DealTerms = () => {
 
     setUploading(true);
     try {
-      const filePath = `public/deal-terms/${deal.user_id}/${uuidv4()}`;
+      // Generate a unique filename with original extension
+      const timestamp = new Date().getTime();
+      const uniqueFileName = `${timestamp}-${uuidv4()}.${fileExtension}`;
+      const filePath = `public/deal-terms/${deal.user_id}/${uniqueFileName}`;
+
+      // Set content type based on file extension
+      const contentType = file.type;
+      
       const { error: uploadError } = await supabase.storage
         .from('contracts')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false,
+          contentType: contentType // Explicitly set the content type
         });
 
       if (uploadError) throw uploadError;
@@ -105,7 +120,14 @@ const Step1_DealTerms = () => {
         .from('contracts')
         .getPublicUrl(filePath);
 
-      await updateDeal(dealId, { deal_terms_url: urlData.publicUrl });
+      // Store additional file metadata
+      await updateDeal(dealId, {
+        deal_terms_url: urlData.publicUrl,
+        deal_terms_file_name: file.name,
+        deal_terms_file_type: fileExtension,
+        deal_terms_file_size: file.size
+      });
+
       setUploadedFile(file);
 
       toast({
@@ -116,9 +138,10 @@ const Step1_DealTerms = () => {
         isClosable: true,
       });
     } catch (error) {
+      console.error('Upload error:', error);
       toast({
         title: 'Upload Failed',
-        description: error.message,
+        description: error.message || 'There was an error uploading your file. Please try again.',
         status: 'error',
         duration: 9000,
         isClosable: true,

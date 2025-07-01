@@ -88,15 +88,24 @@ const Home = () => {
             </Stack>
           </VStack>
           <Box>
-            <Image
-              src="/nil-deal-signing.jpg"
-              alt="Student athlete signing NIL deal"
+            <Box
+              position="relative"
+              width="full"
+              height="500px"
+              overflow="hidden"
               rounded="lg"
               shadow="lg"
-              width="full"
-              height="auto"
-              objectFit="cover"
-            />
+            >
+              <Image
+                src="/nil-deal-signing.jpg"
+                alt="Student athlete signing NIL deal"
+                width="100%"
+                height="100%"
+                objectFit="cover"
+                fallback={<Box bg="gray.100" width="100%" height="100%" />}
+                loading="eager"
+              />
+            </Box>
           </Box>
         </Grid>
       </Container>
