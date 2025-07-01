@@ -1,257 +1,308 @@
 // frontend/src/pages/DealWizard/ActivityForm_SocialMedia.jsx
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import {
   Box,
   Button,
-  Card,
-  CardBody,
-  CardHeader,
-  Container,
   Flex,
   FormControl,
   FormLabel,
-  Heading,
   Icon,
-  Input,
-  Select,
   Text,
   VStack,
-  HStack,
-  IconButton,
+  Textarea,
 } from '@chakra-ui/react';
-import { DeleteIcon, AddIcon } from '@chakra-ui/icons';
-import { ChevronRight, ChevronLeft, Clock } from 'lucide-react';
+import { Plus, Minus, ChevronRight, ChevronLeft, Clock } from 'lucide-react';
+import SurveyLayout from './SurveyLayout';
 
-// Validation schema for a single platform entry
-const platformSchema = yup.object().shape({
-  platform: yup.string().required('Platform is required.'),
-  quantity: yup.number().typeError('Must be a number').min(1, 'Quantity must be at least 1').required('Quantity is required.'),
-});
-
-// Main schema for the social media form
-const schema = yup.object().shape({
-  platforms: yup.array().of(platformSchema).min(1, 'Please add at least one social media deliverable.'),
-});
+const platforms = [
+  {
+    id: "instagram",
+    name: "Instagram",
+    description: "Posts, reels, stories, or livestreams uploaded to or hosted on Instagram",
+    contentTypes: ["Posts", "Reels", "Stories", "Livestreams"],
+  },
+  {
+    id: "tiktok",
+    name: "TikTok",
+    description: "Video posts or livestreams uploaded to or hosted on TikTok",
+    contentTypes: ["Video Posts", "Livestreams"],
+  },
+  {
+    id: "snapchat",
+    name: "Snapchat",
+    description: "Stories or spotlights uploaded to Snapchat",
+    contentTypes: ["Stories", "Spotlights"],
+  },
+  {
+    id: "x",
+    name: "X",
+    description: "Text, image, or video posts uploaded to X",
+    contentTypes: ["Text Posts", "Image Posts", "Video Posts"],
+  },
+  {
+    id: "youtube",
+    name: "YouTube",
+    description: "Videos or shorts uploaded to a user's channel on YouTube",
+    contentTypes: ["Videos", "Shorts"],
+  },
+  {
+    id: "twitch",
+    name: "Twitch",
+    description: "Livestreams hosted on Twitch",
+    contentTypes: ["Livestreams"],
+  },
+];
 
 const ActivityForm_SocialMedia = ({ nextStepUrl }) => {
   const { dealId } = useParams();
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
 
-  const { control, handleSubmit, reset, formState: { errors, isValid } } = useForm({
-    resolver: yupResolver(schema),
-    mode: 'onChange',
-    defaultValues: { platforms: [] },
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "platforms",
-  });
+  const [selectedPlatforms, setSelectedPlatforms] = useState([]);
+  const [platformContent, setPlatformContent] = useState({});
+  const [description, setDescription] = useState("");
 
   useEffect(() => {
     if (deal?.obligations?.['Social Media']) {
-      reset({ platforms: deal.obligations['Social Media'] });
+      const socialMediaData = deal.obligations['Social Media'];
+      // Convert existing data to new format if needed
+      if (Array.isArray(socialMediaData)) {
+        const converted = {};
+        socialMediaData.forEach(item => {
+          if (item.platform) {
+            const platform = platforms.find(p => p.name.toLowerCase() === item.platform.toLowerCase());
+            if (platform) {
+              converted[platform.id] = platform.contentTypes.map(type => ({
+                id: type.toLowerCase().replace(/\s+/g, "-"),
+                name: type,
+                quantity: item.quantity || 0,
+              }));
+            }
+          }
+        });
+        setPlatformContent(converted);
+        setSelectedPlatforms(Object.keys(converted));
+      }
+      setDescription(deal.obligations['Social Media'].description || "");
     }
-  }, [deal, reset]);
+  }, [deal]);
 
-  const onContinue = async (formData) => {
-    const newObligations = { ...deal.obligations, "Social Media": formData.platforms };
-    await updateDeal(dealId, { obligations: newObligations });
+  const handlePlatformToggle = (platformId) => {
+    if (selectedPlatforms.includes(platformId)) {
+      setSelectedPlatforms(selectedPlatforms.filter(p => p !== platformId));
+      const newPlatformContent = { ...platformContent };
+      delete newPlatformContent[platformId];
+      setPlatformContent(newPlatformContent);
+    } else {
+      setSelectedPlatforms([...selectedPlatforms, platformId]);
+      const platform = platforms.find(p => p.id === platformId);
+      if (platform) {
+        setPlatformContent({
+          ...platformContent,
+          [platformId]: platform.contentTypes.map(type => ({
+            id: type.toLowerCase().replace(/\s+/g, "-"),
+            name: type,
+            quantity: 0,
+          })),
+        });
+      }
+    }
+  };
+
+  const updateContentQuantity = (platformId, contentId, quantity) => {
+    setPlatformContent({
+      ...platformContent,
+      [platformId]: platformContent[platformId].map(content =>
+        content.id === contentId ? { ...content, quantity: Math.max(0, quantity) } : content
+      ),
+    });
+  };
+
+  const isFormValid = () => {
+    if (selectedPlatforms.length === 0) return false;
+    return selectedPlatforms.some(platformId => 
+      platformContent[platformId]?.some(content => content.quantity > 0)
+    );
+  };
+
+  const handleNext = async () => {
+    // Convert the new format back to the expected format for the API
+    const formattedData = {
+      platforms: selectedPlatforms.flatMap(platformId => {
+        const platform = platforms.find(p => p.id === platformId);
+        return platformContent[platformId]
+          .filter(content => content.quantity > 0)
+          .map(content => ({
+            platform: platform.name,
+            type: content.name,
+            quantity: content.quantity,
+          }));
+      }),
+      description,
+    };
+
+    await updateDeal(dealId, {
+      obligations: {
+        ...deal.obligations,
+        'Social Media': formattedData,
+      },
+    });
     navigate(nextStepUrl);
   };
 
-  const handleBack = () => {
-    navigate(`/add/deal/activities/select/${dealId}`);
-  };
-
-  const handleFinishLater = () => {
-    navigate('/dashboard');
-  };
-
   return (
-    <Container maxW="2xl" py={6}>
-      <Card borderColor="brand.accentSecondary" shadow="lg" bg="white">
-        <CardHeader pb={6}>
-          {/* Progress Indicator */}
-          <VStack spacing={3} mb={6}>
-            <Flex justify="space-between" w="full" fontSize="sm">
-              <Text color="brand.textSecondary" fontWeight="medium">Step 4 of 8</Text>
-              <Text color="brand.textSecondary">50% Complete</Text>
-            </Flex>
-            <Box w="full" bg="brand.accentSecondary" h="2" rounded="full">
-              <Box
-                bg="brand.accentPrimary"
-                h="2"
-                w="50%"
-                rounded="full"
-                transition="width 0.5s ease-out"
-              />
-            </Box>
-          </VStack>
+    <SurveyLayout
+      currentStep={4}
+      totalSteps={8}
+      title="Activity Details: Social Media"
+      description="Sponsored photo or video posted to your personal social media account."
+      isNextDisabled={!isFormValid()}
+      onNext={handleNext}
+      backUrl={`/add/deal/activities/select/${dealId}`}
+    >
+      <VStack spacing={8} align="stretch">
+        {/* Platform Selection */}
+        <FormControl>
+          <FormLabel color="brand.textPrimary" fontWeight="semibold">
+            Select Platforms *
+          </FormLabel>
+          <VStack spacing={3} align="stretch">
+            {platforms.map((platform) => {
+              const isSelected = selectedPlatforms.includes(platform.id);
 
-          {/* Header */}
-          <VStack spacing={3} align="start">
-            <Heading size="lg" color="brand.textPrimary">Social Media Details</Heading>
-            <Text color="brand.textSecondary" fontSize="lg">
-              Specify the social media posts you'll create as part of this deal.
-            </Text>
-          </VStack>
-        </CardHeader>
-
-        <CardBody pt={0}>
-          <VStack spacing={8} as="form" onSubmit={handleSubmit(onContinue)}>
-            {fields.map((field, index) => (
-              <Box
-                key={field.id}
-                w="full"
-                p={6}
-                bg="brand.backgroundLight"
-                rounded="lg"
-                border="1px"
-                borderColor="brand.accentSecondary"
-              >
-                <VStack spacing={4}>
-                  <Flex w="full" justify="space-between" align="center">
-                    <Text fontWeight="semibold" color="brand.textPrimary">
-                      Social Media Post {index + 1}
-                    </Text>
-                    <IconButton
-                      icon={<DeleteIcon />}
-                      variant="ghost"
-                      colorScheme="red"
-                      onClick={() => remove(index)}
-                      aria-label="Remove platform"
-                    />
-                  </Flex>
-                  <FormControl>
-                    <FormLabel color="brand.textPrimary">Platform</FormLabel>
-                    <Controller
-                      name={`platforms.${index}.platform`}
-                      control={control}
-                      render={({ field }) => (
-                        <Select {...field} bg="white">
-                          <option value="">Select Platform</option>
-                          <option value="Instagram">Instagram</option>
-                          <option value="Twitter">Twitter</option>
-                          <option value="TikTok">TikTok</option>
-                          <option value="Facebook">Facebook</option>
-                          <option value="LinkedIn">LinkedIn</option>
-                          <option value="YouTube">YouTube</option>
-                        </Select>
-                      )}
-                    />
-                  </FormControl>
-                  <FormControl>
-                    <FormLabel color="brand.textPrimary">Number of Posts</FormLabel>
-                    <Controller
-                      name={`platforms.${index}.quantity`}
-                      control={control}
-                      render={({ field }) => (
-                        <Input {...field} type="number" min="1" bg="white" />
-                      )}
-                    />
-                  </FormControl>
-                </VStack>
-              </Box>
-            ))}
-
-            <Button
-              leftIcon={<AddIcon />}
-              variant="outline"
-              w="full"
-              h={12}
-              borderColor="brand.accentSecondary"
-              color="brand.textSecondary"
-              onClick={() => append({ platform: '', quantity: 1 })}
-              _hover={{
-                bg: "brand.backgroundLight",
-                borderColor: "brand.accentPrimary",
-                color: "brand.textPrimary",
-              }}
-            >
-              Add Another Platform
-            </Button>
-
-            {/* Navigation Buttons */}
-            <Flex justify="space-between" pt={8} w="full">
-              <Button
-                leftIcon={<Icon as={Clock} />}
-                variant="ghost"
-                color="brand.textSecondary"
-                px={8}
-                py={3}
-                h={12}
-                fontSize="base"
-                fontWeight="semibold"
-                onClick={handleFinishLater}
-                _hover={{
-                  bg: "brand.backgroundLight",
-                  color: "brand.textPrimary",
-                }}
-              >
-                Finish Later
-              </Button>
-
-              <Flex gap={4}>
-                <Button
-                  leftIcon={<Icon as={ChevronLeft} />}
-                  variant="outline"
-                  px={6}
-                  py={3}
-                  h={12}
-                  fontSize="base"
-                  fontWeight="semibold"
-                  borderColor="brand.accentSecondary"
-                  color="brand.textSecondary"
-                  onClick={handleBack}
+              return (
+                <Box
+                  key={platform.id}
+                  border="1px"
+                  borderColor={isSelected ? "brand.accentPrimary" : "brand.accentSecondary"}
+                  rounded="lg"
+                  p={4}
+                  cursor="pointer"
+                  bg={isSelected ? "brand.backgroundLight" : "white"}
+                  onClick={() => handlePlatformToggle(platform.id)}
                   _hover={{
-                    bg: "brand.backgroundLight",
                     borderColor: "brand.accentPrimary",
-                    color: "brand.textPrimary",
+                    bg: "brand.backgroundLight",
                   }}
                 >
-                  Back
-                </Button>
-                <Button
-                  rightIcon={<Icon as={ChevronRight} />}
-                  bg={isValid ? "brand.accentPrimary" : "brand.accentSecondary"}
-                  color="white"
-                  px={8}
-                  py={3}
-                  h={12}
-                  fontSize="base"
-                  fontWeight="semibold"
-                  transition="all 0.2s"
-                  _hover={
-                    isValid
-                      ? {
-                          transform: "scale(1.05)",
-                          bg: "brand.accentPrimary",
-                          shadow: "xl",
-                        }
-                      : {}
-                  }
-                  _disabled={{
-                    opacity: 0.6,
-                    cursor: "not-allowed",
-                  }}
-                  isDisabled={!isValid}
-                  type="submit"
-                >
-                  Next
-                </Button>
-              </Flex>
-            </Flex>
+                  <Flex justify="space-between" align="center">
+                    <Box flex="1">
+                      <Text fontWeight="semibold" color="brand.textPrimary">
+                        {platform.name}
+                      </Text>
+                      <Text fontSize="sm" color="brand.textSecondary" mt={1}>
+                        {platform.description}
+                      </Text>
+                    </Box>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      w="8"
+                      h="8"
+                      rounded="full"
+                      p="0"
+                      bg={isSelected ? "brand.accentPrimary" : "brand.accentSecondary"}
+                      color={isSelected ? "white" : "brand.textSecondary"}
+                      _hover={{
+                        bg: isSelected ? "brand.accentPrimary" : "brand.accentPrimary",
+                        color: "white",
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePlatformToggle(platform.id);
+                      }}
+                    >
+                      <Icon as={isSelected ? Minus : Plus} boxSize={4} />
+                    </Button>
+                  </Flex>
+                </Box>
+              );
+            })}
           </VStack>
-        </CardBody>
-      </Card>
-    </Container>
+        </FormControl>
+
+        {/* Content Type Quantities for Selected Platforms */}
+        {selectedPlatforms.map((platformId) => {
+          const platform = platforms.find((p) => p.id === platformId);
+          const content = platformContent[platformId] || [];
+
+          return (
+            <Box
+              key={platformId}
+              p={6}
+              bg="brand.backgroundLight"
+              rounded="lg"
+              border="1px"
+              borderColor="brand.accentSecondary"
+            >
+              <Text fontWeight="semibold" color="brand.textPrimary" fontSize="lg" mb={4}>
+                {platform?.name} Content
+              </Text>
+              <VStack spacing={4} align="stretch">
+                {content.map((contentType) => (
+                  <Flex key={contentType.id} justify="space-between" align="center">
+                    <Text fontWeight="medium" color="brand.textPrimary">
+                      {contentType.name}
+                    </Text>
+                    <Flex align="center" gap={3}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        w="8"
+                        h="8"
+                        p="0"
+                        borderColor="brand.accentSecondary"
+                        onClick={() => updateContentQuantity(platformId, contentType.id, contentType.quantity - 1)}
+                        isDisabled={contentType.quantity <= 0}
+                      >
+                        <Icon as={Minus} boxSize={4} />
+                      </Button>
+                      <Text w="12" textAlign="center" fontWeight="medium" color="brand.textPrimary">
+                        {contentType.quantity}
+                      </Text>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        w="8"
+                        h="8"
+                        p="0"
+                        borderColor="brand.accentSecondary"
+                        onClick={() => updateContentQuantity(platformId, contentType.id, contentType.quantity + 1)}
+                      >
+                        <Icon as={Plus} boxSize={4} />
+                      </Button>
+                    </Flex>
+                  </Flex>
+                ))}
+              </VStack>
+            </Box>
+          );
+        })}
+
+        {/* Description/Instructions Textarea */}
+        <FormControl>
+          <FormLabel color="brand.textPrimary" fontWeight="semibold">
+            Description or Specific Instructions (optional)
+          </FormLabel>
+          <Textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="e.g., 'Post a 60-second video reviewing the new protein powder, highlighting taste and effectiveness. Include #PowerUp hashtag and tag @BrandName.'"
+            minH="120px"
+            rows={5}
+            fontSize="base"
+            borderColor="brand.accentSecondary"
+            _focus={{
+              borderColor: "brand.accentPrimary",
+              boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
+            }}
+            resize="none"
+          />
+        </FormControl>
+      </VStack>
+    </SurveyLayout>
   );
 };
 
