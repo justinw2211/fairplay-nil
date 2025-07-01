@@ -7,6 +7,7 @@ import {
   Box,
   Button,
   FormControl,
+  FormLabel,
   Input,
   Progress,
   Text,
@@ -14,7 +15,7 @@ import {
   Icon,
   useToast
 } from '@chakra-ui/react';
-import { CheckCircleIcon, AttachmentIcon } from '@chakra-ui/icons';
+import { CheckCircleIcon, WarningIcon, AttachmentIcon } from '@chakra-ui/icons';
 
 const ContractUpload = ({ onUploadComplete }) => {
   const { user } = useAuth();
@@ -54,6 +55,10 @@ const ContractUpload = ({ onUploadComplete }) => {
           cacheControl: '3600',
           upsert: false,
           contentType: 'application/pdf',
+        }, (event) => {
+            if (event.type === 'progress') {
+                setUploadProgress((event.loaded / event.total) * 100);
+            }
         });
 
       if (error) {
@@ -86,6 +91,7 @@ const ContractUpload = ({ onUploadComplete }) => {
       setFileName('');
     } finally {
       setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -110,6 +116,8 @@ const ContractUpload = ({ onUploadComplete }) => {
                 Choose PDF
             </Button>
         </FormControl>
+
+        {uploading && <Progress value={uploadProgress} mt={2} size="sm" />}
         
         {fileName && !uploading && (
             <HStack mt={3} spacing={2} color="green.500">
