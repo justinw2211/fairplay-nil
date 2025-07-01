@@ -1,7 +1,8 @@
 // frontend/src/pages/DealWizard/Step1_DealTerms.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
+import { useAuth } from '../../context/AuthContext';
 import {
   Box,
   Button,
@@ -28,6 +29,7 @@ const Step1_DealTerms = () => {
   const { dealId } = useParams();
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
+  const { user } = useAuth();
   const toast = useToast();
 
   const [dragActive, setDragActive] = useState(false);
@@ -61,6 +63,17 @@ const Step1_DealTerms = () => {
   };
 
   const handleFileUpload = async (file) => {
+    if (!user) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please log in to upload files.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+
     // Enhanced file type validation
     const validExtensions = ['pdf', 'docx', 'png', 'jpg', 'jpeg'];
     const validTypes = [
@@ -101,7 +114,7 @@ const Step1_DealTerms = () => {
       // Generate a unique filename with original extension
       const timestamp = new Date().getTime();
       const uniqueFileName = `${timestamp}-${uuidv4()}.${fileExtension}`;
-      const filePath = `public/deal-terms/${deal.user_id}/${uniqueFileName}`;
+      const filePath = `public/deal-terms/${user.id}/${uniqueFileName}`;
 
       // Set content type based on file extension
       const contentType = file.type;
@@ -111,7 +124,7 @@ const Step1_DealTerms = () => {
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false,
-          contentType: contentType // Explicitly set the content type
+          contentType: contentType
         });
 
       if (uploadError) throw uploadError;
@@ -125,7 +138,8 @@ const Step1_DealTerms = () => {
         deal_terms_url: urlData.publicUrl,
         deal_terms_file_name: file.name,
         deal_terms_file_type: fileExtension,
-        deal_terms_file_size: file.size
+        deal_terms_file_size: file.size,
+        user_id: user.id // Also store the user_id in the deal record
       });
 
       setUploadedFile(file);
