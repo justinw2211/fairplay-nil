@@ -2,103 +2,304 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
-import DealWizardLayout from './DealWizardLayout';
-import { Box, SimpleGrid, useToast } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Checkbox,
+  Container,
+  Flex,
+  FormControl,
+  FormLabel,
+  Heading,
+  Icon,
+  Input,
+  Text,
+  VStack,
+} from '@chakra-ui/react';
+import { ChevronRight, ChevronLeft, Clock } from 'lucide-react';
 
-const ActivityCard = ({ title, isSelected, onSelect }) => {
-  return (
-    <Box
-      p={6}
-      borderWidth="2px"
-      borderRadius="lg"
-      borderColor={isSelected ? 'brand.accentPrimary' : 'gray.200'}
-      bg={isSelected ? '#fdf9f7' : 'white'}
-      cursor="pointer"
-      textAlign="center"
-      fontWeight="bold"
-      onClick={() => onSelect(title)}
-      transition="all 0.2s"
-      _hover={{ transform: 'translateY(-3px)', shadow: 'md' }}
-    >
-      {title}
-    </Box>
-  );
-};
-
-const availableActivities = [
-  "Social Media", "Appearance", "Content for Brand", "Autographs", "Merch and Products", "Endorsements", "Other",
+const activities = [
+  {
+    id: "social-media",
+    title: "Social Media",
+    description: "Photos or videos posted to your personal social media account",
+  },
+  {
+    id: "appearance",
+    title: "Appearance",
+    description: "Live in-person or virtual events like games, meet and greets, or photo shoots",
+  },
+  {
+    id: "content-for-brand",
+    title: "Content for Brand",
+    description: "Photos or videos you create or share with your payor for them to use",
+  },
+  {
+    id: "autographs",
+    title: "Autographs",
+    description: "Signing autographs on items or memorabilia like posters, hats, or equipment",
+  },
+  {
+    id: "merch-and-products",
+    title: "Merch and Products",
+    description: "Your payor sells items with your name or image like jerseys or bobbleheads",
+  },
+  {
+    id: "endorsements",
+    title: "Endorsements",
+    description: "You wear or use products from your payor in public appearances or competitions",
+  },
+  {
+    id: "other",
+    title: "Other",
+    description: "My activity is not reflected in the listed categories",
+  },
 ];
 
 const Step3_SelectActivities = () => {
   const { dealId } = useParams();
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
-  const toast = useToast();
+  
   const [selectedActivities, setSelectedActivities] = useState([]);
+  const [otherActivity, setOtherActivity] = useState("");
 
   useEffect(() => {
     if (deal?.obligations) {
       setSelectedActivities(Object.keys(deal.obligations));
+      if (deal.obligations.other?.description) {
+        setOtherActivity(deal.obligations.other.description);
+      }
     }
   }, [deal]);
 
-  const handleSelect = (activityTitle) => {
-    setSelectedActivities(prev => 
-      prev.includes(activityTitle)
-        ? prev.filter(item => item !== activityTitle)
-        : [...prev, activityTitle]
-    );
-  };
-  
-  const onContinue = async () => {
-    if (selectedActivities.length === 0) {
-      toast({
-        title: "No activities selected",
-        description: "Please select at least one activity.",
-        status: "warning",
-        isClosable: true,
-      });
-      return;
+  const handleActivityChange = (activityId, checked) => {
+    if (checked) {
+      setSelectedActivities([...selectedActivities, activityId]);
+    } else {
+      setSelectedActivities(selectedActivities.filter((a) => a !== activityId));
+      if (activityId === "other") {
+        setOtherActivity("");
+      }
     }
+  };
 
-    const newObligations = { ...deal.obligations };
-    availableActivities.forEach(activity => {
-        if (selectedActivities.includes(activity)) {
-            if (!newObligations[activity]) {
-                 newObligations[activity] = activity === "Social Media" ? [] : {};
-            }
-        } else {
-            delete newObligations[activity];
-        }
+  const isFormValid = selectedActivities.length > 0 && (!selectedActivities.includes("other") || otherActivity.trim());
+
+  const handleBack = () => {
+    navigate(`/add/deal/payor/${dealId}`);
+  };
+
+  const handleNext = async () => {
+    const newObligations = {};
+    selectedActivities.forEach(activity => {
+      if (activity === "other") {
+        newObligations[activity] = { description: otherActivity };
+      } else {
+        newObligations[activity] = activity === "social-media" ? [] : {};
+      }
     });
 
     await updateDeal(dealId, { obligations: newObligations });
-
+    
     const firstActivity = selectedActivities[0];
     const encodedActivity = encodeURIComponent(firstActivity);
     navigate(`/add/deal/activity/${encodedActivity}/${dealId}`);
   };
 
+  const handleFinishLater = () => {
+    navigate('/dashboard');
+  };
+
   return (
-    <DealWizardLayout
-      title="What activities or deliverables are you being paid for?"
-      instructions="Select all that apply. You will provide details for each in the next steps."
-      onContinue={onContinue}
-      isContinueDisabled={selectedActivities.length === 0}
-    >
-      <SimpleGrid columns={{ base: 2, md: 3, lg: 4 }} spacing={6}>
-        {availableActivities.map(activity => (
-          <ActivityCard
-            key={activity}
-            title={activity}
-            isSelected={selectedActivities.includes(activity)}
-            onSelect={handleSelect}
-          />
-        ))}
-      </SimpleGrid>
-    </DealWizardLayout>
+    <Container maxW="2xl" py={6}>
+      <Card borderColor="brand.accentSecondary" shadow="lg" bg="white">
+        <CardHeader pb={6}>
+          {/* Progress Indicator */}
+          <VStack spacing={3} mb={6}>
+            <Flex justify="space-between" w="full" fontSize="sm">
+              <Text color="brand.textSecondary" fontWeight="medium">Step 3 of 8</Text>
+              <Text color="brand.textSecondary">37.5% Complete</Text>
+            </Flex>
+            <Box w="full" bg="brand.accentSecondary" h="2" rounded="full">
+              <Box
+                bg="brand.accentPrimary"
+                h="2"
+                w="37.5%"
+                rounded="full"
+                transition="width 0.5s ease-out"
+              />
+            </Box>
+          </VStack>
+
+          {/* Header */}
+          <VStack spacing={3} align="start">
+            <Heading size="lg" color="brand.textPrimary">Select Activities</Heading>
+            <Text color="brand.textSecondary" fontSize="lg">
+              What activities or deliverables are you being paid for? Add all the activities that the payor is
+              requesting you complete as part of this deal.
+            </Text>
+          </VStack>
+        </CardHeader>
+
+        <CardBody pt={0}>
+          <VStack spacing={8}>
+            {/* Activities List */}
+            <FormControl>
+              <FormLabel color="brand.textPrimary" fontWeight="semibold">
+                Select all that apply *
+              </FormLabel>
+
+              <VStack spacing={4} align="stretch">
+                {activities.map((activity) => {
+                  const isSelected = selectedActivities.includes(activity.id);
+
+                  return (
+                    <Box
+                      key={activity.id}
+                      border="1px"
+                      borderColor={isSelected ? "brand.accentPrimary" : "brand.accentSecondary"}
+                      rounded="lg"
+                      p={4}
+                      transition="all 0.2s"
+                      cursor="pointer"
+                      bg={isSelected ? "brand.backgroundLight" : "white"}
+                      onClick={() => handleActivityChange(activity.id, !isSelected)}
+                      _hover={{ borderColor: "brand.accentPrimary", bg: "brand.backgroundLight" }}
+                    >
+                      <Flex gap={4}>
+                        <Checkbox
+                          isChecked={isSelected}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleActivityChange(activity.id, e.target.checked);
+                          }}
+                          borderColor="brand.accentSecondary"
+                          colorScheme="brand"
+                          mt={1}
+                        />
+                        <Box flex="1">
+                          <Text color="brand.textPrimary" fontWeight="semibold" mb={2}>
+                            {activity.title}
+                          </Text>
+                          <Text color="brand.textSecondary" fontSize="sm">
+                            {activity.description}
+                          </Text>
+                        </Box>
+                      </Flex>
+                    </Box>
+                  );
+                })}
+              </VStack>
+            </FormControl>
+
+            {/* Other activity text input */}
+            {selectedActivities.includes("other") && (
+              <Box
+                bg="brand.backgroundLight"
+                p={6}
+                rounded="lg"
+                border="1px"
+                borderColor="brand.accentSecondary"
+              >
+                <FormControl>
+                  <FormLabel color="brand.textPrimary" fontWeight="semibold">
+                    Please specify what other activity you'll be doing *
+                  </FormLabel>
+                  <Input
+                    value={otherActivity}
+                    onChange={(e) => setOtherActivity(e.target.value)}
+                    placeholder="e.g., 'Podcast appearance', 'Brand ambassador program', 'Product development consultation'"
+                    h="12"
+                    fontSize="base"
+                    borderColor="brand.accentSecondary"
+                    _focus={{
+                      borderColor: "brand.accentPrimary",
+                      boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
+                    }}
+                  />
+                </FormControl>
+              </Box>
+            )}
+
+            {/* Navigation Buttons */}
+            <Flex justify="space-between" pt={8} w="full">
+              <Button
+                leftIcon={<Icon as={Clock} />}
+                variant="ghost"
+                color="brand.textSecondary"
+                px={8}
+                py={3}
+                h={12}
+                fontSize="base"
+                fontWeight="semibold"
+                onClick={handleFinishLater}
+                _hover={{
+                  bg: "brand.backgroundLight",
+                  color: "brand.textPrimary",
+                }}
+              >
+                Finish Later
+              </Button>
+
+              <Flex gap={4}>
+                <Button
+                  leftIcon={<Icon as={ChevronLeft} />}
+                  variant="outline"
+                  px={6}
+                  py={3}
+                  h={12}
+                  fontSize="base"
+                  fontWeight="semibold"
+                  borderColor="brand.accentSecondary"
+                  color="brand.textSecondary"
+                  onClick={handleBack}
+                  _hover={{
+                    bg: "brand.backgroundLight",
+                    borderColor: "brand.accentPrimary",
+                    color: "brand.textPrimary",
+                  }}
+                >
+                  Back
+                </Button>
+                <Button
+                  rightIcon={<Icon as={ChevronRight} />}
+                  bg={isFormValid ? "brand.accentPrimary" : "brand.accentSecondary"}
+                  color="white"
+                  px={8}
+                  py={3}
+                  h={12}
+                  fontSize="base"
+                  fontWeight="semibold"
+                  transition="all 0.2s"
+                  _hover={
+                    isFormValid
+                      ? {
+                          transform: "scale(1.05)",
+                          bg: "brand.accentPrimary",
+                          shadow: "xl",
+                        }
+                      : {}
+                  }
+                  _disabled={{
+                    opacity: 0.6,
+                    cursor: "not-allowed",
+                  }}
+                  isDisabled={!isFormValid}
+                  onClick={handleNext}
+                >
+                  Next
+                </Button>
+              </Flex>
+            </Flex>
+          </VStack>
+        </CardBody>
+      </Card>
+    </Container>
   );
 };
 
-// *** BUG FIX: Add the missing default export statement. ***
 export default Step3_SelectActivities;

@@ -21,7 +21,7 @@ import {
   VStack,
   useToast,
 } from '@chakra-ui/react';
-import { Upload, ChevronRight } from 'lucide-react';
+import { Upload, ChevronRight, Clock } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -187,6 +187,10 @@ const Step1_DealTerms = () => {
     navigate(`/add/deal/payor/${dealId}`);
   };
 
+  const handleFinishLater = () => {
+    navigate('/dashboard');
+  };
+
   return (
     <Container maxW="2xl" py={6}>
       <Card borderColor="brand.accentSecondary" shadow="lg" bg="white">
@@ -336,8 +340,25 @@ const Step1_DealTerms = () => {
               />
             </FormControl>
 
-            {/* Navigation Button */}
-            <Flex justify="end" pt={8} w="full">
+            {/* Navigation Buttons */}
+            <Flex justify="space-between" pt={8} w="full">
+              <Button
+                leftIcon={<Icon as={Clock} />}
+                variant="ghost"
+                color="brand.textSecondary"
+                px={8}
+                py={3}
+                h={12}
+                fontSize="base"
+                fontWeight="semibold"
+                onClick={handleFinishLater}
+                _hover={{
+                  bg: "brand.backgroundLight",
+                  color: "brand.textPrimary",
+                }}
+              >
+                Finish Later
+              </Button>
               <Button
                 rightIcon={<Icon as={ChevronRight} />}
                 bg={dealNickname.trim() ? "brand.accentPrimary" : "brand.accentSecondary"}

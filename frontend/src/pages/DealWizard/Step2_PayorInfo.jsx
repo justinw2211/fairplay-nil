@@ -12,6 +12,7 @@ import {
   Flex,
   FormControl,
   FormLabel,
+  FormErrorMessage,
   Heading,
   Input,
   Radio,
@@ -31,6 +32,7 @@ const Step2_PayorInfo = () => {
   const [payorName, setPayorName] = useState('');
   const [payorEmail, setPayorEmail] = useState('');
   const [payorPhone, setPayorPhone] = useState('');
+  const [emailError, setEmailError] = useState('');
 
   useEffect(() => {
     if (deal) {
@@ -41,7 +43,28 @@ const Step2_PayorInfo = () => {
     }
   }, [deal]);
 
-  const isFormValid = payorType && payorName.trim() && payorEmail.trim();
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleEmailChange = (e) => {
+    const email = e.target.value;
+    setPayorEmail(email);
+    
+    if (!email) {
+      setEmailError('Email is required');
+    } else if (!validateEmail(email)) {
+      setEmailError('Please enter a valid email address');
+    } else {
+      setEmailError('');
+    }
+  };
+
+  const isFormValid = payorType && 
+                     payorName.trim() && 
+                     payorEmail.trim() && 
+                     validateEmail(payorEmail);
 
   const formatPhoneNumber = (value) => {
     // Remove all non-numeric characters
@@ -67,6 +90,11 @@ const Step2_PayorInfo = () => {
   };
 
   const handleNext = async () => {
+    if (!validateEmail(payorEmail)) {
+      setEmailError('Please enter a valid email address');
+      return;
+    }
+
     await updateDeal(dealId, {
       payor_type: payorType,
       payor_name: payorName,
@@ -163,23 +191,24 @@ const Step2_PayorInfo = () => {
             </FormControl>
 
             {/* Email Input */}
-            <FormControl>
+            <FormControl isInvalid={emailError}>
               <FormLabel color="brand.textPrimary" fontWeight="semibold">
                 Payor's Contact Email *
               </FormLabel>
               <Input
                 type="email"
                 value={payorEmail}
-                onChange={(e) => setPayorEmail(e.target.value)}
+                onChange={handleEmailChange}
                 placeholder="e.g., contact@company.com"
                 h="12"
                 fontSize="base"
-                borderColor="brand.accentSecondary"
+                borderColor={emailError ? "red.500" : "brand.accentSecondary"}
                 _focus={{
-                  borderColor: "brand.accentPrimary",
-                  boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
+                  borderColor: emailError ? "red.500" : "brand.accentPrimary",
+                  boxShadow: `0 0 0 1px ${emailError ? "var(--chakra-colors-red-500)" : "var(--chakra-colors-brand-accentPrimary)"}`,
                 }}
               />
+              <FormErrorMessage>{emailError}</FormErrorMessage>
             </FormControl>
 
             {/* Phone Number Input */}

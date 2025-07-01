@@ -120,7 +120,7 @@ const Home = () => {
               color="brand.textPrimary"
               textAlign="center"
             >
-              NIL is Complicated. We Make it Simple.
+              NIL Valuation is Complicated. We Make it Simple.
             </Heading>
 
             <Grid templateColumns={{ base: '1fr', md: 'repeat(3, 1fr)' }} gap={8}>
