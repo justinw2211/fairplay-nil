@@ -97,7 +97,7 @@ const Home = () => {
               shadow="lg"
             >
               <Image
-                src="/nil-deal-signing.jpg"
+                src="/nil-deal-signing.jpeg"
                 alt="Student athlete signing NIL deal"
                 width="100%"
                 height="100%"
