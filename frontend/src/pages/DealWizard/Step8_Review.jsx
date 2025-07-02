@@ -60,7 +60,7 @@ const formatDate = (date) => {
 const StatusBadge = ({ status }) => {
   const statusProps = {
     draft: { colorScheme: 'gray', label: 'Draft' },
-    pending: { colorScheme: 'yellow', label: 'Pending Review' },
+    submitted: { colorScheme: 'yellow', label: 'Under Review' },
     approved: { colorScheme: 'green', label: 'Approved' },
     rejected: { colorScheme: 'red', label: 'Rejected' },
   }[status] || { colorScheme: 'gray', label: 'Draft' };
@@ -119,7 +119,7 @@ const Step8_Review = () => {
     try {
       // Update deal status and add submission timestamp
       const updateData = {
-        status: 'pending',
+        status: 'submitted',
         submittedAt: new Date().toISOString(),
         // Add any final flags needed
         is_submitted: true,
