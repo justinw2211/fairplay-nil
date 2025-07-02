@@ -12,6 +12,7 @@ import {
   FormControl,
   FormLabel,
   FormErrorMessage,
+  FormHelperText,
   Input,
   VStack,
   Heading,
@@ -30,17 +31,33 @@ import {
   AlertDialogHeader,
   AlertDialogContent,
   AlertDialogOverlay,
+  Avatar,
+  Divider,
 } from '@chakra-ui/react';
-import { FiSave, FiX, FiAlertTriangle } from 'react-icons/fi';
-import { GENDERS, MEN_SPORTS, WOMEN_SPORTS } from '../data/formConstants.js';
+import { FiSave, FiX, FiAlertTriangle, FiUser } from 'react-icons/fi';
+import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, NCAA_DIVISIONS } from '../data/formConstants.js';
 import { NCAA_SCHOOL_OPTIONS } from '../data/ncaaSchools.js';
 
 const schema = yup.object().shape({
-  full_name: yup.string().required('Full name is required'),
-  division: yup.string().required('NCAA Division is required'),
-  university: yup.string().required('University is required'),
-  gender: yup.string().required('Gender is required'),
-  sport: yup.string().required('Sport is required'),
+  full_name: yup
+    .string()
+    .required('Full name is required')
+    .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name must be less than 100 characters'),
+  division: yup
+    .string()
+    .required('NCAA Division is required')
+    .oneOf(NCAA_DIVISIONS, 'Invalid NCAA Division'),
+  university: yup
+    .string()
+    .required('University is required'),
+  gender: yup
+    .string()
+    .required('Gender is required')
+    .oneOf(GENDERS, 'Invalid gender selection'),
+  sport: yup
+    .string()
+    .required('Sport is required'),
 });
 
 const EditProfile = () => {
@@ -48,6 +65,7 @@ const EditProfile = () => {
   const toast = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [filteredSchools, setFilteredSchools] = useState([]);
   const [availableSports, setAvailableSports] = useState([]);
   const [hasChanges, setHasChanges] = useState(false);
@@ -61,7 +79,7 @@ const EditProfile = () => {
     watch,
     reset,
     setValue,
-    formState: { errors, isSubmitting, isDirty },
+    formState: { errors, isDirty },
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
@@ -70,68 +88,102 @@ const EditProfile = () => {
       university: '',
       gender: '',
       sport: '',
-    }
+    },
+    mode: 'onChange',
   });
 
   const selectedDivision = watch('division');
   const selectedGender = watch('gender');
+  const formValues = watch();
 
+  // Fetch initial profile data
   useEffect(() => {
-    if (user) {
-      const fetchProfile = async () => {
-        setLoading(true);
-        try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
+    const fetchProfile = async () => {
+      if (!user) return;
+      
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
 
-          if (error) throw error;
-          if (data) {
-            reset(data);
+        if (error) throw error;
+        
+        if (data) {
+          // Pre-populate form with existing data
+          reset(data);
+          
+          // Set initial sports list based on gender
+          if (data.gender === 'Male') {
+            setAvailableSports(MEN_SPORTS);
+          } else if (data.gender === 'Female') {
+            setAvailableSports(WOMEN_SPORTS);
           }
-        } catch (error) {
-          toast({
-            title: 'Error fetching profile',
-            description: error.message,
-            status: 'error',
-            duration: 5000,
-            isClosable: true,
-          });
-        } finally {
-          setLoading(false);
-          isInitialLoad.current = false;
+          
+          // Set initial schools list based on division
+          if (data.division) {
+            setFilteredSchools(
+              NCAA_SCHOOL_OPTIONS.filter(school => school.division === data.division)
+            );
+          }
         }
-      };
-      fetchProfile();
-    }
+      } catch (error) {
+        toast({
+          title: 'Error fetching profile',
+          description: error.message,
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+      } finally {
+        setLoading(false);
+        isInitialLoad.current = false;
+      }
+    };
+
+    fetchProfile();
   }, [user, reset, toast]);
 
+  // Handle division change
   useEffect(() => {
     if (selectedDivision) {
-      setFilteredSchools(NCAA_SCHOOL_OPTIONS.filter(school => school.division === selectedDivision));
-      if (!isInitialLoad.current) {
-        setValue('university', '');
+      const schools = NCAA_SCHOOL_OPTIONS.filter(
+        school => school.division === selectedDivision
+      );
+      setFilteredSchools(schools);
+      
+      // Only reset university if not initial load
+      if (!isInitialLoad.current && formValues.university) {
+        const universityExists = schools.some(
+          school => school.name === formValues.university
+        );
+        if (!universityExists) {
+          setValue('university', '', { shouldValidate: true });
+        }
       }
     } else {
       setFilteredSchools([]);
     }
-  }, [selectedDivision, setValue]);
+  }, [selectedDivision, setValue, formValues.university]);
 
+  // Handle gender change
   useEffect(() => {
-    if (selectedGender === 'Male') {
-      setAvailableSports(MEN_SPORTS);
-    } else if (selectedGender === 'Female') {
-      setAvailableSports(WOMEN_SPORTS);
-    } else {
-      setAvailableSports([]);
+    const sports = selectedGender === 'Male' ? MEN_SPORTS :
+                  selectedGender === 'Female' ? WOMEN_SPORTS : [];
+    setAvailableSports(sports);
+    
+    // Only reset sport if not initial load
+    if (!isInitialLoad.current && formValues.sport) {
+      const sportExists = sports.includes(formValues.sport);
+      if (!sportExists) {
+        setValue('sport', '', { shouldValidate: true });
+      }
     }
-    if (!isInitialLoad.current) {
-      setValue('sport', '');
-    }
-  }, [selectedGender, setValue]);
+  }, [selectedGender, setValue, formValues.sport]);
 
+  // Track form changes
   useEffect(() => {
     setHasChanges(isDirty);
   }, [isDirty]);
@@ -150,6 +202,7 @@ const EditProfile = () => {
   };
 
   const onSubmit = async (data) => {
+    setSaving(true);
     try {
       const { error } = await supabase
         .from('profiles')
@@ -159,8 +212,8 @@ const EditProfile = () => {
       if (error) throw error;
 
       toast({
-        title: 'Profile updated',
-        description: 'Your profile has been successfully updated.',
+        title: 'Profile updated successfully',
+        description: 'Your changes have been saved.',
         status: 'success',
         duration: 5000,
         isClosable: true,
@@ -176,6 +229,8 @@ const EditProfile = () => {
         duration: 9000,
         isClosable: true,
       });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -190,7 +245,8 @@ const EditProfile = () => {
   return (
     <Container maxW="container.md" py={12}>
       <Box bg="white" p={8} borderRadius="lg" boxShadow="md">
-        <VStack spacing={6} align="stretch">
+        <VStack spacing={8} align="stretch">
+          {/* Header */}
           <Flex justify="space-between" align="center">
             <Heading as="h1" size="lg" color="brand.textPrimary">
               Edit Profile
@@ -198,8 +254,9 @@ const EditProfile = () => {
             <HStack spacing={4}>
               <Button
                 leftIcon={<Icon as={FiX} />}
-                variant="ghost"
+                variant="outline"
                 onClick={handleCancel}
+                isDisabled={saving}
               >
                 Cancel
               </Button>
@@ -209,7 +266,7 @@ const EditProfile = () => {
                 bg="brand.accentPrimary"
                 color="white"
                 onClick={handleSubmit(onSubmit)}
-                isLoading={isSubmitting}
+                isLoading={saving}
                 _hover={{ bg: '#c8aeb0' }}
               >
                 Save Changes
@@ -217,104 +274,129 @@ const EditProfile = () => {
             </HStack>
           </Flex>
 
-          <Text color="gray.600">
-            Update your profile information below. All fields are required.
-          </Text>
+          <Divider />
 
-          <VStack spacing={4} as="form" onSubmit={handleSubmit(onSubmit)}>
-            <Controller
-              name="full_name"
-              control={control}
-              render={({ field }) => (
-                <FormControl isInvalid={errors.full_name}>
-                  <FormLabel>Full Name</FormLabel>
-                  <Input {...field} />
-                  <FormErrorMessage>{errors.full_name?.message}</FormErrorMessage>
-                </FormControl>
-              )}
+          {/* Profile Avatar */}
+          <Flex justify="center">
+            <Avatar
+              size="2xl"
+              name={formValues.full_name}
+              src={user?.avatar_url}
+              icon={<Icon as={FiUser} />}
+              bg="brand.accentSecondary"
             />
+          </Flex>
 
-            <Controller
-              name="division"
-              control={control}
-              render={({ field }) => (
-                <FormControl isInvalid={errors.division}>
-                  <FormLabel>NCAA Division</FormLabel>
-                  <Select {...field} placeholder="Select Division">
-                    <option value="D1">Division I</option>
-                    <option value="D2">Division II</option>
-                    <option value="D3">Division III</option>
-                  </Select>
-                  <FormErrorMessage>{errors.division?.message}</FormErrorMessage>
-                </FormControl>
-              )}
-            />
+          {/* Form Fields */}
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <VStack spacing={6} align="stretch">
+              <Controller
+                name="full_name"
+                control={control}
+                render={({ field }) => (
+                  <FormControl isInvalid={!!errors.full_name}>
+                    <FormLabel>Full Name</FormLabel>
+                    <Input {...field} placeholder="Enter your full name" />
+                    <FormErrorMessage>{errors.full_name?.message}</FormErrorMessage>
+                  </FormControl>
+                )}
+              />
 
-            <Controller
-              name="university"
-              control={control}
-              render={({ field }) => (
-                <FormControl isInvalid={errors.university}>
-                  <FormLabel>University</FormLabel>
-                  <Select
-                    {...field}
-                    placeholder="Select University"
-                    isDisabled={!selectedDivision}
-                  >
-                    {filteredSchools.map(school => (
-                      <option key={school.value} value={school.value}>
-                        {school.label}
-                      </option>
-                    ))}
-                  </Select>
-                  <FormErrorMessage>{errors.university?.message}</FormErrorMessage>
-                </FormControl>
-              )}
-            />
+              <Controller
+                name="division"
+                control={control}
+                render={({ field }) => (
+                  <FormControl isInvalid={!!errors.division}>
+                    <FormLabel>NCAA Division</FormLabel>
+                    <Select {...field} placeholder="Select NCAA Division">
+                      {NCAA_DIVISIONS.map((division) => (
+                        <option key={division} value={division}>
+                          {division}
+                        </option>
+                      ))}
+                    </Select>
+                    <FormErrorMessage>{errors.division?.message}</FormErrorMessage>
+                  </FormControl>
+                )}
+              />
 
-            <Controller
-              name="gender"
-              control={control}
-              render={({ field }) => (
-                <FormControl isInvalid={errors.gender}>
-                  <FormLabel>Gender</FormLabel>
-                  <Select {...field} placeholder="Select Gender">
-                    {GENDERS.map(g => (
-                      <option key={g.value} value={g.value}>
-                        {g.label}
-                      </option>
-                    ))}
-                  </Select>
-                  <FormErrorMessage>{errors.gender?.message}</FormErrorMessage>
-                </FormControl>
-              )}
-            />
+              <Controller
+                name="university"
+                control={control}
+                render={({ field }) => (
+                  <FormControl isInvalid={!!errors.university}>
+                    <FormLabel>University</FormLabel>
+                    <Select
+                      {...field}
+                      placeholder="Select your university"
+                      isDisabled={!selectedDivision}
+                    >
+                      {filteredSchools.map((school) => (
+                        <option key={school.name} value={school.name}>
+                          {school.name}
+                        </option>
+                      ))}
+                    </Select>
+                    <FormErrorMessage>{errors.university?.message}</FormErrorMessage>
+                    {!selectedDivision && (
+                      <FormHelperText>
+                        Please select a division first
+                      </FormHelperText>
+                    )}
+                  </FormControl>
+                )}
+              />
 
-            <Controller
-              name="sport"
-              control={control}
-              render={({ field }) => (
-                <FormControl isInvalid={errors.sport}>
-                  <FormLabel>Sport</FormLabel>
-                  <Select
-                    {...field}
-                    placeholder="Select Sport"
-                    isDisabled={!selectedGender}
-                  >
-                    {availableSports.map(s => (
-                      <option key={s.value} value={s.value}>
-                        {s.label}
-                      </option>
-                    ))}
-                  </Select>
-                  <FormErrorMessage>{errors.sport?.message}</FormErrorMessage>
-                </FormControl>
-              )}
-            />
-          </VStack>
+              <Controller
+                name="gender"
+                control={control}
+                render={({ field }) => (
+                  <FormControl isInvalid={!!errors.gender}>
+                    <FormLabel>Gender</FormLabel>
+                    <Select {...field} placeholder="Select your gender">
+                      {GENDERS.map((gender) => (
+                        <option key={gender} value={gender}>
+                          {gender}
+                        </option>
+                      ))}
+                    </Select>
+                    <FormErrorMessage>{errors.gender?.message}</FormErrorMessage>
+                  </FormControl>
+                )}
+              />
+
+              <Controller
+                name="sport"
+                control={control}
+                render={({ field }) => (
+                  <FormControl isInvalid={!!errors.sport}>
+                    <FormLabel>Sport</FormLabel>
+                    <Select
+                      {...field}
+                      placeholder="Select your sport"
+                      isDisabled={!selectedGender}
+                    >
+                      {availableSports.map((sport) => (
+                        <option key={sport} value={sport}>
+                          {sport}
+                        </option>
+                      ))}
+                    </Select>
+                    <FormErrorMessage>{errors.sport?.message}</FormErrorMessage>
+                    {!selectedGender && (
+                      <FormHelperText>
+                        Please select your gender first
+                      </FormHelperText>
+                    )}
+                  </FormControl>
+                )}
+              />
+            </VStack>
+          </form>
         </VStack>
       </Box>
 
+      {/* Confirmation Dialog */}
       <AlertDialog
         isOpen={isOpen}
         leastDestructiveRef={cancelRef}
@@ -323,19 +405,21 @@ const EditProfile = () => {
         <AlertDialogOverlay>
           <AlertDialogContent>
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              <HStack>
-                <Icon as={FiAlertTriangle} color="orange.500" />
-                <Text>Discard Changes?</Text>
-              </HStack>
+              Discard Changes?
             </AlertDialogHeader>
 
             <AlertDialogBody>
-              You have unsaved changes. Are you sure you want to leave? Your changes will be lost.
+              <HStack spacing={3}>
+                <Icon as={FiAlertTriangle} color="orange.500" boxSize={5} />
+                <Text>
+                  You have unsaved changes. Are you sure you want to leave? Your changes will be lost.
+                </Text>
+              </HStack>
             </AlertDialogBody>
 
             <AlertDialogFooter>
               <Button ref={cancelRef} onClick={onClose}>
-                Stay
+                Continue Editing
               </Button>
               <Button colorScheme="red" onClick={handleConfirmCancel} ml={3}>
                 Discard Changes
