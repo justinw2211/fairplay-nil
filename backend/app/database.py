@@ -51,11 +51,16 @@ class DatabaseClient:
     def get_profile(self, user_id: str) -> Dict[str, Any]:
         """Get a user profile with caching."""
         try:
-            response = self.client.table('profiles').select("*").eq('id', user_id).single().execute()
-            return response.data if response.data else {}
+            response = self.client.table('profiles').select("*").eq('id', user_id).execute()
+            data = response.data
+            return data[0] if data else {}
         except Exception as e:
             logger.error(f"Error fetching profile for user {user_id}: {str(e)}")
             raise
+
+    def from_(self, table: str):
+        """Helper method to access tables."""
+        return self.client.table(table)
 
     @contextmanager
     def transaction(self):
@@ -63,8 +68,8 @@ class DatabaseClient:
         try:
             yield self
         except Exception as e:
-            # Log the error here if needed
-            raise e
+            logger.error(f"Transaction error: {str(e)}")
+            raise
 
 # Create a singleton instance
 db = DatabaseClient()
