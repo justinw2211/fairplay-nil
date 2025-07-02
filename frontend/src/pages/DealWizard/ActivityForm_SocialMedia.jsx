@@ -76,7 +76,7 @@ const platforms = [
   },
 ];
 
-const ActivityForm_SocialMedia = ({ nextStepUrl }) => {
+const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalActivities }) => {
   const { dealId } = useParams();
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
@@ -174,8 +174,15 @@ const ActivityForm_SocialMedia = ({ nextStepUrl }) => {
         'Social Media': formattedData,
       },
     });
-    navigate(nextStepUrl);
+    
+    if (onNext) {
+      onNext();
+    } else {
+      navigate(nextStepUrl);
+    }
   };
+
+  const progressPercentage = ((currentActivity - 1) / totalActivities) * 100;
 
   return (
     <Container maxW="4xl" py={6}>
@@ -197,15 +204,15 @@ const ActivityForm_SocialMedia = ({ nextStepUrl }) => {
           <VStack spacing={4} mb={8}>
             <Flex justify="space-between" w="full" fontSize="sm">
               <Text color="brand.textSecondary" fontWeight="semibold">
-                Step 4 of 8
+                Activity {currentActivity} of {totalActivities}
               </Text>
-              <Text color="brand.textSecondary">50% Complete</Text>
+              <Text color="brand.textSecondary">{progressPercentage.toFixed(1)}% Complete</Text>
             </Flex>
             <Box w="full" h="3" bg="brand.accentSecondary" opacity={0.3} rounded="full" overflow="hidden">
               <Box
                 bg="brand.accentPrimary"
                 h="full"
-                w="50%"
+                w={`${progressPercentage}%`}
                 rounded="full"
                 transition="width 0.7s ease-out"
                 bgGradient="linear(to-r, brand.accentPrimary, brand.accentPrimary)"

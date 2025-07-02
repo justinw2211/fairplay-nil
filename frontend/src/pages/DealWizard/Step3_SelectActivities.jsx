@@ -97,13 +97,23 @@ const Step3_SelectActivities = () => {
     const newObligations = {};
     selectedActivities.forEach(activity => {
       if (activity === "other") {
-        newObligations[activity] = { description: otherActivity };
+        newObligations[activity] = { 
+          description: otherActivity,
+          sequence: selectedActivities.indexOf(activity)
+        };
       } else {
-        newObligations[activity] = activity === "social-media" ? [] : {};
+        newObligations[activity] = {
+          ...(activity === "social-media" ? [] : {}),
+          sequence: selectedActivities.indexOf(activity)
+        };
       }
     });
 
-    await updateDeal(dealId, { obligations: newObligations });
+    await updateDeal(dealId, { 
+      obligations: newObligations,
+      currentActivityIndex: 0,
+      totalActivities: selectedActivities.length
+    });
     
     const firstActivity = selectedActivities[0];
     const encodedActivity = encodeURIComponent(firstActivity);

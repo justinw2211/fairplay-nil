@@ -1,8 +1,8 @@
 // frontend/src/pages/DealWizard/ActivityRouter.jsx
-import React, { useEffect } from 'react'; // Import useEffect
-import { useParams, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
-import { Spinner, Flex } from '@chakra-ui/react';
+import { Spinner, Flex, Box, Text, Progress } from '@chakra-ui/react';
 
 // Import all the possible activity form components
 import ActivityForm_SocialMedia from './ActivityForm_SocialMedia';
@@ -36,8 +36,8 @@ const activityTitleMap = {
 
 const ActivityRouter = () => {
   const { dealId, activityType } = useParams();
-  // *** BUG FIX: fetchDealById is now imported to handle the race condition ***
-  const { deal, loading, fetchDealById } = useDeal();
+  const navigate = useNavigate();
+  const { deal, loading, fetchDealById, updateDeal } = useDeal();
 
   // This effect hook makes the component more robust.
   // If it loads and doesn't have the deal data, it fetches it.
@@ -46,7 +46,6 @@ const ActivityRouter = () => {
       fetchDealById(dealId);
     }
   }, [deal, dealId, fetchDealById]);
-
 
   // While loading, show a spinner. This now correctly waits for the fetch to complete.
   if (loading || !deal) {
@@ -65,11 +64,15 @@ const ActivityRouter = () => {
     return <Navigate to="/dashboard" replace />;
   }
 
-  const selectedActivities = Object.keys(deal.obligations || {}).map(title => 
-    Object.entries(activityTitleMap).find(([id, t]) => t === title)?.[0] || title
-  );
-  
+  // Get sorted activities based on sequence
+  const selectedActivities = Object.entries(deal.obligations || {})
+    .sort((a, b) => a[1].sequence - b[1].sequence)
+    .map(([activity]) => activity);
+
   const currentIndex = selectedActivities.indexOf(decodedActivityType);
+  const currentActivityNumber = currentIndex + 1;
+  const totalActivities = selectedActivities.length;
+  const progressPercentage = (currentActivityNumber / totalActivities) * 100;
 
   let nextStepUrl = '';
   if (currentIndex < selectedActivities.length - 1) {
@@ -79,8 +82,42 @@ const ActivityRouter = () => {
   } else {
     nextStepUrl = `/add/deal/compliance/${dealId}`;
   }
-  
-  return <ActivityComponent nextStepUrl={nextStepUrl} />;
+
+  const handleNext = async () => {
+    // Update the current activity index in the deal
+    await updateDeal(dealId, {
+      currentActivityIndex: currentIndex + 1
+    });
+    navigate(nextStepUrl);
+  };
+
+  return (
+    <>
+      <Box mb={6}>
+        <Flex justify="space-between" w="full" fontSize="sm" mb={2}>
+          <Text color="brand.textSecondary" fontWeight="medium">
+            Activity {currentActivityNumber} of {totalActivities}
+          </Text>
+          <Text color="brand.textSecondary">
+            {progressPercentage.toFixed(1)}% Complete
+          </Text>
+        </Flex>
+        <Progress
+          value={progressPercentage}
+          size="sm"
+          colorScheme="pink"
+          bg="brand.accentSecondary"
+          borderRadius="full"
+        />
+      </Box>
+      <ActivityComponent 
+        nextStepUrl={nextStepUrl} 
+        onNext={handleNext}
+        currentActivity={currentActivityNumber}
+        totalActivities={totalActivities}
+      />
+    </>
+  );
 };
 
 export default ActivityRouter;

@@ -15,6 +15,7 @@ import {
   RadioGroup,
   Radio,
   Progress,
+  HStack,
 } from '@chakra-ui/react';
 import {
   ChevronRight,
@@ -24,7 +25,7 @@ import {
   HelpCircle,
 } from 'lucide-react';
 
-const Step5_Compliance = ({ nextStepUrl }) => {
+const Step5_Compliance = () => {
   const { dealId } = useParams();
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
@@ -63,7 +64,7 @@ const Step5_Compliance = ({ nextStepUrl }) => {
       options: [
         { value: "yes", label: "Yes" },
         { value: "no", label: "No" },
-        { value: "not-sure", label: "Not sure" }
+        { value: "not-sure", label: "Not Sure" }
       ],
       additionalInfo: {
         value: licensingInfo,
@@ -139,14 +140,9 @@ const Step5_Compliance = ({ nextStepUrl }) => {
   ];
 
   const isFormValid = () => {
-    const allQuestionsAnswered = complianceQuestions.every(q => q.value);
-    const additionalInfoComplete = complianceQuestions.every(q => {
-      if (q.additionalInfo?.show) {
-        return q.additionalInfo.value?.trim();
-      }
-      return true;
-    });
-    return allQuestionsAnswered && additionalInfoComplete;
+    return complianceQuestions.every(q => q.value && 
+      (!q.additionalInfo?.show || (q.additionalInfo.show && q.additionalInfo.value?.trim()))
+    );
   };
 
   const handleNext = async () => {
@@ -165,7 +161,11 @@ const Step5_Compliance = ({ nextStepUrl }) => {
     await updateDeal(dealId, {
       compliance: formattedData
     });
-    navigate(nextStepUrl);
+    navigate(`/add/deal/compensation/${dealId}`);
+  };
+
+  const handleBack = () => {
+    navigate(`/add/deal/activity/${dealId}`);
   };
 
   return (
@@ -239,7 +239,7 @@ const Step5_Compliance = ({ nextStepUrl }) => {
                     {index + 1}. {question.question}
                   </FormLabel>
                   {question.description && (
-                    <Text fontSize="sm" color="brand.textSecondary" mt={2}>
+                    <Text fontSize="sm" color="brand.textSecondary" mt={2} mb={4}>
                       {question.description}
                     </Text>
                   )}
@@ -249,119 +249,114 @@ const Step5_Compliance = ({ nextStepUrl }) => {
                     onChange={question.setValue}
                     mt={4}
                   >
-                    <VStack align="start" spacing={3}>
-                      {question.options.map(option => (
-                        <Radio
+                    <HStack spacing={4}>
+                      {question.options.map((option) => (
+                        <Box
                           key={option.value}
-                          value={option.value}
-                          size="lg"
-                          colorScheme="brand"
+                          onClick={() => question.setValue(option.value)}
+                          cursor="pointer"
+                          bg={question.value === option.value ? "brand.accentPrimary" : "white"}
+                          color={question.value === option.value ? "white" : "brand.textPrimary"}
+                          px={6}
+                          py={2}
+                          rounded="full"
+                          border="2px"
+                          borderColor={question.value === option.value ? "brand.accentPrimary" : "brand.accentSecondary"}
+                          _hover={{
+                            bg: question.value === option.value ? "brand.accentPrimary" : "brand.backgroundLight",
+                          }}
+                          transition="all 0.2s"
                         >
-                          <Box>
-                            <Text fontWeight="medium">{option.label}</Text>
-                            {option.value === "not-sure" && (
-                              <Text fontSize="sm" color="brand.textSecondary" ml={6}>
-                                Select this if you need assistance determining the answer
-                              </Text>
-                            )}
-                          </Box>
-                        </Radio>
+                          {option.label}
+                        </Box>
                       ))}
-                    </VStack>
+                    </HStack>
                   </RadioGroup>
 
                   {question.additionalInfo?.show && (
-                    <Box ml={4} mt={4}>
-                      <FormLabel color="brand.accentPrimary" fontWeight="medium" fontSize="sm">
-                        Please provide additional information *
-                      </FormLabel>
-                      <Textarea
-                        value={question.additionalInfo.value}
-                        onChange={(e) => question.additionalInfo.setValue(e.target.value)}
-                        placeholder="Please provide more details about your situation..."
-                        minH="100px"
-                        fontSize="base"
-                        borderColor="brand.accentSecondary"
-                        _focus={{
-                          borderColor: "brand.accentPrimary",
-                          boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)"
-                        }}
-                        resize="none"
-                        rows={4}
-                        required
-                      />
+                    <Box mt={4}>
+                      <FormControl>
+                        <FormLabel color="brand.textSecondary" fontSize="sm">
+                          Please provide additional details:
+                        </FormLabel>
+                        <Textarea
+                          value={question.additionalInfo.value}
+                          onChange={(e) => question.additionalInfo.setValue(e.target.value)}
+                          placeholder="Enter your explanation here..."
+                          rows={3}
+                          resize="none"
+                          borderColor="brand.accentSecondary"
+                          _focus={{
+                            borderColor: "brand.accentPrimary",
+                            boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
+                          }}
+                        />
+                      </FormControl>
                     </Box>
                   )}
                 </FormControl>
               </Box>
             ))}
+          </VStack>
+        </Box>
 
-            {/* Navigation */}
-            <Flex justify="space-between" align="center" pt={8} w="full">
+        {/* Footer Navigation */}
+        <Box p={6} borderTop="1px" borderColor="brand.accentSecondary">
+          <Flex justify="space-between">
+            <Button
+              leftIcon={<Icon as={ChevronLeft} />}
+              variant="ghost"
+              color="brand.textSecondary"
+              onClick={handleBack}
+              px={8}
+              py={6}
+              h="auto"
+              fontSize="md"
+              _hover={{
+                bg: "brand.backgroundLight",
+                color: "brand.textPrimary",
+              }}
+            >
+              Back
+            </Button>
+
+            <Flex gap={4}>
               <Button
-                leftIcon={<Icon as={Clock} w="5" h="5" />}
+                leftIcon={<Icon as={Clock} />}
                 variant="ghost"
-                h="12"
-                px="6"
-                fontSize="base"
-                fontWeight="medium"
                 color="brand.textSecondary"
                 onClick={() => navigate('/dashboard')}
+                px={8}
+                py={6}
+                h="auto"
+                fontSize="md"
                 _hover={{
-                  color: "brand.textPrimary"
+                  bg: "brand.backgroundLight",
+                  color: "brand.textPrimary",
                 }}
               >
                 Finish Later
               </Button>
 
-              <Flex gap={4}>
-                <Button
-                  leftIcon={<Icon as={ChevronLeft} w="5" h="5" />}
-                  variant="outline"
-                  h="12"
-                  px="6"
-                  fontSize="base"
-                  fontWeight="medium"
-                  borderColor="brand.accentSecondary"
-                  color="brand.textSecondary"
-                  onClick={() => navigate(`/add/deal/activities/select/${dealId}`)}
-                  _hover={{
-                    bg: "brand.backgroundLight",
-                    borderColor: "brand.accentPrimary",
-                    color: "brand.textPrimary"
-                  }}
-                >
-                  Back
-                </Button>
-                <Button
-                  rightIcon={<Icon as={ChevronRight} w="5" h="5" />}
-                  h="12"
-                  px="8"
-                  fontSize="base"
-                  fontWeight="semibold"
-                  bg={isFormValid() ? "brand.accentPrimary" : "brand.accentSecondary"}
-                  color="white"
-                  isDisabled={!isFormValid()}
-                  onClick={handleNext}
-                  transition="all 0.2s"
-                  _hover={
-                    isFormValid()
-                      ? {
-                          transform: "scale(1.05)",
-                          shadow: "xl"
-                        }
-                      : {}
-                  }
-                  _disabled={{
-                    opacity: 0.6,
-                    cursor: "not-allowed"
-                  }}
-                >
-                  Next
-                </Button>
-              </Flex>
+              <Button
+                rightIcon={<Icon as={ChevronRight} />}
+                variant="solid"
+                bg="brand.accentPrimary"
+                color="white"
+                onClick={handleNext}
+                isDisabled={!isFormValid()}
+                px={8}
+                py={6}
+                h="auto"
+                fontSize="md"
+                _hover={{
+                  bg: "brand.accentPrimaryHover",
+                }}
+              >
+                Continue
+              </Button>
             </Flex>
-          </VStack>
+          </Flex>
         </Box>
       </Box>
     </Container>
