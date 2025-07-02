@@ -83,36 +83,26 @@ const ActivityRouter = () => {
       updatedObligations[decodedActivityType].completed = true;
     }
 
+    // Calculate the next activity index
+    const nextIndex = currentIndex + 1;
+
     // Update the deal with completed activity and next index
     await updateDeal(dealId, {
       obligations: updatedObligations,
-      currentActivityIndex: currentIndex + 1,
+      currentActivityIndex: nextIndex,
       lastCompletedActivity: decodedActivityType
     });
 
-    // Check if all activities are completed before moving to compliance
-    const allActivitiesCompleted = Object.values(updatedObligations)
-      .every(activity => activity.completed);
-
-    // If this was the last activity and all are completed, go to compliance
-    if (currentIndex === selectedActivities.length - 1 && allActivitiesCompleted) {
+    // If this was the last activity, go to compliance
+    if (currentIndex === selectedActivities.length - 1) {
       navigate(`/add/deal/compliance/${dealId}`);
-    } else if (currentIndex < selectedActivities.length - 1) {
-      // Move to next activity
-      const nextActivity = selectedActivities[currentIndex + 1];
-      const encodedNextActivity = encodeURIComponent(nextActivity);
-      navigate(`/add/deal/activity/${encodedNextActivity}/${dealId}`);
-    } else {
-      // If we're at the last activity but some aren't completed,
-      // find the first incomplete activity
-      const firstIncompleteActivity = selectedActivities.find(
-        activity => !updatedObligations[activity].completed
-      );
-      if (firstIncompleteActivity) {
-        const encodedActivity = encodeURIComponent(firstIncompleteActivity);
-        navigate(`/add/deal/activity/${encodedActivity}/${dealId}`);
-      }
+      return;
     }
+
+    // Otherwise, move to the next activity
+    const nextActivity = selectedActivities[nextIndex];
+    const encodedNextActivity = encodeURIComponent(nextActivity);
+    navigate(`/add/deal/activity/${encodedNextActivity}/${dealId}`);
   };
 
   return (
