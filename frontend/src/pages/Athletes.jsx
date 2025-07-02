@@ -11,9 +11,9 @@ import {
   Button,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { FiCalculator, FiDollarSign, FiShield, FiTrendingUp } from "react-icons/fi";
+import { Calculator, DollarSign, ShieldCheck, TrendingUp } from "lucide-react";
 
-const FeatureCard = ({ icon, title, description }) => {
+const FeatureCard = ({ icon: IconComponent, title, description }) => {
   return (
     <VStack
       align="start"
@@ -25,7 +25,7 @@ const FeatureCard = ({ icon, title, description }) => {
       transition="all 0.3s"
       _hover={{ transform: "translateY(-5px)", boxShadow: "md" }}
     >
-      <Icon as={icon} boxSize={6} color="brand.accentPrimary" />
+      <IconComponent size={24} color="#d0bdb5" />
       <Heading size="md" color="brand.textPrimary">
         {title}
       </Heading>
@@ -39,22 +39,22 @@ const FeatureCard = ({ icon, title, description }) => {
 export default function Athletes() {
   const features = [
     {
-      icon: FiCalculator,
+      icon: Calculator,
       title: "NIL Deal Calculator",
       description: "Get instant, accurate valuations for your NIL deals based on your sport, following, and engagement metrics."
     },
     {
-      icon: FiDollarSign,
+      icon: DollarSign,
       title: "Market Rate Insights",
       description: "Access real-time market data to understand your worth and negotiate better deals with confidence."
     },
     {
-      icon: FiShield,
+      icon: ShieldCheck,
       title: "Compliance Check",
       description: "Stay compliant with NCAA regulations while maximizing your earning potential through our built-in compliance tools."
     },
     {
-      icon: FiTrendingUp,
+      icon: TrendingUp,
       title: "Growth Analytics",
       description: "Track your NIL value growth over time and identify opportunities to increase your market value."
     }
