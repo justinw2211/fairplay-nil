@@ -138,6 +138,15 @@ const SignUp = () => {
       
       if (data.role === 'student-athlete') {
         setStep(2);
+        // Reset athlete form when moving to step 2
+        athleteForm.reset({
+          full_name: '',
+          phone: '',
+          division: '',
+          university: '',
+          gender: '',
+          sports: []
+        });
       } else {
         // For non-athletes, create account and redirect to home
         const { error: signUpError } = await signUp(
