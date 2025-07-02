@@ -14,6 +14,8 @@ import {
   FormErrorMessage,
   FormHelperText,
   Input,
+  InputGroup,
+  InputLeftElement,
   VStack,
   Heading,
   Text,
@@ -25,7 +27,7 @@ import {
   HStack,
   Icon,
 } from '@chakra-ui/react';
-import { FiUser, FiMail, FiLock } from 'react-icons/fi';
+import { FiUser, FiMail, FiLock, FiPhone } from 'react-icons/fi';
 import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, NCAA_DIVISIONS, USER_ROLES } from '../data/formConstants';
 import { NCAA_SCHOOL_OPTIONS } from '../data/ncaaSchools';
 
@@ -95,6 +97,9 @@ const SignUp = () => {
         school => school.division === selectedDivision
       );
       setFilteredSchools(schools);
+      if (!schools.find(s => s.name === athleteForm.getValues('university'))) {
+        athleteForm.setValue('university', '');
+      }
     } else {
       setFilteredSchools([]);
     }
@@ -105,6 +110,7 @@ const SignUp = () => {
     const sports = selectedGender === 'Male' ? MEN_SPORTS :
                   selectedGender === 'Female' ? WOMEN_SPORTS : [];
     setAvailableSports(sports);
+    athleteForm.setValue('sports', []);
   }, [selectedGender]);
 
   // Custom styles for react-select
@@ -116,6 +122,8 @@ const SignUp = () => {
       '&:hover': {
         borderColor: '#3182ce',
       },
+      minHeight: '40px',
+      backgroundColor: 'white',
     }),
     option: (provided, state) => ({
       ...provided,
@@ -219,17 +227,21 @@ const SignUp = () => {
                 <Controller
                   name="email"
                   control={initialForm.control}
-                  render={({ field }) => (
-                    <FormControl isInvalid={initialForm.formState.errors.email}>
+                  render={({ field, fieldState: { error } }) => (
+                    <FormControl isInvalid={error}>
                       <FormLabel>Email Address</FormLabel>
-                      <Input
-                        {...field}
-                        type="email"
-                        leftIcon={<Icon as={FiMail} />}
-                        placeholder="Enter your email"
-                      />
+                      <InputGroup>
+                        <InputLeftElement pointerEvents="none">
+                          <Icon as={FiMail} color="gray.300" />
+                        </InputLeftElement>
+                        <Input
+                          {...field}
+                          type="email"
+                          placeholder="Enter your email"
+                        />
+                      </InputGroup>
                       <FormErrorMessage>
-                        {initialForm.formState.errors.email?.message}
+                        {error?.message}
                       </FormErrorMessage>
                     </FormControl>
                   )}
@@ -238,17 +250,21 @@ const SignUp = () => {
                 <Controller
                   name="password"
                   control={initialForm.control}
-                  render={({ field }) => (
-                    <FormControl isInvalid={initialForm.formState.errors.password}>
+                  render={({ field, fieldState: { error } }) => (
+                    <FormControl isInvalid={error}>
                       <FormLabel>Password</FormLabel>
-                      <Input
-                        {...field}
-                        type="password"
-                        leftIcon={<Icon as={FiLock} />}
-                        placeholder="Create a password"
-                      />
+                      <InputGroup>
+                        <InputLeftElement pointerEvents="none">
+                          <Icon as={FiLock} color="gray.300" />
+                        </InputLeftElement>
+                        <Input
+                          {...field}
+                          type="password"
+                          placeholder="Create a password"
+                        />
+                      </InputGroup>
                       <FormErrorMessage>
-                        {initialForm.formState.errors.password?.message}
+                        {error?.message}
                       </FormErrorMessage>
                     </FormControl>
                   )}
@@ -257,17 +273,21 @@ const SignUp = () => {
                 <Controller
                   name="confirmPassword"
                   control={initialForm.control}
-                  render={({ field }) => (
-                    <FormControl isInvalid={initialForm.formState.errors.confirmPassword}>
+                  render={({ field, fieldState: { error } }) => (
+                    <FormControl isInvalid={error}>
                       <FormLabel>Confirm Password</FormLabel>
-                      <Input
-                        {...field}
-                        type="password"
-                        leftIcon={<Icon as={FiLock} />}
-                        placeholder="Confirm your password"
-                      />
+                      <InputGroup>
+                        <InputLeftElement pointerEvents="none">
+                          <Icon as={FiLock} color="gray.300" />
+                        </InputLeftElement>
+                        <Input
+                          {...field}
+                          type="password"
+                          placeholder="Confirm your password"
+                        />
+                      </InputGroup>
                       <FormErrorMessage>
-                        {initialForm.formState.errors.confirmPassword?.message}
+                        {error?.message}
                       </FormErrorMessage>
                     </FormControl>
                   )}
@@ -276,19 +296,19 @@ const SignUp = () => {
                 <Controller
                   name="role"
                   control={initialForm.control}
-                  render={({ field }) => (
-                    <FormControl isInvalid={initialForm.formState.errors.role}>
+                  render={({ field: { onChange, value }, fieldState: { error } }) => (
+                    <FormControl isInvalid={error}>
                       <FormLabel>What best describes you?</FormLabel>
                       <Select
-                        {...field}
                         options={USER_ROLES}
                         styles={customStyles}
                         placeholder="Select your role"
-                        onChange={(option) => field.onChange(option?.value)}
-                        value={USER_ROLES.find(option => option.value === field.value)}
+                        onChange={(option) => onChange(option?.value)}
+                        value={USER_ROLES.find(option => option.value === value)}
+                        isSearchable={false}
                       />
                       <FormErrorMessage>
-                        {initialForm.formState.errors.role?.message}
+                        {error?.message}
                       </FormErrorMessage>
                     </FormControl>
                   )}
@@ -314,16 +334,20 @@ const SignUp = () => {
                 <Controller
                   name="full_name"
                   control={athleteForm.control}
-                  render={({ field }) => (
-                    <FormControl isInvalid={athleteForm.formState.errors.full_name}>
+                  render={({ field, fieldState: { error } }) => (
+                    <FormControl isInvalid={error}>
                       <FormLabel>Full Name</FormLabel>
-                      <Input
-                        {...field}
-                        placeholder="Enter your full name"
-                        leftIcon={<Icon as={FiUser} />}
-                      />
+                      <InputGroup>
+                        <InputLeftElement pointerEvents="none">
+                          <Icon as={FiUser} color="gray.300" />
+                        </InputLeftElement>
+                        <Input
+                          {...field}
+                          placeholder="Enter your full name"
+                        />
+                      </InputGroup>
                       <FormErrorMessage>
-                        {athleteForm.formState.errors.full_name?.message}
+                        {error?.message}
                       </FormErrorMessage>
                     </FormControl>
                   )}
@@ -332,16 +356,21 @@ const SignUp = () => {
                 <Controller
                   name="phone"
                   control={athleteForm.control}
-                  render={({ field }) => (
-                    <FormControl isInvalid={athleteForm.formState.errors.phone}>
+                  render={({ field, fieldState: { error } }) => (
+                    <FormControl isInvalid={error}>
                       <FormLabel>Phone Number</FormLabel>
-                      <Input
-                        {...field}
-                        type="tel"
-                        placeholder="Enter your phone number"
-                      />
+                      <InputGroup>
+                        <InputLeftElement pointerEvents="none">
+                          <Icon as={FiPhone} color="gray.300" />
+                        </InputLeftElement>
+                        <Input
+                          {...field}
+                          type="tel"
+                          placeholder="Enter your phone number"
+                        />
+                      </InputGroup>
                       <FormErrorMessage>
-                        {athleteForm.formState.errors.phone?.message}
+                        {error?.message}
                       </FormErrorMessage>
                     </FormControl>
                   )}
@@ -350,18 +379,19 @@ const SignUp = () => {
                 <Controller
                   name="division"
                   control={athleteForm.control}
-                  render={({ field }) => (
-                    <FormControl isInvalid={athleteForm.formState.errors.division}>
+                  render={({ field: { onChange, value }, fieldState: { error } }) => (
+                    <FormControl isInvalid={error}>
                       <FormLabel>NCAA Division</FormLabel>
-                      <ChakraSelect {...field} placeholder="Select NCAA Division">
-                        {NCAA_DIVISIONS.map((division) => (
-                          <option key={division} value={division}>
-                            {division}
-                          </option>
-                        ))}
-                      </ChakraSelect>
+                      <Select
+                        options={NCAA_DIVISIONS.map(div => ({ value: div, label: div }))}
+                        styles={customStyles}
+                        placeholder="Select NCAA Division"
+                        onChange={(option) => onChange(option?.value)}
+                        value={value ? { value, label: value } : null}
+                        isSearchable={false}
+                      />
                       <FormErrorMessage>
-                        {athleteForm.formState.errors.division?.message}
+                        {error?.message}
                       </FormErrorMessage>
                     </FormControl>
                   )}
@@ -370,24 +400,23 @@ const SignUp = () => {
                 <Controller
                   name="university"
                   control={athleteForm.control}
-                  render={({ field }) => (
-                    <FormControl isInvalid={athleteForm.formState.errors.university}>
+                  render={({ field: { onChange, value }, fieldState: { error } }) => (
+                    <FormControl isInvalid={error}>
                       <FormLabel>University</FormLabel>
                       <Select
-                        {...field}
                         isDisabled={!selectedDivision}
                         options={filteredSchools.map(school => ({
                           value: school.name,
                           label: school.name
                         }))}
-                        placeholder="Search for your university..."
                         styles={customStyles}
-                        onChange={(option) => field.onChange(option?.value)}
-                        value={field.value ? { value: field.value, label: field.value } : null}
+                        placeholder="Search for your university..."
+                        onChange={(option) => onChange(option?.value)}
+                        value={value ? { value, label: value } : null}
                         isClearable
                       />
                       <FormErrorMessage>
-                        {athleteForm.formState.errors.university?.message}
+                        {error?.message}
                       </FormErrorMessage>
                       {!selectedDivision && (
                         <FormHelperText>
@@ -401,18 +430,19 @@ const SignUp = () => {
                 <Controller
                   name="gender"
                   control={athleteForm.control}
-                  render={({ field }) => (
-                    <FormControl isInvalid={athleteForm.formState.errors.gender}>
+                  render={({ field: { onChange, value }, fieldState: { error } }) => (
+                    <FormControl isInvalid={error}>
                       <FormLabel>Gender</FormLabel>
-                      <ChakraSelect {...field} placeholder="Select your gender">
-                        {GENDERS.map((gender) => (
-                          <option key={gender} value={gender}>
-                            {gender}
-                          </option>
-                        ))}
-                      </ChakraSelect>
+                      <Select
+                        options={GENDERS.map(gender => ({ value: gender, label: gender }))}
+                        styles={customStyles}
+                        placeholder="Select your gender"
+                        onChange={(option) => onChange(option?.value)}
+                        value={value ? { value, label: value } : null}
+                        isSearchable={false}
+                      />
                       <FormErrorMessage>
-                        {athleteForm.formState.errors.gender?.message}
+                        {error?.message}
                       </FormErrorMessage>
                     </FormControl>
                   )}
@@ -421,24 +451,23 @@ const SignUp = () => {
                 <Controller
                   name="sports"
                   control={athleteForm.control}
-                  render={({ field }) => (
-                    <FormControl isInvalid={athleteForm.formState.errors.sports}>
+                  render={({ field: { onChange, value }, fieldState: { error } }) => (
+                    <FormControl isInvalid={error}>
                       <FormLabel>Sports</FormLabel>
                       <Select
-                        {...field}
                         isMulti
                         isDisabled={!selectedGender}
                         options={availableSports.map(sport => ({
                           value: sport,
                           label: sport
                         }))}
-                        placeholder="Select your sports..."
                         styles={customStyles}
-                        onChange={(options) => field.onChange(options?.map(opt => opt.value) || [])}
-                        value={field.value?.map(sport => ({ value: sport, label: sport }))}
+                        placeholder="Select your sports..."
+                        onChange={(options) => onChange(options?.map(opt => opt.value) || [])}
+                        value={value?.map(sport => ({ value: sport, label: sport }))}
                       />
                       <FormErrorMessage>
-                        {athleteForm.formState.errors.sports?.message}
+                        {error?.message}
                       </FormErrorMessage>
                       {!selectedGender && (
                         <FormHelperText>
