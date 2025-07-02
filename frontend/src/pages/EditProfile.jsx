@@ -15,6 +15,8 @@ import {
   FormErrorMessage,
   FormHelperText,
   Input,
+  InputGroup,
+  InputLeftElement,
   VStack,
   Heading,
   useToast,
@@ -35,9 +37,24 @@ import {
   Divider,
   Select as ChakraSelect,
 } from '@chakra-ui/react';
-import { FiSave, FiX, FiAlertTriangle, FiUser } from 'react-icons/fi';
+import { FiSave, FiX, FiAlertTriangle, FiUser, FiMail, FiPhone } from 'react-icons/fi';
 import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, NCAA_DIVISIONS } from '../data/formConstants.js';
 import { NCAA_SCHOOL_OPTIONS } from '../data/ncaaSchools.js';
+
+// Phone number formatting function
+const formatPhoneNumber = (value) => {
+  if (!value) return value;
+  const phoneNumber = value.replace(/[^\d]/g, '');
+  if (phoneNumber.length < 4) return phoneNumber;
+  if (phoneNumber.length < 7) return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
+  return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
+};
+
+// Phone number unformatting function
+const unformatPhoneNumber = (value) => {
+  if (!value) return value;
+  return value.replace(/[^\d]/g, '');
+};
 
 const schema = yup.object().shape({
   full_name: yup
@@ -45,6 +62,17 @@ const schema = yup.object().shape({
     .required('Full name is required')
     .min(2, 'Name must be at least 2 characters')
     .max(100, 'Name must be less than 100 characters'),
+  email: yup
+    .string()
+    .email('Invalid email format')
+    .required('Email is required'),
+  phone: yup
+    .string()
+    .required('Phone number is required')
+    .test('phone', 'Phone number must be 10 digits', (value) => {
+      const digits = value ? value.replace(/[^\d]/g, '') : '';
+      return digits.length === 10;
+    }),
   division: yup
     .string()
     .required('NCAA Division is required')
@@ -87,6 +115,8 @@ const EditProfile = () => {
     resolver: yupResolver(schema),
     defaultValues: {
       full_name: '',
+      email: '',
+      phone: '',
       division: '',
       university: '',
       gender: '',
@@ -125,7 +155,11 @@ const EditProfile = () => {
                 : data.division
               : data.division,
             // Handle both string and array sports data
-            sports: Array.isArray(data.sports) ? data.sports : data.sports ? [data.sports] : []
+            sports: Array.isArray(data.sports) ? data.sports : data.sports ? [data.sports] : [],
+            // Format phone number if exists
+            phone: data.phone ? formatPhoneNumber(data.phone) : '',
+            // Set email from user auth data
+            email: user.email || ''
           };
           
           // Pre-populate form with existing data
@@ -254,29 +288,51 @@ const EditProfile = () => {
   const onSubmit = async (data) => {
     setSaving(true);
     try {
-      const { error } = await supabase
+      // Update email in auth if it changed
+      if (data.email !== user.email) {
+        const { error: updateEmailError } = await supabase.auth.updateUser({
+          email: data.email
+        });
+        if (updateEmailError) throw updateEmailError;
+      }
+
+      // Update profile data
+      const { error: updateError } = await supabase
         .from('profiles')
-        .update(data)
+        .update({
+          ...data,
+          phone: unformatPhoneNumber(data.phone), // Store raw phone number
+          updated_at: new Date().toISOString(),
+        })
         .eq('id', user.id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
       toast({
-        title: 'Profile updated successfully',
-        description: 'Your changes have been saved.',
+        title: 'Profile updated',
+        description: 'Your profile has been successfully updated.',
         status: 'success',
         duration: 5000,
         isClosable: true,
       });
 
+      if (data.email !== user.email) {
+        toast({
+          title: 'Email verification required',
+          description: 'Please check your new email for a verification link.',
+          status: 'info',
+          duration: 7000,
+          isClosable: true,
+        });
+      }
+
       setHasChanges(false);
-      navigate('/dashboard');
     } catch (error) {
       toast({
-        title: 'Update failed',
+        title: 'Error updating profile',
         description: error.message,
         status: 'error',
-        duration: 9000,
+        duration: 5000,
         isClosable: true,
       });
     } finally {
@@ -360,11 +416,62 @@ const EditProfile = () => {
               <Controller
                 name="full_name"
                 control={control}
-                render={({ field }) => (
-                  <FormControl isInvalid={!!errors.full_name}>
+                render={({ field, fieldState: { error } }) => (
+                  <FormControl isInvalid={error}>
                     <FormLabel>Full Name</FormLabel>
-                    <Input {...field} placeholder="Enter your full name" />
-                    <FormErrorMessage>{errors.full_name?.message}</FormErrorMessage>
+                    <InputGroup>
+                      <InputLeftElement pointerEvents="none">
+                        <Icon as={FiUser} color="gray.300" />
+                      </InputLeftElement>
+                      <Input {...field} placeholder="Enter your full name" />
+                    </InputGroup>
+                    <FormErrorMessage>{error?.message}</FormErrorMessage>
+                  </FormControl>
+                )}
+              />
+
+              <Controller
+                name="email"
+                control={control}
+                render={({ field, fieldState: { error } }) => (
+                  <FormControl isInvalid={error}>
+                    <FormLabel>Email Address</FormLabel>
+                    <InputGroup>
+                      <InputLeftElement pointerEvents="none">
+                        <Icon as={FiMail} color="gray.300" />
+                      </InputLeftElement>
+                      <Input {...field} type="email" placeholder="Enter your email address" />
+                    </InputGroup>
+                    <FormErrorMessage>{error?.message}</FormErrorMessage>
+                  </FormControl>
+                )}
+              />
+
+              <Controller
+                name="phone"
+                control={control}
+                render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
+                  <FormControl isInvalid={error}>
+                    <FormLabel>Phone Number</FormLabel>
+                    <InputGroup>
+                      <InputLeftElement pointerEvents="none">
+                        <Icon as={FiPhone} color="gray.300" />
+                      </InputLeftElement>
+                      <Input
+                        {...field}
+                        value={value || ''}
+                        onChange={(e) => {
+                          const formatted = formatPhoneNumber(e.target.value);
+                          if (formatted !== undefined) {
+                            onChange(formatted);
+                          }
+                        }}
+                        placeholder="(555) 555-5555"
+                        maxLength={14}
+                      />
+                    </InputGroup>
+                    <FormErrorMessage>{error?.message}</FormErrorMessage>
+                    <FormHelperText>Format: (XXX) XXX-XXXX</FormHelperText>
                   </FormControl>
                 )}
               />
