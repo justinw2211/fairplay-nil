@@ -15,16 +15,45 @@ DEAL_SELECT_FIELDS = """
     user_id,
     status,
     created_at,
-    name,
-    email,
-    school,
-    sport,
-    deal_type,
-    deal_category,
-    brand_partner,
-    fmv,
-    compensation_cash
+    deal_nickname,
+    deal_terms_url,
+    deal_terms_file_name,
+    deal_terms_file_type,
+    deal_terms_file_size,
+    payor_name,
+    contact_name,
+    contact_email,
+    contact_phone,
+    activities,
+    obligations,
+    grant_exclusivity,
+    uses_school_ip,
+    licenses_NIL,
+    compensation_cash,
+    compensation_goods,
+    compensation_other,
+    is_group_deal,
+    is_paid_to_llc
 """.strip()
+
+def validate_file_metadata(file_type: str, file_size: int) -> bool:
+    """Validate file metadata on the backend."""
+    valid_types = ['pdf', 'docx', 'png', 'jpg', 'jpeg']
+    max_size = 10 * 1024 * 1024  # 10MB
+    
+    if file_type not in valid_types:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file type. Allowed types: {', '.join(valid_types)}"
+        )
+    
+    if file_size > max_size:
+        raise HTTPException(
+            status_code=400,
+            detail="File size must be less than 10MB"
+        )
+    
+    return True
 
 @router.post("/deals", response_model=DealCreateResponse, summary="Create a new draft deal")
 async def create_draft_deal(user_id: str = Depends(get_user_id)):
@@ -54,11 +83,19 @@ async def update_deal(
     deal_data: DealUpdate,
     user_id: str = Depends(get_user_id)
 ):
-    """Update a deal with optimized field selection and validation."""
+    """Update a deal with file validation."""
     try:
         update_data = deal_data.dict(exclude_unset=True)
         if not update_data:
             raise HTTPException(status_code=400, detail="No update data provided.")
+
+        # Validate file metadata if present
+        if (update_data.get('deal_terms_file_type') or 
+            update_data.get('deal_terms_file_size')):
+            validate_file_metadata(
+                update_data.get('deal_terms_file_type', ''),
+                update_data.get('deal_terms_file_size', 0)
+            )
 
         with db.transaction():
             data, count = db.client.from_("deals").update(

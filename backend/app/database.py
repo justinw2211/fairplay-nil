@@ -26,12 +26,12 @@ class DatabaseClient:
     def _initialize_client(self):
         """Initialize the Supabase client with proper error handling."""
         url = os.environ.get("SUPABASE_URL")
-        key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+        key = os.environ.get("SUPABASE_KEY")
 
         if not url:
             raise ValueError("FATAL: SUPABASE_URL environment variable is not set.")
         if not key:
-            raise ValueError("FATAL: SUPABASE_SERVICE_ROLE_KEY environment variable is not set.")
+            raise ValueError("FATAL: SUPABASE_KEY environment variable is not set.")
 
         try:
             self._client = create_client(url, key)
@@ -59,12 +59,12 @@ class DatabaseClient:
 
     @contextmanager
     def transaction(self):
-        """Context manager for handling transactions (placeholder for future implementation)."""
+        """Context manager for database transactions."""
         try:
-            yield self.client
+            yield self
         except Exception as e:
-            logger.error(f"Transaction error: {str(e)}")
-            raise
+            # Log the error here if needed
+            raise e
 
 # Create a singleton instance
 db = DatabaseClient()
