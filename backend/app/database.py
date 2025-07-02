@@ -2,7 +2,6 @@
 import os
 from typing import Optional, Dict, Any
 from supabase import create_client, Client
-from functools import lru_cache
 import logging
 from contextlib import contextmanager
 
@@ -34,13 +33,11 @@ class DatabaseClient:
             raise ValueError("FATAL: SUPABASE_SERVICE_ROLE_KEY environment variable is not set.")
 
         try:
-            # Initialize with older supabase-py client format
-            self._client = create_client(url, key, options={
-                'headers': {
-                    'Authorization': f'Bearer {key}',
-                    'apikey': key
-                }
-            })
+            # Initialize with newer supabase client format
+            self._client = create_client(
+                supabase_url=url,
+                supabase_key=key
+            )
             logger.info("Successfully initialized Supabase client")
         except Exception as e:
             logger.error(f"Failed to initialize Supabase client: {str(e)}")
@@ -57,7 +54,7 @@ class DatabaseClient:
         """Get a user profile."""
         try:
             response = self.client.table('profiles').select("*").eq('id', user_id).execute()
-            return response.get('data', [{}])[0]
+            return response.data[0] if response.data else {}
         except Exception as e:
             logger.error(f"Error fetching profile for user {user_id}: {str(e)}")
             raise
