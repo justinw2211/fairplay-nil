@@ -117,10 +117,6 @@ const Step8_Review = () => {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      await updateDeal(dealId, {
-        status: 'pending',
-        submittedAt: new Date().toISOString(),
-      });
       navigate(`/add/deal/confirmation/${dealId}`);
     } catch (error) {
       toast({

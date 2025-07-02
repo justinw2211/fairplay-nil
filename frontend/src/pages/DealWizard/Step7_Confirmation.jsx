@@ -28,9 +28,17 @@ const Step7_Confirmation = () => {
   }, [deal, reset]);
 
   const onContinue = async (formData) => {
-    await updateDeal(dealId, formData);
-    // Navigate to the final review step
-    navigate(`/add/deal/confirmation/review/${dealId}`);
+    try {
+      await updateDeal(dealId, {
+        ...formData,
+        status: 'pending',
+        submittedAt: new Date().toISOString(),
+      });
+      // Navigate to the submission success page
+      navigate(`/add/deal/submission-success/${dealId}`);
+    } catch (error) {
+      console.error('Error updating deal:', error);
+    }
   };
 
   return (

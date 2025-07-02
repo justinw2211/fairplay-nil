@@ -155,6 +155,7 @@ function App() {
         <Route path="/add/deal/compliance/:dealId" element={<DealWizardRoute><Step5_Compliance /></DealWizardRoute>} />
         <Route path="/add/deal/compensation/:dealId" element={<DealWizardRoute><Step6_Compensation /></DealWizardRoute>} />
         <Route path="/add/deal/review/:dealId" element={<DealWizardRoute><Step8_Review /></DealWizardRoute>} />
+        <Route path="/add/deal/confirmation/:dealId" element={<DealWizardRoute><Step7_Confirmation /></DealWizardRoute>} />
         <Route path="/add/deal/submission-success/:dealId" element={<DealWizardRoute><SubmissionSuccess /></DealWizardRoute>} />
 
         {/* Catch-all route for 404 */}
