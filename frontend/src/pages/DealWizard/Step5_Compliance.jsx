@@ -249,58 +249,25 @@ const Step5_Compliance = ({ nextStepUrl }) => {
                     onChange={question.setValue}
                     mt={4}
                   >
-                    <Flex gap={4} ml={4}>
+                    <VStack align="start" spacing={3}>
                       {question.options.map(option => (
-                        <Box
+                        <Radio
                           key={option.value}
-                          borderWidth="1px"
-                          borderColor={question.value === option.value ? "brand.accentPrimary" : "brand.accentSecondary"}
-                          bg={question.value === option.value ? "brand.accentPrimary.50" : "transparent"}
-                          rounded="lg"
-                          px={4}
-                          py={2}
-                          cursor="pointer"
-                          transition="all 0.2s"
-                          onClick={() => question.setValue(option.value)}
-                          _hover={{
-                            borderColor: "brand.accentPrimary"
-                          }}
+                          value={option.value}
+                          size="lg"
+                          colorScheme="brand"
                         >
-                          <Radio
-                            value={option.value}
-                            colorScheme="brand"
-                            size="md"
-                            isChecked={question.value === option.value}
-                            sx={{
-                              '.chakra-radio__control': {
-                                borderColor: question.value === option.value ? "brand.accentPrimary" : "brand.accentSecondary",
-                                bg: question.value === option.value ? "brand.accentPrimary" : "white",
-                                _checked: {
-                                  borderColor: "brand.accentPrimary",
-                                  bg: "brand.accentPrimary",
-                                  color: "white",
-                                  _before: {
-                                    content: '""',
-                                    display: "block",
-                                    w: "50%",
-                                    h: "50%",
-                                    bg: "white",
-                                    borderRadius: "50%"
-                                  }
-                                },
-                                _hover: {
-                                  borderColor: "brand.accentPrimary"
-                                }
-                              }
-                            }}
-                          >
-                            <Text color="brand.textPrimary" fontWeight="medium" fontSize="sm">
-                              {option.label}
-                            </Text>
-                          </Radio>
-                        </Box>
+                          <Box>
+                            <Text fontWeight="medium">{option.label}</Text>
+                            {option.value === "not-sure" && (
+                              <Text fontSize="sm" color="brand.textSecondary" ml={6}>
+                                Select this if you need assistance determining the answer
+                              </Text>
+                            )}
+                          </Box>
+                        </Radio>
                       ))}
-                    </Flex>
+                    </VStack>
                   </RadioGroup>
 
                   {question.additionalInfo?.show && (

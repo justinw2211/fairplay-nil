@@ -29,6 +29,9 @@ import Step7_Confirmation from './pages/DealWizard/Step7_Confirmation';
 import Step8_Review from './pages/DealWizard/Step8_Review';
 import SubmissionSuccess from './pages/DealWizard/SubmissionSuccess';
 
+// Import the DealWizardRoute component
+import DealWizardRoute from './components/DealWizardRoute';
+
 // *** BUG FIX: All imports related to the OLD deal wizard have been removed. ***
 
 function App() {
@@ -139,7 +142,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/aboutus" element={<AboutUs />} />
+        <Route path="/about" element={<AboutUs />} />
         <Route path="/security" element={<Security />} />
         <Route path="/careers" element={<Careers />} />
         <Route path="/athletes" element={<Athletes />} />
@@ -152,17 +155,18 @@ function App() {
         <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
 
         {/* --- NEW DEAL WIZARD ROUTES --- */}
-        <Route path="/add/deal/terms/:dealId" element={<ProtectedRoute><Step1_DealTerms /></ProtectedRoute>} />
-        <Route path="/add/deal/payor/:dealId" element={<ProtectedRoute><Step2_PayorInfo /></ProtectedRoute>} />
-        <Route path="/add/deal/activities/select/:dealId" element={<ProtectedRoute><Step3_SelectActivities /></ProtectedRoute>} />
-        <Route path="/add/deal/activity/:activityType/:dealId" element={<ProtectedRoute><ActivityRouter /></ProtectedRoute>} />
-        <Route path="/add/deal/compliance/:dealId" element={<ProtectedRoute><Step5_Compliance /></ProtectedRoute>} />
-        <Route path="/add/deal/compensation/:dealId" element={<ProtectedRoute><Step6_Compensation /></ProtectedRoute>} />
-        <Route path="/add/deal/confirmation/details/:dealId" element={<ProtectedRoute><Step7_Confirmation /></ProtectedRoute>} />
-        <Route path="/add/deal/confirmation/review/:dealId" element={<ProtectedRoute><Step8_Review /></ProtectedRoute>} />
-        <Route path="/add/deal/success/:dealId" element={<ProtectedRoute><SubmissionSuccess /></ProtectedRoute>} />
-        
-        {/* *** BUG FIX: All <Route> components for the old wizard have been removed. *** */}
+        <Route path="/add/deal/terms/:dealId" element={<DealWizardRoute><Step1_DealTerms /></DealWizardRoute>} />
+        <Route path="/add/deal/payor/:dealId" element={<DealWizardRoute><Step2_PayorInfo /></DealWizardRoute>} />
+        <Route path="/add/deal/activities/select/:dealId" element={<DealWizardRoute><Step3_SelectActivities /></DealWizardRoute>} />
+        <Route path="/add/deal/activity/:activityType/:dealId" element={<DealWizardRoute><ActivityRouter /></DealWizardRoute>} />
+        <Route path="/add/deal/compliance/:dealId" element={<DealWizardRoute><Step5_Compliance /></DealWizardRoute>} />
+        <Route path="/add/deal/compensation/:dealId" element={<DealWizardRoute><Step6_Compensation /></DealWizardRoute>} />
+        <Route path="/add/deal/confirmation/details/:dealId" element={<DealWizardRoute><Step7_Confirmation /></DealWizardRoute>} />
+        <Route path="/add/deal/confirmation/review/:dealId" element={<DealWizardRoute><Step8_Review /></DealWizardRoute>} />
+        <Route path="/add/deal/success/:dealId" element={<DealWizardRoute><SubmissionSuccess /></DealWizardRoute>} />
+
+        {/* Catch-all route for 404 */}
+        <Route path="*" element={<NotFound />} />
 
       </Routes>
     </Box>

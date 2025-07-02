@@ -52,19 +52,15 @@ const Step2_PayorInfo = () => {
     const email = e.target.value;
     setPayorEmail(email);
     
-    if (!email) {
-      setEmailError('Email is required');
-    } else if (!validateEmail(email)) {
+    if (email && !validateEmail(email)) {
       setEmailError('Please enter a valid email address');
     } else {
       setEmailError('');
     }
   };
 
-  const isFormValid = payorType && 
-                     payorName.trim() && 
-                     payorEmail.trim() && 
-                     validateEmail(payorEmail);
+  const isFormValid = payorType && payorName.trim() && 
+                     (!payorEmail.trim() || validateEmail(payorEmail));
 
   const formatPhoneNumber = (value) => {
     // Remove all non-numeric characters
@@ -90,7 +86,7 @@ const Step2_PayorInfo = () => {
   };
 
   const handleNext = async () => {
-    if (!validateEmail(payorEmail)) {
+    if (payorEmail && !validateEmail(payorEmail)) {
       setEmailError('Please enter a valid email address');
       return;
     }
@@ -193,7 +189,7 @@ const Step2_PayorInfo = () => {
             {/* Email Input */}
             <FormControl isInvalid={emailError}>
               <FormLabel color="brand.textPrimary" fontWeight="semibold">
-                Payor's Contact Email *
+                Payor's Contact Email (optional)
               </FormLabel>
               <Input
                 type="email"

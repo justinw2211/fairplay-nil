@@ -17,6 +17,7 @@ import {
   Select,
   Progress,
   IconButton,
+  FormErrorMessage,
 } from '@chakra-ui/react';
 import {
   ChevronRight,
@@ -51,6 +52,10 @@ const Step6_Compensation = ({ nextStepUrl }) => {
   const [compensationItems, setCompensationItems] = useState([
     { id: "1", type: "cash", expanded: true }
   ]);
+
+  const validateAmount = (value) => {
+    return value && parseFloat(value) > 0;
+  };
 
   useEffect(() => {
     if (deal?.compensation?.items) {
@@ -115,15 +120,15 @@ const Step6_Compensation = ({ nextStepUrl }) => {
   const isFormValid = () => {
     return compensationItems.every(item => {
       if (item.type === "cash") {
-        return item.amount && item.schedule;
+        return validateAmount(item.amount) && item.schedule;
       } else if (item.type === "non-cash") {
-        return item.description && item.value;
+        return item.description && validateAmount(item.value);
       } else if (item.type === "bonus") {
-        return item.amount && item.requirements;
+        return validateAmount(item.amount) && item.requirements;
       } else if (item.type === "royalty") {
-        return item.description && item.percentage;
+        return item.description && item.percentage && parseFloat(item.percentage) > 0 && parseFloat(item.percentage) <= 100;
       } else if (item.type === "other") {
-        return item.description && item.value;
+        return item.description && validateAmount(item.value);
       }
       return false;
     });
@@ -143,7 +148,7 @@ const Step6_Compensation = ({ nextStepUrl }) => {
       case "cash":
         return (
           <>
-            <FormControl>
+            <FormControl isInvalid={item.amount && !validateAmount(item.amount)}>
               <FormLabel color="brand.textPrimary" fontWeight="semibold">Total Amount in USD *</FormLabel>
               <Box position="relative">
                 <Icon
@@ -168,8 +173,13 @@ const Step6_Compensation = ({ nextStepUrl }) => {
                     borderColor: "brand.accentPrimary",
                     boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)"
                   }}
+                  min="0.01"
+                  step="0.01"
                 />
               </Box>
+              {item.amount && !validateAmount(item.amount) && (
+                <FormErrorMessage>Amount must be greater than 0</FormErrorMessage>
+              )}
             </FormControl>
 
             <FormControl mt={6}>
@@ -215,7 +225,7 @@ const Step6_Compensation = ({ nextStepUrl }) => {
               />
             </FormControl>
 
-            <FormControl mt={6}>
+            <FormControl mt={6} isInvalid={item.value && !validateAmount(item.value)}>
               <FormLabel color="brand.textPrimary" fontWeight="semibold">Estimated Value in USD *</FormLabel>
               <Box position="relative">
                 <Icon
@@ -240,8 +250,13 @@ const Step6_Compensation = ({ nextStepUrl }) => {
                     borderColor: "brand.accentPrimary",
                     boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)"
                   }}
+                  min="0.01"
+                  step="0.01"
                 />
               </Box>
+              {item.value && !validateAmount(item.value) && (
+                <FormErrorMessage>Value must be greater than 0</FormErrorMessage>
+              )}
             </FormControl>
           </>
         );
@@ -316,9 +331,9 @@ const Step6_Compensation = ({ nextStepUrl }) => {
         return (
           <>
             <FormControl>
-              <FormLabel color="brand.textPrimary" fontWeight="semibold">Payment Terms, Including Products Sold *</FormLabel>
+              <FormLabel color="brand.textPrimary" fontWeight="semibold">Description *</FormLabel>
               <Textarea
-                placeholder="e.g., 'Receive 15% of net sales from all t-shirts sold with my name'"
+                placeholder="e.g., '10% of net sales from merchandise featuring your name/image'"
                 value={item.description || ""}
                 onChange={(e) => updateCompensationItem(item.id, "description", e.target.value)}
                 minH="100px"
@@ -332,21 +347,23 @@ const Step6_Compensation = ({ nextStepUrl }) => {
               />
             </FormControl>
 
-            <FormControl mt={6}>
+            <FormControl mt={6} isInvalid={item.percentage && (parseFloat(item.percentage) <= 0 || parseFloat(item.percentage) > 100)}>
               <FormLabel color="brand.textPrimary" fontWeight="semibold">Royalty Percentage *</FormLabel>
               <Box position="relative">
                 <Input
                   type="number"
-                  placeholder="15"
+                  placeholder="10"
                   value={item.percentage || ""}
                   onChange={(e) => updateCompensationItem(item.id, "percentage", e.target.value)}
-                  pr="8"
                   h="12"
                   borderColor="brand.accentSecondary"
                   _focus={{
                     borderColor: "brand.accentPrimary",
                     boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)"
                   }}
+                  min="0.01"
+                  max="100"
+                  step="0.01"
                 />
                 <Text
                   position="absolute"
@@ -358,6 +375,9 @@ const Step6_Compensation = ({ nextStepUrl }) => {
                   %
                 </Text>
               </Box>
+              {item.percentage && (parseFloat(item.percentage) <= 0 || parseFloat(item.percentage) > 100) && (
+                <FormErrorMessage>Percentage must be between 0 and 100</FormErrorMessage>
+              )}
             </FormControl>
 
             <FormControl mt={6}>

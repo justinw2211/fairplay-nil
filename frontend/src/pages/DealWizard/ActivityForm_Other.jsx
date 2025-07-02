@@ -212,6 +212,7 @@ const ActivityForm_Other = ({ nextStepUrl }) => {
                 <Input
                   id="due-date"
                   type="date"
+                  min={new Date().toISOString().split('T')[0]}
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
                   h="12"
