@@ -140,7 +140,7 @@ const Step6_Compensation = ({ nextStepUrl }) => {
         items: compensationItems
       }
     });
-    navigate(nextStepUrl);
+    navigate(`/add/deal/review/${dealId}`);
   };
 
   const renderCompensationFields = (item) => {
