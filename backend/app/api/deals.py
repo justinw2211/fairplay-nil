@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-DEAL_SELECT_FIELDS = "id,user_id,status,created_at,deal_nickname,deal_terms_url,deal_terms_file_name,deal_terms_file_type,deal_terms_file_size,payor_name,contact_name,contact_email,contact_phone,activities,obligations,grant_exclusivity,uses_school_ip,licenses_NIL,compensation_cash,compensation_goods,compensation_other,is_group_deal,is_paid_to_llc"
+DEAL_SELECT_FIELDS = "id,user_id,status,created_at,deal_nickname,deal_terms_url,deal_terms_file_name,deal_terms_file_type,deal_terms_file_size,payor_name,contact_name,contact_email,contact_phone,activities,obligations,grant_exclusivity,uses_school_ip,licenses_nil,compensation_cash,compensation_goods,compensation_other,is_group_deal,is_paid_to_llc"
 
 def validate_file_metadata(file_type: str, file_size: int) -> bool:
     """Validate file metadata on the backend."""

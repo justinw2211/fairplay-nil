@@ -37,8 +37,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origin_regex=ORIGIN_REGEX,
     allow_credentials=True,
-    allow_methods=["*"], 
-    allow_headers=["*"], 
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["X-Token-Expired", "WWW-Authenticate"]
 )
 
 # This routing setup is correct and follows FastAPI best practices.

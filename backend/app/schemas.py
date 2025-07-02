@@ -52,7 +52,7 @@ class DealUpdate(BaseModel):
     obligations: Optional[Dict[str, Any]] = None
     grant_exclusivity: Optional[str] = None
     uses_school_ip: Optional[bool] = None
-    licenses_NIL: Optional[str] = None
+    licenses_nil: Optional[str] = None
     
     # Step 6: Compensation
     compensation_cash: Optional[float] = None
