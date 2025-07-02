@@ -103,7 +103,7 @@ const SignUp = () => {
     } else {
       setFilteredSchools([]);
     }
-  }, [selectedDivision]);
+  }, [selectedDivision, athleteForm]);
 
   // Handle gender change
   React.useEffect(() => {
@@ -111,7 +111,7 @@ const SignUp = () => {
                   selectedGender === 'Female' ? WOMEN_SPORTS : [];
     setAvailableSports(sports);
     athleteForm.setValue('sports', []);
-  }, [selectedGender]);
+  }, [selectedGender, athleteForm]);
 
   // Custom styles for react-select
   const customStyles = {
@@ -343,7 +343,7 @@ const SignUp = () => {
                 <Controller
                   name="full_name"
                   control={athleteForm.control}
-                  render={({ field, fieldState: { error } }) => (
+                  render={({ field: { onChange, value }, fieldState: { error } }) => (
                     <FormControl isInvalid={error}>
                       <FormLabel>Full Name</FormLabel>
                       <InputGroup>
@@ -351,7 +351,8 @@ const SignUp = () => {
                           <Icon as={FiUser} color="gray.300" />
                         </InputLeftElement>
                         <Input
-                          {...field}
+                          value={value || ''}
+                          onChange={onChange}
                           placeholder="Enter your full name"
                         />
                       </InputGroup>
@@ -365,7 +366,7 @@ const SignUp = () => {
                 <Controller
                   name="phone"
                   control={athleteForm.control}
-                  render={({ field, fieldState: { error } }) => (
+                  render={({ field: { onChange, value }, fieldState: { error } }) => (
                     <FormControl isInvalid={error}>
                       <FormLabel>Phone Number</FormLabel>
                       <InputGroup>
@@ -373,7 +374,8 @@ const SignUp = () => {
                           <Icon as={FiPhone} color="gray.300" />
                         </InputLeftElement>
                         <Input
-                          {...field}
+                          value={value || ''}
+                          onChange={onChange}
                           type="tel"
                           placeholder="Enter your phone number"
                         />
@@ -398,6 +400,7 @@ const SignUp = () => {
                         onChange={(option) => onChange(option?.value)}
                         value={value ? { value, label: value } : null}
                         isSearchable={false}
+                        isClearable={false}
                       />
                       <FormErrorMessage>
                         {error?.message}
@@ -449,6 +452,7 @@ const SignUp = () => {
                         onChange={(option) => onChange(option?.value)}
                         value={value ? { value, label: value } : null}
                         isSearchable={false}
+                        isClearable={false}
                       />
                       <FormErrorMessage>
                         {error?.message}
@@ -473,7 +477,7 @@ const SignUp = () => {
                         styles={customStyles}
                         placeholder="Select your sports..."
                         onChange={(options) => onChange(options?.map(opt => opt.value) || [])}
-                        value={value?.map(sport => ({ value: sport, label: sport }))}
+                        value={(value || []).map(sport => ({ value: sport, label: sport }))}
                       />
                       <FormErrorMessage>
                         {error?.message}
