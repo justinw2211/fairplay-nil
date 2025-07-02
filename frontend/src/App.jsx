@@ -26,7 +26,6 @@ import Step3_SelectActivities from './pages/DealWizard/Step3_SelectActivities';
 import ActivityRouter from './pages/DealWizard/ActivityRouter';
 import Step5_Compliance from './pages/DealWizard/Step5_Compliance';
 import Step6_Compensation from './pages/DealWizard/Step6_Compensation';
-import Step7_Confirmation from './pages/DealWizard/Step7_Confirmation';
 import Step8_Review from './pages/DealWizard/Step8_Review';
 import SubmissionSuccess from './pages/DealWizard/SubmissionSuccess';
 
@@ -155,7 +154,6 @@ function App() {
         <Route path="/add/deal/compliance/:dealId" element={<DealWizardRoute><Step5_Compliance /></DealWizardRoute>} />
         <Route path="/add/deal/compensation/:dealId" element={<DealWizardRoute><Step6_Compensation /></DealWizardRoute>} />
         <Route path="/add/deal/review/:dealId" element={<DealWizardRoute><Step8_Review /></DealWizardRoute>} />
-        <Route path="/add/deal/confirmation/:dealId" element={<DealWizardRoute><Step7_Confirmation /></DealWizardRoute>} />
         <Route path="/add/deal/submission-success/:dealId" element={<DealWizardRoute><SubmissionSuccess /></DealWizardRoute>} />
 
         {/* Catch-all route for 404 */}

@@ -117,8 +117,23 @@ const Step8_Review = () => {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      navigate(`/add/deal/confirmation/${dealId}`);
+      // Update deal status and add submission timestamp
+      const updateData = {
+        status: 'pending',
+        submittedAt: new Date().toISOString(),
+        // Add any final flags needed
+        is_submitted: true,
+        submission_complete: true
+      };
+
+      console.log('Submitting deal with data:', updateData);
+      
+      await updateDeal(dealId, updateData);
+      
+      // Navigate to success page
+      navigate(`/add/deal/submission-success/${dealId}`);
     } catch (error) {
+      console.error('Error submitting deal:', error);
       toast({
         title: 'Error submitting deal',
         description: 'Please try again or contact support if the problem persists.',
@@ -402,7 +417,7 @@ const Step8_Review = () => {
                 bg: "brand.accentPrimaryHover",
               }}
             >
-              Submit for Review
+              Submit Deal
             </Button>
           </Flex>
         </Flex>
