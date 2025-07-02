@@ -168,24 +168,36 @@ const Step5_Compliance = () => {
       return;
     }
 
+    // Format the data according to the backend schema
     const formattedData = {
-      licensingRights,
-      licensingInfo,
-      schoolBrandVisible,
-      schoolBrandInfo,
-      exclusiveRights,
-      conflictingSponsorships,
-      conflictingInfo,
-      professionalRep,
-      restrictedCategories
+      // Map licensingRights to licenses_nil
+      licenses_nil: licensingRights,
+      
+      // Map schoolBrandVisible to uses_school_ip
+      uses_school_ip: schoolBrandVisible === 'yes',
+      
+      // Map exclusiveRights to grant_exclusivity
+      grant_exclusivity: exclusiveRights,
+      
+      // Store the rest in obligations
+      obligations: {
+        licensingInfo,
+        schoolBrandInfo,
+        conflictingSponsorships,
+        conflictingInfo,
+        professionalRep,
+        restrictedCategories
+      }
     };
 
     console.log('Submitting compliance data:', formattedData);
 
-    await updateDeal(dealId, {
-      compliance: formattedData
-    });
-    navigate(`/add/deal/compensation/${dealId}`);
+    try {
+      await updateDeal(dealId, formattedData);
+      navigate(`/add/deal/compensation/${dealId}`);
+    } catch (error) {
+      console.error('Error updating deal:', error);
+    }
   };
 
   const handleBack = () => {
