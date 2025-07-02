@@ -140,12 +140,34 @@ const Step5_Compliance = () => {
   ];
 
   const isFormValid = () => {
-    return complianceQuestions.every(q => q.value && 
-      (!q.additionalInfo?.show || (q.additionalInfo.show && q.additionalInfo.value?.trim()))
-    );
+    // Log the state of all questions for debugging
+    console.log('Compliance form validation state:', complianceQuestions.map(q => ({
+      id: q.id,
+      value: q.value,
+      additionalInfoRequired: q.additionalInfo?.show,
+      additionalInfoValue: q.additionalInfo?.value
+    })));
+
+    return complianceQuestions.every(q => {
+      // Base validation - must have a value selected
+      if (!q.value) return false;
+      
+      // If additional info is required (showing) and the value is "not-sure"
+      if (q.additionalInfo?.show && q.value === "not-sure") {
+        return !!q.additionalInfo.value?.trim();
+      }
+      
+      // If no additional info is needed or value isn't "not-sure", just need the main value
+      return true;
+    });
   };
 
   const handleNext = async () => {
+    if (!isFormValid()) {
+      console.log('Form validation failed');
+      return;
+    }
+
     const formattedData = {
       licensingRights,
       licensingInfo,
@@ -157,6 +179,8 @@ const Step5_Compliance = () => {
       professionalRep,
       restrictedCategories
     };
+
+    console.log('Submitting compliance data:', formattedData);
 
     await updateDeal(dealId, {
       compliance: formattedData

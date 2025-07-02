@@ -44,7 +44,7 @@ const CompensationItem = {
   expanded: Boolean,
 };
 
-const Step6_Compensation = ({ nextStepUrl }) => {
+const Step6_Compensation = () => {
   const { dealId } = useParams();
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
@@ -135,12 +135,19 @@ const Step6_Compensation = ({ nextStepUrl }) => {
   };
 
   const handleNext = async () => {
+    if (!isFormValid()) {
+      console.log('Compensation form validation failed');
+      return;
+    }
+
+    console.log('Submitting compensation data:', compensationItems);
+
     await updateDeal(dealId, {
       compensation: {
         items: compensationItems
       }
     });
-    navigate(`/add/deal/review/${dealId}`);
+    navigate(`/add/deal/confirmation/${dealId}`);
   };
 
   const renderCompensationFields = (item) => {
