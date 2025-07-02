@@ -288,35 +288,29 @@ const EditProfile = () => {
   const onSubmit = async (data) => {
     setSaving(true);
     try {
-      // Update email in auth if it changed
-      if (data.email !== user.email) {
-        const { error: updateEmailError } = await supabase.auth.updateUser({
-          email: data.email
-        });
-        if (updateEmailError) throw updateEmailError;
-      }
-
-      // Update profile data
+      // First update profile data without email (since it's managed by auth)
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
-          ...data,
-          phone: unformatPhoneNumber(data.phone), // Store raw phone number
+          full_name: data.full_name,
+          phone: unformatPhoneNumber(data.phone),
+          division: data.division,
+          university: data.university,
+          gender: data.gender,
+          sports: data.sports,
           updated_at: new Date().toISOString(),
         })
         .eq('id', user.id);
 
       if (updateError) throw updateError;
 
-      toast({
-        title: 'Profile updated',
-        description: 'Your profile has been successfully updated.',
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
-
+      // Then update email in auth if it changed
       if (data.email !== user.email) {
+        const { error: updateEmailError } = await supabase.auth.updateUser({
+          email: data.email
+        });
+        if (updateEmailError) throw updateEmailError;
+
         toast({
           title: 'Email verification required',
           description: 'Please check your new email for a verification link.',
@@ -325,6 +319,14 @@ const EditProfile = () => {
           isClosable: true,
         });
       }
+
+      toast({
+        title: 'Profile updated',
+        description: 'Your profile has been successfully updated.',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
 
       setHasChanges(false);
     } catch (error) {
