@@ -13,10 +13,11 @@ import EditProfile from './pages/EditProfile';
 import AboutUs from './pages/AboutUs';
 import Security from './pages/Security';
 import Careers from './pages/Careers';
-import Athletes from "./pages/Athletes.jsx";
-import Universities from "./pages/Universities.jsx";
-import Collectives from "./pages/Collectives.jsx";
-import Brands from "./pages/Brands.jsx";
+import Athletes from "./pages/Athletes";
+import Universities from "./pages/Universities";
+import Collectives from "./pages/Collectives";
+import Brands from "./pages/Brands";
+import NotFound from './pages/NotFound';
 
 // Import ONLY the new DealWizard components
 import Step1_DealTerms from './pages/DealWizard/Step1_DealTerms';
@@ -29,10 +30,9 @@ import Step7_Confirmation from './pages/DealWizard/Step7_Confirmation';
 import Step8_Review from './pages/DealWizard/Step8_Review';
 import SubmissionSuccess from './pages/DealWizard/SubmissionSuccess';
 
-// Import the DealWizardRoute component
+// Import route protection components
 import DealWizardRoute from './components/DealWizardRoute';
-
-// *** BUG FIX: All imports related to the OLD deal wizard have been removed. ***
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
   const { user, signOut } = useAuth();
@@ -59,13 +59,6 @@ function App() {
   ];
   
   const isCompanyActive = companyMenu.some(item => location.pathname === item.path);
-
-  const ProtectedRoute = ({ children }) => {
-    if (!user) {
-      return <Navigate to="/login" replace />;
-    }
-    return children;
-  };
 
   return (
     <Box fontFamily="body">
