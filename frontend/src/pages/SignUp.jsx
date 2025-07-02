@@ -75,41 +75,48 @@ const SignUp = () => {
 
   const onSubmit = async (data) => {
     try {
-      const { user, error } = await signUp(data.email, data.password, {
-        full_name: data.fullName,
-        division: data.division,
-        university: data.university,
-        gender: data.gender,
-        sport: data.sport,
-      });
-
-      if (error) {
-        // *** NEW: Add user-friendly error handling for existing users ***
-        if (error.message.includes("User already registered")) {
-            toast({
-                title: 'Account Exists',
-                description: "An account with this email already exists. Please log in.",
-                status: 'warning',
-                duration: 7000,
-                isClosable: true,
-            });
-        } else {
-            throw error; // Re-throw other errors to be caught below
+      // First, create the user with Supabase Auth
+      const { data: authData, error: signUpError } = await signUp(
+        data.email, 
+        data.password,
+        {
+          full_name: data.fullName,
+          university: data.university,
+          sport: data.sport,
+          role: 'athlete'  // Default role for new users
         }
-      } else if (user) {
+      );
+
+      if (signUpError) {
+        if (signUpError.message.includes("User already registered")) {
+          toast({
+            title: 'Account Exists',
+            description: "An account with this email already exists. Please log in.",
+            status: 'warning',
+            duration: 7000,
+            isClosable: true,
+          });
+          navigate('/login');
+          return;
+        }
+        throw signUpError;
+      }
+
+      if (authData) {
         toast({
-          title: 'Account created.',
-          description: "We've created your account for you. Welcome!",
+          title: 'Account created successfully!',
+          description: "Please check your email to confirm your account.",
           status: 'success',
-          duration: 5000,
+          duration: 7000,
           isClosable: true,
         });
-        navigate('/dashboard');
+        navigate('/login');
       }
     } catch (error) {
+      console.error('SignUp error:', error);
       toast({
-        title: 'Sign up failed.',
-        description: error.message,
+        title: 'Sign up failed',
+        description: error.message || 'An error occurred during sign up. Please try again.',
         status: 'error',
         duration: 9000,
         isClosable: true,
