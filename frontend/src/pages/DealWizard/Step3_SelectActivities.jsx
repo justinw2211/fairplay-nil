@@ -94,17 +94,19 @@ const Step3_SelectActivities = () => {
   };
 
   const handleNext = async () => {
+    // Create obligations with proper sequential ordering
     const newObligations = {};
-    selectedActivities.forEach(activity => {
+    selectedActivities.forEach((activity, index) => {
       if (activity === "other") {
         newObligations[activity] = { 
           description: otherActivity,
-          sequence: selectedActivities.indexOf(activity)
+          sequence: index,
+          completed: false // Track completion status
         };
       } else {
         newObligations[activity] = {
-          ...(activity === "social-media" ? [] : {}),
-          sequence: selectedActivities.indexOf(activity)
+          sequence: index,
+          completed: false // Track completion status
         };
       }
     });
@@ -112,7 +114,8 @@ const Step3_SelectActivities = () => {
     await updateDeal(dealId, { 
       obligations: newObligations,
       currentActivityIndex: 0,
-      totalActivities: selectedActivities.length
+      totalActivities: selectedActivities.length,
+      lastCompletedActivity: null // Track the last completed activity
     });
     
     const firstActivity = selectedActivities[0];

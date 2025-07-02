@@ -74,21 +74,45 @@ const ActivityRouter = () => {
   const totalActivities = selectedActivities.length;
   const progressPercentage = (currentActivityNumber / totalActivities) * 100;
 
-  let nextStepUrl = '';
-  if (currentIndex < selectedActivities.length - 1) {
-    const nextActivity = selectedActivities[currentIndex + 1];
-    const encodedNextActivity = encodeURIComponent(nextActivity);
-    nextStepUrl = `/add/deal/activity/${encodedNextActivity}/${dealId}`;
-  } else {
-    nextStepUrl = `/add/deal/compliance/${dealId}`;
-  }
-
   const handleNext = async () => {
-    // Update the current activity index in the deal
+    // Get the current obligations
+    const updatedObligations = { ...deal.obligations };
+    
+    // Mark the current activity as completed
+    if (updatedObligations[decodedActivityType]) {
+      updatedObligations[decodedActivityType].completed = true;
+    }
+
+    // Update the deal with completed activity and next index
     await updateDeal(dealId, {
-      currentActivityIndex: currentIndex + 1
+      obligations: updatedObligations,
+      currentActivityIndex: currentIndex + 1,
+      lastCompletedActivity: decodedActivityType
     });
-    navigate(nextStepUrl);
+
+    // Check if all activities are completed before moving to compliance
+    const allActivitiesCompleted = Object.values(updatedObligations)
+      .every(activity => activity.completed);
+
+    // If this was the last activity and all are completed, go to compliance
+    if (currentIndex === selectedActivities.length - 1 && allActivitiesCompleted) {
+      navigate(`/add/deal/compliance/${dealId}`);
+    } else if (currentIndex < selectedActivities.length - 1) {
+      // Move to next activity
+      const nextActivity = selectedActivities[currentIndex + 1];
+      const encodedNextActivity = encodeURIComponent(nextActivity);
+      navigate(`/add/deal/activity/${encodedNextActivity}/${dealId}`);
+    } else {
+      // If we're at the last activity but some aren't completed,
+      // find the first incomplete activity
+      const firstIncompleteActivity = selectedActivities.find(
+        activity => !updatedObligations[activity].completed
+      );
+      if (firstIncompleteActivity) {
+        const encodedActivity = encodeURIComponent(firstIncompleteActivity);
+        navigate(`/add/deal/activity/${encodedActivity}/${dealId}`);
+      }
+    }
   };
 
   return (
@@ -111,7 +135,6 @@ const ActivityRouter = () => {
         />
       </Box>
       <ActivityComponent 
-        nextStepUrl={nextStepUrl} 
         onNext={handleNext}
         currentActivity={currentActivityNumber}
         totalActivities={totalActivities}
