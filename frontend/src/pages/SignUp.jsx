@@ -77,6 +77,7 @@ const SignUp = () => {
   // Form for athlete additional info
   const athleteForm = useForm({
     resolver: yupResolver(athleteSchema),
+    mode: 'onChange',
     defaultValues: {
       full_name: '',
       phone: '',
@@ -86,6 +87,21 @@ const SignUp = () => {
       sports: [],
     }
   });
+
+  // Debug logs for form state
+  console.log('Current step:', step);
+  console.log('Initial form values:', initialForm.getValues());
+  console.log('Athlete form values:', athleteForm.getValues());
+  console.log('Initial data:', initialData);
+
+  // Reset athlete form when component mounts or unmounts
+  React.useEffect(() => {
+    console.log('Component mounted');
+    return () => {
+      console.log('Component unmounting');
+      athleteForm.reset();
+    };
+  }, []);
 
   const selectedDivision = athleteForm.watch('division');
   const selectedGender = athleteForm.watch('gender');
@@ -134,19 +150,22 @@ const SignUp = () => {
 
   const handleInitialSubmit = async (data) => {
     try {
+      console.log('Initial submit data:', data);
       setInitialData(data);
       
       if (data.role === 'student-athlete') {
-        setStep(2);
-        // Reset athlete form when moving to step 2
+        console.log('Moving to athlete form');
+        // Force reset the athlete form
         athleteForm.reset({
           full_name: '',
           phone: '',
           division: '',
           university: '',
           gender: '',
-          sports: []
+          sports: [],
         });
+        console.log('Athlete form after reset:', athleteForm.getValues());
+        setStep(2);
       } else {
         // For non-athletes, create account and redirect to home
         const { error: signUpError } = await signUp(
@@ -338,75 +357,100 @@ const SignUp = () => {
               </VStack>
             </form>
           ) : (
-            <form onSubmit={athleteForm.handleSubmit(handleAthleteSubmit)} style={{ width: '100%' }}>
+            <form 
+              key="athlete-form" // Force new instance of form
+              onSubmit={athleteForm.handleSubmit(handleAthleteSubmit)} 
+              style={{ width: '100%' }}
+            >
               <VStack spacing={4}>
                 <Controller
                   name="full_name"
                   control={athleteForm.control}
-                  render={({ field: { onChange, value }, fieldState: { error } }) => (
-                    <FormControl isInvalid={error}>
-                      <FormLabel>Full Name</FormLabel>
-                      <InputGroup>
-                        <InputLeftElement pointerEvents="none">
-                          <Icon as={FiUser} color="gray.300" />
-                        </InputLeftElement>
-                        <Input
-                          value={value || ''}
-                          onChange={onChange}
-                          placeholder="Enter your full name"
-                        />
-                      </InputGroup>
-                      <FormErrorMessage>
-                        {error?.message}
-                      </FormErrorMessage>
-                    </FormControl>
-                  )}
+                  render={({ field: { onChange, value, name }, fieldState: { error } }) => {
+                    console.log(`Rendering ${name} field:`, { value, error });
+                    return (
+                      <FormControl isInvalid={error}>
+                        <FormLabel>Full Name</FormLabel>
+                        <InputGroup>
+                          <InputLeftElement pointerEvents="none">
+                            <Icon as={FiUser} color="gray.300" />
+                          </InputLeftElement>
+                          <Input
+                            name={name}
+                            value={value || ''}
+                            onChange={(e) => {
+                              console.log(`${name} onChange:`, e.target.value);
+                              onChange(e);
+                            }}
+                            placeholder="Enter your full name"
+                          />
+                        </InputGroup>
+                        <FormErrorMessage>
+                          {error?.message}
+                        </FormErrorMessage>
+                      </FormControl>
+                    );
+                  }}
                 />
 
                 <Controller
                   name="phone"
                   control={athleteForm.control}
-                  render={({ field: { onChange, value }, fieldState: { error } }) => (
-                    <FormControl isInvalid={error}>
-                      <FormLabel>Phone Number</FormLabel>
-                      <InputGroup>
-                        <InputLeftElement pointerEvents="none">
-                          <Icon as={FiPhone} color="gray.300" />
-                        </InputLeftElement>
-                        <Input
-                          value={value || ''}
-                          onChange={onChange}
-                          type="tel"
-                          placeholder="Enter your phone number"
-                        />
-                      </InputGroup>
-                      <FormErrorMessage>
-                        {error?.message}
-                      </FormErrorMessage>
-                    </FormControl>
-                  )}
+                  render={({ field: { onChange, value, name }, fieldState: { error } }) => {
+                    console.log(`Rendering ${name} field:`, { value, error });
+                    return (
+                      <FormControl isInvalid={error}>
+                        <FormLabel>Phone Number</FormLabel>
+                        <InputGroup>
+                          <InputLeftElement pointerEvents="none">
+                            <Icon as={FiPhone} color="gray.300" />
+                          </InputLeftElement>
+                          <Input
+                            name={name}
+                            value={value || ''}
+                            onChange={(e) => {
+                              console.log(`${name} onChange:`, e.target.value);
+                              onChange(e);
+                            }}
+                            type="tel"
+                            placeholder="Enter your phone number"
+                          />
+                        </InputGroup>
+                        <FormErrorMessage>
+                          {error?.message}
+                        </FormErrorMessage>
+                      </FormControl>
+                    );
+                  }}
                 />
 
                 <Controller
                   name="division"
                   control={athleteForm.control}
-                  render={({ field: { onChange, value }, fieldState: { error } }) => (
-                    <FormControl isInvalid={error}>
-                      <FormLabel>NCAA Division</FormLabel>
-                      <Select
-                        options={NCAA_DIVISIONS.map(div => ({ value: div, label: div }))}
-                        styles={customStyles}
-                        placeholder="Select NCAA Division"
-                        onChange={(option) => onChange(option?.value)}
-                        value={value ? { value, label: value } : null}
-                        isSearchable={false}
-                        isClearable={false}
-                      />
-                      <FormErrorMessage>
-                        {error?.message}
-                      </FormErrorMessage>
-                    </FormControl>
-                  )}
+                  render={({ field: { onChange, value, name }, fieldState: { error } }) => {
+                    console.log(`Rendering ${name} field:`, { value, error });
+                    return (
+                      <FormControl isInvalid={error}>
+                        <FormLabel>NCAA Division</FormLabel>
+                        <Select
+                          inputId={name}
+                          options={NCAA_DIVISIONS.map(div => ({ value: div, label: div }))}
+                          styles={customStyles}
+                          placeholder="Select NCAA Division"
+                          onChange={(option) => {
+                            console.log(`${name} onChange:`, option);
+                            onChange(option?.value);
+                          }}
+                          value={value ? { value, label: value } : null}
+                          isSearchable={false}
+                          isClearable={false}
+                        />
+                        <FormErrorMessage>
+                          {error?.message}
+                        </FormErrorMessage>
+                      </FormControl>
+                    );
+                  }}
                 />
 
                 <Controller
