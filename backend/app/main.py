@@ -12,15 +12,17 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="FairPlay NIL API")
 
-# --- DEFINITIVE CORS FIX v7 (Final, Corrected Regex) ---
-# This regular expression is simpler and more robust. It is designed to securely match:
+# --- DEFINITIVE CORS FIX v8 ---
+# This regular expression matches:
 #
 # 1. http://localhost (with any port for local development)
 # 2. Your production URL (e.g., https://fairplay-nil.vercel.app)
-# 3. ANY preview URL that starts with 'https://fairplay-' (e.g., https://fairplay-k814vunat...)
+# 3. ANY preview URL patterns:
+#    - https://fairplay-*-justin-wachtels-projects.vercel.app
+#    - https://fairplay-nil-git-*-justin-wachtels-projects.vercel.app
+#    - https://fairplay-nil.vercel.app
 #
-# This pattern is now correct and flexible enough for all of Vercel's generated URLs.
-ORIGIN_REGEX = r"https://fairplay-.*\.vercel\.app|http://localhost(:\d+)?"
+ORIGIN_REGEX = r"https://fairplay-[^.]*\.vercel\.app|https://fairplay-nil-git-[^.]*-justin-wachtels-projects\.vercel\.app|https://fairplay-[^.]*-justin-wachtels-projects\.vercel\.app|http://localhost(:\d+)?"
 
 @app.on_event("startup")
 async def startup_event():
