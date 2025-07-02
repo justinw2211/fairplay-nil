@@ -3,11 +3,13 @@ services:
     name: fairplay-nil-backend
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port 10000 --workers 1
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1
     plan: free
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.11
+      - key: POETRY_VERSION
+        value: none
     autoDeploy: true
     healthCheckPath: /
     buildFilter:
