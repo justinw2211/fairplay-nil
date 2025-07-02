@@ -20,17 +20,19 @@ import {
   AlertDialogHeader,
   AlertDialogContent,
   AlertDialogOverlay,
-  Button
+  Button,
+  Text
 } from '@chakra-ui/react';
 import { TriangleDownIcon, TriangleUpIcon, DeleteIcon, HamburgerIcon } from '@chakra-ui/icons';
 import StatusBadge from './StatusBadge';
 import StatusMenu from './StatusMenu';
 import { supabase } from '../supabaseClient';
 
-const DealsTable = ({ deals, setDeals }) => {
-  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'descending' });
+const DealsTable = ({ deals, setDeals, onDealDeleted }) => {
+  const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'descending' });
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [dealToDelete, setDealToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const cancelRef = React.useRef();
   const toast = useToast();
 
@@ -75,40 +77,47 @@ const DealsTable = ({ deals, setDeals }) => {
   const handleDeleteDeal = async () => {
     if (!dealToDelete) return;
 
+    setIsDeleting(true);
     try {
-        const token = (await supabase.auth.getSession()).data.session?.access_token;
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealToDelete.id}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || 'Failed to delete the deal.');
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealToDelete.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
+      });
 
-        setDeals(deals.filter(deal => deal.id !== dealToDelete.id));
-        toast({
-            title: "Deal Deleted",
-            description: `Deal with ${dealToDelete.brand_partner || 'N/A'} has been deleted.`,
-            status: "success",
-            duration: 5000,
-            isClosable: true,
-        });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to delete the deal.');
+      }
+
+      setDeals(deals.filter(deal => deal.id !== dealToDelete.id));
+      toast({
+        title: "Deal Deleted",
+        description: `Deal with ${dealToDelete.brand_partner || dealToDelete.payor_name || 'N/A'} has been deleted.`,
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+
+      // Call the callback to refresh the deals list
+      if (onDealDeleted) {
+        await onDealDeleted();
+      }
 
     } catch(error) {
-        toast({
-            title: "Error Deleting Deal",
-            description: error.message,
-            status: "error",
-            duration: 9000,
-            isClosable: true,
-        });
+      toast({
+        title: "Error Deleting Deal",
+        description: error.message,
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
     } finally {
-        setIsAlertOpen(false);
-        setDealToDelete(null);
+      setIsDeleting(false);
+      setIsAlertOpen(false);
+      setDealToDelete(null);
     }
   };
 
@@ -187,13 +196,28 @@ const DealsTable = ({ deals, setDeals }) => {
               Delete Deal
             </AlertDialogHeader>
             <AlertDialogBody>
-              Are you sure you want to delete this deal? This action cannot be undone.
+              <Text mb={4}>
+                Are you sure you want to delete this deal with {dealToDelete?.brand_partner || dealToDelete?.payor_name || 'N/A'}?
+              </Text>
+              <Text color="red.500" fontWeight="bold">
+                This action cannot be undone.
+              </Text>
             </AlertDialogBody>
             <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={() => setIsAlertOpen(false)}>
+              <Button 
+                ref={cancelRef} 
+                onClick={() => setIsAlertOpen(false)}
+                isDisabled={isDeleting}
+              >
                 Cancel
               </Button>
-              <Button colorScheme='red' onClick={handleDeleteDeal} ml={3}>
+              <Button 
+                colorScheme='red' 
+                onClick={handleDeleteDeal} 
+                ml={3}
+                isLoading={isDeleting}
+                loadingText="Deleting..."
+              >
                 Delete
               </Button>
             </AlertDialogFooter>

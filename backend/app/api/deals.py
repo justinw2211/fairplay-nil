@@ -113,3 +113,29 @@ async def get_deals(
     except Exception as e:
         logger.error(f"Error fetching deals: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+@router.delete("/deals/{deal_id}", summary="Delete a deal")
+async def delete_deal(deal_id: int, user_id: str = Depends(get_user_id)):
+    """Delete a deal if it belongs to the user."""
+    try:
+        with db.transaction():
+            # First verify the deal belongs to the user
+            data, count = db.client.from_("deals").select("id").match(
+                {"id": deal_id, "user_id": user_id}
+            ).execute()
+
+            if not data[1]:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Deal not found or user does not have access."
+                )
+
+            # Delete the deal
+            data, count = db.client.from_("deals").delete().match(
+                {"id": deal_id, "user_id": user_id}
+            ).execute()
+
+            return {"message": "Deal deleted successfully"}
+    except Exception as e:
+        logger.error(f"Error deleting deal {deal_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
