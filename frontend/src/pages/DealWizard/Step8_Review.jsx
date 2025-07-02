@@ -121,7 +121,7 @@ const Step8_Review = () => {
         status: 'pending',
         submittedAt: new Date().toISOString(),
       });
-      navigate(`/add/deal/submission-success/${dealId}`);
+      navigate(`/add/deal/confirmation/${dealId}`);
     } catch (error) {
       toast({
         title: 'Error submitting deal',

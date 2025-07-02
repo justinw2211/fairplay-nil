@@ -169,7 +169,7 @@ const Step6_Compensation = () => {
 
     try {
       await updateDeal(dealId, formattedData);
-      navigate(`/add/deal/confirmation/${dealId}`);
+      navigate(`/add/deal/review/${dealId}`);
     } catch (error) {
       console.error('Error updating deal:', error);
     }
