@@ -171,15 +171,11 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
     await updateDeal(dealId, {
       obligations: {
         ...deal.obligations,
-        'Social Media': formattedData,
+        'social-media': formattedData,
       },
     });
     
-    if (onNext) {
-      onNext();
-    } else {
-      navigate(nextStepUrl);
-    }
+    onNext();
   };
 
   const progressPercentage = ((currentActivity - 1) / totalActivities) * 100;

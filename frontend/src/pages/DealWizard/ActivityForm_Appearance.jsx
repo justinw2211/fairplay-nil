@@ -36,7 +36,7 @@ const appearanceTypes = [
   { id: "other", name: "Other (please specify)" },
 ];
 
-const ActivityForm_Appearance = ({ nextStepUrl }) => {
+const ActivityForm_Appearance = ({ onNext, currentActivity, totalActivities }) => {
   const { dealId } = useParams();
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
@@ -107,10 +107,10 @@ const ActivityForm_Appearance = ({ nextStepUrl }) => {
     await updateDeal(dealId, {
       obligations: {
         ...deal.obligations,
-        'Appearance': formattedData,
+        'appearance': formattedData,
       },
     });
-    navigate(nextStepUrl);
+    onNext();
   };
 
   return (

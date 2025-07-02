@@ -117,23 +117,6 @@ const ActivityRouter = () => {
 
   return (
     <>
-      <Box mb={6}>
-        <Flex justify="space-between" w="full" fontSize="sm" mb={2}>
-          <Text color="brand.textSecondary" fontWeight="medium">
-            Activity {currentActivityNumber} of {totalActivities}
-          </Text>
-          <Text color="brand.textSecondary">
-            {progressPercentage.toFixed(1)}% Complete
-          </Text>
-        </Flex>
-        <Progress
-          value={progressPercentage}
-          size="sm"
-          colorScheme="pink"
-          bg="brand.accentSecondary"
-          borderRadius="full"
-        />
-      </Box>
       <ActivityComponent 
         onNext={handleNext}
         currentActivity={currentActivityNumber}

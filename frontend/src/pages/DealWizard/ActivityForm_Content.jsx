@@ -23,7 +23,7 @@ import {
   Camera,
 } from 'lucide-react';
 
-const ActivityForm_Content = ({ nextStepUrl }) => {
+const ActivityForm_Content = ({ onNext, currentActivity, totalActivities }) => {
   const { dealId } = useParams();
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
@@ -54,23 +54,18 @@ const ActivityForm_Content = ({ nextStepUrl }) => {
   };
 
   const handleNext = async () => {
-    if (!contentDescription.trim()) {
-      setShowError(true);
-      return;
-    }
-    
     const formattedData = {
-      quantity: Number.parseInt(quantityOfContent),
-      description: contentDescription.trim(),
+      quantity: quantityOfContent,
+      description: contentDescription,
     };
 
     await updateDeal(dealId, {
       obligations: {
         ...deal.obligations,
-        'Content': formattedData,
+        'content-for-brand': formattedData,
       },
     });
-    navigate(nextStepUrl);
+    onNext();
   };
 
   return (
