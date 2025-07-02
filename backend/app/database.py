@@ -34,7 +34,13 @@ class DatabaseClient:
             raise ValueError("FATAL: SUPABASE_SERVICE_ROLE_KEY environment variable is not set.")
 
         try:
-            self._client = create_client(url, key)
+            # Initialize with older supabase-py client format
+            self._client = create_client(url, key, options={
+                'headers': {
+                    'Authorization': f'Bearer {key}',
+                    'apikey': key
+                }
+            })
             logger.info("Successfully initialized Supabase client")
         except Exception as e:
             logger.error(f"Failed to initialize Supabase client: {str(e)}")
@@ -47,13 +53,11 @@ class DatabaseClient:
             self._initialize_client()
         return self._client
 
-    @lru_cache(maxsize=100)
     def get_profile(self, user_id: str) -> Dict[str, Any]:
-        """Get a user profile with caching."""
+        """Get a user profile."""
         try:
             response = self.client.table('profiles').select("*").eq('id', user_id).execute()
-            data = response.data
-            return data[0] if data else {}
+            return response.get('data', [{}])[0]
         except Exception as e:
             logger.error(f"Error fetching profile for user {user_id}: {str(e)}")
             raise

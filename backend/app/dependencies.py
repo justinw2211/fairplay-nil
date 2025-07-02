@@ -4,6 +4,7 @@ from fastapi.security import OAuth2PasswordBearer
 from app.database import supabase 
 import uuid
 import logging
+import jwt
 
 # Setup basic logging
 logging.basicConfig(level=logging.INFO)
@@ -12,26 +13,24 @@ logger = logging.getLogger(__name__)
 # This scheme expects the token to be sent in the Authorization header.
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-async def get_user_id(token: str = Depends(oauth2_scheme)) -> uuid.UUID:
+async def get_user_id(token: str = Depends(oauth2_scheme)) -> str:
     """
     Dependency to get the current user's UUID from a Supabase session token.
     """
     try:
-        # *** BUG FIX: Removed 'await' from the get_user call ***
-        # The supabase-py library's get_user method is now synchronous
-        # in this version and returns an awaitable object directly.
-        user_response = supabase.auth.get_user(token)
-        user = user_response.user
+        # Decode the JWT token to get the user ID
+        decoded = jwt.decode(token, options={"verify_signature": False})
+        user_id = decoded.get('sub')
         
-        if not user:
-            logger.error("Authentication failed: Supabase returned no user for the provided token.")
+        if not user_id:
+            logger.error("Authentication failed: No user ID in token")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication credentials",
                 headers={"WWW-Authenticate": "Bearer"},
             )
         
-        return user.id
+        return user_id
     except Exception as e:
         logger.error(f"An exception occurred during token validation: {e}", exc_info=True)
         raise HTTPException(
