@@ -140,14 +140,39 @@ const Step6_Compensation = () => {
       return;
     }
 
-    console.log('Submitting compensation data:', compensationItems);
+    // Format the data according to the backend schema
+    const formattedData = {
+      compensation_cash: 0,
+      compensation_goods: [],
+      compensation_other: []
+    };
 
-    await updateDeal(dealId, {
-      compensation: {
-        items: compensationItems
+    // Process each compensation item
+    compensationItems.forEach(item => {
+      if (item.type === "cash") {
+        formattedData.compensation_cash = parseFloat(item.amount) || 0;
+      } else if (item.type === "non-cash") {
+        formattedData.compensation_goods.push({
+          description: item.description,
+          value: parseFloat(item.value) || 0
+        });
+      } else if (item.type === "bonus" || item.type === "royalty" || item.type === "other") {
+        formattedData.compensation_other.push({
+          payment_type: item.type,
+          description: item.type === "bonus" ? item.requirements : item.description,
+          estimated_value: parseFloat(item.amount || item.value) || 0
+        });
       }
     });
-    navigate(`/add/deal/confirmation/${dealId}`);
+
+    console.log('Submitting compensation data:', formattedData);
+
+    try {
+      await updateDeal(dealId, formattedData);
+      navigate(`/add/deal/confirmation/${dealId}`);
+    } catch (error) {
+      console.error('Error updating deal:', error);
+    }
   };
 
   const renderCompensationFields = (item) => {
