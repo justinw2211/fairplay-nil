@@ -6,6 +6,7 @@ import * as yup from 'yup';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import Select from 'react-select';
 import {
   Box,
   Button,
@@ -17,7 +18,6 @@ import {
   VStack,
   Heading,
   useToast,
-  Select,
   Container,
   Flex,
   Spinner,
@@ -33,6 +33,7 @@ import {
   AlertDialogOverlay,
   Avatar,
   Divider,
+  Select as ChakraSelect,
 } from '@chakra-ui/react';
 import { FiSave, FiX, FiAlertTriangle, FiUser } from 'react-icons/fi';
 import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, NCAA_DIVISIONS } from '../data/formConstants.js';
@@ -55,9 +56,11 @@ const schema = yup.object().shape({
     .string()
     .required('Gender is required')
     .oneOf(GENDERS, 'Invalid gender selection'),
-  sport: yup
-    .string()
-    .required('Sport is required'),
+  sports: yup
+    .array()
+    .of(yup.string())
+    .min(1, 'At least one sport is required')
+    .required('At least one sport is required'),
 });
 
 const EditProfile = () => {
@@ -87,7 +90,7 @@ const EditProfile = () => {
       division: '',
       university: '',
       gender: '',
-      sport: '',
+      sports: [],
     },
     mode: 'onChange',
   });
@@ -112,8 +115,21 @@ const EditProfile = () => {
         if (error) throw error;
         
         if (data) {
+          // Convert old division format to new format if needed
+          const formattedData = {
+            ...data,
+            division: data.division?.startsWith('D') 
+              ? data.division === 'D1' ? 'Division I'
+                : data.division === 'D2' ? 'Division II'
+                : data.division === 'D3' ? 'Division III'
+                : data.division
+              : data.division,
+            // Handle both string and array sports data
+            sports: Array.isArray(data.sports) ? data.sports : data.sports ? [data.sports] : []
+          };
+          
           // Pre-populate form with existing data
-          reset(data);
+          reset(formattedData);
           
           // Set initial sports list based on gender
           if (data.gender === 'Male') {
@@ -123,10 +139,25 @@ const EditProfile = () => {
           }
           
           // Set initial schools list based on division
-          if (data.division) {
-            setFilteredSchools(
-              NCAA_SCHOOL_OPTIONS.filter(school => school.division === data.division)
+          if (formattedData.division) {
+            const schools = NCAA_SCHOOL_OPTIONS.filter(
+              school => school.division === formattedData.division
             );
+            setFilteredSchools(schools);
+            
+            // Validate that the university exists in the filtered schools
+            if (formattedData.university) {
+              const universityExists = schools.some(
+                school => school.name === formattedData.university
+              );
+              if (!universityExists) {
+                // If university doesn't exist in the current division, add it temporarily
+                setFilteredSchools([
+                  ...schools,
+                  { name: formattedData.university, division: formattedData.division }
+                ]);
+              }
+            }
           }
         }
       } catch (error) {
@@ -152,21 +183,31 @@ const EditProfile = () => {
       const schools = NCAA_SCHOOL_OPTIONS.filter(
         school => school.division === selectedDivision
       );
-      setFilteredSchools(schools);
       
-      // Only reset university if not initial load
+      // If we're not in initial load and the university exists
       if (!isInitialLoad.current && formValues.university) {
         const universityExists = schools.some(
           school => school.name === formValues.university
         );
+        
         if (!universityExists) {
+          // Clear the university if it's not valid for the new division
           setValue('university', '', { shouldValidate: true });
+          toast({
+            title: 'University Reset',
+            description: 'Selected university is not available in the new division.',
+            status: 'info',
+            duration: 5000,
+            isClosable: true,
+          });
         }
       }
+      
+      setFilteredSchools(schools);
     } else {
       setFilteredSchools([]);
     }
-  }, [selectedDivision, setValue, formValues.university]);
+  }, [selectedDivision, setValue, formValues.university, toast]);
 
   // Handle gender change
   useEffect(() => {
@@ -174,14 +215,23 @@ const EditProfile = () => {
                   selectedGender === 'Female' ? WOMEN_SPORTS : [];
     setAvailableSports(sports);
     
-    // Only reset sport if not initial load
-    if (!isInitialLoad.current && formValues.sport) {
-      const sportExists = sports.includes(formValues.sport);
-      if (!sportExists) {
-        setValue('sport', '', { shouldValidate: true });
+    // Only reset sports if not initial load
+    if (!isInitialLoad.current && formValues.sports?.length > 0) {
+      const validSports = formValues.sports.filter(sport => sports.includes(sport));
+      if (validSports.length !== formValues.sports.length) {
+        setValue('sports', validSports, { shouldValidate: true });
+        if (validSports.length === 0) {
+          toast({
+            title: 'Sports Reset',
+            description: 'Selected sports are not available for the new gender selection.',
+            status: 'info',
+            duration: 5000,
+            isClosable: true,
+          });
+        }
       }
     }
-  }, [selectedGender, setValue, formValues.sport]);
+  }, [selectedGender, setValue, formValues.sports, toast]);
 
   // Track form changes
   useEffect(() => {
@@ -241,6 +291,23 @@ const EditProfile = () => {
       </Flex>
     );
   }
+
+  // Custom styles for react-select
+  const customStyles = {
+    control: (provided, state) => ({
+      ...provided,
+      borderColor: state.isFocused ? '#3182ce' : '#E2E8F0',
+      boxShadow: state.isFocused ? '0 0 0 1px #3182ce' : 'none',
+      '&:hover': {
+        borderColor: '#3182ce',
+      },
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isSelected ? '#3182ce' : state.isFocused ? '#EDF2F7' : 'white',
+      color: state.isSelected ? 'white' : '#1A202C',
+    }),
+  };
 
   return (
     <Container maxW="container.md" py={12}>
@@ -308,13 +375,13 @@ const EditProfile = () => {
                 render={({ field }) => (
                   <FormControl isInvalid={!!errors.division}>
                     <FormLabel>NCAA Division</FormLabel>
-                    <Select {...field} placeholder="Select NCAA Division">
+                    <ChakraSelect {...field} placeholder="Select NCAA Division">
                       {NCAA_DIVISIONS.map((division) => (
                         <option key={division} value={division}>
                           {division}
                         </option>
                       ))}
-                    </Select>
+                    </ChakraSelect>
                     <FormErrorMessage>{errors.division?.message}</FormErrorMessage>
                   </FormControl>
                 )}
@@ -328,15 +395,17 @@ const EditProfile = () => {
                     <FormLabel>University</FormLabel>
                     <Select
                       {...field}
-                      placeholder="Select your university"
                       isDisabled={!selectedDivision}
-                    >
-                      {filteredSchools.map((school) => (
-                        <option key={school.name} value={school.name}>
-                          {school.name}
-                        </option>
-                      ))}
-                    </Select>
+                      options={filteredSchools.map(school => ({
+                        value: school.name,
+                        label: school.name
+                      }))}
+                      placeholder="Search for your university..."
+                      styles={customStyles}
+                      onChange={(option) => field.onChange(option?.value)}
+                      value={field.value ? { value: field.value, label: field.value } : null}
+                      isClearable
+                    />
                     <FormErrorMessage>{errors.university?.message}</FormErrorMessage>
                     {!selectedDivision && (
                       <FormHelperText>
@@ -353,41 +422,46 @@ const EditProfile = () => {
                 render={({ field }) => (
                   <FormControl isInvalid={!!errors.gender}>
                     <FormLabel>Gender</FormLabel>
-                    <Select {...field} placeholder="Select your gender">
+                    <ChakraSelect {...field} placeholder="Select your gender">
                       {GENDERS.map((gender) => (
                         <option key={gender} value={gender}>
                           {gender}
                         </option>
                       ))}
-                    </Select>
+                    </ChakraSelect>
                     <FormErrorMessage>{errors.gender?.message}</FormErrorMessage>
                   </FormControl>
                 )}
               />
 
               <Controller
-                name="sport"
+                name="sports"
                 control={control}
                 render={({ field }) => (
-                  <FormControl isInvalid={!!errors.sport}>
-                    <FormLabel>Sport</FormLabel>
+                  <FormControl isInvalid={!!errors.sports}>
+                    <FormLabel>Sports</FormLabel>
                     <Select
                       {...field}
-                      placeholder="Select your sport"
+                      isMulti
                       isDisabled={!selectedGender}
-                    >
-                      {availableSports.map((sport) => (
-                        <option key={sport} value={sport}>
-                          {sport}
-                        </option>
-                      ))}
-                    </Select>
-                    <FormErrorMessage>{errors.sport?.message}</FormErrorMessage>
+                      options={availableSports.map(sport => ({
+                        value: sport,
+                        label: sport
+                      }))}
+                      placeholder="Select your sports..."
+                      styles={customStyles}
+                      onChange={(options) => field.onChange(options?.map(opt => opt.value) || [])}
+                      value={field.value?.map(sport => ({ value: sport, label: sport }))}
+                    />
+                    <FormErrorMessage>{errors.sports?.message}</FormErrorMessage>
                     {!selectedGender && (
                       <FormHelperText>
                         Please select your gender first
                       </FormHelperText>
                     )}
+                    <FormHelperText>
+                      You can select multiple sports (e.g., Cross Country, Track & Field Indoor, Track & Field Outdoor)
+                    </FormHelperText>
                   </FormControl>
                 )}
               />
