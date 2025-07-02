@@ -1,5 +1,15 @@
 // frontend/src/data/formConstants.js
 
+export const USER_ROLES = [
+  { value: 'student-athlete', label: 'Student-Athlete' },
+  { value: 'agent', label: 'Agent' },
+  { value: 'coach', label: 'Coach' },
+  { value: 'university', label: 'University' },
+  { value: 'collective', label: 'Collective' },
+  { value: 'brand', label: 'Brand' },
+  { value: 'other', label: 'Other' }
+];
+
 export const GENDERS = ["Male", "Female", "Nonbinary", "Prefer not to say", "Other"];
 
 export const NCAA_DIVISIONS = ["Division I", "Division II", "Division III"];
