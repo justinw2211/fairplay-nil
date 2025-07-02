@@ -261,6 +261,7 @@ const Step5_Compliance = ({ nextStepUrl }) => {
                           py={2}
                           cursor="pointer"
                           transition="all 0.2s"
+                          onClick={() => question.setValue(option.value)}
                           _hover={{
                             borderColor: "brand.accentPrimary"
                           }}
@@ -269,6 +270,29 @@ const Step5_Compliance = ({ nextStepUrl }) => {
                             value={option.value}
                             colorScheme="brand"
                             size="md"
+                            isChecked={question.value === option.value}
+                            sx={{
+                              '.chakra-radio__control': {
+                                borderColor: question.value === option.value ? "brand.accentPrimary" : "brand.accentSecondary",
+                                bg: question.value === option.value ? "brand.accentPrimary" : "white",
+                                _checked: {
+                                  borderColor: "brand.accentPrimary",
+                                  bg: "brand.accentPrimary",
+                                  color: "white",
+                                  _before: {
+                                    content: '""',
+                                    display: "block",
+                                    w: "50%",
+                                    h: "50%",
+                                    bg: "white",
+                                    borderRadius: "50%"
+                                  }
+                                },
+                                _hover: {
+                                  borderColor: "brand.accentPrimary"
+                                }
+                              }
+                            }}
                           >
                             <Text color="brand.textPrimary" fontWeight="medium" fontSize="sm">
                               {option.label}
