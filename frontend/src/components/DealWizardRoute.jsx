@@ -1,13 +1,15 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { useDeal } from '../context/DealContext';
 import { useAuth } from '../context/AuthContext';
+import { Spinner, Flex } from '@chakra-ui/react';
 
 const DealWizardRoute = ({ children }) => {
   const { dealId } = useParams();
   const navigate = useNavigate();
-  const { deal } = useDeal();
+  const { deal, fetchDealById } = useDeal();
   const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const validateDealId = async () => {
@@ -16,18 +18,30 @@ const DealWizardRoute = ({ children }) => {
         return;
       }
 
-      // If we can't load the deal or it doesn't exist
-      if (!deal && dealId) {
+      try {
+        await fetchDealById(dealId);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching deal:', error);
         navigate('/dashboard');
       }
     };
 
     validateDealId();
-  }, [dealId, deal, navigate]);
+  }, [dealId, fetchDealById, navigate]);
 
   // First check authentication
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Show loading state while fetching deal
+  if (isLoading) {
+    return (
+      <Flex justify="center" align="center" minH="80vh">
+        <Spinner size="xl" />
+      </Flex>
+    );
   }
 
   // Then check deal data

@@ -60,7 +60,20 @@ const Dashboard = () => {
   }, [toast]);
   
   const handleAddNewDeal = async () => {
-    await createDraftDeal();
+    try {
+      const newDeal = await createDraftDeal();
+      if (!newDeal) {
+        throw new Error('Failed to create new deal');
+      }
+    } catch (error) {
+      toast({
+        title: 'Error Creating Deal',
+        description: error.message,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
   };
 
   const draftDeals = deals.filter(deal => deal.status === 'draft');
