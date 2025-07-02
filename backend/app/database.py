@@ -1,21 +1,72 @@
 # backend/app/database.py
 import os
+from typing import Optional, Dict, Any
 from supabase import create_client, Client
+from functools import lru_cache
+import logging
+from contextlib import contextmanager
 
-# --- Step 1: Securely load credentials from the environment ---
-# This code reads the variables set in the Render dashboard.
-url = os.environ.get("SUPABASE_URL")
-# This now looks for the variable name that exists in your Render settings.
-key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") 
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# --- Step 2: Add robust error checking ---
-# This will stop the app immediately with a clear error if a variable is missing.
-if not url:
-    raise ValueError("FATAL: SUPABASE_URL environment variable is not set.")
-if not key:
-    # This error message now correctly reflects the variable name it's looking for.
-    raise ValueError("FATAL: SUPABASE_SERVICE_ROLE_KEY environment variable is not set.")
+class DatabaseClient:
+    _instance: Optional['DatabaseClient'] = None
+    _client: Optional[Client] = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(DatabaseClient, cls).__new__(cls)
+        return cls._instance
 
-# --- Step 3: Create the Supabase client ---
-# This line will only run if the URL and Key were found successfully.
-supabase: Client = create_client(url, key)
+    def __init__(self):
+        if self._client is None:
+            self._initialize_client()
+
+    def _initialize_client(self):
+        """Initialize the Supabase client with proper error handling."""
+        url = os.environ.get("SUPABASE_URL")
+        key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+
+        if not url:
+            raise ValueError("FATAL: SUPABASE_URL environment variable is not set.")
+        if not key:
+            raise ValueError("FATAL: SUPABASE_SERVICE_ROLE_KEY environment variable is not set.")
+
+        try:
+            self._client = create_client(url, key)
+            logger.info("Successfully initialized Supabase client")
+        except Exception as e:
+            logger.error(f"Failed to initialize Supabase client: {str(e)}")
+            raise
+
+    @property
+    def client(self) -> Client:
+        """Get the Supabase client instance."""
+        if self._client is None:
+            self._initialize_client()
+        return self._client
+
+    @lru_cache(maxsize=100)
+    def get_profile(self, user_id: str) -> Dict[str, Any]:
+        """Get a user profile with caching."""
+        try:
+            response = self.client.table('profiles').select("*").eq('id', user_id).single().execute()
+            return response.data if response.data else {}
+        except Exception as e:
+            logger.error(f"Error fetching profile for user {user_id}: {str(e)}")
+            raise
+
+    @contextmanager
+    def transaction(self):
+        """Context manager for handling transactions (placeholder for future implementation)."""
+        try:
+            yield self.client
+        except Exception as e:
+            logger.error(f"Transaction error: {str(e)}")
+            raise
+
+# Create a singleton instance
+db = DatabaseClient()
+# Export the client for backward compatibility
+supabase: Client = db.client
