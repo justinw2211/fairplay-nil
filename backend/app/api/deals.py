@@ -36,14 +36,14 @@ async def create_draft_deal(user_id: str = Depends(get_user_id)):
     """Create a new draft deal with optimized field selection."""
     try:
         with db.transaction():
-            data, count = db.client.from_("deals").insert(
-                {"user_id": user_id}
-            ).select(DEAL_SELECT_FIELDS).execute()
+            data = db.client.from_("deals").insert(
+                {"user_id": user_id, "status": "draft"}
+            ).execute()
             
-            if not data[1]:
+            if not data.data:
                 raise HTTPException(status_code=500, detail="Failed to create draft deal.")
             
-            new_deal = data[1][0]
+            new_deal = data.data[0]
             return DealCreateResponse(
                 id=new_deal['id'],
                 user_id=new_deal['user_id'],
@@ -74,18 +74,16 @@ async def update_deal(
             )
 
         with db.transaction():
-            data, count = db.client.from_("deals").update(
+            data = db.client.from_("deals").update(
                 update_data
-            ).match(
-                {"id": deal_id, "user_id": user_id}
-            ).select(DEAL_SELECT_FIELDS).execute()
+            ).eq("id", deal_id).eq("user_id", user_id).execute()
 
-            if not data[1]:
+            if not data.data:
                 raise HTTPException(
                     status_code=404,
                     detail="Deal not found or user does not have access."
                 )
-            return DealResponse(**data[1][0])
+            return DealResponse(**data.data[0])
     except Exception as e:
         logger.error(f"Error updating deal {deal_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -101,10 +99,8 @@ async def get_deals(
 ):
     """Get deals with pagination, filtering, and optimized field selection."""
     try:
-        query = db.client.from_("deals").select(
-            DEAL_SELECT_FIELDS,
-            count="exact"
-        ).eq("user_id", user_id)
+        query = db.client.from_("deals").select(DEAL_SELECT_FIELDS)
+        query = query.eq("user_id", user_id)
 
         if status:
             query = query.eq("status", status)
@@ -115,11 +111,11 @@ async def get_deals(
         # Add pagination
         query = query.range(offset, offset + limit - 1)
 
-        data, count = query.execute()
+        data = query.execute()
         
         return JSONResponse({
-            "deals": data[1],
-            "total": count,
+            "deals": data.data,
+            "total": len(data.data),
             "limit": limit,
             "offset": offset
         })
@@ -133,20 +129,16 @@ async def delete_deal(deal_id: int, user_id: str = Depends(get_user_id)):
     try:
         with db.transaction():
             # First verify the deal belongs to the user
-            data, count = db.client.from_("deals").select("id").match(
-                {"id": deal_id, "user_id": user_id}
-            ).execute()
+            data = db.client.from_("deals").select("id").eq("id", deal_id).eq("user_id", user_id).execute()
 
-            if not data[1]:
+            if not data.data:
                 raise HTTPException(
                     status_code=404,
                     detail="Deal not found or user does not have access."
                 )
 
             # Delete the deal
-            data, count = db.client.from_("deals").delete().match(
-                {"id": deal_id, "user_id": user_id}
-            ).execute()
+            data = db.client.from_("deals").delete().eq("id", deal_id).eq("user_id", user_id).execute()
 
             return {"message": "Deal deleted successfully"}
     except Exception as e:
