@@ -17,10 +17,13 @@ import {
   Select,
   FormErrorMessage,
   Progress,
-  Textarea,
+  FormHelperText,
 } from '@chakra-ui/react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import ReactSelect from 'react-select';
+import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, NCAA_DIVISIONS } from '../data/formConstants';
+import { fetchSchools, FALLBACK_SCHOOLS } from '../data/ncaaSchools';
+import { formatPhoneNumber, unformatPhoneNumber, validatePhoneNumber } from '../utils/phoneUtils';
 
 const USER_ROLES = [
   { value: 'student-athlete', label: 'Student-Athlete' },
@@ -32,18 +35,6 @@ const USER_ROLES = [
   { value: 'other', label: 'Other' }
 ];
 
-const GENDERS = ['Male', 'Female', 'Nonbinary', 'Prefer not to say', 'Other'];
-
-const MEN_SPORTS = [
-  'Baseball', 'Basketball', 'Cross Country', 'Football', 'Golf', 'Soccer', 'Tennis', 'Track & Field'
-];
-
-const WOMEN_SPORTS = [
-  'Basketball', 'Cross Country', 'Golf', 'Soccer', 'Softball', 'Tennis', 'Track & Field', 'Volleyball'
-];
-
-const NCAA_DIVISIONS = ['Division I', 'Division II', 'Division III'];
-
 const SignUp = () => {
   const { signUp } = useAuth();
   const navigate = useNavigate();
@@ -52,6 +43,9 @@ const SignUp = () => {
   const [step, setStep] = useState(1);
   const [initialData, setInitialData] = useState(null);
   const [availableSports, setAvailableSports] = useState([]);
+  const [schools, setSchools] = useState([]);
+  const [filteredSchools, setFilteredSchools] = useState([]);
+  const [isLoadingSchools, setIsLoadingSchools] = useState(false);
 
   // Step 1 form
   const {
@@ -63,7 +57,7 @@ const SignUp = () => {
 
   // Step 2 form
   const {
-    register: register2,
+    control: control2,
     handleSubmit: handleSubmit2,
     formState: { errors: errors2 },
     watch: watch2,
@@ -72,6 +66,43 @@ const SignUp = () => {
 
   const watchedPassword = watch1('password');
   const selectedGender = watch2('gender');
+  const selectedDivision = watch2('division');
+
+  // Load schools on component mount
+  useEffect(() => {
+    const loadSchools = async () => {
+      setIsLoadingSchools(true);
+      try {
+        const schoolsData = await fetchSchools();
+        setSchools(schoolsData.length > 0 ? schoolsData : FALLBACK_SCHOOLS);
+      } catch (error) {
+        console.error('Error loading schools:', error);
+        setSchools(FALLBACK_SCHOOLS);
+        toast({
+          title: 'Warning',
+          description: 'Could not load schools list. Using fallback data.',
+          status: 'warning',
+          duration: 5000,
+          isClosable: true,
+        });
+      } finally {
+        setIsLoadingSchools(false);
+      }
+    };
+    loadSchools();
+  }, [toast]);
+
+  // Filter schools when division changes
+  useEffect(() => {
+    if (selectedDivision && schools.length > 0) {
+      const filtered = schools.filter(
+        school => school.division === selectedDivision
+      );
+      setFilteredSchools(filtered);
+    } else {
+      setFilteredSchools([]);
+    }
+  }, [selectedDivision, schools]);
 
   // Update available sports when gender changes
   useEffect(() => {
@@ -84,6 +115,23 @@ const SignUp = () => {
     }
     setValue2('sports', []);
   }, [selectedGender, setValue2]);
+
+  // Custom styles for react-select (matching EditProfile)
+  const customSelectStyles = {
+    control: (provided, state) => ({
+      ...provided,
+      borderColor: state.isFocused ? '#3182ce' : '#E2E8F0',
+      boxShadow: state.isFocused ? '0 0 0 1px #3182ce' : 'none',
+      '&:hover': {
+        borderColor: '#3182ce',
+      },
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isSelected ? '#3182ce' : state.isFocused ? '#EDF2F7' : 'white',
+      color: state.isSelected ? 'white' : '#1A202C',
+    }),
+  };
 
   const onSubmitStep1 = async (data) => {
     setInitialData(data);
@@ -138,7 +186,7 @@ const SignUp = () => {
       const { error } = await signUp(initialData.email, initialData.password, {
         role: 'student-athlete',
         full_name: data.full_name,
-        phone: data.phone,
+        phone: unformatPhoneNumber(data.phone), // Unformat phone for backend
         division: data.division,
         university: data.university,
         gender: data.gender,
@@ -284,97 +332,192 @@ const SignUp = () => {
           ) : (
             <form onSubmit={handleSubmit2(onSubmitStep2)} style={{ width: '100%' }}>
               <VStack spacing={4} width="100%">
-                <FormControl isInvalid={errors2.full_name}>
-                  <FormLabel>Full Name</FormLabel>
-                  <Input
-                    {...register2('full_name', {
-                      required: 'Full name is required',
-                      minLength: {
-                        value: 2,
-                        message: 'Name must be at least 2 characters',
-                      },
-                    })}
-                    placeholder="Enter your full name"
-                  />
-                  <FormErrorMessage>{errors2.full_name?.message}</FormErrorMessage>
-                </FormControl>
-
-                <FormControl isInvalid={errors2.phone}>
-                  <FormLabel>Phone Number</FormLabel>
-                  <Input
-                    {...register2('phone', {
-                      required: 'Phone number is required',
-                    })}
-                    placeholder="(555) 555-5555"
-                  />
-                  <FormErrorMessage>{errors2.phone?.message}</FormErrorMessage>
-                </FormControl>
-
-                <FormControl isInvalid={errors2.division}>
-                  <FormLabel>NCAA Division</FormLabel>
-                  <Select
-                    {...register2('division', {
-                      required: 'Please select your NCAA Division',
-                    })}
-                    placeholder="Select NCAA Division"
-                  >
-                    {NCAA_DIVISIONS.map((division) => (
-                      <option key={division} value={division}>
-                        {division}
-                      </option>
-                    ))}
-                  </Select>
-                  <FormErrorMessage>{errors2.division?.message}</FormErrorMessage>
-                </FormControl>
-
-                <FormControl isInvalid={errors2.university}>
-                  <FormLabel>University</FormLabel>
-                  <Input
-                    {...register2('university', {
-                      required: 'University is required',
-                    })}
-                    placeholder="Enter your university"
-                  />
-                  <FormErrorMessage>{errors2.university?.message}</FormErrorMessage>
-                </FormControl>
-
-                <FormControl isInvalid={errors2.gender}>
-                  <FormLabel>Gender</FormLabel>
-                  <Select
-                    {...register2('gender', {
-                      required: 'Please select your gender',
-                    })}
-                    placeholder="Select your gender"
-                  >
-                    {GENDERS.map((gender) => (
-                      <option key={gender} value={gender}>
-                        {gender}
-                      </option>
-                    ))}
-                  </Select>
-                  <FormErrorMessage>{errors2.gender?.message}</FormErrorMessage>
-                </FormControl>
-
-                <FormControl isInvalid={errors2.sports}>
-                  <FormLabel>Sports</FormLabel>
-                  <ReactSelect
-                    {...register2('sports', {
-                      required: 'Please select at least one sport',
-                    })}
-                    options={availableSports}
-                    isMulti
-                    placeholder="Select your sports..."
-                    onChange={(selectedOptions) => {
-                      setValue2('sports', selectedOptions || []);
-                    }}
-                  />
-                  <FormErrorMessage>{errors2.sports?.message}</FormErrorMessage>
-                  {!selectedGender && (
-                    <Text fontSize="sm" color="gray.600" mt={1}>
-                      Please select your gender first
-                    </Text>
+                <Controller
+                  name="full_name"
+                  control={control2}
+                  rules={{
+                    required: 'Full name is required',
+                    minLength: {
+                      value: 2,
+                      message: 'Name must be at least 2 characters',
+                    },
+                  }}
+                  render={({ field, fieldState: { error } }) => (
+                    <FormControl isInvalid={!!error}>
+                      <FormLabel>Full Name</FormLabel>
+                      <Input
+                        {...field}
+                        placeholder="Enter your full name"
+                      />
+                      <FormErrorMessage>{error?.message}</FormErrorMessage>
+                    </FormControl>
                   )}
-                </FormControl>
+                />
+
+                <Controller
+                  name="phone"
+                  control={control2}
+                  rules={{
+                    required: 'Phone number is required',
+                    validate: (value) => {
+                      if (!validatePhoneNumber(value)) {
+                        return 'Phone number must be 10 digits';
+                      }
+                      return true;
+                    },
+                  }}
+                  render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
+                    <FormControl isInvalid={!!error}>
+                      <FormLabel>Phone Number</FormLabel>
+                      <Input
+                        {...field}
+                        value={value || ''}
+                        onChange={(e) => {
+                          const formatted = formatPhoneNumber(e.target.value);
+                          if (formatted !== undefined) {
+                            onChange(formatted);
+                          }
+                        }}
+                        placeholder="(555) 555-5555"
+                        maxLength={14}
+                      />
+                      <FormErrorMessage>{error?.message}</FormErrorMessage>
+                      <FormHelperText>Format: (XXX) XXX-XXXX</FormHelperText>
+                    </FormControl>
+                  )}
+                />
+
+                <Controller
+                  name="division"
+                  control={control2}
+                  rules={{
+                    required: 'Please select your NCAA Division',
+                  }}
+                  render={({ field, fieldState: { error } }) => (
+                    <FormControl isInvalid={!!error}>
+                      <FormLabel>NCAA Division</FormLabel>
+                      <Select
+                        {...field}
+                        placeholder="Select NCAA Division"
+                      >
+                        {NCAA_DIVISIONS.map((division) => (
+                          <option key={division} value={division}>
+                            {division}
+                          </option>
+                        ))}
+                      </Select>
+                      <FormErrorMessage>{error?.message}</FormErrorMessage>
+                    </FormControl>
+                  )}
+                />
+
+                <Controller
+                  name="university"
+                  control={control2}
+                  rules={{
+                    required: 'University is required',
+                  }}
+                  render={({ field, fieldState: { error } }) => (
+                    <FormControl isInvalid={!!error}>
+                      <FormLabel>University</FormLabel>
+                      <ReactSelect
+                        options={filteredSchools.map(school => ({
+                          value: school.name,
+                          label: school.name
+                        }))}
+                        value={field.value ? { value: field.value, label: field.value } : null}
+                        onChange={(option) => field.onChange(option?.value || '')}
+                        styles={customSelectStyles}
+                        placeholder="Select your university"
+                        isDisabled={!selectedDivision}
+                        isClearable
+                        isSearchable
+                        isLoading={isLoadingSchools}
+                        noOptionsMessage={() => 
+                          !selectedDivision 
+                            ? 'Please select a division first'
+                            : 'No universities found'
+                        }
+                      />
+                      <FormErrorMessage>{error?.message}</FormErrorMessage>
+                      {!selectedDivision && (
+                        <FormHelperText>
+                          Please select your NCAA Division first
+                        </FormHelperText>
+                      )}
+                    </FormControl>
+                  )}
+                />
+
+                <Controller
+                  name="gender"
+                  control={control2}
+                  rules={{
+                    required: 'Please select your gender',
+                  }}
+                  render={({ field, fieldState: { error } }) => (
+                    <FormControl isInvalid={!!error}>
+                      <FormLabel>Gender</FormLabel>
+                      <Select
+                        {...field}
+                        placeholder="Select your gender"
+                      >
+                        {GENDERS.map((gender) => (
+                          <option key={gender} value={gender}>
+                            {gender}
+                          </option>
+                        ))}
+                      </Select>
+                      <FormErrorMessage>{error?.message}</FormErrorMessage>
+                    </FormControl>
+                  )}
+                />
+
+                <Controller
+                  name="sports"
+                  control={control2}
+                  rules={{
+                    required: 'Please select at least one sport',
+                    validate: (value) => {
+                      if (!value || value.length === 0) {
+                        return 'Please select at least one sport';
+                      }
+                      return true;
+                    },
+                  }}
+                  render={({ field, fieldState: { error } }) => (
+                    <FormControl isInvalid={!!error}>
+                      <FormLabel>Sports</FormLabel>
+                      <ReactSelect
+                        {...field}
+                        options={availableSports}
+                        isMulti
+                        placeholder="Select your sports..."
+                        styles={customSelectStyles}
+                        onChange={(selectedOptions) => {
+                          field.onChange(selectedOptions ? selectedOptions.map(opt => opt.value) : []);
+                        }}
+                        value={field.value?.map(sport => ({ value: sport, label: sport })) || []}
+                        isDisabled={!selectedGender}
+                        noOptionsMessage={() => 
+                          !selectedGender 
+                            ? 'Please select your gender first'
+                            : 'No sports found'
+                        }
+                      />
+                      <FormErrorMessage>{error?.message}</FormErrorMessage>
+                      {!selectedGender ? (
+                        <FormHelperText>
+                          Please select your gender first
+                        </FormHelperText>
+                      ) : (
+                        <FormHelperText>
+                          You can select multiple sports (e.g., Cross Country, Track & Field)
+                        </FormHelperText>
+                      )}
+                    </FormControl>
+                  )}
+                />
 
                 <Button
                   type="submit"
