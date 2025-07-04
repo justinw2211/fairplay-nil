@@ -65,6 +65,10 @@ async def update_deal(
         if not update_data:
             raise HTTPException(status_code=400, detail="No update data provided.")
 
+        # Auto-set social_media_confirmed_at when social_media_confirmed is True
+        if update_data.get('social_media_confirmed') is True:
+            update_data['social_media_confirmed_at'] = 'now()'
+
         # Validate file metadata if present
         if (update_data.get('deal_terms_file_type') or 
             update_data.get('deal_terms_file_size')):

@@ -72,8 +72,8 @@ const Step0_SocialMedia = () => {
       // CRITICAL: Update deal with current social media data (cursor rule)
       await updateDeal(dealId, { 
         athlete_social_media: formData.platforms,
-        social_media_confirmed: true,
-        social_media_confirmed_at: new Date().toISOString()
+        social_media_confirmed: true
+        // Note: social_media_confirmed_at will be set by database trigger or default
       });
       
       toast({
