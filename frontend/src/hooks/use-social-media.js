@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../supabaseClient';
 
 /**
  * Custom hook for social media operations
@@ -11,16 +12,27 @@ const useSocialMedia = () => {
   const [error, setError] = useState(null);
   const { user } = useAuth();
 
-  // API base URL - use relative URL for backend API
-  const API_BASE = '/api/profile';
+  // API base URL - use environment variable like other API calls  
+  const API_BASE = `${import.meta.env.VITE_API_URL}/api`;
 
   // Helper function to get auth headers
-  const getAuthHeaders = useCallback(() => {
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${user?.session?.access_token}`,
-    };
-  }, [user]);
+  const getAuthHeaders = useCallback(async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+      
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      };
+    } catch (error) {
+      throw new Error('Authentication error: ' + error.message);
+    }
+  }, []);
 
   // Fetch social media platforms for the current user
   const fetchSocialMedia = useCallback(async () => {
@@ -28,9 +40,10 @@ const useSocialMedia = () => {
     setError(null);
     
     try {
+      const headers = await getAuthHeaders();
       const response = await fetch(`${API_BASE}/social-media`, {
         method: 'GET',
-        headers: getAuthHeaders(),
+        headers,
       });
 
       if (!response.ok) {
@@ -56,9 +69,10 @@ const useSocialMedia = () => {
     setError(null);
 
     try {
+      const headers = await getAuthHeaders();
       const response = await fetch(`${API_BASE}/social-media`, {
         method: 'PUT',
-        headers: getAuthHeaders(),
+        headers,
         body: JSON.stringify(socialMediaData),
       });
 
@@ -85,9 +99,10 @@ const useSocialMedia = () => {
     setError(null);
 
     try {
+      const headers = await getAuthHeaders();
       const response = await fetch(`${API_BASE}/social-media/${platform}`, {
         method: 'DELETE',
-        headers: getAuthHeaders(),
+        headers,
       });
 
       if (!response.ok) {
