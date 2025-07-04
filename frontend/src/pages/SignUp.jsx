@@ -28,12 +28,13 @@ import {
 import { FiUser, FiMail, FiLock, FiPhone } from 'react-icons/fi';
 import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, NCAA_DIVISIONS, USER_ROLES } from '../data/formConstants';
 import { formatPhoneNumber, unformatPhoneNumber } from '../utils/phoneUtils';
-import { useStandardForm } from '../hooks/useStandardForm';
-import FormField from '../components/forms/FormField';
-import PhoneField from '../components/forms/PhoneField';
-import SchoolField from '../components/forms/SchoolField';
-import { initialSignupSchema, athleteProfileSchema } from '../validation/schemas';
+// Testing imports one by one
 import { TOAST_MESSAGES } from '../utils/validation/validationMessages';
+// import { useStandardForm } from '../hooks/useStandardForm';
+// import FormField from '../components/forms/FormField';
+// import PhoneField from '../components/forms/PhoneField';
+// import SchoolField from '../components/forms/SchoolField';
+// import { initialSignupSchema, athleteProfileSchema } from '../validation/schemas';
 
 const SignUp = () => {
   const { signUp } = useAuth();
@@ -169,8 +170,8 @@ const SignUp = () => {
                 🧪 Testing Mode - Basic SignUp component is working!
               </Text>
               <Text color="brand.textSecondary" fontSize="sm">
-                The new validation system components are temporarily disabled to test basic rendering.
-                This confirms the page can load without errors.
+                Currently testing: TOAST_MESSAGES import
+                {TOAST_MESSAGES && ` ✅ TOAST_MESSAGES loaded successfully!`}
               </Text>
               <Button
                 colorScheme="pink"
@@ -181,13 +182,19 @@ const SignUp = () => {
                 onClick={() => setTestMode(false)}
                 _hover={{ bg: '#c8aeb0' }}
               >
-                Enable New Validation System
+                Test Next Import
               </Button>
             </VStack>
           ) : step === 1 ? (
-            <Text color="red.500">
-              New validation system would be here, but there are import issues to resolve.
-            </Text>
+            <VStack spacing={4} width="100%">
+              <Text color="green.500">
+                ✅ TOAST_MESSAGES import working!
+              </Text>
+              <Text color="brand.textSecondary" fontSize="sm">
+                Testing next: validation schemas...
+              </Text>
+              <Button onClick={() => setTestMode(true)}>Back to Test Mode</Button>
+            </VStack>
           ) : (
             <form 
               key="athlete-form" // Force new instance of form
