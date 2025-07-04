@@ -173,7 +173,7 @@ const Step0_SocialMedia = () => {
             />
 
             {/* Navigation Buttons */}
-            <Flex justify="space-between" align="center" pt={4} w="full">
+            <Flex justify="space-between" align="center" pt={6} w="full">
               <Button
                 leftIcon={<Icon as={Clock} />}
                 variant="ghost"
@@ -192,39 +192,7 @@ const Step0_SocialMedia = () => {
               >
                 Finish Later
               </Button>
-
-              {/* Next step info */}
-              <Box textAlign="right">
-                <Text fontSize="sm" color="brand.textSecondary">
-                  Next: Deal Terms & Contract Upload
-                </Text>
-              </Box>
             </Flex>
-
-            {/* Help Text */}
-            <Box
-              p={4}
-              bg="brand.backgroundLight"
-              borderRadius="lg"
-              w="full"
-            >
-              <VStack spacing={2} align="start">
-                <Text fontSize="sm" fontWeight="semibold" color="brand.textPrimary">
-                  Tips for accuracy:
-                </Text>
-                <VStack spacing={1} align="start">
-                  <Text fontSize="sm" color="brand.textSecondary">
-                    • Update follower counts to reflect current numbers
-                  </Text>
-                  <Text fontSize="sm" color="brand.textSecondary">
-                    • Use your exact handle (including @) as it appears on each platform
-                  </Text>
-                  <Text fontSize="sm" color="brand.textSecondary">
-                    • Only include accounts you actively manage and can verify
-                  </Text>
-                </VStack>
-              </VStack>
-            </Box>
           </VStack>
         </CardBody>
       </Card>
