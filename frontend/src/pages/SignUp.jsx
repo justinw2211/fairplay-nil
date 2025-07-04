@@ -28,15 +28,12 @@ import {
 import { FiUser, FiMail, FiLock, FiPhone } from 'react-icons/fi';
 import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, NCAA_DIVISIONS, USER_ROLES } from '../data/formConstants';
 import { formatPhoneNumber, unformatPhoneNumber } from '../utils/phoneUtils';
-import { 
-  useStandardForm, 
-  FormField, 
-  PhoneField, 
-  SchoolField,
-  initialSignupSchema,
-  athleteProfileSchema,
-  TOAST_MESSAGES 
-} from '../components/forms';
+import { useStandardForm } from '../hooks/useStandardForm';
+import FormField from '../components/forms/FormField';
+import PhoneField from '../components/forms/PhoneField';
+import SchoolField from '../components/forms/SchoolField';
+import { initialSignupSchema, athleteProfileSchema } from '../validation/schemas';
+import { TOAST_MESSAGES } from '../utils/validation/validationMessages';
 
 const SignUp = () => {
   const { signUp } = useAuth();
@@ -46,49 +43,52 @@ const SignUp = () => {
   const [availableSports, setAvailableSports] = useState([]);
   const [initialData, setInitialData] = useState(null);
 
+  // Temporarily disable the new forms to test basic rendering
+  const [testMode, setTestMode] = useState(true);
+
   // Form for initial signup using standardized form hook
-  const initialForm = useStandardForm({
-    schema: initialSignupSchema,
-    defaultValues: {
-      email: '',
-      password: '',
-      confirmPassword: '',
-      role: '',
-    },
-    toastMessages: {
-      success: TOAST_MESSAGES.success.accountCreated,
-      error: TOAST_MESSAGES.error.signUp,
-    }
-  });
+  // const initialForm = useStandardForm({
+  //   schema: initialSignupSchema,
+  //   defaultValues: {
+  //     email: '',
+  //     password: '',
+  //     confirmPassword: '',
+  //     role: '',
+  //   },
+  //   toastMessages: {
+  //     success: TOAST_MESSAGES.success.accountCreated,
+  //     error: TOAST_MESSAGES.error.signUp,
+  //   }
+  // });
 
   // Form for athlete additional info using standardized form hook
-  const athleteForm = useStandardForm({
-    schema: athleteProfileSchema,
-    defaultValues: {
-      full_name: '',
-      phone: '',
-      division: '',
-      university: '',
-      gender: '',
-      sports: [],
-    },
-    toastMessages: {
-      success: TOAST_MESSAGES.success.accountCreated,
-      error: TOAST_MESSAGES.error.signUp,
-    }
-  });
+  // const athleteForm = useStandardForm({
+  //   schema: athleteProfileSchema,
+  //   defaultValues: {
+  //     full_name: '',
+  //     phone: '',
+  //     division: '',
+  //     university: '',
+  //     gender: '',
+  //     sports: [],
+  //   },
+  //   toastMessages: {
+  //     success: TOAST_MESSAGES.success.accountCreated,
+  //     error: TOAST_MESSAGES.error.signUp,
+  //   }
+  // });
 
   // Watch form fields for reactive updates
-  const selectedDivision = athleteForm.watchField('division');
-  const selectedGender = athleteForm.watchField('gender');
+  // const selectedDivision = athleteForm.watchField('division');
+  // const selectedGender = athleteForm.watchField('gender');
 
   // Handle gender change
-  useEffect(() => {
-    const sports = selectedGender === 'Male' ? MEN_SPORTS :
-                  selectedGender === 'Female' ? WOMEN_SPORTS : [];
-    setAvailableSports(sports);
-    athleteForm.setFormValue('sports', []);
-  }, [selectedGender, athleteForm]);
+  // useEffect(() => {
+  //   const sports = selectedGender === 'Male' ? MEN_SPORTS :
+  //                 selectedGender === 'Female' ? WOMEN_SPORTS : [];
+  //   setAvailableSports(sports);
+  //   athleteForm.setFormValue('sports', []);
+  // }, [selectedGender, athleteForm]);
 
   // Custom styles for react-select
   const customStyles = {
@@ -163,65 +163,31 @@ const SignUp = () => {
             <Progress value={50} size="sm" width="100%" colorScheme="pink" borderRadius="full" />
           )}
 
-          {step === 1 ? (
-            <form onSubmit={initialForm.handleSubmit(handleInitialSubmit)} style={{ width: '100%' }}>
-              <VStack spacing={4}>
-                <FormField
-                  name="email"
-                  control={initialForm.control}
-                  type="email"
-                  label="Email Address"
-                  placeholder="Enter your email"
-                  leftIcon={FiMail}
-                  isRequired
-                />
-
-                <FormField
-                  name="password"
-                  control={initialForm.control}
-                  type="password"
-                  label="Password"
-                  placeholder="Create a password"
-                  leftIcon={FiLock}
-                  isRequired
-                />
-
-                <FormField
-                  name="confirmPassword"
-                  control={initialForm.control}
-                  type="password"
-                  label="Confirm Password"
-                  placeholder="Confirm your password"
-                  leftIcon={FiLock}
-                  isRequired
-                />
-
-                <FormField
-                  name="role"
-                  control={initialForm.control}
-                  type="react-select"
-                  label="What best describes you?"
-                  placeholder="Select your role"
-                  options={USER_ROLES}
-                  customSelectStyles={customStyles}
-                  isRequired
-                  isSearchable={false}
-                />
-
-                <Button
-                  type="submit"
-                  colorScheme="pink"
-                  bg="brand.accentPrimary"
-                  color="white"
-                  width="full"
-                  size="lg"
-                  isLoading={initialForm.isSubmitting}
-                  _hover={{ bg: '#c8aeb0' }}
-                >
-                  Continue
-                </Button>
-              </VStack>
-            </form>
+          {testMode ? (
+            <VStack spacing={4} width="100%">
+              <Text color="brand.textPrimary">
+                🧪 Testing Mode - Basic SignUp component is working!
+              </Text>
+              <Text color="brand.textSecondary" fontSize="sm">
+                The new validation system components are temporarily disabled to test basic rendering.
+                This confirms the page can load without errors.
+              </Text>
+              <Button
+                colorScheme="pink"
+                bg="brand.accentPrimary"
+                color="white"
+                width="full"
+                size="lg"
+                onClick={() => setTestMode(false)}
+                _hover={{ bg: '#c8aeb0' }}
+              >
+                Enable New Validation System
+              </Button>
+            </VStack>
+          ) : step === 1 ? (
+            <Text color="red.500">
+              New validation system would be here, but there are import issues to resolve.
+            </Text>
           ) : (
             <form 
               key="athlete-form" // Force new instance of form
