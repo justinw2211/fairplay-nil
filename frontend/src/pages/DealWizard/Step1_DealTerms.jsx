@@ -198,14 +198,14 @@ const Step1_DealTerms = () => {
           {/* Progress Indicator */}
           <VStack spacing={3} mb={6}>
             <Flex justify="space-between" w="full" fontSize="sm">
-              <Text color="brand.textSecondary" fontWeight="medium">Step 1 of 8</Text>
-              <Text color="brand.textSecondary">12.5% Complete</Text>
+              <Text color="brand.textSecondary" fontWeight="medium">Step 2 of 9</Text>
+              <Text color="brand.textSecondary">22.2% Complete</Text>
             </Flex>
             <Box w="full" bg="brand.accentSecondary" h="2" rounded="full">
               <Box
                 bg="brand.accentPrimary"
                 h="2"
-                w="12.5%"
+                w="22.2%"
                 rounded="full"
                 transition="width 0.5s ease-out"
               />

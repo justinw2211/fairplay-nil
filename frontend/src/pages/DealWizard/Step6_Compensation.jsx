@@ -514,14 +514,14 @@ const Step6_Compensation = () => {
           <VStack spacing={3} mb={6}>
             <Flex justify="space-between" w="full" fontSize="sm">
               <Text color="brand.textSecondary" fontWeight="medium">
-                Step 6 of 8
+                Step 7 of 9
               </Text>
               <Text color="brand.textSecondary">
-                75% Complete
+                77.8% Complete
               </Text>
             </Flex>
             <Progress
-              value={75}
+              value={77.8}
               w="full"
               h="2"
               bg="brand.accentSecondary"

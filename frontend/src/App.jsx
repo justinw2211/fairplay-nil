@@ -20,6 +20,7 @@ import Brands from "./pages/Brands";
 import NotFound from './pages/NotFound';
 
 // Import ONLY the new DealWizard components
+import Step0_SocialMedia from './pages/DealWizard/Step0_SocialMedia';
 import Step1_DealTerms from './pages/DealWizard/Step1_DealTerms';
 import Step2_PayorInfo from './pages/DealWizard/Step2_PayorInfo';
 import Step3_SelectActivities from './pages/DealWizard/Step3_SelectActivities';
@@ -147,6 +148,7 @@ function App() {
         <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
 
         {/* --- NEW DEAL WIZARD ROUTES --- */}
+        <Route path="/add/deal/social-media/:dealId" element={<DealWizardRoute><Step0_SocialMedia /></DealWizardRoute>} />
         <Route path="/add/deal/terms/:dealId" element={<DealWizardRoute><Step1_DealTerms /></DealWizardRoute>} />
         <Route path="/add/deal/payor/:dealId" element={<DealWizardRoute><Step2_PayorInfo /></DealWizardRoute>} />
         <Route path="/add/deal/activities/select/:dealId" element={<DealWizardRoute><Step3_SelectActivities /></DealWizardRoute>} />

@@ -12,6 +12,8 @@ import { supabase } from '../supabaseClient';
 import DealsTable from '../components/DealsTable';
 import { useNavigate } from 'react-router-dom';
 import { FiEdit2, FiUser, FiAward, FiMapPin } from 'react-icons/fi';
+import SocialMediaModal from '../components/social-media-modal';
+import useSocialMedia from '../hooks/use-social-media';
 
 const ProfileCard = ({ user, onEditClick }) => {
   const cardBg = useColorModeValue('white', 'gray.800');
@@ -81,6 +83,50 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const toast = useToast();
   const navigate = useNavigate();
+  
+  // Social media modal state
+  const [showSocialMediaModal, setShowSocialMediaModal] = useState(false);
+  const [socialMediaCheckComplete, setSocialMediaCheckComplete] = useState(false);
+  const [socialMediaData, setSocialMediaData] = useState(null);
+  const { fetchSocialMedia } = useSocialMedia();
+
+  // Check if user needs to complete social media profile
+  useEffect(() => {
+    const checkSocialMediaCompletion = async () => {
+      if (!user || socialMediaCheckComplete) return;
+      
+      try {
+        const data = await fetchSocialMedia();
+        setSocialMediaData(data);
+        setSocialMediaCheckComplete(true);
+        
+        // Show modal if user has no social media platforms configured
+        if (!data || data.length === 0) {
+          setShowSocialMediaModal(true);
+        }
+      } catch (error) {
+        console.error('Error checking social media completion:', error);
+        setSocialMediaCheckComplete(true);
+      }
+    };
+
+    checkSocialMediaCompletion();
+  }, [user, fetchSocialMedia, socialMediaCheckComplete]);
+
+  const handleSocialMediaComplete = async () => {
+    setShowSocialMediaModal(false);
+    // Refresh social media data after completion
+    try {
+      const data = await fetchSocialMedia();
+      setSocialMediaData(data);
+    } catch (error) {
+      console.error('Error refreshing social media data:', error);
+    }
+  };
+
+  const handleSkipSocialMedia = () => {
+    setShowSocialMediaModal(false);
+  };
 
   const fetchDeals = useCallback(async () => {
     const sessionRes = await supabase.auth.getSession();
@@ -209,6 +255,13 @@ const Dashboard = () => {
           <Text>You have not submitted any deals yet.</Text>
         )}
       </Box>
+
+      {/* Social Media Modal */}
+      <SocialMediaModal
+        isOpen={showSocialMediaModal}
+        onClose={handleSkipSocialMedia}
+        onComplete={handleSocialMediaComplete}
+      />
     </Box>
   );
 };

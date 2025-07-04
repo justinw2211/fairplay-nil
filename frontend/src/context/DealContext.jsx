@@ -70,7 +70,7 @@ export const DealProvider = ({ children }) => {
       });
       const newDraft = response;
       setDeal(newDraft);
-      navigate(`/add/deal/terms/${newDraft.id}`);
+      navigate(`/add/deal/social-media/${newDraft.id}`);
       return newDraft;
     } catch (err) {
       setError(err.message);

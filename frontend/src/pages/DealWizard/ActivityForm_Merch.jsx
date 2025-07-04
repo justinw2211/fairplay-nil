@@ -100,17 +100,17 @@ const ActivityForm_Merch = ({ nextStepUrl }) => {
           <VStack spacing={3} mb={6}>
             <Flex justify="space-between" w="full" fontSize="sm">
               <Text color="brand.textSecondary" fontWeight="medium">
-                Step 4 of 8
+                Step 5 of 9
               </Text>
               <Text color="brand.textSecondary">
-                50% Complete
+                55.6% Complete
               </Text>
             </Flex>
             <Box w="full" bg="brand.accentSecondary" h="2" rounded="full">
               <Box
                 bg="brand.accentPrimary"
                 h="2"
-                w="50%"
+                w="55.6%"
                 rounded="full"
                 transition="width 0.5s ease-out"
               />

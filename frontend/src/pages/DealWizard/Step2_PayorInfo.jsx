@@ -100,14 +100,14 @@ const Step2_PayorInfo = () => {
           {/* Progress Indicator */}
           <VStack spacing={3} mb={6}>
             <Flex justify="space-between" w="full" fontSize="sm">
-              <Text color="brand.textSecondary" fontWeight="medium">Step 2 of 8</Text>
-              <Text color="brand.textSecondary">25% Complete</Text>
+              <Text color="brand.textSecondary" fontWeight="medium">Step 3 of 9</Text>
+              <Text color="brand.textSecondary">33.3% Complete</Text>
             </Flex>
             <Box w="full" bg="brand.accentSecondary" h="2" rounded="full">
               <Box
                 bg="brand.accentPrimary"
                 h="2"
-                w="25%"
+                w="33.3%"
                 rounded="full"
                 transition="width 0.5s ease-out"
               />

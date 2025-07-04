@@ -162,14 +162,14 @@ const Step8_Review = () => {
           <VStack spacing={3} mb={6}>
             <Flex justify="space-between" w="full" fontSize="sm">
               <Text color="brand.textSecondary" fontWeight="medium">
-                Step 8 of 8
+                Step 8 of 9
               </Text>
               <Text color="brand.textSecondary">
-                100% Complete
+                88.9% Complete
               </Text>
             </Flex>
             <Progress
-              value={100}
+              value={88.9}
               w="full"
               h="2"
               bg="brand.accentSecondary"
