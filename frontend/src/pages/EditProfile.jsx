@@ -40,21 +40,7 @@ import {
 import { FiSave, FiX, FiAlertTriangle, FiUser, FiMail, FiPhone } from 'react-icons/fi';
 import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, NCAA_DIVISIONS } from '../data/formConstants.js';
 import { fetchSchools, FALLBACK_SCHOOLS } from '../data/ncaaSchools';
-
-// Phone number formatting function
-const formatPhoneNumber = (value) => {
-  if (!value) return value;
-  const phoneNumber = value.replace(/[^\d]/g, '');
-  if (phoneNumber.length < 4) return phoneNumber;
-  if (phoneNumber.length < 7) return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
-  return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
-};
-
-// Phone number unformatting function
-const unformatPhoneNumber = (value) => {
-  if (!value) return value;
-  return value.replace(/[^\d]/g, '');
-};
+import { formatPhoneNumber, unformatPhoneNumber, validatePhoneNumber } from '../utils/phoneUtils';
 
 const schema = yup.object().shape({
   full_name: yup
@@ -69,10 +55,7 @@ const schema = yup.object().shape({
   phone: yup
     .string()
     .required('Phone number is required')
-    .test('phone', 'Phone number must be 10 digits', (value) => {
-      const digits = value ? value.replace(/[^\d]/g, '') : '';
-      return digits.length === 10;
-    }),
+    .test('phone', 'Phone number must be 10 digits', validatePhoneNumber),
   division: yup
     .string()
     .required('NCAA Division is required')
@@ -112,6 +95,7 @@ const EditProfile = () => {
     watch,
     reset,
     setValue,
+    getValues,
     formState: { errors, isDirty },
   } = useForm({
     resolver: yupResolver(schema),
@@ -278,15 +262,72 @@ const EditProfile = () => {
     setHasChanges(isDirty);
   }, [isDirty]);
 
-  const handleCancel = () => {
+  const handleSaveAndExit = async () => {
     if (hasChanges) {
-      onOpen();
+      // If there are changes, save them first
+      try {
+        setSaving(true);
+        const formData = getValues();
+        
+        // First update profile data without email (since it's managed by auth)
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            full_name: formData.full_name,
+            phone: unformatPhoneNumber(formData.phone),
+            division: formData.division,
+            university: formData.university,
+            gender: formData.gender,
+            sports: formData.sports,
+          })
+          .eq('id', user.id);
+
+        if (updateError) throw updateError;
+
+        // Then update email in auth if it changed
+        if (formData.email !== user.email) {
+          const { error: updateEmailError } = await supabase.auth.updateUser({
+            email: formData.email
+          });
+          if (updateEmailError) throw updateEmailError;
+
+          toast({
+            title: 'Email verification required',
+            description: 'Please check your new email for a verification link.',
+            status: 'info',
+            duration: 3000,
+            isClosable: true,
+          });
+        }
+
+        toast({
+          title: 'Profile saved',
+          description: 'Your profile has been saved successfully.',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+
+        // Navigate to dashboard after successful save
+        navigate('/dashboard');
+      } catch (error) {
+        toast({
+          title: 'Error saving profile',
+          description: error.message,
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+      } finally {
+        setSaving(false);
+      }
     } else {
+      // No changes, just navigate
       navigate('/dashboard');
     }
   };
 
-  const handleConfirmCancel = () => {
+  const handleConfirmDiscard = () => {
     onClose();
     navigate('/dashboard');
   };
@@ -382,13 +423,25 @@ const EditProfile = () => {
               Edit Profile
             </Heading>
             <HStack spacing={4}>
+              {hasChanges && (
+                <Button
+                  leftIcon={<Icon as={FiX} />}
+                  variant="outline"
+                  colorScheme="red"
+                  onClick={onOpen}
+                  isDisabled={saving}
+                >
+                  Discard & Exit
+                </Button>
+              )}
               <Button
-                leftIcon={<Icon as={FiX} />}
+                leftIcon={<Icon as={FiSave} />}
                 variant="outline"
-                onClick={handleCancel}
-                isDisabled={saving}
+                onClick={handleSaveAndExit}
+                isLoading={saving}
+                loadingText="Saving..."
               >
-                Cancel
+                Save & Exit
               </Button>
               <Button
                 leftIcon={<Icon as={FiSave} />}
@@ -595,14 +648,14 @@ const EditProfile = () => {
         <AlertDialogOverlay>
           <AlertDialogContent>
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Discard Changes?
+              Discard Changes & Exit?
             </AlertDialogHeader>
 
             <AlertDialogBody>
               <HStack spacing={3}>
                 <Icon as={FiAlertTriangle} color="orange.500" boxSize={5} />
                 <Text>
-                  You have unsaved changes. Are you sure you want to leave? Your changes will be lost.
+                  You have unsaved changes. Are you sure you want to exit without saving? Your changes will be lost.
                 </Text>
               </HStack>
             </AlertDialogBody>
@@ -611,8 +664,8 @@ const EditProfile = () => {
               <Button ref={cancelRef} onClick={onClose}>
                 Continue Editing
               </Button>
-              <Button colorScheme="red" onClick={handleConfirmCancel} ml={3}>
-                Discard Changes
+              <Button colorScheme="red" onClick={handleConfirmDiscard} ml={3}>
+                Discard & Exit
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>

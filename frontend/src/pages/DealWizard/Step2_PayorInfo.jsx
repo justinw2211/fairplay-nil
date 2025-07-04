@@ -22,6 +22,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { ChevronRight, ChevronLeft, Clock } from 'lucide-react';
+import { formatPhoneNumber } from '../../utils/phoneUtils';
 
 const Step2_PayorInfo = () => {
   const { dealId } = useParams();
@@ -62,19 +63,7 @@ const Step2_PayorInfo = () => {
   const isFormValid = payorType && payorName.trim() && 
                      (!payorEmail.trim() || validateEmail(payorEmail));
 
-  const formatPhoneNumber = (value) => {
-    // Remove all non-numeric characters
-    const phoneNumber = value.replace(/\D/g, "");
 
-    // Format the phone number
-    if (phoneNumber.length <= 3) {
-      return phoneNumber;
-    } else if (phoneNumber.length <= 6) {
-      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
-    } else {
-      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
-    }
-  };
 
   const handlePhoneChange = (e) => {
     const formatted = formatPhoneNumber(e.target.value);

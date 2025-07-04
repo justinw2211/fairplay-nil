@@ -31,6 +31,7 @@ import {
 import { FiUser, FiMail, FiLock, FiPhone } from 'react-icons/fi';
 import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, NCAA_DIVISIONS, USER_ROLES } from '../data/formConstants';
 import { fetchSchools, FALLBACK_SCHOOLS } from '../data/ncaaSchools';
+import { formatPhoneNumber, unformatPhoneNumber, validatePhoneNumber } from '../utils/phoneUtils';
 
 // Initial signup schema
 const initialSchema = yup.object().shape({
@@ -45,7 +46,10 @@ const initialSchema = yup.object().shape({
 // Additional athlete info schema
 const athleteSchema = yup.object().shape({
   full_name: yup.string().required('Full name is required'),
-  phone: yup.string().required('Phone number is required'),
+  phone: yup
+    .string()
+    .required('Phone number is required')
+    .test('phone', 'Phone number must be 10 digits', validatePhoneNumber),
   division: yup.string().required('NCAA Division is required'),
   university: yup.string().required('University is required'),
   gender: yup.string().required('Gender is required'),
@@ -234,6 +238,7 @@ const SignUp = () => {
         initialData.password,
         {
           ...data,
+          phone: unformatPhoneNumber(data.phone), // Unformat phone for backend
           role: 'student-athlete'
         }
       );
@@ -437,15 +442,20 @@ const SignUp = () => {
                             value={value || ''}
                             onChange={(e) => {
                               console.log(`${name} onChange:`, e.target.value);
-                              onChange(e);
+                              const formatted = formatPhoneNumber(e.target.value);
+                              if (formatted !== undefined) {
+                                onChange(formatted);
+                              }
                             }}
                             type="tel"
-                            placeholder="Enter your phone number"
+                            placeholder="(555) 555-5555"
+                            maxLength={14}
                           />
                         </InputGroup>
                         <FormErrorMessage>
                           {error?.message}
                         </FormErrorMessage>
+                        <FormHelperText>Format: (XXX) XXX-XXXX</FormHelperText>
                       </FormControl>
                     );
                   }}
