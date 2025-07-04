@@ -25,7 +25,7 @@ import {
   FiTrendingUp,
   FiShield,
   FiUsers,
-  FiBarChart3,
+  FiBarChart,
   FiFileText,
   FiDollarSign,
   FiAward,
@@ -107,7 +107,7 @@ const Universities = () => {
       description: "Real-time tracking and alerts to ensure all deals meet NCAA and state regulations"
     },
     {
-      icon: FiBarChart3,
+      icon: FiBarChart,
       title: "Analytics Dashboard",
       description: "Comprehensive insights into your program's NIL activity and market trends"
     },
@@ -345,7 +345,7 @@ const Universities = () => {
                 { icon: FiDatabase, label: "Secure Data Storage", desc: "Bank-level security" },
                 { icon: FiMonitor, label: "Real-time Monitoring", desc: "24/7 compliance tracking" },
                 { icon: FiUsers, label: "Expert Support", desc: "Dedicated success team" },
-                { icon: FiBarChart3, label: "Advanced Analytics", desc: "Actionable insights" },
+                { icon: FiBarChart, label: "Advanced Analytics", desc: "Actionable insights" },
               ].map((item, index) => (
                 <VStack key={index} spacing={3} textAlign="center">
                   <Flex
