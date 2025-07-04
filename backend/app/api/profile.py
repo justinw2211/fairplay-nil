@@ -28,14 +28,47 @@ async def get_profile(user_id: str = Depends(get_user_id)):
     data = supabase.from_("profiles").select("*").eq("id", user_id).single().execute()
     if not data.data:
         raise HTTPException(status_code=404, detail="Profile not found")
-    return data.data
+    
+    profile_data = data.data
+    
+    # Convert division format from database to frontend format
+    if profile_data.get('division'):
+        division_map = {
+            'I': 'Division I',
+            'II': 'Division II',
+            'III': 'Division III'
+        }
+        profile_data['division'] = division_map.get(profile_data['division'], profile_data['division'])
+    
+    return profile_data
 
 @router.put("/profile", response_model=ProfileResponse)
 async def update_profile(profile_data: ProfileUpdate, user_id: str = Depends(get_user_id)):
     update_data = profile_data.dict(exclude_unset=True)
+    
+    # Convert division format from frontend to database format
+    if 'division' in update_data and update_data['division']:
+        division_map = {
+            'Division I': 'I',
+            'Division II': 'II', 
+            'Division III': 'III'
+        }
+        update_data['division'] = division_map.get(update_data['division'], update_data['division'])
+    
     data = supabase.from_("profiles").update(update_data).eq("id", user_id).execute()
     if not data.data:
         raise HTTPException(status_code=404, detail="Profile not found or update failed")
     
     updated_profile = supabase.from_("profiles").select("*").eq("id", user_id).single().execute()
-    return updated_profile.data
+    profile_data = updated_profile.data
+    
+    # Convert division format from database to frontend format
+    if profile_data.get('division'):
+        division_map = {
+            'I': 'Division I',
+            'II': 'Division II',
+            'III': 'Division III'
+        }
+        profile_data['division'] = division_map.get(profile_data['division'], profile_data['division'])
+    
+    return profile_data

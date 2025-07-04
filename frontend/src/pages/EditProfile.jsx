@@ -304,7 +304,6 @@ const EditProfile = () => {
           university: data.university,
           gender: data.gender,
           sports: data.sports,
-          updated_at: new Date().toISOString(),
         })
         .eq('id', user.id);
 

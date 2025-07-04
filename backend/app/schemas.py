@@ -7,10 +7,11 @@ import uuid
 # --- Schemas for Profile Functionality ---
 class ProfileUpdate(BaseModel):
     full_name: Optional[str] = None
+    phone: Optional[str] = None
     division: Optional[str] = None
     university: Optional[str] = None
     gender: Optional[str] = None
-    sport: Optional[str] = None
+    sports: Optional[List[str]] = None
 
 class ProfileResponse(ProfileUpdate):
     id: uuid.UUID
