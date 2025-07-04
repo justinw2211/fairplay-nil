@@ -36,8 +36,9 @@ import {
 const Universities = () => {
   const bgColor = useColorModeValue("gray.50", "gray.900");
   const cardBg = useColorModeValue("white", "gray.800");
-  const accentColor = "#d4a5a7";
-  const primaryColor = "#2D3748";
+  const accentColor = "#d0bdb5";
+  const accentSecondary = "#d6dce4";
+  const primaryColor = "#282f3d";
 
   const packages = [
     {
@@ -54,7 +55,7 @@ const Universities = () => {
         "Up to 100 active deals",
       ],
       badge: "Most Popular",
-      badgeColor: "blue",
+      badgeColor: "brand",
     },
     {
       name: "Professional",
@@ -72,7 +73,7 @@ const Universities = () => {
         "Training & onboarding",
       ],
       badge: "Recommended",
-      badgeColor: "green",
+      badgeColor: "brand",
     },
     {
       name: "Enterprise",
@@ -91,7 +92,7 @@ const Universities = () => {
         "Custom feature development",
       ],
       badge: "Enterprise",
-      badgeColor: "purple",
+      badgeColor: "brand",
     },
   ];
 
@@ -239,7 +240,8 @@ const Universities = () => {
                       top="-10px"
                       left="50%"
                       transform="translateX(-50%)"
-                      colorScheme={pkg.badgeColor}
+                      bg={accentColor}
+                      color="white"
                       px={3}
                       py={1}
                       borderRadius="full"
