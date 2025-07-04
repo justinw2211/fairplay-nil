@@ -1,0 +1,120 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+### 🔄 Project Awareness & Context
+- **FairPlay NIL Platform**: A comprehensive Name, Image, and Likeness platform for college athletes, brands, and collectives
+- **Core Business Logic**: Deal Management, Athlete Profiles, Brand Partnerships, Compliance Tracking
+- **Activity Types**: Social Media, Endorsements, Appearances, Content Creation, Merchandise, Autographs
+- **Always consider regulatory compliance** - NIL deals must comply with NCAA and state regulations
+- **Multi-user platform**: Athletes, brands, collectives, and universities have different workflows and requirements
+- **Deal Lifecycle**: From creation to completion and compliance reporting
+- **Check existing file structure** in `frontend/src/` and `backend/app/` before creating new files
+- **Follow established patterns** from existing components and API routes
+
+### 🧱 Code Structure & Modularity
+- **Backend (FastAPI)**: 
+  - API routes in `backend/app/api/` organized by domain (deals.py, profile.py)
+  - Database models and schemas in `backend/app/schemas.py`
+  - Database connection in `backend/app/database.py`
+  - **Use Pydantic for data validation** (already established)
+- **Frontend (React + Vite)**:
+  - Components in `frontend/src/components/` with clear separation of concerns
+  - Pages in `frontend/src/pages/` following existing patterns
+  - Context providers in `frontend/src/context/` (AuthContext, DealContext)
+  - **Never create React components longer than 300 lines** - split into smaller components
+- **Database**: Use migration files in `backend/migrations/` for schema changes
+- **Form handling**: Use existing patterns from `frontend/src/components/forms/`
+
+### 🧪 Testing & Reliability
+- **Frontend**: Use Jest + React Testing Library (already configured)
+- **Backend**: Create Pytest tests for new API endpoints and business logic
+- **Test files**: 
+  - Frontend: `*.test.jsx` files alongside components
+  - Backend: `/tests` folder structure
+- **Always test deal creation workflows** - critical business functionality
+- **Test compliance validation logic** thoroughly
+
+### ✅ Task Completion & Development Flow
+- **Database changes**: Always use migrations via `backend/migrations/`
+- **API changes**: Update both backend routes and frontend API calls
+- **Form updates**: Maintain consistency with existing form patterns and validation
+- **State management**: Use established Context patterns (AuthContext, DealContext)
+
+### 📎 Style & Conventions
+- **Backend (Python)**:
+  - Follow PEP8, use type hints
+  - Use FastAPI dependency injection patterns
+  - PostgreSQL via Supabase (not SQLAlchemy/SQLModel)
+  - Environment variables via Supabase configuration
+- **Frontend (React)**:
+  - Use Chakra UI components consistently
+  - Follow established component naming: kebab-case for files, PascalCase for component names
+  - Use React hooks patterns from `frontend/src/hooks/`
+  - Maintain responsive design principles
+
+### 🔒 Security & Compliance (MVP Essentials)
+- **Never log sensitive data**: No personal info, financial data, or authentication tokens in logs
+- **Validate user permissions**: Check user roles before accessing deal data or user profiles
+- **Input sanitization**: Validate all form inputs, especially file uploads and user-generated content
+- **Environment variables**: Keep API keys and secrets in environment variables, never hardcode
+- **Authentication**: Always verify user authentication before accessing protected resources
+
+### 🐛 Error Handling & User Experience
+- **Consistent error responses**: Use standard HTTP status codes and error message format
+- **User-friendly messages**: Show clear, actionable error messages to users
+- **Graceful degradation**: Handle API failures gracefully with loading states and retry options
+- **Form validation**: Provide real-time validation feedback using established patterns
+- **Error boundaries**: Use React Error Boundaries for component-level error handling
+
+### 🔌 API Design Standards (MVP)
+- **RESTful endpoints**: Use standard patterns (GET /deals, POST /deals, PUT /deals/{id})
+- **Consistent response format**: Standard JSON structure with data/error/metadata
+- **Input validation**: Use Pydantic models for request/response validation
+- **HTTP status codes**: Use appropriate codes (200, 201, 400, 401, 403, 404, 500)
+- **Async patterns**: Use async/await for database operations and external API calls
+
+### ⚡ Performance Basics (MVP)
+- **Database queries**: Use indexes on frequently queried fields (athlete_id, deal_status)
+- **React optimization**: Use React.memo() for components that re-render frequently
+- **Bundle size**: Monitor main bundle size, code-split large pages if needed
+- **Image optimization**: Compress images, use appropriate formats for web
+- **Loading states**: Show loading indicators for any operation taking >500ms
+
+### 🔄 State Management Guidelines
+- **Context scope**: Keep contexts focused - AuthContext for auth, DealContext for deals
+- **Avoid prop drilling**: Use Context for deeply nested component communication
+- **Data flow**: Maintain unidirectional data flow patterns
+- **Local state**: Use useState for component-specific state, Context for shared state
+- **Form state**: Use established form patterns, avoid complex state management for simple forms
+
+### 📚 Documentation & Explainability
+- **Business logic comments**: Explain NIL compliance requirements and business rules
+- **Complex workflows**: Document multi-step processes like deal creation wizard
+- **API documentation**: Use FastAPI's automatic OpenAPI documentation
+- **Component props**: Document complex prop interfaces for reusable components
+
+### 🧠 AI Behavior Rules
+- **Never assume missing context about NIL regulations** - ask if uncertain about compliance requirements
+- **Always consider all user types**: Athletes, brands, collectives, universities have different needs
+- **Verify file paths** against existing project structure (`frontend/src/`, `backend/app/`)
+- **Check existing patterns** before creating new components or API routes
+- **Never delete existing migration files** - only add new ones
+- **Consider deal lifecycle** - from creation to compliance approval to completion
+
+### 🎯 FairPlay NIL Specific Rules
+- **Deal Management**: All deals must have clear deliverables, compensation, and compliance tracking
+- **Activity Categories**: Social Media, Endorsements, Appearances, Content Creation, Merchandise, Autographs
+- **User Types & Workflows**: 
+  - Athletes: Sports, school affiliation, contact information
+  - Brands: Company details, marketing objectives  
+  - Collectives: University-specific booster organizations
+  - Universities: Institution management
+- **School Integration**: Use existing NCAA schools data from `frontend/src/data/ncaaSchools.js`
+- **Geographic Restrictions**: State laws may affect available deal types
+- **Form Validation**: Use established validation patterns from `frontend/src/validation/`
+- **Authentication**: Leverage Supabase Auth patterns already implemented
+- **File Uploads**: Contract uploads are critical - handle securely with proper validation
+- **Compliance Workflow**: Approval required before deal activation
+- **Data Sensitivity**: Handle personal information, financial data, and compliance records with care

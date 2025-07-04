@@ -1,5 +1,5 @@
 // frontend/src/pages/SignUp.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
@@ -11,106 +11,67 @@ import {
   useToast,
   Link,
   Flex,
-  Progress,
+  FormControl,
+  FormLabel,
+  Input,
+  Select,
+  FormErrorMessage,
 } from '@chakra-ui/react';
-import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, USER_ROLES } from '../data/formConstants';
-import { unformatPhoneNumber } from '../utils/phoneUtils';
-import { FiUser, FiMail, FiLock } from 'react-icons/fi';
-
-// Import standardized validation system
-import { TOAST_MESSAGES } from '../utils/validation/validationMessages';
-import { useStandardForm } from '../hooks/useStandardForm';
-import { FormField, PhoneField, SchoolField } from '../components/forms';
-import { initialSignupSchema, athleteProfileSchema } from '../validation/schemas';
+import { useForm } from 'react-hook-form';
 
 const SignUp = () => {
   const { signUp } = useAuth();
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
-  const [availableSports, setAvailableSports] = useState([]);
-  const [initialData, setInitialData] = useState(null);
+  const toast = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Form for initial signup using standardized form hook
-  const initialForm = useStandardForm({
-    schema: initialSignupSchema,
-    defaultValues: {
-      email: '',
-      password: '',
-      confirmPassword: '',
-      role: '',
-    },
-    toastMessages: {
-      success: TOAST_MESSAGES.success.accountCreated,
-      error: TOAST_MESSAGES.error.signUp,
-    }
-  });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+  } = useForm();
 
-  // Form for athlete additional info using standardized form hook
-  const athleteForm = useStandardForm({
-    schema: athleteProfileSchema,
-    defaultValues: {
-      full_name: '',
-      phone: '',
-      division: '',
-      university: '',
-      gender: '',
-      sports: [],
-    },
-    toastMessages: {
-      success: TOAST_MESSAGES.success.accountCreated,
-      error: TOAST_MESSAGES.error.signUp,
-    }
-  });
+  const watchedPassword = watch('password');
 
-  // Watch form fields for reactive updates
-  const selectedDivision = athleteForm.watchField('division');
-  const selectedGender = athleteForm.watchField('gender');
+  const onSubmit = async (data) => {
+    setIsLoading(true);
+    try {
+      const { error } = await signUp(data.email, data.password, {
+        role: data.role,
+      });
 
-  // Handle gender change - update available sports
-  useEffect(() => {
-    const sports = selectedGender === 'Male' ? MEN_SPORTS :
-                  selectedGender === 'Female' ? WOMEN_SPORTS : [];
-    setAvailableSports(sports);
-    athleteForm.setFormValue('sports', []);
-  }, [selectedGender, athleteForm]);
-
-  const handleInitialSubmit = async (data) => {
-    setInitialData(data);
-    
-    if (data.role === 'student-athlete') {
-      // Reset athlete form and move to step 2
-      athleteForm.reset();
-      setStep(2);
-    } else {
-      // For non-athletes, create account and redirect to home
-      const { error: signUpError } = await signUp(
-        data.email,
-        data.password,
-        {
-          role: data.role
-        }
-      );
-
-      if (signUpError) throw signUpError;
-      
-      navigate('/');
-    }
-  };
-
-  const handleAthleteSubmit = async (data) => {
-    const { error: signUpError } = await signUp(
-      initialData.email,
-      initialData.password,
-      {
-        ...data,
-        phone: unformatPhoneNumber(data.phone), // Unformat phone for backend
-        role: 'student-athlete'
+      if (error) {
+        toast({
+          title: 'Sign Up Failed',
+          description: error.message,
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
       }
-    );
 
-    if (signUpError) throw signUpError;
-    
-    navigate('/dashboard');
+      toast({
+        title: 'Account Created!',
+        description: 'Welcome to FairPlay NIL',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+
+      navigate('/dashboard');
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Something went wrong',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -119,165 +80,98 @@ const SignUp = () => {
         <VStack spacing={6}>
           <Heading color="brand.textPrimary">Create an Account</Heading>
           <Text color="brand.textSecondary" textAlign="center">
-            {step === 1 
-              ? "Join FairPlay NIL to manage your deals with confidence."
-              : "Tell us more about yourself to complete your profile."}
+            Join FairPlay NIL to manage your deals with confidence.
           </Text>
 
-          {step === 2 && (
-            <Progress value={50} size="sm" width="100%" colorScheme="pink" borderRadius="full" />
-          )}
-
-          {step === 1 ? (
-            <form onSubmit={initialForm.handleSubmit(handleInitialSubmit)}>
-              <VStack spacing={4} width="100%">
-                <FormField
-                  name="email"
-                  control={initialForm.control}
-                  label="Email Address"
+          <form onSubmit={handleSubmit(onSubmit)} style={{ width: '100%' }}>
+            <VStack spacing={4} width="100%">
+              <FormControl isInvalid={errors.email}>
+                <FormLabel>Email Address</FormLabel>
+                <Input
                   type="email"
+                  {...register('email', {
+                    required: 'Email is required',
+                    pattern: {
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                      message: 'Invalid email address',
+                    },
+                  })}
                   placeholder="Enter your email"
-                  isRequired
-                  leftIcon={FiMail}
                 />
+                <FormErrorMessage>{errors.email?.message}</FormErrorMessage>
+              </FormControl>
 
-                <FormField
-                  name="password"
-                  control={initialForm.control}
-                  label="Password"
+              <FormControl isInvalid={errors.password}>
+                <FormLabel>Password</FormLabel>
+                <Input
                   type="password"
+                  {...register('password', {
+                    required: 'Password is required',
+                    minLength: {
+                      value: 8,
+                      message: 'Password must be at least 8 characters',
+                    },
+                  })}
                   placeholder="Enter your password"
-                  isRequired
-                  leftIcon={FiLock}
                 />
+                <FormErrorMessage>{errors.password?.message}</FormErrorMessage>
+              </FormControl>
 
-                <FormField
-                  name="confirmPassword"
-                  control={initialForm.control}
-                  label="Confirm Password"
+              <FormControl isInvalid={errors.confirmPassword}>
+                <FormLabel>Confirm Password</FormLabel>
+                <Input
                   type="password"
+                  {...register('confirmPassword', {
+                    required: 'Please confirm your password',
+                    validate: (value) =>
+                      value === watchedPassword || 'Passwords do not match',
+                  })}
                   placeholder="Confirm your password"
-                  isRequired
-                  leftIcon={FiLock}
                 />
+                <FormErrorMessage>{errors.confirmPassword?.message}</FormErrorMessage>
+              </FormControl>
 
-                <FormField
-                  name="role"
-                  control={initialForm.control}
-                  label="What best describes you?"
-                  type="select"
+              <FormControl isInvalid={errors.role}>
+                <FormLabel>What best describes you?</FormLabel>
+                <Select
+                  {...register('role', {
+                    required: 'Please select your role',
+                  })}
                   placeholder="Select your role"
-                  isRequired
-                  options={USER_ROLES}
-                />
-
-                <Button
-                  type="submit"
-                  colorScheme="pink"
-                  bg="brand.accentPrimary"
-                  color="white"
-                  width="full"
-                  size="lg"
-                  isLoading={initialForm.isSubmitting}
-                  loadingText="Creating Account..."
-                  _hover={{ bg: '#c8aeb0' }}
                 >
-                  Continue
-                </Button>
+                  <option value="student-athlete">Student-Athlete</option>
+                  <option value="agent">Agent</option>
+                  <option value="coach">Coach</option>
+                  <option value="university">University</option>
+                  <option value="collective">Collective</option>
+                  <option value="brand">Brand</option>
+                  <option value="other">Other</option>
+                </Select>
+                <FormErrorMessage>{errors.role?.message}</FormErrorMessage>
+              </FormControl>
 
-                <Text fontSize="sm" color="brand.textSecondary" textAlign="center">
-                  Already have an account?{' '}
-                  <Link as={RouterLink} to="/login" color="brand.accentPrimary" fontWeight="medium">
-                    Sign in
-                  </Link>
-                </Text>
-              </VStack>
-            </form>
-          ) : (
-            <form onSubmit={athleteForm.handleSubmit(handleAthleteSubmit)}>
-              <VStack spacing={4} width="100%">
-                <FormField
-                  name="full_name"
-                  control={athleteForm.control}
-                  label="Full Name"
-                  type="text"
-                  placeholder="Enter your full name"
-                  isRequired
-                  leftIcon={FiUser}
-                />
+              <Button
+                type="submit"
+                colorScheme="pink"
+                bg="brand.accentPrimary"
+                color="white"
+                width="full"
+                size="lg"
+                isLoading={isLoading}
+                loadingText="Creating Account..."
+                _hover={{ bg: '#c8aeb0' }}
+              >
+                Create Account
+              </Button>
 
-                <PhoneField
-                  name="phone"
-                  control={athleteForm.control}
-                  label="Phone Number"
-                  placeholder="(555) 555-5555"
-                  isRequired
-                />
-
-                <SchoolField
-                  name="division"
-                  control={athleteForm.control}
-                  label="NCAA Division"
-                  placeholder="Select NCAA Division"
-                  isRequired
-                  fieldType="division"
-                />
-
-                <SchoolField
-                  name="university"
-                  control={athleteForm.control}
-                  label="University"
-                  placeholder="Select your university"
-                  isRequired
-                  fieldType="university"
-                  selectedDivision={selectedDivision}
-                />
-
-                <FormField
-                  name="gender"
-                  control={athleteForm.control}
-                  label="Gender"
-                  type="select"
-                  placeholder="Select your gender"
-                  isRequired
-                  options={GENDERS.map(gender => ({ value: gender, label: gender }))}
-                />
-
-                <FormField
-                  name="sports"
-                  control={athleteForm.control}
-                  label="Sports"
-                  type="react-select"
-                  placeholder="Select your sports..."
-                  isRequired
-                  isMulti
-                  options={availableSports.map(sport => ({ value: sport, label: sport }))}
-                  helperText={!selectedGender ? "Please select your gender first" : "You can select multiple sports (e.g., Cross Country, Track & Field Indoor, Track & Field Outdoor)"}
-                />
-
-                <Button
-                  type="submit"
-                  colorScheme="pink"
-                  bg="brand.accentPrimary"
-                  color="white"
-                  width="full"
-                  size="lg"
-                  isLoading={athleteForm.isSubmitting}
-                  loadingText="Creating Account..."
-                  _hover={{ bg: '#c8aeb0' }}
-                >
-                  Complete Sign Up
-                </Button>
-              </VStack>
-            </form>
-          )}
-
-          <Text color="brand.textSecondary">
-            Already have an account?{' '}
-            <Link as={RouterLink} to="/login" color="brand.accentPrimary" fontWeight="bold">
-              Sign In
-            </Link>
-          </Text>
+              <Text fontSize="sm" color="brand.textSecondary" textAlign="center">
+                Already have an account?{' '}
+                <Link as={RouterLink} to="/login" color="brand.accentPrimary" fontWeight="medium">
+                  Sign in
+                </Link>
+              </Text>
+            </VStack>
+          </form>
         </VStack>
       </Box>
     </Flex>
