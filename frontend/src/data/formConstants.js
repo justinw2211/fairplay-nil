@@ -10,9 +10,15 @@ export const USER_ROLES = [
   { value: 'other', label: 'Other' }
 ];
 
-export const GENDERS = ["Male", "Female", "Nonbinary", "Prefer not to say", "Other"];
+export const GENDERS = ["Male", "Female", "Other", "Prefer not to say"];
 
-export const NCAA_DIVISIONS = ["Division I", "Division II", "Division III"];
+export const NCAA_DIVISIONS = [
+  "Division I", 
+  "Division II", 
+  "Division III",
+  "NAIA",
+  "JUCO"
+];
 
 export const MEN_SPORTS = [
   "Baseball", "Basketball", "Cross Country", "Fencing", "Football", "Golf",

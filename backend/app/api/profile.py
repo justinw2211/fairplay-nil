@@ -38,7 +38,9 @@ async def get_profile(user_id: str = Depends(get_user_id)):
         division_map = {
             'I': 'Division I',
             'II': 'Division II',
-            'III': 'Division III'
+            'III': 'Division III',
+            'NAIA': 'NAIA',
+            'JUCO': 'JUCO'
         }
         profile_data['division'] = division_map.get(profile_data['division'], profile_data['division'])
     
@@ -53,7 +55,9 @@ async def update_profile(profile_data: ProfileUpdate, user_id: str = Depends(get
         division_map = {
             'Division I': 'I',
             'Division II': 'II', 
-            'Division III': 'III'
+            'Division III': 'III',
+            'NAIA': 'NAIA',
+            'JUCO': 'JUCO'
         }
         update_data['division'] = division_map.get(update_data['division'], update_data['division'])
     
@@ -69,7 +73,9 @@ async def update_profile(profile_data: ProfileUpdate, user_id: str = Depends(get
         division_map = {
             'I': 'Division I',
             'II': 'Division II',
-            'III': 'Division III'
+            'III': 'Division III',
+            'NAIA': 'NAIA',
+            'JUCO': 'JUCO'
         }
         profile_data['division'] = division_map.get(profile_data['division'], profile_data['division'])
     

@@ -71,10 +71,33 @@ export const fetchSchools = async (division = null) => {
     if (error) throw error;
     
     // Map database division format to frontend format
-    const mappedData = (data || []).map(school => ({
-      ...school,
-      division: `Division ${school.division}`
-    }));
+    const mappedData = (data || []).map(school => {
+      let frontendDivision;
+      switch (school.division) {
+        case 'I':
+          frontendDivision = 'Division I';
+          break;
+        case 'II':
+          frontendDivision = 'Division II';
+          break;
+        case 'III':
+          frontendDivision = 'Division III';
+          break;
+        case 'NAIA':
+          frontendDivision = 'NAIA';
+          break;
+        case 'JUCO':
+          frontendDivision = 'JUCO';
+          break;
+        default:
+          frontendDivision = `Division ${school.division}`;
+      }
+      
+      return {
+        ...school,
+        division: frontendDivision
+      };
+    });
     
     if (division) {
       return mappedData.filter(school => school.division === division);
@@ -92,7 +115,9 @@ export const FALLBACK_SCHOOLS = [
   { name: 'Boston College', division: 'Division I' },
   { name: 'Harvard University', division: 'Division I' },
   { name: 'Bentley University', division: 'Division II' },
-  { name: 'Amherst College', division: 'Division III' }
+  { name: 'Amherst College', division: 'Division III' },
+  { name: 'Biola University', division: 'NAIA' },
+  { name: 'Butler County Community College', division: 'JUCO' }
 ];
 
 // NOTE: The old 'ncaaSchools' object export is removed to prevent future confusion.

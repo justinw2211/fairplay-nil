@@ -1,4 +1,4 @@
-export type NCAAdivision = 'I' | 'II' | 'III';
+export type NCAAdivision = 'I' | 'II' | 'III' | 'NAIA' | 'JUCO';
 
 export interface School {
   name: string;
