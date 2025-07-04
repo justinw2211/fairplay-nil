@@ -70,11 +70,17 @@ export const fetchSchools = async (division = null) => {
     
     if (error) throw error;
     
+    // Map database division format to frontend format
+    const mappedData = (data || []).map(school => ({
+      ...school,
+      division: `Division ${school.division}`
+    }));
+    
     if (division) {
-      return data.filter(school => school.division === division);
+      return mappedData.filter(school => school.division === division);
     }
     
-    return data || [];
+    return mappedData;
   } catch (error) {
     console.error('Error fetching schools:', error);
     return [];
@@ -83,10 +89,10 @@ export const fetchSchools = async (division = null) => {
 
 // Keep a minimal set of schools as fallback in case API fails
 export const FALLBACK_SCHOOLS = [
-  { name: 'Boston College', division: 'I' },
-  { name: 'Harvard University', division: 'I' },
-  { name: 'Bentley University', division: 'II' },
-  { name: 'Amherst College', division: 'III' }
+  { name: 'Boston College', division: 'Division I' },
+  { name: 'Harvard University', division: 'Division I' },
+  { name: 'Bentley University', division: 'Division II' },
+  { name: 'Amherst College', division: 'Division III' }
 ];
 
 // NOTE: The old 'ncaaSchools' object export is removed to prevent future confusion.

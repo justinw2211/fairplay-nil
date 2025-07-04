@@ -174,27 +174,7 @@ const EditProfile = () => {
             setAvailableSports(WOMEN_SPORTS);
           }
           
-          // Set initial schools list based on division
-          if (formattedData.division) {
-            const schools = NCAA_SCHOOL_OPTIONS.filter(
-              school => school.division === formattedData.division
-            );
-            setFilteredSchools(schools);
-            
-            // Validate that the university exists in the filtered schools
-            if (formattedData.university) {
-              const universityExists = schools.some(
-                school => school.name === formattedData.university
-              );
-              if (!universityExists) {
-                // If university doesn't exist in the current division, add it temporarily
-                setFilteredSchools([
-                  ...schools,
-                  { name: formattedData.university, division: formattedData.division }
-                ]);
-              }
-            }
-          }
+          // Set initial schools list based on division will be handled by the schools useEffect
         }
       } catch (error) {
         toast({
@@ -239,7 +219,7 @@ const EditProfile = () => {
 
   // Handle division change
   useEffect(() => {
-    if (selectedDivision) {
+    if (selectedDivision && schools.length > 0) {
       const filtered = schools.filter(
         school => school.division === selectedDivision
       );
