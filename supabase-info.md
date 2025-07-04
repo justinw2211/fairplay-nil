@@ -2,7 +2,7 @@
 
 **⚠️ IMPORTANT: Only add to this file when information is 100% verified fact**
 **🔍 Check this file to understand the current database structure before making changes**
-*** Update this file after all database updates**
+*** Update this file after all database updates. I will push updates using raw SQL in Supabase**
 
 ## Database Overview
 
@@ -28,10 +28,13 @@
 | `email` | TEXT | User email address | |
 | `phone` | TEXT | Formatted phone number | |
 | `school_id` | INTEGER | Foreign key to schools table | |
+| `social_media_completed` | BOOLEAN | Whether user has completed social media setup | DEFAULT false |
+| `social_media_completed_at` | TIMESTAMP WITH TIME ZONE | When social media setup was completed | |
 
 **Relationships:**
 - `profiles.id` → `auth.users.id` (Foreign Key)
 - `profiles.school_id` → `schools.id` (Foreign Key)
+- `profiles.id` ← `social_media_platforms.user_id` (One-to-Many)
 
 ### 2. `deals` Table
 **Purpose:** Store NIL deal information with single user (athlete) per deal
@@ -62,6 +65,9 @@
 | `deal_terms_file_name` | TEXT | Original filename of uploaded terms | |
 | `deal_terms_file_type` | TEXT | File type of uploaded terms | CHECK: 'pdf', 'docx', 'png', 'jpg', 'jpeg' |
 | `deal_terms_file_size` | BIGINT | File size in bytes | |
+| `athlete_social_media` | JSONB | Snapshot of athlete's social media at deal creation | |
+| `social_media_confirmed` | BOOLEAN | Whether athlete confirmed social media for this deal | DEFAULT false |
+| `social_media_confirmed_at` | TIMESTAMP WITH TIME ZONE | When social media was confirmed for this deal | |
 
 **Relationships:**
 - `deals.user_id` → `profiles.id` (Foreign Key)
@@ -84,6 +90,31 @@
 - NAIA: 71 schools
 - JUCO: 101 schools
 - **Total: 710 schools**
+
+### 4. `social_media_platforms` Table
+**Purpose:** Store athlete social media platform information for NIL compliance and deal valuation
+
+| Field | Type | Description | Constraints |
+|-------|------|-------------|-------------|
+| `id` | INTEGER | Primary key, auto-generated sequence | NOT NULL, PRIMARY KEY |
+| `user_id` | UUID | Foreign key to profiles table | NOT NULL, References profiles(id) ON DELETE CASCADE |
+| `platform` | TEXT | Social media platform type | NOT NULL, CHECK: 'instagram', 'twitter', 'tiktok', 'youtube', 'facebook' |
+| `handle` | TEXT | Platform handle/username | NOT NULL, CHECK: matches '^@[a-zA-Z0-9_]+$' |
+| `followers` | INTEGER | Current follower/subscriber count | DEFAULT 0, CHECK: followers >= 0 |
+| `verified` | BOOLEAN | Whether account is verified on platform | DEFAULT false |
+| `created_at` | TIMESTAMP WITH TIME ZONE | Record creation timestamp | DEFAULT timezone('utc', now()) |
+| `updated_at` | TIMESTAMP WITH TIME ZONE | Last update timestamp | DEFAULT timezone('utc', now()) |
+
+**Unique Constraints:**
+- `(user_id, platform)` - One platform per user
+
+**Relationships:**
+- `social_media_platforms.user_id` → `profiles.id` (Foreign Key with CASCADE DELETE)
+
+**Indexes:**
+- `idx_social_media_user_id` - Foreign key index for user queries
+- `idx_social_media_platform` - Platform type filtering
+- `idx_social_media_followers` - Follower count ordering
 
 ## JSONB Field Structures
 
@@ -161,17 +192,46 @@
 }
 ```
 
+### `deals.athlete_social_media` JSONB Structure (Array)
+```json
+[
+  {
+    "platform": "instagram",
+    "handle": "@athlete_username",
+    "followers": 15000,
+    "verified": false
+  },
+  {
+    "platform": "tiktok", 
+    "handle": "@athlete_tiktok",
+    "followers": 25000,
+    "verified": true
+  },
+  {
+    "platform": "twitter",
+    "handle": "@athlete_twitter", 
+    "followers": 8500,
+    "verified": false
+  }
+]
+```
+
 ## Relationships
 
 ```
 auth.users --< profiles --< deals
-profiles --> schools
+            |         \
+            |          --< social_media_platforms
+            v
+          schools
 ```
 
 **Key Relationship Notes:**
 - **One-to-many:** Each profile (athlete) can have multiple deals
+- **One-to-many:** Each profile can have multiple social media platforms (max 5)
 - **Single-sided:** Deals are athlete-centric (no direct brand profile link)
 - **School Association:** Profiles linked to schools via integer ID
+- **Social Media Cascade:** Deleting a profile removes all associated social media platforms
 
 ## Common Query Patterns
 
@@ -225,6 +285,57 @@ WHERE d.status = 'approved'
 ORDER BY d.compensation_cash DESC NULLS LAST;
 ```
 
+### 6. Get Athlete with Social Media Platforms
+```sql
+SELECT 
+  p.id,
+  p.full_name,
+  p.university,
+  COALESCE(json_agg(
+    json_build_object(
+      'platform', smp.platform,
+      'handle', smp.handle,
+      'followers', smp.followers,
+      'verified', smp.verified
+    ) ORDER BY smp.followers DESC
+  ) FILTER (WHERE smp.id IS NOT NULL), '[]'::json) as social_media_platforms
+FROM profiles p
+LEFT JOIN social_media_platforms smp ON p.id = smp.user_id
+WHERE p.id = $1
+GROUP BY p.id, p.full_name, p.university;
+```
+
+### 7. Get Top Athletes by Social Media Following
+```sql
+SELECT 
+  p.full_name,
+  p.university,
+  SUM(smp.followers) as total_followers,
+  COUNT(smp.id) as platform_count,
+  array_agg(smp.platform ORDER BY smp.followers DESC) as platforms
+FROM profiles p
+JOIN social_media_platforms smp ON p.id = smp.user_id
+WHERE p.role = 'athlete'
+GROUP BY p.id, p.full_name, p.university
+HAVING COUNT(smp.id) > 0
+ORDER BY total_followers DESC
+LIMIT 50;
+```
+
+### 8. Get Deal with Social Media Snapshot
+```sql
+SELECT 
+  d.id,
+  d.deal_nickname,
+  d.athlete_social_media,
+  d.social_media_confirmed,
+  d.social_media_confirmed_at,
+  p.full_name as athlete_name
+FROM deals d
+JOIN profiles p ON d.user_id = p.id
+WHERE d.id = $1;
+```
+
 ## Business Rules & Validation
 
 ### Profile Validation
@@ -276,6 +387,7 @@ ORDER BY d.compensation_cash DESC NULLS LAST;
 | 007 | Schools table | Added NCAA schools support |
 | 008-011 | School data | Populated schools in batches |
 | 012 | Complete schools | Added NAIA/JUCO + remaining schools |
+| 013 | Social media fields | Added social_media_platforms table and deal social media tracking |
 
 ## Authentication Integration
 
@@ -295,6 +407,10 @@ ORDER BY d.compensation_cash DESC NULLS LAST;
 ### FastAPI Endpoints
 - **Profile Management:** `/api/profile/` routes in `backend/app/api/profile.py`
 - **Deal Management:** `/api/deals/` routes in `backend/app/api/deals.py`
+- **Social Media Management:** `/api/social-media/` routes in `backend/app/api/profile.py`
+  - `GET /api/social-media` - Get user's social media platforms
+  - `PUT /api/social-media` - Update user's social media platforms
+  - `DELETE /api/social-media/{platform}` - Delete specific platform
 - **School Data:** For university suggestions and athlete profiles
 
 ### Frontend Integration
@@ -365,7 +481,7 @@ ORDER BY d.compensation_cash DESC NULLS LAST;
 
 ---
 
-**Last Updated:** December 2024
-**Migration Status:** 012_add_remaining_schools_complete.sql (Latest)  
-**Schema Version:** Current with all migrations applied
-**Schema Source:** Actual production database export with verified school counts 
+**Last Updated:** January 2025
+**Migration Status:** 013_add_social_media_fields.sql (Latest)  
+**Schema Version:** Current with all migrations applied including social media functionality
+**Schema Source:** Actual production database export with verified school counts and social media tables 

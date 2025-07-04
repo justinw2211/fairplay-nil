@@ -169,11 +169,10 @@ const Step0_SocialMedia = () => {
               initialData={socialMediaData}
               onSubmit={handleNext}
               isLoading={loading}
-              submitButtonText="Confirm & Continue"
             />
 
             {/* Navigation Buttons */}
-            <Flex justify="space-between" align="center" pt={6} w="full">
+            <Flex justify="space-between" pt={8} w="full">
               <Button
                 leftIcon={<Icon as={Clock} />}
                 variant="ghost"
@@ -191,6 +190,27 @@ const Step0_SocialMedia = () => {
                 }}
               >
                 Finish Later
+              </Button>
+              <Button
+                rightIcon={<Icon as={ChevronRight} />}
+                bg="brand.accentPrimary"
+                color="white"
+                px={8}
+                py={3}
+                h={12}
+                fontSize="base"
+                fontWeight="semibold"
+                transition="all 0.2s"
+                _hover={{
+                  transform: "scale(1.05)",
+                  bg: "brand.accentPrimary",
+                  shadow: "xl",
+                }}
+                isLoading={loading}
+                loadingText="Saving..."
+                onClick={() => document.getElementById('social-media-form').requestSubmit()}
+              >
+                Confirm & Continue
               </Button>
             </Flex>
           </VStack>

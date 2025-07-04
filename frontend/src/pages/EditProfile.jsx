@@ -525,17 +525,15 @@ const EditProfile = () => {
               Edit Profile
             </Heading>
             <HStack spacing={4}>
-              {(hasChanges || isDirty) && (
-                <Button
-                  leftIcon={<Icon as={FiX} />}
-                  variant="outline"
-                  colorScheme="red"
-                  onClick={onOpen}
-                  isDisabled={saving}
-                >
-                  Discard & Exit
-                </Button>
-              )}
+              <Button
+                leftIcon={<Icon as={FiX} />}
+                variant="outline"
+                colorScheme="red"
+                onClick={onOpen}
+                isDisabled={saving}
+              >
+                Exit
+              </Button>
               <Button
                 leftIcon={<Icon as={FiSave} />}
                 variant="outline"
@@ -544,17 +542,6 @@ const EditProfile = () => {
                 loadingText="Saving..."
               >
                 Save & Exit
-              </Button>
-              <Button
-                leftIcon={<Icon as={FiSave} />}
-                colorScheme="pink"
-                bg="brand.accentPrimary"
-                color="white"
-                onClick={handleSubmit(onSubmit)}
-                isLoading={saving}
-                _hover={{ bg: '#c8aeb0' }}
-              >
-                Save Changes
               </Button>
             </HStack>
           </Flex>

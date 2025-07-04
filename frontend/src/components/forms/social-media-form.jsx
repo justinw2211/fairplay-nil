@@ -58,10 +58,7 @@ const socialMediaSchema = yup.object().shape({
 const SocialMediaForm = ({ 
   initialData = [], 
   onSubmit, 
-  isLoading = false,
-  showSkip = false,
-  onSkip = null,
-  submitButtonText = 'Save Social Media'
+  isLoading = false
 }) => {
   const [error, setError] = useState(null);
   const toast = useToast();
@@ -162,7 +159,7 @@ const SocialMediaForm = ({
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit(submitForm)}>
+      <form id="social-media-form" onSubmit={handleSubmit(submitForm)}>
         <VStack spacing={6}>
           <Box w="full">
             <HStack justify="space-between" align="center" mb={4}>
@@ -305,68 +302,25 @@ const SocialMediaForm = ({
               ))}
             </VStack>
 
-            {/* Add Platform Button */}
-            {fields.length < SOCIAL_PLATFORMS.length && (
-              <Button
-                leftIcon={<AddIcon />}
-                variant="outline"
-                onClick={addPlatform}
-                mt={4}
-                borderColor="brand.accentPrimary"
-                color="brand.accentPrimary"
-                _hover={{
-                  bg: "brand.accentPrimary",
-                  color: "white",
-                }}
-                isDisabled={isLoading}
-              >
-                Add Another Platform
-              </Button>
-            )}
-          </Box>
-
-          {/* Submit and Skip Buttons */}
-          <Flex justify="space-between" w="full" pt={4}>
-            {showSkip && onSkip && (
-              <Button
-                variant="ghost"
-                color="brand.textSecondary"
-                onClick={onSkip}
-                isDisabled={isLoading}
-                _hover={{
-                  bg: "brand.backgroundLight",
-                  color: "brand.textPrimary",
-                }}
-              >
-                Skip for now
-              </Button>
-            )}
-
+                      {/* Add Platform Button */}
+          {fields.length < SOCIAL_PLATFORMS.length && (
             <Button
-              type="submit"
-              bg="brand.accentPrimary"
-              color="white"
-              px={8}
-              py={3}
-              fontSize="md"
-              fontWeight="semibold"
-              isLoading={isLoading}
-              loadingText="Saving..."
-              isDisabled={!isValid}
+              leftIcon={<AddIcon />}
+              variant="outline"
+              onClick={addPlatform}
+              mt={4}
+              borderColor="brand.accentPrimary"
+              color="brand.accentPrimary"
               _hover={{
-                bg: "brand.accentPrimaryHover",
-                transform: "scale(1.02)",
+                bg: "brand.accentPrimary",
+                color: "white",
               }}
-              _disabled={{
-                opacity: 0.6,
-                cursor: "not-allowed",
-                transform: "none",
-              }}
-              ml="auto"
+              isDisabled={isLoading}
             >
-              {submitButtonText}
+              Add Another Platform
             </Button>
-          </Flex>
+          )}
+        </Box>
         </VStack>
       </form>
     </Box>

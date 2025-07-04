@@ -10,11 +10,13 @@ import {
   Text,
   Box,
   Icon,
+  Button,
   useToast,
 } from '@chakra-ui/react';
 import { FiInstagram, FiTwitter, FiYoutube } from 'react-icons/fi';
 import SocialMediaForm from './forms/social-media-form';
 import { useAuth } from '../context/AuthContext';
+import useSocialMedia from '../hooks/use-social-media';
 
 const SocialMediaModal = ({
   isOpen,
@@ -22,31 +24,18 @@ const SocialMediaModal = ({
   onComplete = null,
   onSkip = null,
   title = "Complete Your Profile",
-  subtitle = "Add your social media accounts to help brands discover you for NIL opportunities"
+  subtitle = ""
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { user, updateUserProfile } = useAuth();
+  const { updateSocialMedia } = useSocialMedia();
   const toast = useToast();
 
   const handleSubmit = async (socialMediaData) => {
     setIsLoading(true);
     try {
-      // Make API call to save social media data
-      const response = await fetch('/api/profile/social-media', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.session?.access_token}`,
-        },
-        body: JSON.stringify(socialMediaData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to save social media information');
-      }
-
-      const savedData = await response.json();
+      // Use the hook's updateSocialMedia function instead of direct API call
+      const savedData = await updateSocialMedia(socialMediaData);
 
       // Update user profile with completion status
       if (updateUserProfile) {
@@ -138,44 +127,52 @@ const SocialMediaModal = ({
                w="full"
                textAlign="center"
              >
-               <VStack spacing={4}>
-                 <Box>
-                   <Text fontSize="sm" color="brand.textSecondary" mb={3}>
-                     Connect your social platforms
-                   </Text>
-                   <Box display="flex" justifyContent="center" gap={4}>
-                     <Icon as={FiInstagram} boxSize={8} color="brand.accentPrimary" />
-                     <Icon as={FiTwitter} boxSize={8} color="brand.accentPrimary" />
-                     <Icon as={FiYoutube} boxSize={8} color="brand.accentPrimary" />
-                   </Box>
-                 </Box>
-                 <VStack spacing={2}>
-                   <Text fontSize="md" fontWeight="semibold" color="brand.textPrimary">
-                     Why add social media?
-                   </Text>
-                   <VStack spacing={1} align="start" w="full">
-                     <Text fontSize="sm" color="brand.textSecondary">
-                       • Brands can find you for NIL deals based on your reach
-                     </Text>
-                     <Text fontSize="sm" color="brand.textSecondary">
-                       • Higher follower counts may lead to better deal offers
-                     </Text>
-                     <Text fontSize="sm" color="brand.textSecondary">
-                       • Required for compliance reporting and deal validation
-                     </Text>
-                   </VStack>
-                 </VStack>
-               </VStack>
+               <Box display="flex" justifyContent="center" gap={4}>
+                 <Icon as={FiInstagram} boxSize={8} color="brand.accentPrimary" />
+                 <Icon as={FiTwitter} boxSize={8} color="brand.accentPrimary" />
+                 <Icon as={FiYoutube} boxSize={8} color="brand.accentPrimary" />
+               </Box>
              </Box>
 
              {/* Social Media Form */}
              <SocialMediaForm
                onSubmit={handleSubmit}
                isLoading={isLoading}
-               showSkip={true}
-               onSkip={handleSkip}
-               submitButtonText="Complete Profile"
              />
+             
+             {/* Action Buttons */}
+             <VStack spacing={4} w="full" pt={4}>
+               <Button
+                 bg="brand.accentPrimary"
+                 color="white"
+                 w="full"
+                 py={3}
+                 fontSize="md"
+                 fontWeight="semibold"
+                 isLoading={isLoading}
+                 loadingText="Saving..."
+                 _hover={{
+                   bg: "brand.accentPrimaryHover",
+                   transform: "scale(1.02)",
+                 }}
+                 onClick={() => document.getElementById('social-media-form').requestSubmit()}
+               >
+                 Complete Profile
+               </Button>
+               
+               <Button
+                 variant="ghost"
+                 color="brand.textSecondary"
+                 onClick={handleSkip}
+                 isDisabled={isLoading}
+                 _hover={{
+                   bg: "brand.backgroundLight",
+                   color: "brand.textPrimary",
+                 }}
+               >
+                 Skip for now
+               </Button>
+             </VStack>
            </VStack>
          </ModalBody>
        </ModalContent>
