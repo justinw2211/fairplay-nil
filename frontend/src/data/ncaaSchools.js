@@ -1,4 +1,5 @@
 // frontend/src/data/ncaaSchools.js
+import { supabase } from '../supabaseClient';
 
 // This is the single, standardized export for all NCAA school data.
 // Each school is an object with a label, value, and its division.
@@ -58,6 +59,34 @@ export const NCAA_SCHOOL_OPTIONS = [
   { name: 'Austin College', division: 'Division III' },
   { name: 'Babson College', division: 'Division III' },
   { name: 'Baldwin Wallace University', division: 'Division III' }
+];
+
+export const fetchSchools = async (division = null) => {
+  try {
+    const { data, error } = await supabase
+      .from('schools')
+      .select('id,name,division')
+      .order('name');
+    
+    if (error) throw error;
+    
+    if (division) {
+      return data.filter(school => school.division === division);
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching schools:', error);
+    return [];
+  }
+};
+
+// Keep a minimal set of schools as fallback in case API fails
+export const FALLBACK_SCHOOLS = [
+  { name: 'Boston College', division: 'I' },
+  { name: 'Harvard University', division: 'I' },
+  { name: 'Bentley University', division: 'II' },
+  { name: 'Amherst College', division: 'III' }
 ];
 
 // NOTE: The old 'ncaaSchools' object export is removed to prevent future confusion.

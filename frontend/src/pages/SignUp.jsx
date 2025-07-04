@@ -1,5 +1,5 @@
 // frontend/src/pages/SignUp.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -26,10 +26,11 @@ import {
   Select as ChakraSelect,
   HStack,
   Icon,
+  Spinner,
 } from '@chakra-ui/react';
 import { FiUser, FiMail, FiLock, FiPhone } from 'react-icons/fi';
 import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, NCAA_DIVISIONS, USER_ROLES } from '../data/formConstants';
-import { NCAA_SCHOOL_OPTIONS } from '../data/ncaaSchools';
+import { fetchSchools, FALLBACK_SCHOOLS } from '../data/ncaaSchools';
 
 // Initial signup schema
 const initialSchema = yup.object().shape({
@@ -59,9 +60,11 @@ const SignUp = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const [step, setStep] = useState(1);
+  const [schools, setSchools] = useState([]);
   const [filteredSchools, setFilteredSchools] = useState([]);
   const [availableSports, setAvailableSports] = useState([]);
   const [initialData, setInitialData] = useState(null);
+  const [isLoadingSchools, setIsLoadingSchools] = useState(false);
 
   // Form for initial signup
   const initialForm = useForm({
@@ -106,20 +109,44 @@ const SignUp = () => {
   const selectedDivision = athleteForm.watch('division');
   const selectedGender = athleteForm.watch('gender');
 
+  // Fetch schools when component mounts
+  useEffect(() => {
+    const loadSchools = async () => {
+      setIsLoadingSchools(true);
+      try {
+        const schoolsData = await fetchSchools();
+        setSchools(schoolsData.length > 0 ? schoolsData : FALLBACK_SCHOOLS);
+      } catch (error) {
+        console.error('Error loading schools:', error);
+        setSchools(FALLBACK_SCHOOLS);
+        toast({
+          title: 'Warning',
+          description: 'Could not load schools list. Using fallback data.',
+          status: 'warning',
+          duration: 5000,
+          isClosable: true,
+        });
+      } finally {
+        setIsLoadingSchools(false);
+      }
+    };
+    loadSchools();
+  }, [toast]);
+
   // Handle division change
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedDivision) {
-      const schools = NCAA_SCHOOL_OPTIONS.filter(
+      const filtered = schools.filter(
         school => school.division === selectedDivision
       );
-      setFilteredSchools(schools);
-      if (!schools.find(s => s.name === athleteForm.getValues('university'))) {
+      setFilteredSchools(filtered);
+      if (!filtered.find(s => s.name === athleteForm.getValues('university'))) {
         athleteForm.setValue('university', '');
       }
     } else {
       setFilteredSchools([]);
     }
-  }, [selectedDivision, athleteForm]);
+  }, [selectedDivision, schools, athleteForm]);
 
   // Handle gender change
   React.useEffect(() => {
@@ -459,26 +486,26 @@ const SignUp = () => {
                   render={({ field: { onChange, value }, fieldState: { error } }) => (
                     <FormControl isInvalid={error}>
                       <FormLabel>University</FormLabel>
-                      <Select
-                        isDisabled={!selectedDivision}
-                        options={filteredSchools.map(school => ({
-                          value: school.name,
-                          label: school.name
-                        }))}
-                        styles={customStyles}
-                        placeholder="Search for your university..."
-                        onChange={(option) => onChange(option?.value)}
-                        value={value ? { value, label: value } : null}
-                        isClearable
-                      />
+                      {isLoadingSchools ? (
+                        <Flex justify="center" align="center" h="40px">
+                          <Spinner />
+                        </Flex>
+                      ) : (
+                        <Select
+                          name="university"
+                          options={filteredSchools.map(school => ({
+                            value: school.name,
+                            label: school.name
+                          }))}
+                          onChange={(option) => onChange(option.value)}
+                          styles={customStyles}
+                          placeholder="Select your university"
+                          isDisabled={!selectedDivision}
+                        />
+                      )}
                       <FormErrorMessage>
                         {error?.message}
                       </FormErrorMessage>
-                      {!selectedDivision && (
-                        <FormHelperText>
-                          Please select a division first
-                        </FormHelperText>
-                      )}
                     </FormControl>
                   )}
                 />

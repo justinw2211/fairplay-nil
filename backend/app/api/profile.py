@@ -3,8 +3,25 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.dependencies import get_user_id
 from app.database import supabase
 from app.schemas import ProfileUpdate, ProfileResponse
+from typing import List, Optional
 
 router = APIRouter()
+
+@router.get("/schools")
+async def get_schools(division: Optional[str] = None):
+    """Get all schools, optionally filtered by division."""
+    try:
+        query = supabase.from_("schools").select("id,name,division")
+        if division:
+            query = query.eq("division", division)
+        query = query.order("name")
+        data = query.execute()
+        
+        if not data.data:
+            return []
+        return data.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/profile", response_model=ProfileResponse)
 async def get_profile(user_id: str = Depends(get_user_id)):

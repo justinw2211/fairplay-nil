@@ -39,7 +39,7 @@ import {
 } from '@chakra-ui/react';
 import { FiSave, FiX, FiAlertTriangle, FiUser, FiMail, FiPhone } from 'react-icons/fi';
 import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, NCAA_DIVISIONS } from '../data/formConstants.js';
-import { NCAA_SCHOOL_OPTIONS } from '../data/ncaaSchools.js';
+import { fetchSchools, FALLBACK_SCHOOLS } from '../data/ncaaSchools';
 
 // Phone number formatting function
 const formatPhoneNumber = (value) => {
@@ -97,9 +97,11 @@ const EditProfile = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [schools, setSchools] = useState([]);
   const [filteredSchools, setFilteredSchools] = useState([]);
   const [availableSports, setAvailableSports] = useState([]);
   const [hasChanges, setHasChanges] = useState(false);
+  const [isLoadingSchools, setIsLoadingSchools] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = useRef();
   const isInitialLoad = useRef(true);
@@ -211,16 +213,40 @@ const EditProfile = () => {
     fetchProfile();
   }, [user, reset, toast]);
 
+  // Fetch schools when component mounts
+  useEffect(() => {
+    const loadSchools = async () => {
+      setIsLoadingSchools(true);
+      try {
+        const schoolsData = await fetchSchools();
+        setSchools(schoolsData.length > 0 ? schoolsData : FALLBACK_SCHOOLS);
+      } catch (error) {
+        console.error('Error loading schools:', error);
+        setSchools(FALLBACK_SCHOOLS);
+        toast({
+          title: 'Warning',
+          description: 'Could not load schools list. Using fallback data.',
+          status: 'warning',
+          duration: 5000,
+          isClosable: true,
+        });
+      } finally {
+        setIsLoadingSchools(false);
+      }
+    };
+    loadSchools();
+  }, [toast]);
+
   // Handle division change
   useEffect(() => {
     if (selectedDivision) {
-      const schools = NCAA_SCHOOL_OPTIONS.filter(
+      const filtered = schools.filter(
         school => school.division === selectedDivision
       );
       
       // If we're not in initial load and the university exists
       if (!isInitialLoad.current && formValues.university) {
-        const universityExists = schools.some(
+        const universityExists = filtered.some(
           school => school.name === formValues.university
         );
         
@@ -237,11 +263,11 @@ const EditProfile = () => {
         }
       }
       
-      setFilteredSchools(schools);
+      setFilteredSchools(filtered);
     } else {
       setFilteredSchools([]);
     }
-  }, [selectedDivision, setValue, formValues.university, toast]);
+  }, [selectedDivision, setValue, formValues.university, toast, schools]);
 
   // Handle gender change
   useEffect(() => {
@@ -502,25 +528,27 @@ const EditProfile = () => {
                 render={({ field }) => (
                   <FormControl isInvalid={!!errors.university}>
                     <FormLabel>University</FormLabel>
-                    <Select
-                      {...field}
-                      isDisabled={!selectedDivision}
-                      options={filteredSchools.map(school => ({
-                        value: school.name,
-                        label: school.name
-                      }))}
-                      placeholder="Search for your university..."
-                      styles={customStyles}
-                      onChange={(option) => field.onChange(option?.value)}
-                      value={field.value ? { value: field.value, label: field.value } : null}
-                      isClearable
-                    />
-                    <FormErrorMessage>{errors.university?.message}</FormErrorMessage>
-                    {!selectedDivision && (
-                      <FormHelperText>
-                        Please select a division first
-                      </FormHelperText>
+                    {isLoadingSchools ? (
+                      <Flex justify="center" align="center" h="40px">
+                        <Spinner />
+                      </Flex>
+                    ) : (
+                      <Select
+                        options={filteredSchools.map(school => ({
+                          value: school.name,
+                          label: school.name
+                        }))}
+                        value={field.value ? { value: field.value, label: field.value } : null}
+                        onChange={(option) => field.onChange(option?.value)}
+                        styles={customStyles}
+                        placeholder="Select your university"
+                        isDisabled={!selectedDivision}
+                        isClearable
+                      />
                     )}
+                    <FormErrorMessage>
+                      {errors.university && errors.university.message}
+                    </FormErrorMessage>
                   </FormControl>
                 )}
               />
