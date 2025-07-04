@@ -1,8 +1,9 @@
 # backend/app/schemas.py
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, validator
 from typing import Optional, List, Dict, Any, Union
 from datetime import datetime
 import uuid
+import re
 
 # --- Schemas for Profile Functionality ---
 class ProfileUpdate(BaseModel):
@@ -12,6 +13,47 @@ class ProfileUpdate(BaseModel):
     university: Optional[str] = None
     gender: Optional[str] = None
     sports: Optional[List[str]] = None
+
+# --- Schemas for Social Media Functionality ---
+class SocialMediaPlatform(BaseModel):
+    platform: str = Field(..., regex=r'^(instagram|twitter|tiktok|youtube|facebook)$')
+    handle: str = Field(..., regex=r'^@[a-zA-Z0-9_]+$')
+    followers: int = Field(..., ge=0)
+    verified: bool = False
+    
+    @validator('handle')
+    def validate_handle_format(cls, v):
+        if not v.startswith('@'):
+            raise ValueError('Handle must start with @')
+        if not re.match(r'^@[a-zA-Z0-9_]+$', v):
+            raise ValueError('Handle contains invalid characters')
+        return v
+    
+    @validator('platform')
+    def validate_platform(cls, v):
+        allowed_platforms = ['instagram', 'twitter', 'tiktok', 'youtube', 'facebook']
+        if v not in allowed_platforms:
+            raise ValueError(f'Platform must be one of: {", ".join(allowed_platforms)}')
+        return v
+
+class SocialMediaUpdate(BaseModel):
+    platforms: List[SocialMediaPlatform] = Field(..., min_items=1)
+    
+    @validator('platforms')
+    def validate_unique_platforms(cls, v):
+        platforms = [p.platform for p in v]
+        if len(platforms) != len(set(platforms)):
+            raise ValueError('Duplicate platforms are not allowed')
+        return v
+
+class SocialMediaResponse(BaseModel):
+    id: int
+    platform: str
+    handle: str
+    followers: int
+    verified: bool
+    created_at: datetime
+    updated_at: datetime
 
 class ProfileResponse(ProfileUpdate):
     id: uuid.UUID

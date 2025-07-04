@@ -182,10 +182,58 @@ export const compensationSchema = yup.object().shape({
 });
 
 // ===============================
+// SOCIAL MEDIA PROFILE SCHEMAS
+// ===============================
+
+// Social Media Profile Schema for athlete profiles
+export const socialMediaProfileSchema = yup.object().shape({
+  platforms: yup
+    .array()
+    .of(
+      yup.object().shape({
+        platform: yup
+          .string()
+          .required('Platform is required')
+          .oneOf(['instagram', 'twitter', 'tiktok', 'youtube', 'facebook'], 'Invalid platform'),
+        handle: yup
+          .string()
+          .required('Handle is required')
+          .matches(/^@[a-zA-Z0-9_]+$/, 'Handle must start with @ and contain only letters, numbers, and underscores'),
+        followers: yup
+          .number()
+          .required('Follower count is required')
+          .min(0, 'Follower count cannot be negative')
+          .integer('Follower count must be a whole number'),
+        verified: yup.boolean().default(false),
+      })
+    )
+    .min(1, 'At least one social media platform is required')
+    .required('Social media platforms are required'),
+});
+
+// Individual Social Media Platform Schema
+export const socialMediaPlatformSchema = yup.object().shape({
+  platform: yup
+    .string()
+    .required('Platform is required')
+    .oneOf(['instagram', 'twitter', 'tiktok', 'youtube', 'facebook'], 'Invalid platform'),
+  handle: yup
+    .string()
+    .required('Handle is required')
+    .matches(/^@[a-zA-Z0-9_]+$/, 'Handle must start with @ and contain only letters, numbers, and underscores'),
+  followers: yup
+    .number()
+    .required('Follower count is required')
+    .min(0, 'Follower count cannot be negative')
+    .integer('Follower count must be a whole number'),
+  verified: yup.boolean().default(false),
+});
+
+// ===============================
 // ACTIVITY FORM SCHEMAS
 // ===============================
 
-// Social Media Activity
+// Social Media Activity (for deal activities)
 export const socialMediaSchema = yup.object().shape({
   platforms: yup
     .array()

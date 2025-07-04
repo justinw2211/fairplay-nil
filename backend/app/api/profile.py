@@ -2,10 +2,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.dependencies import get_user_id
 from app.database import supabase
-from app.schemas import ProfileUpdate, ProfileResponse
+from app.schemas import ProfileUpdate, ProfileResponse, SocialMediaUpdate, SocialMediaResponse
 from typing import List, Optional
+import logging
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 @router.get("/schools")
 async def get_schools(division: Optional[str] = None):
@@ -72,3 +74,97 @@ async def update_profile(profile_data: ProfileUpdate, user_id: str = Depends(get
         profile_data['division'] = division_map.get(profile_data['division'], profile_data['division'])
     
     return profile_data
+
+# --- Social Media Endpoints ---
+
+@router.get("/social-media", response_model=List[SocialMediaResponse])
+async def get_social_media(user_id: str = Depends(get_user_id)):
+    """Get all social media platforms for the authenticated user."""
+    try:
+        # CRITICAL: Validate user permissions (cursor rule)
+        data = supabase.from_("social_media_platforms").select("*").eq("user_id", user_id).execute()
+        
+        if not data.data:
+            return []
+            
+        return data.data
+    except Exception as e:
+        # CRITICAL: Never log sensitive data (cursor rule)
+        logger.error(f"Error fetching social media for user: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@router.put("/social-media", response_model=List[SocialMediaResponse])
+async def update_social_media(
+    social_media_data: SocialMediaUpdate, 
+    user_id: str = Depends(get_user_id)
+):
+    """Update social media platforms for the authenticated user."""
+    try:
+        # Delete existing social media platforms for this user
+        supabase.from_("social_media_platforms").delete().eq("user_id", user_id).execute()
+        
+        # Insert new social media platforms
+        new_platforms = []
+        for platform_data in social_media_data.platforms:
+            platform_dict = {
+                "user_id": user_id,
+                "platform": platform_data.platform,
+                "handle": platform_data.handle,
+                "followers": platform_data.followers,
+                "verified": platform_data.verified
+            }
+            new_platforms.append(platform_dict)
+        
+        # Insert all platforms at once
+        if new_platforms:
+            insert_result = supabase.from_("social_media_platforms").insert(new_platforms).execute()
+            
+            if not insert_result.data:
+                raise HTTPException(status_code=500, detail="Failed to save social media data")
+        
+        # Update profile completion status
+        supabase.from_("profiles").update({
+            "social_media_completed": True,
+            "social_media_completed_at": "now()"
+        }).eq("id", user_id).execute()
+        
+        # Return updated social media data
+        updated_data = supabase.from_("social_media_platforms").select("*").eq("user_id", user_id).execute()
+        return updated_data.data or []
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        # CRITICAL: Never log sensitive data (cursor rule)
+        logger.error(f"Error updating social media for user: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@router.delete("/social-media/{platform}")
+async def delete_social_media_platform(
+    platform: str,
+    user_id: str = Depends(get_user_id)
+):
+    """Delete a specific social media platform for the authenticated user."""
+    try:
+        # Validate platform
+        allowed_platforms = ['instagram', 'twitter', 'tiktok', 'youtube', 'facebook']
+        if platform not in allowed_platforms:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid platform. Must be one of: {', '.join(allowed_platforms)}"
+            )
+        
+        # Delete the platform
+        result = supabase.from_("social_media_platforms").delete().eq("user_id", user_id).eq("platform", platform).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Social media platform not found")
+        
+        return {"message": f"Successfully deleted {platform} platform"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        # CRITICAL: Never log sensitive data (cursor rule)
+        logger.error(f"Error deleting social media platform for user: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")

@@ -4,10 +4,14 @@ globs:
 alwaysApply: false
 ---
 ### 🔄 Project Awareness & Context
+- **Always read `PLANNING.md`** at the start of a new conversation to understand the project's architecture, goals, style, and constraints.
+- **Check `TASK.md`** before starting a new task. If the task isn't listed, add it with a brief description and today's date.
+- **Review `supabase-info.md`** for complete database schema, relationships, and query patterns before working with database-related tasks. I will manually run raw SQL to make changes to the database
+
 - **FairPlay NIL Platform**: A comprehensive Name, Image, and Likeness platform for college athletes, brands, and collectives
-- **Core Business Logic**: Deal Management, Athlete Profiles, Brand Partnerships, Compliance Tracking
+- **Core Business Logic**: Deal Management, Athlete Profiles, Managing Brand Partnerships, Compliance Tracking
 - **Activity Types**: Social Media, Endorsements, Appearances, Content Creation, Merchandise, Autographs
-- **Always consider regulatory compliance** - NIL deals must comply with NCAA and state regulations
+- **Always consider regulatory compliance** - NIL deals must comply with NCAA and state regulations following the recent House v. NCAA ruling
 - **Multi-user platform**: Athletes, brands, collectives, and universities have different workflows and requirements
 - **Deal Lifecycle**: From creation to completion and compliance reporting
 - **Check existing file structure** in `frontend/src/` and `backend/app/` before creating new files

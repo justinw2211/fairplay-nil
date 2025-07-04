@@ -4,6 +4,7 @@
 export { default as FormField } from './FormField';
 export { default as PhoneField } from './PhoneField';
 export { default as SchoolField } from './SchoolField';
+export { default as SocialMediaForm } from './social-media-form';
 
 // Hooks
 export { useStandardForm, useAsyncOperation } from '../../hooks/useStandardForm';
