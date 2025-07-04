@@ -36,11 +36,43 @@ import {
   Avatar,
   Divider,
   Select as ChakraSelect,
+  Badge,
+  IconButton,
+  Card,
+  CardBody,
+  CardHeader,
+  SimpleGrid,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  NumberIncrementStepper,
+  NumberDecrementStepper,
+  InputRightElement,
+  Collapse,
+  useColorModeValue,
 } from '@chakra-ui/react';
-import { FiSave, FiX, FiAlertTriangle, FiUser, FiMail, FiPhone } from 'react-icons/fi';
+import { 
+  FiSave, 
+  FiX, 
+  FiAlertTriangle, 
+  FiUser, 
+  FiMail, 
+  FiPhone,
+  FiPlus,
+  FiTrash2,
+  FiEdit3,
+  FiInstagram,
+  FiTwitter,
+  FiFacebook,
+  FiYoutube,
+  FiUsers,
+  FiChevronDown,
+  FiChevronUp,
+} from 'react-icons/fi';
 import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, NCAA_DIVISIONS } from '../data/formConstants.js';
 import { fetchSchools, FALLBACK_SCHOOLS } from '../data/ncaaSchools';
 import { formatPhoneNumber, unformatPhoneNumber, validatePhoneNumber } from '../utils/phoneUtils';
+import useSocialMedia from '../hooks/use-social-media';
 
 const schema = yup.object().shape({
   full_name: yup
@@ -88,6 +120,21 @@ const EditProfile = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = useRef();
   const isInitialLoad = useRef(true);
+
+  // Social media state
+  const [socialMediaData, setSocialMediaData] = useState([]);
+  const [socialMediaLoading, setSocialMediaLoading] = useState(false);
+  const [socialMediaExpanded, setSocialMediaExpanded] = useState(true);
+  const { fetchSocialMedia, updateSocialMedia, formatFollowerCount, getPlatformDisplayInfo } = useSocialMedia();
+
+  // Social media platform options
+  const socialMediaPlatforms = [
+    { value: 'instagram', label: 'Instagram', icon: FiInstagram, color: '#E4405F' },
+    { value: 'twitter', label: 'Twitter/X', icon: FiTwitter, color: '#1DA1F2' },
+    { value: 'tiktok', label: 'TikTok', icon: FiUsers, color: '#000000' },
+    { value: 'youtube', label: 'YouTube', icon: FiYoutube, color: '#FF0000' },
+    { value: 'facebook', label: 'Facebook', icon: FiFacebook, color: '#1877F2' },
+  ];
 
   const {
     control,
@@ -262,67 +309,118 @@ const EditProfile = () => {
     setHasChanges(isDirty);
   }, [isDirty]);
 
-  const handleSaveAndExit = async () => {
-    if (hasChanges) {
-      // If there are changes, save them first
+  // Load social media data
+  useEffect(() => {
+    const loadSocialMedia = async () => {
+      if (!user) return;
+      
+      setSocialMediaLoading(true);
       try {
-        setSaving(true);
-        const formData = getValues();
-        
-        // First update profile data without email (since it's managed by auth)
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({
-            full_name: formData.full_name,
-            phone: unformatPhoneNumber(formData.phone),
-            division: formData.division,
-            university: formData.university,
-            gender: formData.gender,
-            sports: formData.sports,
-          })
-          .eq('id', user.id);
+        const data = await fetchSocialMedia();
+        setSocialMediaData(data || []);
+      } catch (error) {
+        console.error('Error loading social media:', error);
+        // Don't show error toast for social media, it's not critical
+        setSocialMediaData([]);
+      } finally {
+        setSocialMediaLoading(false);
+      }
+    };
 
-        if (updateError) throw updateError;
+    loadSocialMedia();
+  }, [user, fetchSocialMedia]);
 
-        // Then update email in auth if it changed
-        if (formData.email !== user.email) {
-          const { error: updateEmailError } = await supabase.auth.updateUser({
-            email: formData.email
-          });
-          if (updateEmailError) throw updateEmailError;
+  // Social media management functions
+  const addSocialMediaPlatform = () => {
+    if (socialMediaData.length >= 5) {
+      toast({
+        title: 'Maximum platforms reached',
+        description: 'You can add up to 5 social media platforms.',
+        status: 'warning',
+        duration: 3000,
+      });
+      return;
+    }
 
-          toast({
-            title: 'Email verification required',
-            description: 'Please check your new email for a verification link.',
-            status: 'info',
-            duration: 3000,
-            isClosable: true,
-          });
+    const newPlatform = {
+      id: Date.now(),
+      platform: '',
+      handle: '',
+      followers: 0,
+      verified: false,
+      isNew: true,
+    };
+    setSocialMediaData([...socialMediaData, newPlatform]);
+    setHasChanges(true);
+  };
+
+  const updateSocialMediaPlatform = (id, field, value) => {
+    setSocialMediaData(prev => prev.map(platform => 
+      platform.id === id ? { ...platform, [field]: value } : platform
+    ));
+    setHasChanges(true);
+  };
+
+  const removeSocialMediaPlatform = (id) => {
+    setSocialMediaData(prev => prev.filter(platform => platform.id !== id));
+    setHasChanges(true);
+  };
+
+  const saveSocialMedia = async () => {
+    try {
+      // Validate social media data
+      const validPlatforms = socialMediaData.filter(platform => 
+        platform.platform && platform.handle
+      );
+
+      // Format handles to ensure they start with @
+      const formattedPlatforms = validPlatforms.map(platform => ({
+        ...platform,
+        handle: platform.handle.startsWith('@') ? platform.handle : `@${platform.handle}`,
+      }));
+
+      await updateSocialMedia({ platforms: formattedPlatforms });
+      
+      toast({
+        title: 'Social media updated',
+        description: 'Your social media information has been saved successfully.',
+        status: 'success',
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error('Error saving social media:', error);
+      toast({
+        title: 'Error saving social media',
+        description: error.message || 'Failed to save social media information.',
+        status: 'error',
+        duration: 5000,
+      });
+    }
+  };
+
+  // Enhanced save functions to include social media
+  const handleSaveAndExit = async () => {
+    if (isDirty || hasChanges) {
+      setSaving(true);
+      try {
+        // Save profile data if form is dirty
+        if (isDirty) {
+          const formData = getValues();
+          await onSubmit(formData);
         }
-
-        toast({
-          title: 'Profile saved',
-          description: 'Your profile has been saved successfully.',
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        });
-
-        // Navigate to dashboard after successful save
+        
+        // Save social media data if changed
+        if (hasChanges) {
+          await saveSocialMedia();
+        }
+        
         navigate('/dashboard');
       } catch (error) {
-        toast({
-          title: 'Error saving profile',
-          description: error.message,
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-        });
+        // Error handling already done in individual save functions
       } finally {
         setSaving(false);
       }
     } else {
-      // No changes, just navigate
       navigate('/dashboard');
     }
   };
@@ -413,6 +511,10 @@ const EditProfile = () => {
     }),
   };
 
+  // Card colors for social media section
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const borderColor = useColorModeValue('gray.200', 'gray.600');
+
   return (
     <Container maxW="container.md" py={12}>
       <Box bg="white" p={8} borderRadius="lg" boxShadow="md">
@@ -423,7 +525,7 @@ const EditProfile = () => {
               Edit Profile
             </Heading>
             <HStack spacing={4}>
-              {hasChanges && (
+              {(hasChanges || isDirty) && (
                 <Button
                   leftIcon={<Icon as={FiX} />}
                   variant="outline"
@@ -634,6 +736,192 @@ const EditProfile = () => {
                   </FormControl>
                 )}
               />
+
+              {/* Social Media Section */}
+              <Card borderColor={borderColor} shadow="sm">
+                <CardHeader pb={4}>
+                  <Flex justify="space-between" align="center">
+                    <HStack spacing={3}>
+                      <Icon as={FiUsers} color="brand.accentPrimary" boxSize={5} />
+                      <VStack align="start" spacing={0}>
+                        <Heading size="md" color="brand.textPrimary">
+                          Social Media Platforms
+                        </Heading>
+                        <Text fontSize="sm" color="brand.textSecondary">
+                          Manage your social media presence for NIL compliance
+                        </Text>
+                      </VStack>
+                    </HStack>
+                    <HStack spacing={2}>
+                      <Badge 
+                        colorScheme={socialMediaData.length > 0 ? "green" : "gray"}
+                        variant="subtle"
+                      >
+                        {socialMediaData.length} platform{socialMediaData.length !== 1 ? 's' : ''}
+                      </Badge>
+                      <IconButton
+                        icon={<Icon as={socialMediaExpanded ? FiChevronUp : FiChevronDown} />}
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setSocialMediaExpanded(!socialMediaExpanded)}
+                        aria-label="Toggle social media section"
+                      />
+                    </HStack>
+                  </Flex>
+                </CardHeader>
+
+                <Collapse in={socialMediaExpanded}>
+                  <CardBody pt={0}>
+                    <VStack spacing={4} align="stretch">
+                      {socialMediaLoading ? (
+                        <Flex justify="center" py={8}>
+                          <Spinner color="brand.accentPrimary" />
+                        </Flex>
+                      ) : (
+                        <>
+                          {socialMediaData.length === 0 ? (
+                            <Box
+                              textAlign="center"
+                              py={8}
+                              bg="gray.50"
+                              borderRadius="lg"
+                              border="2px dashed"
+                              borderColor="gray.200"
+                            >
+                              <Icon as={FiUsers} boxSize={8} color="gray.400" mb={2} />
+                              <Text color="gray.500" fontSize="sm">
+                                No social media platforms added yet
+                              </Text>
+                              <Text fontSize="xs" color="gray.400" mt={1}>
+                                Add your platforms to enhance your NIL profile
+                              </Text>
+                            </Box>
+                          ) : (
+                            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+                              {socialMediaData.map((platform) => {
+                                const platformInfo = socialMediaPlatforms.find(p => p.value === platform.platform);
+                                const IconComponent = platformInfo?.icon || FiUsers;
+                                
+                                return (
+                                  <Card key={platform.id} size="sm" variant="outline" borderColor={borderColor}>
+                                    <CardBody>
+                                      <VStack spacing={3}>
+                                        <Flex justify="space-between" align="center" w="full">
+                                          <HStack spacing={2}>
+                                            <Icon 
+                                              as={IconComponent} 
+                                              color={platformInfo?.color || 'gray.500'} 
+                                              boxSize={4}
+                                            />
+                                            <Text fontSize="sm" fontWeight="medium">
+                                              {platformInfo?.label || 'Select Platform'}
+                                            </Text>
+                                          </HStack>
+                                          <IconButton
+                                            icon={<Icon as={FiTrash2} />}
+                                            size="xs"
+                                            variant="ghost"
+                                            colorScheme="red"
+                                            onClick={() => removeSocialMediaPlatform(platform.id)}
+                                            aria-label="Remove platform"
+                                          />
+                                        </Flex>
+
+                                        <VStack spacing={2} w="full">
+                                          <ChakraSelect
+                                            value={platform.platform}
+                                            onChange={(e) => updateSocialMediaPlatform(platform.id, 'platform', e.target.value)}
+                                            placeholder="Select platform"
+                                            size="sm"
+                                          >
+                                            {socialMediaPlatforms.map((option) => (
+                                              <option key={option.value} value={option.value}>
+                                                {option.label}
+                                              </option>
+                                            ))}
+                                          </ChakraSelect>
+
+                                          <InputGroup size="sm">
+                                            <InputLeftElement pointerEvents="none">
+                                              <Text fontSize="xs" color="gray.400">@</Text>
+                                            </InputLeftElement>
+                                            <Input
+                                              value={platform.handle.replace('@', '')}
+                                              onChange={(e) => updateSocialMediaPlatform(platform.id, 'handle', e.target.value)}
+                                              placeholder="username"
+                                            />
+                                          </InputGroup>
+
+                                          <NumberInput
+                                            value={platform.followers}
+                                            onChange={(value) => updateSocialMediaPlatform(platform.id, 'followers', parseInt(value) || 0)}
+                                            min={0}
+                                            size="sm"
+                                            w="full"
+                                          >
+                                            <NumberInputField placeholder="Followers" />
+                                            <NumberInputStepper>
+                                              <NumberIncrementStepper />
+                                              <NumberDecrementStepper />
+                                            </NumberInputStepper>
+                                          </NumberInput>
+
+                                          {platform.followers > 0 && (
+                                            <Text fontSize="xs" color="brand.textSecondary" alignSelf="flex-end">
+                                              {formatFollowerCount(platform.followers)} followers
+                                            </Text>
+                                          )}
+                                        </VStack>
+                                      </VStack>
+                                    </CardBody>
+                                  </Card>
+                                );
+                              })}
+                            </SimpleGrid>
+                          )}
+
+                          <Flex justify="space-between" align="center" pt={2}>
+                            <Button
+                              leftIcon={<Icon as={FiPlus} />}
+                              size="sm"
+                              variant="outline"
+                              colorScheme="pink"
+                              borderColor="brand.accentPrimary"
+                              color="brand.accentPrimary"
+                              onClick={addSocialMediaPlatform}
+                              isDisabled={socialMediaData.length >= 5}
+                              _hover={{
+                                bg: 'brand.accentPrimary',
+                                color: 'white',
+                              }}
+                            >
+                              Add Platform
+                            </Button>
+                            
+                            {socialMediaData.length > 0 && hasChanges && (
+                              <Button
+                                size="sm"
+                                colorScheme="green"
+                                onClick={saveSocialMedia}
+                                isLoading={socialMediaLoading}
+                              >
+                                Save Social Media
+                              </Button>
+                            )}
+                          </Flex>
+
+                          <Text fontSize="xs" color="gray.500" textAlign="center">
+                            Social media information is used for NIL compliance and deal valuation.
+                            You can add up to 5 platforms.
+                          </Text>
+                        </>
+                      )}
+                    </VStack>
+                  </CardBody>
+                </Collapse>
+              </Card>
+
+              {/* End of form fields */}
             </VStack>
           </form>
         </VStack>
