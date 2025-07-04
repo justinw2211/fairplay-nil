@@ -75,6 +75,11 @@ class ActivityDetails(BaseModel):
     deadlines: Optional[Dict[str, Any]] = None
 
 class DealUpdate(BaseModel):
+    # Step 0: Social Media (NEW)
+    athlete_social_media: Optional[List[Dict[str, Any]]] = None
+    social_media_confirmed: Optional[bool] = None
+    social_media_confirmed_at: Optional[datetime] = None
+    
     # Step 1: Deal Terms
     deal_nickname: Optional[str] = None
     deal_terms_url: Optional[str] = None

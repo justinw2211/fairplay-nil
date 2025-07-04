@@ -173,7 +173,7 @@ const Step0_SocialMedia = () => {
             />
 
             {/* Navigation Buttons */}
-            <Flex justify="space-between" pt={4} w="full">
+            <Flex justify="space-between" align="center" pt={4} w="full">
               <Button
                 leftIcon={<Icon as={Clock} />}
                 variant="ghost"
@@ -193,27 +193,11 @@ const Step0_SocialMedia = () => {
                 Finish Later
               </Button>
 
-              {/* The submit is handled by the form itself, but we show a summary button */}
-              <Box>
-                <Text fontSize="sm" color="brand.textSecondary" textAlign="center" mb={2}>
+              {/* Next step info */}
+              <Box textAlign="right">
+                <Text fontSize="sm" color="brand.textSecondary">
                   Next: Deal Terms & Contract Upload
                 </Text>
-                <Button
-                  rightIcon={<Icon as={ChevronRight} />}
-                  bg="brand.accentPrimary"
-                  color="white"
-                  px={8}
-                  py={3}
-                  h={12}
-                  fontSize="base"
-                  fontWeight="semibold"
-                  isDisabled={true}
-                  opacity={0.7}
-                  cursor="default"
-                  _hover={{}}
-                >
-                  Complete form above
-                </Button>
               </Box>
             </Flex>
 
