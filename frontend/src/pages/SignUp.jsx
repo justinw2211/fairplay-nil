@@ -1,8 +1,6 @@
 // frontend/src/pages/SignUp.jsx
 import React, { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
+import { Controller } from 'react-hook-form';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import Select from 'react-select';
@@ -23,68 +21,49 @@ import {
   Link,
   Flex,
   Progress,
-  Select as ChakraSelect,
   HStack,
   Icon,
   Spinner,
 } from '@chakra-ui/react';
 import { FiUser, FiMail, FiLock, FiPhone } from 'react-icons/fi';
 import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, NCAA_DIVISIONS, USER_ROLES } from '../data/formConstants';
-import { fetchSchools, FALLBACK_SCHOOLS } from '../data/ncaaSchools';
-import { formatPhoneNumber, unformatPhoneNumber, validatePhoneNumber } from '../utils/phoneUtils';
-
-// Initial signup schema
-const initialSchema = yup.object().shape({
-  email: yup.string().email('Invalid email format').required('Email is required'),
-  password: yup.string().min(8, 'Password must be at least 8 characters').required('Password is required'),
-  confirmPassword: yup.string()
-    .oneOf([yup.ref('password')], 'Passwords must match')
-    .required('Please confirm your password'),
-  role: yup.string().required('Please select what best describes you'),
-});
-
-// Additional athlete info schema
-const athleteSchema = yup.object().shape({
-  full_name: yup.string().required('Full name is required'),
-  phone: yup
-    .string()
-    .required('Phone number is required')
-    .test('phone', 'Phone number must be 10 digits', validatePhoneNumber),
-  division: yup.string().required('NCAA Division is required'),
-  university: yup.string().required('University is required'),
-  gender: yup.string().required('Gender is required'),
-  sports: yup.array()
-    .of(yup.string())
-    .min(1, 'At least one sport is required')
-    .required('At least one sport is required'),
-});
+import { formatPhoneNumber, unformatPhoneNumber } from '../utils/phoneUtils';
+import { 
+  useStandardForm, 
+  FormField, 
+  PhoneField, 
+  SchoolField,
+  initialSignupSchema,
+  athleteProfileSchema,
+  TOAST_MESSAGES 
+} from '../components/forms';
 
 const SignUp = () => {
   const { signUp } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
   const [step, setStep] = useState(1);
-  const [schools, setSchools] = useState([]);
-  const [filteredSchools, setFilteredSchools] = useState([]);
   const [availableSports, setAvailableSports] = useState([]);
   const [initialData, setInitialData] = useState(null);
-  const [isLoadingSchools, setIsLoadingSchools] = useState(false);
 
-  // Form for initial signup
-  const initialForm = useForm({
-    resolver: yupResolver(initialSchema),
+  // Form for initial signup using standardized form hook
+  const initialForm = useStandardForm({
+    schema: initialSignupSchema,
     defaultValues: {
       email: '',
       password: '',
       confirmPassword: '',
       role: '',
+    },
+    toastMessages: {
+      success: TOAST_MESSAGES.success.accountCreated,
+      error: TOAST_MESSAGES.error.signUp,
     }
   });
 
-  // Form for athlete additional info
-  const athleteForm = useForm({
-    resolver: yupResolver(athleteSchema),
-    mode: 'onChange',
+  // Form for athlete additional info using standardized form hook
+  const athleteForm = useStandardForm({
+    schema: athleteProfileSchema,
     defaultValues: {
       full_name: '',
       phone: '',
@@ -92,72 +71,23 @@ const SignUp = () => {
       university: '',
       gender: '',
       sports: [],
+    },
+    toastMessages: {
+      success: TOAST_MESSAGES.success.accountCreated,
+      error: TOAST_MESSAGES.error.signUp,
     }
   });
 
-  // Debug logs for form state
-  console.log('Current step:', step);
-  console.log('Initial form values:', initialForm.getValues());
-  console.log('Athlete form values:', athleteForm.getValues());
-  console.log('Initial data:', initialData);
-
-  // Reset athlete form when component mounts or unmounts
-  React.useEffect(() => {
-    console.log('Component mounted');
-    return () => {
-      console.log('Component unmounting');
-      athleteForm.reset();
-    };
-  }, []);
-
-  const selectedDivision = athleteForm.watch('division');
-  const selectedGender = athleteForm.watch('gender');
-
-  // Fetch schools when component mounts
-  useEffect(() => {
-    const loadSchools = async () => {
-      setIsLoadingSchools(true);
-      try {
-        const schoolsData = await fetchSchools();
-        setSchools(schoolsData.length > 0 ? schoolsData : FALLBACK_SCHOOLS);
-      } catch (error) {
-        console.error('Error loading schools:', error);
-        setSchools(FALLBACK_SCHOOLS);
-        toast({
-          title: 'Warning',
-          description: 'Could not load schools list. Using fallback data.',
-          status: 'warning',
-          duration: 5000,
-          isClosable: true,
-        });
-      } finally {
-        setIsLoadingSchools(false);
-      }
-    };
-    loadSchools();
-  }, [toast]);
-
-  // Handle division change
-  useEffect(() => {
-    if (selectedDivision) {
-      const filtered = schools.filter(
-        school => school.division === selectedDivision
-      );
-      setFilteredSchools(filtered);
-      if (!filtered.find(s => s.name === athleteForm.getValues('university'))) {
-        athleteForm.setValue('university', '');
-      }
-    } else {
-      setFilteredSchools([]);
-    }
-  }, [selectedDivision, schools, athleteForm]);
+  // Watch form fields for reactive updates
+  const selectedDivision = athleteForm.watchField('division');
+  const selectedGender = athleteForm.watchField('gender');
 
   // Handle gender change
-  React.useEffect(() => {
+  useEffect(() => {
     const sports = selectedGender === 'Male' ? MEN_SPORTS :
                   selectedGender === 'Female' ? WOMEN_SPORTS : [];
     setAvailableSports(sports);
-    athleteForm.setValue('sports', []);
+    athleteForm.setFormValue('sports', []);
   }, [selectedGender, athleteForm]);
 
   // Custom styles for react-select
@@ -180,90 +110,42 @@ const SignUp = () => {
   };
 
   const handleInitialSubmit = async (data) => {
-    try {
-      console.log('Initial submit data:', data);
-      setInitialData(data);
-      
-      if (data.role === 'student-athlete') {
-        console.log('Moving to athlete form');
-        // Force reset the athlete form
-        athleteForm.reset({
-          full_name: '',
-          phone: '',
-          division: '',
-          university: '',
-          gender: '',
-          sports: [],
-        });
-        console.log('Athlete form after reset:', athleteForm.getValues());
-        setStep(2);
-      } else {
-        // For non-athletes, create account and redirect to home
-        const { error: signUpError } = await signUp(
-          data.email,
-          data.password,
-          {
-            role: data.role
-          }
-        );
-
-        if (signUpError) throw signUpError;
-
-        toast({
-          title: 'Account created successfully!',
-          description: "Welcome to FairPlay NIL!",
-          status: 'success',
-          duration: 5000,
-          isClosable: true,
-        });
-        
-        navigate('/');
-      }
-    } catch (error) {
-      console.error('SignUp error:', error);
-      toast({
-        title: 'Sign up failed',
-        description: error.message || 'An error occurred during sign up. Please try again.',
-        status: 'error',
-        duration: 9000,
-        isClosable: true,
-      });
-    }
-  };
-
-  const handleAthleteSubmit = async (data) => {
-    try {
+    setInitialData(data);
+    
+    if (data.role === 'student-athlete') {
+      // Reset athlete form and move to step 2
+      athleteForm.reset();
+      setStep(2);
+    } else {
+      // For non-athletes, create account and redirect to home
       const { error: signUpError } = await signUp(
-        initialData.email,
-        initialData.password,
+        data.email,
+        data.password,
         {
-          ...data,
-          phone: unformatPhoneNumber(data.phone), // Unformat phone for backend
-          role: 'student-athlete'
+          role: data.role
         }
       );
 
       if (signUpError) throw signUpError;
-
-      toast({
-        title: 'Account created successfully!',
-        description: "Welcome to FairPlay NIL!",
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
       
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Profile update error:', error);
-      toast({
-        title: 'Profile update failed',
-        description: error.message || 'An error occurred while updating your profile. Please try again.',
-        status: 'error',
-        duration: 9000,
-        isClosable: true,
-      });
+      navigate('/');
     }
+  };
+
+  const handleAthleteSubmit = async (data) => {
+    const { error: signUpError } = await signUp(
+      initialData.email,
+      initialData.password,
+      {
+        ...data,
+        phone: unformatPhoneNumber(data.phone), // Unformat phone for backend
+        role: 'student-athlete'
+      }
+    );
+
+    if (signUpError) throw signUpError;
+    
+    navigate('/dashboard');
   };
 
   return (
@@ -284,94 +166,46 @@ const SignUp = () => {
           {step === 1 ? (
             <form onSubmit={initialForm.handleSubmit(handleInitialSubmit)} style={{ width: '100%' }}>
               <VStack spacing={4}>
-                <Controller
+                <FormField
                   name="email"
                   control={initialForm.control}
-                  render={({ field, fieldState: { error } }) => (
-                    <FormControl isInvalid={error}>
-                      <FormLabel>Email Address</FormLabel>
-                      <InputGroup>
-                        <InputLeftElement pointerEvents="none">
-                          <Icon as={FiMail} color="gray.300" />
-                        </InputLeftElement>
-                        <Input
-                          {...field}
-                          type="email"
-                          placeholder="Enter your email"
-                        />
-                      </InputGroup>
-                      <FormErrorMessage>
-                        {error?.message}
-                      </FormErrorMessage>
-                    </FormControl>
-                  )}
+                  type="email"
+                  label="Email Address"
+                  placeholder="Enter your email"
+                  leftIcon={FiMail}
+                  isRequired
                 />
 
-                <Controller
+                <FormField
                   name="password"
                   control={initialForm.control}
-                  render={({ field, fieldState: { error } }) => (
-                    <FormControl isInvalid={error}>
-                      <FormLabel>Password</FormLabel>
-                      <InputGroup>
-                        <InputLeftElement pointerEvents="none">
-                          <Icon as={FiLock} color="gray.300" />
-                        </InputLeftElement>
-                        <Input
-                          {...field}
-                          type="password"
-                          placeholder="Create a password"
-                        />
-                      </InputGroup>
-                      <FormErrorMessage>
-                        {error?.message}
-                      </FormErrorMessage>
-                    </FormControl>
-                  )}
+                  type="password"
+                  label="Password"
+                  placeholder="Create a password"
+                  leftIcon={FiLock}
+                  isRequired
                 />
 
-                <Controller
+                <FormField
                   name="confirmPassword"
                   control={initialForm.control}
-                  render={({ field, fieldState: { error } }) => (
-                    <FormControl isInvalid={error}>
-                      <FormLabel>Confirm Password</FormLabel>
-                      <InputGroup>
-                        <InputLeftElement pointerEvents="none">
-                          <Icon as={FiLock} color="gray.300" />
-                        </InputLeftElement>
-                        <Input
-                          {...field}
-                          type="password"
-                          placeholder="Confirm your password"
-                        />
-                      </InputGroup>
-                      <FormErrorMessage>
-                        {error?.message}
-                      </FormErrorMessage>
-                    </FormControl>
-                  )}
+                  type="password"
+                  label="Confirm Password"
+                  placeholder="Confirm your password"
+                  leftIcon={FiLock}
+                  isRequired
                 />
 
-                <Controller
+                <FormField
                   name="role"
                   control={initialForm.control}
-                  render={({ field: { onChange, value }, fieldState: { error } }) => (
-                    <FormControl isInvalid={error}>
-                      <FormLabel>What best describes you?</FormLabel>
-                      <Select
-                        options={USER_ROLES}
-                        styles={customStyles}
-                        placeholder="Select your role"
-                        onChange={(option) => onChange(option?.value)}
-                        value={USER_ROLES.find(option => option.value === value)}
-                        isSearchable={false}
-                      />
-                      <FormErrorMessage>
-                        {error?.message}
-                      </FormErrorMessage>
-                    </FormControl>
-                  )}
+                  type="react-select"
+                  label="What best describes you?"
+                  placeholder="Select your role"
+                  options={USER_ROLES}
+                  customSelectStyles={customStyles}
+                  isRequired
+                  isSearchable={false}
                 />
 
                 <Button
@@ -381,7 +215,7 @@ const SignUp = () => {
                   color="white"
                   width="full"
                   size="lg"
-                  isLoading={initialForm.formState.isSubmitting}
+                  isLoading={initialForm.isSubmitting}
                   _hover={{ bg: '#c8aeb0' }}
                 >
                   Continue
