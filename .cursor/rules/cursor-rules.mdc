@@ -17,6 +17,48 @@ alwaysApply: false
 - **Check existing file structure** in `frontend/src/` and `backend/app/` before creating new files
 - **Follow established patterns** from existing components and API routes
 
+### 🔌 MCP (Model Context Protocol) Integration
+- **LIVE DATABASE ACCESS**: MCP server provides direct access to Supabase database for real-time queries
+- **Configuration**: Located in `~/.cursor/mcp.json` with read-only access to project `izitucbtlygkzncwmsjl`
+- **Available MCP Tools**:
+  - `execute_sql`: Run SQL queries on live database (SELECT operations)
+  - `list_tables`: Get database table structure and relationships
+  - `list_migrations`: View applied database migrations
+  - `get_project_url`: Retrieve Supabase project API URL
+  - `get_anon_key`: Get anonymous API key for frontend
+  - `generate_typescript_types`: Auto-generate TypeScript types from database schema
+  - `get_logs`: Debug database and API issues with real-time logs
+  - `get_advisors`: Check for security vulnerabilities and performance issues
+- **Data Access**: Can query live data for deals (69 total, all in draft status), profiles, schools (710 total), and social media platforms
+- **Security**: Read-only mode prevents accidental database modifications
+- **Best Practices**: Use MCP for debugging, data analysis, and understanding current system state
+
+### 🔌 API & Integration Consistency
+- **ALWAYS use existing hooks** instead of direct fetch calls (e.g., use `useSocialMedia()` hook instead of `fetch('/api/...')`)
+- **API endpoint consistency**: Check `backend/app/api/` for correct endpoint paths before making frontend calls
+- **Hook-first approach**: If a hook exists for API operations, use it. If it doesn't exist, create one following existing patterns
+- **Never hardcode API endpoints** in components - use environment variables or hooks
+- **Verify backend routes** in FastAPI before implementing frontend calls
+- **Backend route prefix**: All API routes use `/api/` prefix (e.g., `/api/social-media`, not `/api/profile/social-media`)
+
+### 🎨 Theme & Design Consistency  
+- **ALWAYS use theme colors** from `frontend/src/theme.js` instead of hardcoded hex values or Chakra defaults
+- **Brand color reference**: `brand.accentPrimary: #d0bdb5`, `brand.textPrimary: #282f3d`, `brand.accentSecondary: #d6dce4`
+- **Never use Chakra colorSchemes** (`colorScheme="blue"`) - use custom brand colors instead
+- **Color validation**: Before using any color, check if it exists in theme.js first
+- **Consistent styling**: Use `bg={accentColor}` and `color="white"` pattern for brand-colored elements
+- **No hardcoded colors**: Replace hardcoded colors like `#3182CE`, `#2D3748` with theme variables
+
+### 🔄 Frontend/Backend Data Synchronization
+- **Division mapping consistency**: When adding divisions to database, update frontend constants in `frontend/src/data/formConstants.js`
+- **Schema change checklist**: 
+  1. Update database migration
+  2. Update backend validation schemas (`backend/app/schemas.py`)
+  3. Update frontend constants and validation
+  4. Update TypeScript types if applicable
+- **Keep dropdown options in sync**: Always verify frontend dropdown options match available database values
+- **Division format consistency**: Database uses `'I'`, `'II'`, `'III'`, `'NAIA'`, `'JUCO'` - frontend shows `'Division I'`, etc.
+
 ### 🧱 Code Structure & Modularity
 - **Backend (FastAPI)**: 
   - API routes in `backend/app/api/` organized by domain (deals.py, profile.py)
@@ -30,6 +72,13 @@ alwaysApply: false
   - **Never create React components longer than 300 lines** - split into smaller components
 - **Database**: Use migration files in `backend/migrations/` for schema changes
 - **Form handling**: Use existing patterns from `frontend/src/components/forms/`
+
+### 🐛 Development & Debugging Best Practices
+- **Browser caching**: After making UI changes, always test with hard refresh (`Cmd+Shift+R` / `Ctrl+F5`)
+- **Development server restart**: If changes don't appear, restart dev server to clear module cache
+- **Color debugging**: Use browser dev tools to verify actual CSS values match expected theme colors
+- **API debugging**: Check browser Network tab to verify correct endpoint URLs are being called
+- **Hook usage verification**: Search codebase for existing hooks before creating new API calls
 
 ### 🧪 Testing & Reliability
 - **Frontend**: Use Jest + React Testing Library (already configured)

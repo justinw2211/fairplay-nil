@@ -484,4 +484,59 @@ WHERE d.id = $1;
 **Last Updated:** January 2025
 **Migration Status:** 013_add_social_media_fields.sql (Latest)  
 **Schema Version:** Current with all migrations applied including social media functionality
-**Schema Source:** Actual production database export with verified school counts and social media tables 
+**Schema Source:** Actual production database export with verified school counts and social media tables
+
+## 🔌 MCP (Model Context Protocol) Integration
+
+### Overview
+**Integration Date:** January 2025
+**MCP Server:** Official Supabase MCP Server (`@supabase/mcp-server-supabase@latest`)
+**Configuration:** `~/.cursor/mcp.json` with read-only access to project `izitucbtlygkzncwmsjl`
+**Access Level:** Read-only mode for security (prevents accidental database modifications)
+
+### Available MCP Tools
+
+#### Database Operations
+- **`execute_sql`** - Run SQL queries on live database (SELECT operations only)
+- **`list_tables`** - Get database table structure and relationships
+- **`list_migrations`** - View applied database migrations (currently 13 migrations)
+- **`get_advisors`** - Check for security vulnerabilities and performance issues
+
+#### Project Management
+- **`get_project_url`** - Retrieve Supabase project API URL
+- **`get_anon_key`** - Get anonymous API key for frontend configuration
+- **`generate_typescript_types`** - Auto-generate TypeScript types from database schema
+
+#### Development & Debugging
+- **`get_logs`** - Debug database and API issues with real-time logs
+- **Project scoped access** - Limited to specific project for security
+
+### Current Database Statistics (Live Data)
+- **Total Deals:** 69 (all in draft status)
+- **Total Schools:** 710 across all NCAA divisions
+- **User Profiles:** Active with role-based access control
+- **Social Media Platforms:** Integrated with deal creation workflow
+
+### MCP Security Features
+- **Read-only mode** - Prevents accidental database modifications
+- **Project scoped** - Access limited to specific Supabase project
+- **Authentication** - Uses Personal Access Token for secure access
+- **Audit trail** - All queries logged for security monitoring
+
+### Common MCP Use Cases
+1. **Data Analysis** - Query live data for insights and reporting
+2. **Debugging** - Access real-time logs and system status
+3. **Schema Validation** - Generate TypeScript types and verify structure
+4. **Performance Monitoring** - Check for database performance issues
+5. **Development Support** - Real-time data access during development
+
+### MCP Best Practices
+- Use for debugging and analysis, not production data modifications
+- Query specific data sets rather than entire tables for performance
+- Monitor query performance and results
+- Use generated TypeScript types to keep frontend in sync with database schema
+
+---
+
+**Integration Status:** ✅ Active and functional
+**Last MCP Test:** January 2025 - Successfully queried deal counts and database structure 

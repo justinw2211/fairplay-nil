@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Body, Query
 from app.dependencies import get_user_id
 from app.database import db
 from app.schemas import DealUpdate, DealResponse, DealCreateResponse
+from app.middleware.validation import validate_request_data, ValidationError, SecurityError
 from typing import List, Optional
 import logging
 from fastapi.responses import JSONResponse
@@ -59,23 +60,22 @@ async def update_deal(
     deal_data: DealUpdate,
     user_id: str = Depends(get_user_id)
 ):
-    """Update a deal with file validation."""
+    """Update a deal with comprehensive validation."""
     try:
         update_data = deal_data.dict(exclude_unset=True)
         if not update_data:
             raise HTTPException(status_code=400, detail="No update data provided.")
 
+        # Comprehensive input validation and sanitization
+        try:
+            update_data = validate_request_data(update_data, 'deal')
+        except (ValidationError, SecurityError) as e:
+            logger.warning(f"Validation failed for deal {deal_id}: {e.detail}")
+            raise e
+
         # Auto-set social_media_confirmed_at when social_media_confirmed is True
         if update_data.get('social_media_confirmed') is True:
             update_data['social_media_confirmed_at'] = 'now()'
-
-        # Validate file metadata if present
-        if (update_data.get('deal_terms_file_type') or 
-            update_data.get('deal_terms_file_size')):
-            validate_file_metadata(
-                update_data.get('deal_terms_file_type', ''),
-                update_data.get('deal_terms_file_size', 0)
-            )
 
         with db.transaction():
             data = db.client.from_("deals").update(
@@ -88,6 +88,8 @@ async def update_deal(
                     detail="Deal not found or user does not have access."
                 )
             return DealResponse(**data.data[0])
+    except (ValidationError, SecurityError):
+        raise  # Re-raise validation errors as-is
     except Exception as e:
         logger.error(f"Error updating deal {deal_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")

@@ -42,9 +42,9 @@ const Step0_SocialMedia = () => {
       try {
         const data = await fetchSocialMedia();
         setSocialMediaData(data || []);
-      } catch (error) {
-        console.error('Error loading social media:', error);
-        toast({
+              } catch (error) {
+            // Log error without sensitive data
+            toast({
           title: 'Notice',
           description: 'Could not load existing social media data. You can still add your information.',
           status: 'warning',
@@ -86,9 +86,9 @@ const Step0_SocialMedia = () => {
       
       // PATTERN: Navigate to next step (maintain existing URLs)
       navigate(`/add/deal/terms/${dealId}`);
-    } catch (error) {
-      console.error('Error updating deal:', error);
-      toast({
+            } catch (error) {
+            // Log error without sensitive data
+            toast({
         title: 'Error updating deal',
         description: error.message || 'Failed to confirm social media information. Please try again.',
         status: 'error',

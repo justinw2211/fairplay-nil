@@ -24,6 +24,7 @@ import {
   Shield,
   HelpCircle,
 } from 'lucide-react';
+import { formLogger } from '../../utils/logger';
 
 const Step5_Compliance = () => {
   const { dealId } = useParams();
@@ -140,13 +141,7 @@ const Step5_Compliance = () => {
   ];
 
   const isFormValid = () => {
-    // Log the state of all questions for debugging
-    console.log('Compliance form validation state:', complianceQuestions.map(q => ({
-      id: q.id,
-      value: q.value,
-      additionalInfoRequired: q.additionalInfo?.show,
-      additionalInfoValue: q.additionalInfo?.value
-    })));
+    formLogger.debug('Validating compliance form');
 
     return complianceQuestions.every(q => {
       // Base validation - must have a value selected
@@ -164,7 +159,7 @@ const Step5_Compliance = () => {
 
   const handleNext = async () => {
     if (!isFormValid()) {
-      console.log('Form validation failed');
+      formLogger.debug('Form validation failed - missing required answers');
       return;
     }
 
@@ -190,13 +185,13 @@ const Step5_Compliance = () => {
       }
     };
 
-    console.log('Submitting compliance data:', formattedData);
+    formLogger.debug('Submitting compliance data');
 
     try {
       await updateDeal(dealId, formattedData);
       navigate(`/add/deal/compensation/${dealId}`);
     } catch (error) {
-      console.error('Error updating deal:', error);
+      formLogger.error('Error updating deal', { error: error.message });
     }
   };
 

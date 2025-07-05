@@ -22,7 +22,7 @@ const DealWizardRoute = ({ children }) => {
         await fetchDealById(dealId);
         setIsLoading(false);
       } catch (error) {
-        console.error('Error fetching deal:', error);
+        // Log error without sensitive data
         navigate('/dashboard');
       }
     };

@@ -29,6 +29,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
+import { formLogger } from '../../utils/logger';
 
 // Types
 const CompensationItem = {
@@ -136,7 +137,7 @@ const Step6_Compensation = () => {
 
   const handleNext = async () => {
     if (!isFormValid()) {
-      console.log('Compensation form validation failed');
+      formLogger.debug('Compensation form validation failed - missing required fields');
       return;
     }
 
@@ -165,13 +166,13 @@ const Step6_Compensation = () => {
       }
     });
 
-    console.log('Submitting compensation data:', formattedData);
+    formLogger.debug('Submitting compensation data');
 
     try {
       await updateDeal(dealId, formattedData);
       navigate(`/add/deal/review/${dealId}`);
     } catch (error) {
-      console.error('Error updating deal:', error);
+      formLogger.error('Error updating deal', { error: error.message });
     }
   };
 

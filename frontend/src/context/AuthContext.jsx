@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import { authLogger } from '../utils/logger';
 
 const AuthContext = createContext();
 
@@ -15,13 +16,13 @@ export const AuthProvider = ({ children }) => {
 
   const handleSignOut = useCallback(async () => {
     try {
-      console.log("[AuthContext] User signing out");
+      authLogger.info("User signing out");
       await supabase.auth.signOut();
       setUser(null);
       setError(null);
       navigate('/login');
     } catch (err) {
-      console.error("[AuthContext] Sign out error:", err);
+      authLogger.error("Sign out error", { error: err.message });
       setError(err.message);
     }
   }, [navigate]);
@@ -35,21 +36,21 @@ export const AuthProvider = ({ children }) => {
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error("[AuthContext] Session error:", error);
+          authLogger.error("Session error", { error: error.message });
           throw error;
         }
 
         if (!mounted) return;
 
         if (session?.user) {
-          console.log("[AuthContext] Valid session found for:", session.user.email);
+          authLogger.info("Valid session found");
           setUser(session.user);
         } else {
-          console.log("[AuthContext] No valid session found");
+          authLogger.info("No valid session found");
           setUser(null);
         }
       } catch (err) {
-        console.error("[AuthContext] Session retrieval error:", err);
+        authLogger.error("Session retrieval error", { error: err.message });
         if (mounted) {
           setError(err.message);
           setUser(null);
@@ -64,7 +65,7 @@ export const AuthProvider = ({ children }) => {
     getSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log(`[AuthContext] Auth event: ${event}`, session?.user?.email);
+      authLogger.info(`Auth event: ${event}`);
       
       if (!mounted) return;
 
@@ -92,16 +93,16 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      console.log("[AuthContext] Attempting to sign in user:", data.email);
+      authLogger.info("Attempting to sign in user");
       
       const { data: authData, error } = await supabase.auth.signInWithPassword(data);
       
       if (error) throw error;
       
-      console.log("[AuthContext] Sign-in successful for:", authData.user.email);
+      authLogger.info("Sign-in successful");
       return { data: authData, error: null };
     } catch (err) {
-      console.error("[AuthContext] Sign-in error:", err);
+      authLogger.error("Sign-in error", { error: err.message });
       setError(err.message);
       return { data: null, error: err };
     } finally {
@@ -113,7 +114,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      console.log("[AuthContext] Attempting to sign up new user:", email);
+      authLogger.info("Attempting to sign up new user");
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -126,10 +127,10 @@ export const AuthProvider = ({ children }) => {
       
       if (error) throw error;
       
-      console.log("[AuthContext] Sign-up successful for:", data.user.email);
+      authLogger.info("Sign-up successful");
       return { data, error: null };
     } catch (err) {
-      console.error("[AuthContext] Sign-up error:", err);
+      authLogger.error("Sign-up error", { error: err.message });
       setError(err.message);
       return { data: null, error: err };
     } finally {

@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.dependencies import get_user_id
 from app.database import supabase
 from app.schemas import ProfileUpdate, ProfileResponse, SocialMediaUpdate, SocialMediaResponse
+from app.middleware.validation import validate_request_data, ValidationError, SecurityError
 from typing import List, Optional
 import logging
 
@@ -48,38 +49,51 @@ async def get_profile(user_id: str = Depends(get_user_id)):
 
 @router.put("/profile", response_model=ProfileResponse)
 async def update_profile(profile_data: ProfileUpdate, user_id: str = Depends(get_user_id)):
-    update_data = profile_data.dict(exclude_unset=True)
-    
-    # Convert division format from frontend to database format
-    if 'division' in update_data and update_data['division']:
-        division_map = {
-            'Division I': 'I',
-            'Division II': 'II', 
-            'Division III': 'III',
-            'NAIA': 'NAIA',
-            'JUCO': 'JUCO'
-        }
-        update_data['division'] = division_map.get(update_data['division'], update_data['division'])
-    
-    data = supabase.from_("profiles").update(update_data).eq("id", user_id).execute()
-    if not data.data:
-        raise HTTPException(status_code=404, detail="Profile not found or update failed")
-    
-    updated_profile = supabase.from_("profiles").select("*").eq("id", user_id).single().execute()
-    profile_data = updated_profile.data
-    
-    # Convert division format from database to frontend format
-    if profile_data.get('division'):
-        division_map = {
-            'I': 'Division I',
-            'II': 'Division II',
-            'III': 'Division III',
-            'NAIA': 'NAIA',
-            'JUCO': 'JUCO'
-        }
-        profile_data['division'] = division_map.get(profile_data['division'], profile_data['division'])
-    
-    return profile_data
+    try:
+        update_data = profile_data.dict(exclude_unset=True)
+        
+        # Comprehensive input validation and sanitization
+        try:
+            update_data = validate_request_data(update_data, 'profile')
+        except (ValidationError, SecurityError) as e:
+            logger.warning(f"Validation failed for profile update: {e.detail}")
+            raise e
+        
+        # Convert division format from frontend to database format
+        if 'division' in update_data and update_data['division']:
+            division_map = {
+                'Division I': 'I',
+                'Division II': 'II', 
+                'Division III': 'III',
+                'NAIA': 'NAIA',
+                'JUCO': 'JUCO'
+            }
+            update_data['division'] = division_map.get(update_data['division'], update_data['division'])
+        
+        data = supabase.from_("profiles").update(update_data).eq("id", user_id).execute()
+        if not data.data:
+            raise HTTPException(status_code=404, detail="Profile not found or update failed")
+        
+        updated_profile = supabase.from_("profiles").select("*").eq("id", user_id).single().execute()
+        profile_data = updated_profile.data
+        
+        # Convert division format from database to frontend format
+        if profile_data.get('division'):
+            division_map = {
+                'I': 'Division I',
+                'II': 'Division II',
+                'III': 'Division III',
+                'NAIA': 'NAIA',
+                'JUCO': 'JUCO'
+            }
+            profile_data['division'] = division_map.get(profile_data['division'], profile_data['division'])
+        
+        return profile_data
+    except (ValidationError, SecurityError):
+        raise  # Re-raise validation errors as-is
+    except Exception as e:
+        logger.error(f"Error updating profile: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 # --- Social Media Endpoints ---
 
@@ -106,18 +120,28 @@ async def update_social_media(
 ):
     """Update social media platforms for the authenticated user."""
     try:
+        # Convert to dict for validation
+        social_media_dict = social_media_data.dict()
+        
+        # Comprehensive input validation and sanitization
+        try:
+            social_media_dict = validate_request_data(social_media_dict, 'social_media')
+        except (ValidationError, SecurityError) as e:
+            logger.warning(f"Validation failed for social media update: {e.detail}")
+            raise e
+        
         # Delete existing social media platforms for this user
         supabase.from_("social_media_platforms").delete().eq("user_id", user_id).execute()
         
         # Insert new social media platforms
         new_platforms = []
-        for platform_data in social_media_data.platforms:
+        for platform_data in social_media_dict['platforms']:
             platform_dict = {
                 "user_id": user_id,
-                "platform": platform_data.platform,
-                "handle": platform_data.handle,
-                "followers": platform_data.followers,
-                "verified": platform_data.verified
+                "platform": platform_data['platform'],
+                "handle": platform_data['handle'],
+                "followers": platform_data['followers'],
+                "verified": platform_data.get('verified', False)
             }
             new_platforms.append(platform_dict)
         
@@ -138,6 +162,8 @@ async def update_social_media(
         updated_data = supabase.from_("social_media_platforms").select("*").eq("user_id", user_id).execute()
         return updated_data.data or []
         
+    except (ValidationError, SecurityError):
+        raise  # Re-raise validation errors as-is
     except HTTPException:
         raise
     except Exception as e:

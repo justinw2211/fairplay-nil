@@ -62,7 +62,7 @@ const SocialMediaModal = ({
       });
 
     } catch (error) {
-      console.error('Error saving social media:', error);
+      // Log error without sensitive data
       toast({
         title: 'Error saving profile',
         description: error.message || 'Failed to save your social media information. Please try again.',

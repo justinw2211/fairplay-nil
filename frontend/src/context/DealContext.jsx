@@ -3,6 +3,7 @@ import React, { createContext, useState, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { useAuth } from './AuthContext';
+import { dealLogger } from '../utils/logger';
 
 const DealContext = createContext();
 
@@ -17,14 +18,14 @@ export const DealProvider = ({ children }) => {
 
   // Centralized helper for all authenticated API calls with logging
   const authenticatedFetch = async (url, options = {}) => {
-    console.log(`[DealContext] Starting API call: ${options.method || 'GET'} ${url}`);
+    dealLogger.debug(`Starting API call: ${options.method || 'GET'}`);
     
     try {
       const sessionRes = await supabase.auth.getSession();
       const token = sessionRes.data.session?.access_token;
       
       if (!token) {
-        console.error("[DealContext] Auth fetch failed: No token available.");
+        dealLogger.error("Auth fetch failed: No token available");
         throw new Error("Authentication error: Your session may have expired. Please log in again.");
       }
       
@@ -38,7 +39,7 @@ export const DealProvider = ({ children }) => {
         credentials: 'include', // Add this to ensure cookies are sent
       });
 
-      console.log(`[DealContext] API call complete for: ${url} with status: ${response.status}`);
+      dealLogger.debug(`API call complete with status: ${response.status}`);
 
       if (!response.ok) {
         let errorMessage = `API request failed with status ${response.status}`;
@@ -56,7 +57,7 @@ export const DealProvider = ({ children }) => {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error(`[DealContext] API Error:`, error);
+      dealLogger.error("API Error", { error: error.message });
       throw error;
     }
   };
