@@ -371,7 +371,9 @@ const ValuationResult = () => {
             </CardHeader>
             <CardBody>
               <VStack spacing={4} align="stretch">
-                {prediction?.factors && Object.entries(prediction.factors).map(([key, factor]) => (
+                {prediction?.factors && Object.entries(prediction.factors)
+                  .filter(([key]) => key !== 'gender_adjustment')
+                  .map(([key, factor]) => (
                   <Box key={key}>
                     <HStack justify="space-between" mb={2}>
                       <Text fontSize="sm" fontWeight="medium" color="brand.textPrimary">
@@ -405,7 +407,7 @@ const ValuationResult = () => {
                     </Text>
                   </Box>
                 ))}
-                {(!prediction?.factors || Object.keys(prediction.factors).length === 0) && (
+                {(!prediction?.factors || Object.keys(prediction.factors).filter(key => key !== 'gender_adjustment').length === 0) && (
                   <Box p={4} bg="gray.50" rounded="lg" textAlign="center">
                     <Text fontSize="sm" color="brand.textSecondary">
                       No detailed factors available for this valuation.
