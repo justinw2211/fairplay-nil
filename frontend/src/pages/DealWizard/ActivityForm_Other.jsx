@@ -1,6 +1,6 @@
 // frontend/src/pages/DealWizard/ActivityForm_Other.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
   Box,
@@ -24,8 +24,10 @@ import {
   Calendar,
 } from 'lucide-react';
 
-const ActivityForm_Other = ({ nextStepUrl }) => {
+const ActivityForm_Other = ({ onNext, currentActivity, totalActivities }) => {
   const { dealId } = useParams();
+  const [searchParams] = useSearchParams();
+  const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
 
@@ -35,8 +37,8 @@ const ActivityForm_Other = ({ nextStepUrl }) => {
   const [showError, setShowError] = useState(false);
 
   useEffect(() => {
-    if (deal?.obligations?.['Other']) {
-      const otherData = deal.obligations['Other'];
+    if (deal?.obligations?.['other']) {
+      const otherData = deal.obligations['other'];
       setActivityName(otherData.name || "");
       setActivityDescription(otherData.description || "");
       setDueDate(otherData.dueDate || "");
@@ -62,11 +64,14 @@ const ActivityForm_Other = ({ nextStepUrl }) => {
     await updateDeal(dealId, {
       obligations: {
         ...deal.obligations,
-        'Other': formattedData,
+        'other': formattedData,
       },
     });
-    navigate(nextStepUrl);
+    
+    onNext();
   };
+
+  const progressPercentage = ((currentActivity - 1) / totalActivities) * 100;
 
   return (
     <Container maxW="2xl" py={6}>
@@ -83,17 +88,17 @@ const ActivityForm_Other = ({ nextStepUrl }) => {
           <VStack spacing={3} mb={6}>
             <Flex justify="space-between" w="full" fontSize="sm">
               <Text color="brand.textSecondary" fontWeight="medium">
-                Step 4 of 8
+                Activity {currentActivity} of {totalActivities}
               </Text>
               <Text color="brand.textSecondary">
-                50% Complete
+                {progressPercentage.toFixed(1)}% Complete
               </Text>
             </Flex>
             <Box w="full" bg="brand.accentSecondary" h="2" rounded="full">
               <Box
                 bg="brand.accentPrimary"
                 h="2"
-                w="50%"
+                w={`${progressPercentage}%`}
                 rounded="full"
                 transition="width 0.5s ease-out"
               />
@@ -119,7 +124,7 @@ const ActivityForm_Other = ({ nextStepUrl }) => {
                 Activity Details: Other
               </Text>
               <Text fontSize="lg" color="brand.textSecondary" mt={2}>
-                If you don't see your activity or deliverable reflected in any of the previous categories, please add a description of the obligation you are fulfilling below.
+                Provide details for your custom activity.
               </Text>
             </Box>
           </Flex>
@@ -140,7 +145,7 @@ const ActivityForm_Other = ({ nextStepUrl }) => {
               <Input
                 id="activity-name"
                 type="text"
-                placeholder="e.g., 'Charity Gala Host'"
+                placeholder="e.g., 'Podcast appearance', 'Brand ambassador program'"
                 value={activityName}
                 onChange={(e) => setActivityName(e.target.value)}
                 h="12"
@@ -154,49 +159,37 @@ const ActivityForm_Other = ({ nextStepUrl }) => {
               />
             </FormControl>
 
-            {/* Description Textarea */}
-            <FormControl isInvalid={showError}>
+            {/* Activity Description */}
+            <FormControl isInvalid={showError && !activityDescription.trim()}>
               <FormLabel
                 htmlFor="activity-description"
                 color="brand.textPrimary"
                 fontWeight="semibold"
               >
-                Description of activity or deliverable *
+                Activity Description *
               </FormLabel>
               <Textarea
                 id="activity-description"
-                placeholder="Please provide a detailed description of what you will be doing, including specific deliverables, timeline, and any requirements. For example: 'Host a charity gala event for 200+ attendees, including opening remarks, award presentations, and meet-and-greet with donors. Event scheduled for 3 hours with formal attire required.'"
+                placeholder="Describe what you'll be doing for this activity..."
                 value={activityDescription}
                 onChange={(e) => {
-                  const value = e.target.value;
-                  if (value.length <= 1000) {
-                    setActivityDescription(value);
-                    if (showError && value.trim()) {
-                      setShowError(false);
-                    }
+                  setActivityDescription(e.target.value);
+                  if (showError && e.target.value.trim()) {
+                    setShowError(false);
                   }
                 }}
-                minH="140px"
+                h="32"
                 fontSize="base"
                 borderColor="brand.accentSecondary"
                 _focus={{
                   borderColor: "brand.accentPrimary",
                   boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
                 }}
-                _invalid={{
-                  borderColor: "red.500",
-                  boxShadow: "0 0 0 1px var(--chakra-colors-red-500)",
-                }}
-                resize="none"
-                rows={6}
                 required
               />
-              <Flex justify="space-between" align="center" mt={1}>
-                <FormErrorMessage margin={0}>Description is required</FormErrorMessage>
-                <Text fontSize="xs" color="brand.textSecondary">
-                  {activityDescription.length}/1000
-                </Text>
-              </Flex>
+              <FormErrorMessage>
+                Please provide a description of the activity.
+              </FormErrorMessage>
             </FormControl>
 
             {/* Due Date Input */}
@@ -206,69 +199,22 @@ const ActivityForm_Other = ({ nextStepUrl }) => {
                 color="brand.textPrimary"
                 fontWeight="semibold"
               >
-                Due Date or Event Date (optional)
+                Due Date (optional)
               </FormLabel>
-              <Box position="relative">
-                <Input
-                  id="due-date"
-                  type="date"
-                  min={new Date().toISOString().split('T')[0]}
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  h="12"
-                  fontSize="base"
-                  borderColor="brand.accentSecondary"
-                  _focus={{
-                    borderColor: "brand.accentPrimary",
-                    boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
-                  }}
-                  pr="10"
-                />
-                <Icon
-                  as={Calendar}
-                  position="absolute"
-                  right="3"
-                  top="50%"
-                  transform="translateY(-50%)"
-                  w="4"
-                  h="4"
-                  color="brand.textSecondary"
-                  pointerEvents="none"
-                />
-              </Box>
-              <Text fontSize="sm" color="brand.textSecondary" mt={2}>
-                If this activity has a specific deadline or event date, please specify it here.
-              </Text>
+              <Input
+                id="due-date"
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                h="12"
+                fontSize="base"
+                borderColor="brand.accentSecondary"
+                _focus={{
+                  borderColor: "brand.accentPrimary",
+                  boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
+                }}
+              />
             </FormControl>
-
-            {/* Help Box */}
-            <Box
-              p={4}
-              bg="gray.50"
-              rounded="lg"
-              borderWidth="1px"
-              borderColor="brand.accentSecondary"
-              w="full"
-            >
-              <Flex gap={3}>
-                <Icon
-                  as={HelpCircle}
-                  w="5"
-                  h="5"
-                  color="brand.accentPrimary"
-                  mt="1"
-                  flexShrink={0}
-                />
-                <Box>
-                  <Text fontWeight="semibold" color="brand.textPrimary">
-                    Need help describing your activity?
-                  </Text>
-                  <Text fontSize="sm" color="brand.textSecondary" mt={2} lineHeight="relaxed">
-                    Include details such as: What exactly will you be doing? How long will it take? Are there specific requirements or deliverables? Will this be a one-time event or ongoing commitment?
-                  </Text>
-                </Box>
-              </Flex>
-            </Box>
 
             {/* Navigation */}
             <Flex justify="space-between" align="center" pt={8}>
@@ -298,7 +244,10 @@ const ActivityForm_Other = ({ nextStepUrl }) => {
                   fontWeight="medium"
                   borderColor="brand.accentSecondary"
                   color="brand.textSecondary"
-                  onClick={() => navigate(`/add/deal/activities/select/${dealId}`)}
+                  onClick={() => {
+                    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+                    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
+                  }}
                   _hover={{
                     bg: "brand.backgroundLight",
                     borderColor: "brand.accentPrimary",

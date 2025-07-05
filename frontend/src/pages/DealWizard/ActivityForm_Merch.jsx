@@ -1,92 +1,127 @@
 // frontend/src/pages/DealWizard/ActivityForm_Merch.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
   Box,
   Button,
+  Checkbox,
   Container,
   Flex,
   FormControl,
   FormLabel,
   Icon,
   Input,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  NumberIncrementStepper,
+  NumberDecrementStepper,
   Text,
-  Textarea,
   VStack,
-  Grid,
-  GridItem,
-  InputGroup,
-  InputRightElement,
-  FormErrorMessage,
+  SimpleGrid,
 } from '@chakra-ui/react';
 import {
   ChevronRight,
   ChevronLeft,
   Clock,
   ShoppingBag,
-  Calendar,
-  Percent,
 } from 'lucide-react';
 
-const ActivityForm_Merch = ({ nextStepUrl }) => {
+const ActivityForm_Merch = ({ onNext, currentActivity, totalActivities }) => {
   const { dealId } = useParams();
+  const [searchParams] = useSearchParams();
+  const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
 
-  const [merchandiseTypes, setMerchandiseTypes] = useState("");
-  const [salesPlatform, setSalesPlatform] = useState("");
-  const [royaltiesDescription, setRoyaltiesDescription] = useState("");
-  const [revenuePercentage, setRevenuePercentage] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [showError, setShowError] = useState(false);
+  const [selectedMerch, setSelectedMerch] = useState([]);
+  const [merchDetails, setMerchDetails] = useState({});
+  const [customMerch, setCustomMerch] = useState("");
+
+  const merchTypes = [
+    { id: "jerseys", name: "Jerseys" },
+    { id: "t-shirts", name: "T-Shirts" },
+    { id: "hats", name: "Hats/Caps" },
+    { id: "posters", name: "Posters" },
+    { id: "bobbleheads", name: "Bobbleheads" },
+    { id: "trading-cards", name: "Trading Cards" },
+    { id: "keychains", name: "Keychains" },
+    { id: "mugs", name: "Mugs" },
+    { id: "phone-cases", name: "Phone Cases" },
+    { id: "custom", name: "Other (specify)" }
+  ];
 
   useEffect(() => {
-    if (deal?.obligations?.['Merchandise']) {
-      const merchData = deal.obligations['Merchandise'];
-      setMerchandiseTypes(merchData.types || "");
-      setSalesPlatform(merchData.platform || "");
-      setRoyaltiesDescription(merchData.description || "");
-      setRevenuePercentage(merchData.percentage || "");
-      setStartDate(merchData.startDate || "");
-      setEndDate(merchData.endDate || "");
+    if (deal?.obligations?.['merch-and-products']) {
+      const merchData = deal.obligations['merch-and-products'];
+      setSelectedMerch(merchData.selectedTypes || []);
+      setMerchDetails(merchData.details || {});
+      setCustomMerch(merchData.customMerch || "");
     }
   }, [deal]);
 
+  const handleMerchToggle = (merchId, checked) => {
+    if (checked) {
+      setSelectedMerch([...selectedMerch, merchId]);
+      setMerchDetails({
+        ...merchDetails,
+        [merchId]: {
+          id: merchId,
+          name: merchTypes.find(m => m.id === merchId)?.name || "",
+          quantity: 100,
+          price: 25.00,
+        },
+      });
+    } else {
+      setSelectedMerch(selectedMerch.filter(m => m !== merchId));
+      const newDetails = { ...merchDetails };
+      delete newDetails[merchId];
+      setMerchDetails(newDetails);
+
+      if (merchId === "custom") {
+        setCustomMerch("");
+      }
+    }
+  };
+
+  const updateMerchDetail = (merchId, field, value) => {
+    setMerchDetails({
+      ...merchDetails,
+      [merchId]: {
+        ...merchDetails[merchId],
+        [field]: value,
+      },
+    });
+  };
+
   const isFormValid = () => {
-    return merchandiseTypes.trim() && 
-           royaltiesDescription.trim() && 
-           startDate && 
-           endDate;
+    return selectedMerch.length > 0 && 
+           (!selectedMerch.includes("custom") || customMerch.trim());
   };
 
   const handleNext = async () => {
-    if (!royaltiesDescription.trim()) {
-      setShowError(true);
-      return;
-    }
-
     const formattedData = {
-      types: merchandiseTypes.trim(),
-      platform: salesPlatform.trim(),
-      description: royaltiesDescription.trim(),
-      percentage: revenuePercentage,
-      startDate,
-      endDate,
+      selectedTypes: selectedMerch,
+      details: merchDetails,
+      customMerch: customMerch,
+      totalItems: Object.values(merchDetails).reduce((sum, item) => sum + (item.quantity || 0), 0),
     };
 
     await updateDeal(dealId, {
       obligations: {
         ...deal.obligations,
-        'Merchandise': formattedData,
+        'merch-and-products': formattedData,
       },
     });
-    navigate(nextStepUrl);
+    
+    onNext();
   };
 
+  const progressPercentage = ((currentActivity - 1) / totalActivities) * 100;
+
   return (
-    <Container maxW="2xl" py={6}>
+    <Container maxW="4xl" py={6}>
       <Box
         borderWidth="1px"
         borderColor="brand.accentSecondary"
@@ -100,17 +135,17 @@ const ActivityForm_Merch = ({ nextStepUrl }) => {
           <VStack spacing={3} mb={6}>
             <Flex justify="space-between" w="full" fontSize="sm">
               <Text color="brand.textSecondary" fontWeight="medium">
-                Step 5 of 9
+                Activity {currentActivity} of {totalActivities}
               </Text>
               <Text color="brand.textSecondary">
-                55.6% Complete
+                {progressPercentage.toFixed(1)}% Complete
               </Text>
             </Flex>
             <Box w="full" bg="brand.accentSecondary" h="2" rounded="full">
               <Box
                 bg="brand.accentPrimary"
                 h="2"
-                w="55.6%"
+                w={`${progressPercentage}%`}
                 rounded="full"
                 transition="width 0.5s ease-out"
               />
@@ -133,10 +168,10 @@ const ActivityForm_Merch = ({ nextStepUrl }) => {
             </Box>
             <Box>
               <Text fontSize="3xl" fontWeight="bold" color="brand.textPrimary">
-                Activity Details: Selling Merchandise
+                Merchandise & Products
               </Text>
               <Text fontSize="lg" color="brand.textSecondary" mt={2}>
-                Your payor sells items with your name, image, or likeness, like jerseys or bobbleheads. Often you will receive a percentage of revenue of these items as payment.
+                Configure your merchandise licensing details
               </Text>
             </Box>
           </Flex>
@@ -145,223 +180,167 @@ const ActivityForm_Merch = ({ nextStepUrl }) => {
         {/* Content Section */}
         <Box p={6} pt={0}>
           <VStack spacing={8}>
-            {/* Merchandise Types Input */}
-            <FormControl>
-              <FormLabel
-                htmlFor="merchandise-types"
-                color="brand.textPrimary"
-                fontWeight="semibold"
-              >
-                Type(s) of Merchandise *
-              </FormLabel>
-              <Input
-                id="merchandise-types"
-                type="text"
-                placeholder="e.g., 'T-shirts, signed posters, hats'"
-                value={merchandiseTypes}
-                onChange={(e) => setMerchandiseTypes(e.target.value)}
-                h="12"
-                fontSize="base"
-                borderColor="brand.accentSecondary"
-                _focus={{
-                  borderColor: "brand.accentPrimary",
-                  boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
-                }}
-                required
-              />
-            </FormControl>
-
-            {/* Sales Platform Input */}
-            <FormControl>
-              <FormLabel
-                htmlFor="sales-platform"
-                color="brand.textPrimary"
-                fontWeight="semibold"
-              >
-                Sales Platform / Vendor (optional)
-              </FormLabel>
-              <Input
-                id="sales-platform"
-                type="text"
-                placeholder="e.g., 'Shopify, Etsy, personal website'"
-                value={salesPlatform}
-                onChange={(e) => setSalesPlatform(e.target.value)}
-                h="12"
-                fontSize="base"
-                borderColor="brand.accentSecondary"
-                _focus={{
-                  borderColor: "brand.accentPrimary",
-                  boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
-                }}
-              />
-            </FormControl>
-
-            {/* Revenue Percentage Input */}
-            <FormControl>
-              <FormLabel
-                htmlFor="revenue-percentage"
-                color="brand.textPrimary"
-                fontWeight="semibold"
-              >
-                Percentage of Sales You Will Receive (optional)
-              </FormLabel>
-              <InputGroup>
-                <Input
-                  id="revenue-percentage"
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  placeholder="e.g., 15"
-                  value={revenuePercentage}
-                  onChange={(e) => setRevenuePercentage(e.target.value)}
-                  h="12"
-                  fontSize="base"
-                  borderColor="brand.accentSecondary"
-                  _focus={{
-                    borderColor: "brand.accentPrimary",
-                    boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
-                  }}
-                  pr="12"
-                />
-                <InputRightElement h="12" w="12">
-                  <Icon
-                    as={Percent}
-                    w="4"
-                    h="4"
-                    color="brand.textSecondary"
-                  />
-                </InputRightElement>
-              </InputGroup>
-            </FormControl>
-
-            {/* Description Textarea */}
-            <FormControl isInvalid={showError}>
-              <FormLabel
-                htmlFor="royalties-description"
-                color="brand.textPrimary"
-                fontWeight="semibold"
-              >
-                Description of items being sold *
-              </FormLabel>
-              <Textarea
-                id="royalties-description"
-                placeholder="e.g., '15% of net sales on all t-shirts, $5 per signed poster sold...'"
-                value={royaltiesDescription}
-                onChange={(e) => {
-                  setRoyaltiesDescription(e.target.value);
-                  if (showError && e.target.value.trim()) {
-                    setShowError(false);
-                  }
-                }}
-                minH="120px"
-                fontSize="base"
-                borderColor="brand.accentSecondary"
-                _focus={{
-                  borderColor: "brand.accentPrimary",
-                  boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
-                }}
-                _invalid={{
-                  borderColor: "red.500",
-                  boxShadow: "0 0 0 1px var(--chakra-colors-red-500)",
-                }}
-                resize="none"
-                required
-              />
-              <FormErrorMessage>Description is required</FormErrorMessage>
-            </FormControl>
-
-            {/* Date Range */}
+            {/* Merchandise Types Selection */}
             <FormControl>
               <FormLabel color="brand.textPrimary" fontWeight="semibold">
-                Sales Period *
+                Select merchandise types *
               </FormLabel>
-              <Grid templateColumns={{ base: "1fr", sm: "1fr 1fr" }} gap={4}>
-                <GridItem>
-                  <FormControl>
-                    <FormLabel
-                      htmlFor="start-date"
-                      fontSize="sm"
-                      fontWeight="medium"
-                      color="brand.textPrimary"
+              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+                {merchTypes.map((merch) => {
+                  const isSelected = selectedMerch.includes(merch.id);
+                  return (
+                    <Box
+                      key={merch.id}
+                      border="1px"
+                      borderColor={isSelected ? "brand.accentPrimary" : "brand.accentSecondary"}
+                      rounded="lg"
+                      p={4}
+                      transition="all 0.2s"
+                      cursor="pointer"
+                      bg={isSelected ? "brand.backgroundLight" : "white"}
+                      onClick={() => handleMerchToggle(merch.id, !isSelected)}
+                      _hover={{ borderColor: "brand.accentPrimary", bg: "brand.backgroundLight" }}
                     >
-                      Start Date
-                    </FormLabel>
-                    <Box position="relative">
-                      <Input
-                        id="start-date"
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        h="12"
-                        fontSize="base"
-                        borderColor="brand.accentSecondary"
-                        _focus={{
-                          borderColor: "brand.accentPrimary",
-                          boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
-                        }}
-                        required
-                        pr="10"
-                      />
-                      <Icon
-                        as={Calendar}
-                        position="absolute"
-                        right="3"
-                        top="50%"
-                        transform="translateY(-50%)"
-                        w="4"
-                        h="4"
-                        color="brand.textSecondary"
-                        pointerEvents="none"
-                      />
+                      <Flex gap={3} align="center">
+                        <Checkbox
+                          isChecked={isSelected}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleMerchToggle(merch.id, e.target.checked);
+                          }}
+                          borderColor="brand.accentSecondary"
+                          sx={{
+                            'span.chakra-checkbox__control': {
+                              _checked: {
+                                bg: 'brand.accentPrimary',
+                                borderColor: 'brand.accentPrimary',
+                              },
+                            },
+                          }}
+                        />
+                        <Text color="brand.textPrimary" fontWeight="medium">
+                          {merch.name}
+                        </Text>
+                      </Flex>
                     </Box>
-                  </FormControl>
-                </GridItem>
-                <GridItem>
-                  <FormControl>
-                    <FormLabel
-                      htmlFor="end-date"
-                      fontSize="sm"
-                      fontWeight="medium"
-                      color="brand.textPrimary"
-                    >
-                      End Date
-                    </FormLabel>
-                    <Box position="relative">
-                      <Input
-                        id="end-date"
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        h="12"
-                        fontSize="base"
-                        borderColor="brand.accentSecondary"
-                        _focus={{
-                          borderColor: "brand.accentPrimary",
-                          boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
-                        }}
-                        required
-                        pr="10"
-                      />
-                      <Icon
-                        as={Calendar}
-                        position="absolute"
-                        right="3"
-                        top="50%"
-                        transform="translateY(-50%)"
-                        w="4"
-                        h="4"
-                        color="brand.textSecondary"
-                        pointerEvents="none"
-                      />
-                    </Box>
-                  </FormControl>
-                </GridItem>
-              </Grid>
+                  );
+                })}
+              </SimpleGrid>
             </FormControl>
 
+            {/* Custom Merchandise Input */}
+            {selectedMerch.includes("custom") && (
+              <Box
+                bg="brand.backgroundLight"
+                p={6}
+                rounded="lg"
+                border="1px"
+                borderColor="brand.accentSecondary"
+              >
+                <FormControl>
+                  <FormLabel color="brand.textPrimary" fontWeight="semibold">
+                    Specify other merchandise type *
+                  </FormLabel>
+                  <Input
+                    value={customMerch}
+                    onChange={(e) => setCustomMerch(e.target.value)}
+                    placeholder="e.g., 'Water bottles', 'Notebooks', 'Car decals'"
+                    h="12"
+                    fontSize="base"
+                    borderColor="brand.accentSecondary"
+                    _focus={{
+                      borderColor: "brand.accentPrimary",
+                      boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
+                    }}
+                  />
+                </FormControl>
+              </Box>
+            )}
+
+            {/* Merchandise Details */}
+            {selectedMerch.length > 0 && (
+              <VStack spacing={6} w="full">
+                <Text color="brand.textPrimary" fontWeight="semibold" fontSize="lg">
+                  Merchandise Details
+                </Text>
+                {selectedMerch.map((merchId) => {
+                  const merch = merchTypes.find(m => m.id === merchId);
+                  const details = merchDetails[merchId] || {};
+                  
+                  return (
+                    <Box
+                      key={merchId}
+                      w="full"
+                      border="1px"
+                      borderColor="brand.accentSecondary"
+                      rounded="lg"
+                      p={6}
+                      bg="white"
+                    >
+                      <Text color="brand.textPrimary" fontWeight="semibold" mb={4}>
+                        {merch?.name} {merchId === "custom" ? `(${customMerch})` : ""}
+                      </Text>
+                      
+                      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+                        <FormControl>
+                          <FormLabel fontSize="sm" color="brand.textSecondary">
+                            Estimated Quantity
+                          </FormLabel>
+                          <NumberInput
+                            value={details.quantity || 100}
+                            onChange={(_, value) => updateMerchDetail(merchId, 'quantity', value)}
+                            min={1}
+                            max={10000}
+                          >
+                            <NumberInputField
+                              h="10"
+                              borderColor="brand.accentSecondary"
+                              _focus={{
+                                borderColor: "brand.accentPrimary",
+                                boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
+                              }}
+                            />
+                            <NumberInputStepper>
+                              <NumberIncrementStepper />
+                              <NumberDecrementStepper />
+                            </NumberInputStepper>
+                          </NumberInput>
+                        </FormControl>
+
+                        <FormControl>
+                          <FormLabel fontSize="sm" color="brand.textSecondary">
+                            Estimated Price ($)
+                          </FormLabel>
+                          <NumberInput
+                            value={details.price || 25.00}
+                            onChange={(_, value) => updateMerchDetail(merchId, 'price', value)}
+                            min={0.01}
+                            precision={2}
+                            step={0.01}
+                          >
+                            <NumberInputField
+                              h="10"
+                              borderColor="brand.accentSecondary"
+                              _focus={{
+                                borderColor: "brand.accentPrimary",
+                                boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
+                              }}
+                            />
+                            <NumberInputStepper>
+                              <NumberIncrementStepper />
+                              <NumberDecrementStepper />
+                            </NumberInputStepper>
+                          </NumberInput>
+                        </FormControl>
+                      </SimpleGrid>
+                    </Box>
+                  );
+                })}
+              </VStack>
+            )}
+
             {/* Navigation */}
-            <Flex justify="space-between" align="center" pt={8}>
+            <Flex justify="space-between" align="center" pt={8} w="full">
               <Button
                 leftIcon={<Icon as={Clock} w="5" h="5" />}
                 variant="ghost"
@@ -388,7 +367,10 @@ const ActivityForm_Merch = ({ nextStepUrl }) => {
                   fontWeight="medium"
                   borderColor="brand.accentSecondary"
                   color="brand.textSecondary"
-                  onClick={() => navigate(`/add/deal/activities/select/${dealId}`)}
+                  onClick={() => {
+                    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+                    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
+                  }}
                   _hover={{
                     bg: "brand.backgroundLight",
                     borderColor: "brand.accentPrimary",

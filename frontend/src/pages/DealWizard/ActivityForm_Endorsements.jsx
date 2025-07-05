@@ -1,6 +1,6 @@
 // frontend/src/pages/DealWizard/ActivityForm_Endorsements.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
   Box,
@@ -15,73 +15,106 @@ import {
   Text,
   Textarea,
   VStack,
-  Grid,
-  GridItem,
-  FormErrorMessage,
+  SimpleGrid,
 } from '@chakra-ui/react';
 import {
   ChevronRight,
   ChevronLeft,
   Clock,
   Award,
-  Calendar,
 } from 'lucide-react';
 
-const ActivityForm_Endorsements = ({ nextStepUrl }) => {
+const ActivityForm_Endorsements = ({ onNext, currentActivity, totalActivities }) => {
   const { dealId } = useParams();
+  const [searchParams] = useSearchParams();
+  const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
 
-  const [productName, setProductName] = useState("");
-  const [endorsementRequirements, setEndorsementRequirements] = useState("");
-  const [hasExclusivity, setHasExclusivity] = useState(false);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [showError, setShowError] = useState(false);
+  const [selectedEndorsements, setSelectedEndorsements] = useState([]);
+  const [endorsementDetails, setEndorsementDetails] = useState({});
+  const [description, setDescription] = useState("");
+  const [duration, setDuration] = useState("");
+
+  const endorsementTypes = [
+    { id: "sports-equipment", name: "Sports Equipment" },
+    { id: "apparel", name: "Apparel & Footwear" },
+    { id: "nutrition", name: "Nutrition/Supplements" },
+    { id: "technology", name: "Technology" },
+    { id: "automotive", name: "Automotive" },
+    { id: "food-beverage", name: "Food & Beverage" },
+    { id: "gaming", name: "Gaming" },
+    { id: "lifestyle", name: "Lifestyle Products" },
+    { id: "financial", name: "Financial Services" },
+    { id: "other", name: "Other" }
+  ];
 
   useEffect(() => {
-    if (deal?.obligations?.['Endorsements']) {
-      const endorsementData = deal.obligations['Endorsements'];
-      setProductName(endorsementData.productName || "");
-      setEndorsementRequirements(endorsementData.requirements || "");
-      setHasExclusivity(endorsementData.hasExclusivity || false);
-      setStartDate(endorsementData.startDate || "");
-      setEndDate(endorsementData.endDate || "");
+    if (deal?.obligations?.['endorsements']) {
+      const endorsementData = deal.obligations['endorsements'];
+      setSelectedEndorsements(endorsementData.selectedTypes || []);
+      setEndorsementDetails(endorsementData.details || {});
+      setDescription(endorsementData.description || "");
+      setDuration(endorsementData.duration || "");
     }
   }, [deal]);
 
+  const handleEndorsementToggle = (endorsementId, checked) => {
+    if (checked) {
+      setSelectedEndorsements([...selectedEndorsements, endorsementId]);
+      setEndorsementDetails({
+        ...endorsementDetails,
+        [endorsementId]: {
+          id: endorsementId,
+          name: endorsementTypes.find(e => e.id === endorsementId)?.name || "",
+          usage: "",
+          exclusivity: false,
+        },
+      });
+    } else {
+      setSelectedEndorsements(selectedEndorsements.filter(e => e !== endorsementId));
+      const newDetails = { ...endorsementDetails };
+      delete newDetails[endorsementId];
+      setEndorsementDetails(newDetails);
+    }
+  };
+
+  const updateEndorsementDetail = (endorsementId, field, value) => {
+    setEndorsementDetails({
+      ...endorsementDetails,
+      [endorsementId]: {
+        ...endorsementDetails[endorsementId],
+        [field]: value,
+      },
+    });
+  };
+
   const isFormValid = () => {
-    return productName.trim() && 
-           endorsementRequirements.trim() && 
-           startDate && 
-           endDate;
+    return selectedEndorsements.length > 0 && description.trim();
   };
 
   const handleNext = async () => {
-    if (!endorsementRequirements.trim()) {
-      setShowError(true);
-      return;
-    }
-
     const formattedData = {
-      productName: productName.trim(),
-      requirements: endorsementRequirements.trim(),
-      hasExclusivity,
-      startDate,
-      endDate,
+      selectedTypes: selectedEndorsements,
+      details: endorsementDetails,
+      description,
+      duration,
     };
 
     await updateDeal(dealId, {
       obligations: {
         ...deal.obligations,
-        'Endorsements': formattedData,
+        'endorsements': formattedData,
       },
     });
-    navigate(nextStepUrl);
+    
+    onNext();
   };
 
+  const progressPercentage = ((currentActivity - 1) / totalActivities) * 100;
+
   return (
-    <Container maxW="2xl" py={6}>
+    <Container maxW="4xl" py={6}>
       <Box
         borderWidth="1px"
         borderColor="brand.accentSecondary"
@@ -95,17 +128,17 @@ const ActivityForm_Endorsements = ({ nextStepUrl }) => {
           <VStack spacing={3} mb={6}>
             <Flex justify="space-between" w="full" fontSize="sm">
               <Text color="brand.textSecondary" fontWeight="medium">
-                Step 4 of 8
+                Activity {currentActivity} of {totalActivities}
               </Text>
               <Text color="brand.textSecondary">
-                50% Complete
+                {progressPercentage.toFixed(1)}% Complete
               </Text>
             </Flex>
             <Box w="full" bg="brand.accentSecondary" h="2" rounded="full">
               <Box
                 bg="brand.accentPrimary"
                 h="2"
-                w="50%"
+                w={`${progressPercentage}%`}
                 rounded="full"
                 transition="width 0.5s ease-out"
               />
@@ -128,10 +161,10 @@ const ActivityForm_Endorsements = ({ nextStepUrl }) => {
             </Box>
             <Box>
               <Text fontSize="3xl" fontWeight="bold" color="brand.textPrimary">
-                Activity Details: Product Endorsement
+                Product Endorsements
               </Text>
               <Text fontSize="lg" color="brand.textSecondary" mt={2}>
-                You wear or use products from your payor in public appearances or competitions. For example, you wear shoes or use equipment (e.g., golf clubs) from your payor at a game, or wear clothing from your payor during interviews.
+                Configure your product endorsement details
               </Text>
             </Box>
           </Flex>
@@ -140,21 +173,150 @@ const ActivityForm_Endorsements = ({ nextStepUrl }) => {
         {/* Content Section */}
         <Box p={6} pt={0}>
           <VStack spacing={8}>
-            {/* Product Name Input */}
+            {/* Endorsement Types Selection */}
             <FormControl>
-              <FormLabel
-                htmlFor="product-name"
-                color="brand.textPrimary"
-                fontWeight="semibold"
-              >
-                Product or Service Name *
+              <FormLabel color="brand.textPrimary" fontWeight="semibold">
+                Select product categories *
+              </FormLabel>
+              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+                {endorsementTypes.map((endorsement) => {
+                  const isSelected = selectedEndorsements.includes(endorsement.id);
+                  return (
+                    <Box
+                      key={endorsement.id}
+                      border="1px"
+                      borderColor={isSelected ? "brand.accentPrimary" : "brand.accentSecondary"}
+                      rounded="lg"
+                      p={4}
+                      transition="all 0.2s"
+                      cursor="pointer"
+                      bg={isSelected ? "brand.backgroundLight" : "white"}
+                      onClick={() => handleEndorsementToggle(endorsement.id, !isSelected)}
+                      _hover={{ borderColor: "brand.accentPrimary", bg: "brand.backgroundLight" }}
+                    >
+                      <Flex gap={3} align="center">
+                        <Checkbox
+                          isChecked={isSelected}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleEndorsementToggle(endorsement.id, e.target.checked);
+                          }}
+                          borderColor="brand.accentSecondary"
+                          sx={{
+                            'span.chakra-checkbox__control': {
+                              _checked: {
+                                bg: 'brand.accentPrimary',
+                                borderColor: 'brand.accentPrimary',
+                              },
+                            },
+                          }}
+                        />
+                        <Text color="brand.textPrimary" fontWeight="medium">
+                          {endorsement.name}
+                        </Text>
+                      </Flex>
+                    </Box>
+                  );
+                })}
+              </SimpleGrid>
+            </FormControl>
+
+            {/* Endorsement Details */}
+            {selectedEndorsements.length > 0 && (
+              <VStack spacing={6} w="full">
+                <Text color="brand.textPrimary" fontWeight="semibold" fontSize="lg">
+                  Endorsement Details
+                </Text>
+                {selectedEndorsements.map((endorsementId) => {
+                  const endorsement = endorsementTypes.find(e => e.id === endorsementId);
+                  const details = endorsementDetails[endorsementId] || {};
+                  
+                  return (
+                    <Box
+                      key={endorsementId}
+                      w="full"
+                      border="1px"
+                      borderColor="brand.accentSecondary"
+                      rounded="lg"
+                      p={6}
+                      bg="white"
+                    >
+                      <Text color="brand.textPrimary" fontWeight="semibold" mb={4}>
+                        {endorsement?.name}
+                      </Text>
+                      
+                      <VStack spacing={4} align="stretch">
+                        <FormControl>
+                          <FormLabel fontSize="sm" color="brand.textSecondary">
+                            How will you use/display this product?
+                          </FormLabel>
+                          <Input
+                            value={details.usage || ""}
+                            onChange={(e) => updateEndorsementDetail(endorsementId, 'usage', e.target.value)}
+                            placeholder="e.g., 'Wear during games', 'Use in training', 'Display in social media'"
+                            h="10"
+                            borderColor="brand.accentSecondary"
+                            _focus={{
+                              borderColor: "brand.accentPrimary",
+                              boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
+                            }}
+                          />
+                        </FormControl>
+
+                        <FormControl>
+                          <Checkbox
+                            isChecked={details.exclusivity || false}
+                            onChange={(e) => updateEndorsementDetail(endorsementId, 'exclusivity', e.target.checked)}
+                            borderColor="brand.accentSecondary"
+                            sx={{
+                              'span.chakra-checkbox__control': {
+                                _checked: {
+                                  bg: 'brand.accentPrimary',
+                                  borderColor: 'brand.accentPrimary',
+                                },
+                              },
+                            }}
+                          >
+                            <Text fontSize="sm" color="brand.textSecondary">
+                              This is an exclusive endorsement (I cannot endorse competing products)
+                            </Text>
+                          </Checkbox>
+                        </FormControl>
+                      </VStack>
+                    </Box>
+                  );
+                })}
+              </VStack>
+            )}
+
+            {/* General Description */}
+            <FormControl>
+              <FormLabel color="brand.textPrimary" fontWeight="semibold">
+                Overall endorsement description *
+              </FormLabel>
+              <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Describe the overall scope of your endorsement activities..."
+                h="24"
+                fontSize="base"
+                borderColor="brand.accentSecondary"
+                _focus={{
+                  borderColor: "brand.accentPrimary",
+                  boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
+                }}
+              />
+            </FormControl>
+
+            {/* Duration */}
+            <FormControl>
+              <FormLabel color="brand.textPrimary" fontWeight="semibold">
+                Endorsement duration (optional)
               </FormLabel>
               <Input
-                id="product-name"
-                type="text"
-                placeholder="e.g., 'Nike Air Max shoes', 'Gatorade sports drink', 'Wilson tennis racket'"
-                value={productName}
-                onChange={(e) => setProductName(e.target.value)}
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                placeholder="e.g., '6 months', '1 year', 'Duration of college career'"
                 h="12"
                 fontSize="base"
                 borderColor="brand.accentSecondary"
@@ -162,165 +324,11 @@ const ActivityForm_Endorsements = ({ nextStepUrl }) => {
                   borderColor: "brand.accentPrimary",
                   boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
                 }}
-                required
               />
-            </FormControl>
-
-            {/* Requirements Textarea */}
-            <FormControl isInvalid={showError}>
-              <FormLabel
-                htmlFor="endorsement-requirements"
-                color="brand.textPrimary"
-                fontWeight="semibold"
-              >
-                Description of the products you are endorsing and how they are used *
-              </FormLabel>
-              <Textarea
-                id="endorsement-requirements"
-                placeholder="e.g., 'Must wear branded hat during all public appearances for one month, verbally endorse the product in at least two interviews...'"
-                value={endorsementRequirements}
-                onChange={(e) => {
-                  setEndorsementRequirements(e.target.value);
-                  if (showError && e.target.value.trim()) {
-                    setShowError(false);
-                  }
-                }}
-                minH="120px"
-                fontSize="base"
-                borderColor="brand.accentSecondary"
-                _focus={{
-                  borderColor: "brand.accentPrimary",
-                  boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
-                }}
-                _invalid={{
-                  borderColor: "red.500",
-                  boxShadow: "0 0 0 1px var(--chakra-colors-red-500)",
-                }}
-                resize="none"
-                required
-              />
-              <FormErrorMessage>Description is required</FormErrorMessage>
-            </FormControl>
-
-            {/* Exclusivity Checkbox */}
-            <Box
-              p={4}
-              bg="gray.50"
-              rounded="lg"
-              borderWidth="1px"
-              borderColor="brand.accentSecondary"
-              w="full"
-            >
-              <Flex align="center" gap={3}>
-                <Checkbox
-                  id="exclusivity-clause"
-                  isChecked={hasExclusivity}
-                  onChange={(e) => setHasExclusivity(e.target.checked)}
-                  colorScheme="brand"
-                >
-                  <Text color="brand.textPrimary" fontWeight="medium">
-                    Does this deal include an exclusivity clause?
-                  </Text>
-                </Checkbox>
-              </Flex>
-              {hasExclusivity && (
-                <Text color="brand.textSecondary" fontSize="sm" mt={2} pl={7}>
-                  This means you cannot endorse competing products during the endorsement period.
-                </Text>
-              )}
-            </Box>
-
-            {/* Date Range */}
-            <FormControl>
-              <FormLabel color="brand.textPrimary" fontWeight="semibold">
-                Endorsement Period *
-              </FormLabel>
-              <Grid templateColumns={{ base: "1fr", sm: "1fr 1fr" }} gap={4}>
-                <GridItem>
-                  <FormControl>
-                    <FormLabel
-                      htmlFor="start-date"
-                      fontSize="sm"
-                      fontWeight="medium"
-                      color="brand.textPrimary"
-                    >
-                      Start Date
-                    </FormLabel>
-                    <Box position="relative">
-                      <Input
-                        id="start-date"
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        h="12"
-                        fontSize="base"
-                        borderColor="brand.accentSecondary"
-                        _focus={{
-                          borderColor: "brand.accentPrimary",
-                          boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
-                        }}
-                        required
-                        pr="10"
-                      />
-                      <Icon
-                        as={Calendar}
-                        position="absolute"
-                        right="3"
-                        top="50%"
-                        transform="translateY(-50%)"
-                        w="4"
-                        h="4"
-                        color="brand.textSecondary"
-                        pointerEvents="none"
-                      />
-                    </Box>
-                  </FormControl>
-                </GridItem>
-                <GridItem>
-                  <FormControl>
-                    <FormLabel
-                      htmlFor="end-date"
-                      fontSize="sm"
-                      fontWeight="medium"
-                      color="brand.textPrimary"
-                    >
-                      End Date
-                    </FormLabel>
-                    <Box position="relative">
-                      <Input
-                        id="end-date"
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        h="12"
-                        fontSize="base"
-                        borderColor="brand.accentSecondary"
-                        _focus={{
-                          borderColor: "brand.accentPrimary",
-                          boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
-                        }}
-                        required
-                        pr="10"
-                      />
-                      <Icon
-                        as={Calendar}
-                        position="absolute"
-                        right="3"
-                        top="50%"
-                        transform="translateY(-50%)"
-                        w="4"
-                        h="4"
-                        color="brand.textSecondary"
-                        pointerEvents="none"
-                      />
-                    </Box>
-                  </FormControl>
-                </GridItem>
-              </Grid>
             </FormControl>
 
             {/* Navigation */}
-            <Flex justify="space-between" align="center" pt={8}>
+            <Flex justify="space-between" align="center" pt={8} w="full">
               <Button
                 leftIcon={<Icon as={Clock} w="5" h="5" />}
                 variant="ghost"
@@ -347,7 +355,10 @@ const ActivityForm_Endorsements = ({ nextStepUrl }) => {
                   fontWeight="medium"
                   borderColor="brand.accentSecondary"
                   color="brand.textSecondary"
-                  onClick={() => navigate(`/add/deal/activities/select/${dealId}`)}
+                  onClick={() => {
+                    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+                    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
+                  }}
                   _hover={{
                     bg: "brand.backgroundLight",
                     borderColor: "brand.accentPrimary",

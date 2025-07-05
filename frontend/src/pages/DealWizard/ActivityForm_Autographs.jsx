@@ -1,6 +1,6 @@
 // frontend/src/pages/DealWizard/ActivityForm_Autographs.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
   Box,
@@ -21,8 +21,10 @@ import {
   PenTool,
 } from 'lucide-react';
 
-const ActivityForm_Autographs = ({ nextStepUrl }) => {
+const ActivityForm_Autographs = ({ onNext, currentActivity, totalActivities }) => {
   const { dealId } = useParams();
+  const [searchParams] = useSearchParams();
+  const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
 
@@ -30,8 +32,8 @@ const ActivityForm_Autographs = ({ nextStepUrl }) => {
   const [itemTypes, setItemTypes] = useState("");
 
   useEffect(() => {
-    if (deal?.obligations?.['Autographs']) {
-      const autographData = deal.obligations['Autographs'];
+    if (deal?.obligations?.['autographs']) {
+      const autographData = deal.obligations['autographs'];
       setNumberOfItems(autographData.numberOfItems || "");
       setItemTypes(autographData.itemTypes || "");
     }
@@ -50,11 +52,14 @@ const ActivityForm_Autographs = ({ nextStepUrl }) => {
     await updateDeal(dealId, {
       obligations: {
         ...deal.obligations,
-        'Autographs': formattedData,
+        'autographs': formattedData,
       },
     });
-    navigate(nextStepUrl);
+    
+    onNext();
   };
+
+  const progressPercentage = ((currentActivity - 1) / totalActivities) * 100;
 
   return (
     <Container maxW="2xl" py={6}>
@@ -71,17 +76,17 @@ const ActivityForm_Autographs = ({ nextStepUrl }) => {
           <VStack spacing={3} mb={6}>
             <Flex justify="space-between" w="full" fontSize="sm">
               <Text color="brand.textSecondary" fontWeight="medium">
-                Step 4 of 8
+                Activity {currentActivity} of {totalActivities}
               </Text>
               <Text color="brand.textSecondary">
-                50% Complete
+                {progressPercentage.toFixed(1)}% Complete
               </Text>
             </Flex>
             <Box w="full" bg="brand.accentSecondary" h="2" rounded="full">
               <Box
                 bg="brand.accentPrimary"
                 h="2"
-                w="50%"
+                w={`${progressPercentage}%`}
                 rounded="full"
                 transition="width 0.5s ease-out"
               />
@@ -196,7 +201,10 @@ const ActivityForm_Autographs = ({ nextStepUrl }) => {
                   fontWeight="medium"
                   borderColor="brand.accentSecondary"
                   color="brand.textSecondary"
-                  onClick={() => navigate(`/add/deal/activities/select/${dealId}`)}
+                  onClick={() => {
+                    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+                    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
+                  }}
                   _hover={{
                     bg: "brand.backgroundLight",
                     borderColor: "brand.accentPrimary",
