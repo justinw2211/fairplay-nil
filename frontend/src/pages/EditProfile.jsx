@@ -179,6 +179,18 @@ const EditProfileContent = () => {
         if (error) throw error;
         
         if (data) {
+          // Map database enum values to display values
+          const mapEnumToDivision = (division) => {
+            const enumMap = {
+              'I': 'Division I',
+              'II': 'Division II',
+              'III': 'Division III',
+              'NAIA': 'NAIA',
+              'JUCO': 'JUCO'
+            };
+            return enumMap[division] || division;
+          };
+
           // Convert old division format to new format if needed
           const formattedData = {
             ...data,
@@ -187,7 +199,7 @@ const EditProfileContent = () => {
                 : data.division === 'D2' ? 'Division II'
                 : data.division === 'D3' ? 'Division III'
                 : data.division
-              : data.division,
+              : mapEnumToDivision(data.division),
             // Handle both string and array sports data
             sports: Array.isArray(data.sports) ? data.sports : data.sports ? [data.sports] : [],
             // Format phone number if exists
@@ -252,8 +264,21 @@ const EditProfileContent = () => {
   // Handle division change
   useEffect(() => {
     if (selectedDivision && schools.length > 0) {
+      // Map display division to enum for filtering schools
+      const mapDivisionToEnum = (division) => {
+        const divisionMap = {
+          'Division I': 'I',
+          'Division II': 'II',
+          'Division III': 'III',
+          'NAIA': 'NAIA',
+          'JUCO': 'JUCO'
+        };
+        return divisionMap[division] || division;
+      };
+
+      const enumDivision = mapDivisionToEnum(selectedDivision);
       const filtered = schools.filter(
-        school => school.division === selectedDivision
+        school => school.division === enumDivision
       );
       
       // If we're not in initial load and the university exists
@@ -434,13 +459,25 @@ const EditProfileContent = () => {
   const onSubmit = async (data) => {
     setSaving(true);
     try {
+      // Map display division values to database enum values
+      const mapDivisionToEnum = (division) => {
+        const divisionMap = {
+          'Division I': 'I',
+          'Division II': 'II',
+          'Division III': 'III',
+          'NAIA': 'NAIA',
+          'JUCO': 'JUCO'
+        };
+        return divisionMap[division] || division;
+      };
+
       // First update profile data without email (since it's managed by auth)
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
           full_name: data.full_name,
           phone: unformatPhoneNumber(data.phone),
-          division: data.division,
+          division: mapDivisionToEnum(data.division),
           university: data.university,
           gender: data.gender,
           sports: data.sports,
