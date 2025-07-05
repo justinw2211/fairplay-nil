@@ -126,7 +126,20 @@ const ValuationResult = () => {
 
   const getValuationAssessment = () => {
     const currentCompensation = parseFloat(deal.compensation_cash) || 0;
-    const fmv = prediction.estimated_fmv;
+    const fmv = prediction?.estimated_fmv || 0;
+    
+    if (fmv === 0) {
+      return {
+        status: 'unknown',
+        color: 'gray',
+        icon: AlertTriangle,
+        title: 'Analysis Incomplete',
+        description: 'Unable to determine market value assessment.',
+        bgColor: 'gray.50',
+        borderColor: 'gray.200'
+      };
+    }
+    
     const difference = ((currentCompensation - fmv) / fmv) * 100;
 
     if (Math.abs(difference) <= 15) {
@@ -245,7 +258,7 @@ const ValuationResult = () => {
               <VStack align="end" spacing={1}>
                 <Text fontSize="sm" color={`${assessment.color}.600`}>Confidence Score</Text>
                 <CircularProgress 
-                  value={prediction.confidence} 
+                  value={prediction?.confidence || 0} 
                   color={`${assessment.color}.500`}
                   size="60px"
                   thickness="8px"
@@ -255,7 +268,7 @@ const ValuationResult = () => {
                     fontWeight="bold"
                     color={`${assessment.color}.700`}
                   >
-                    {prediction.confidence}%
+                    {prediction?.confidence || 0}%
                   </CircularProgressLabel>
                 </CircularProgress>
               </VStack>
@@ -279,7 +292,7 @@ const ValuationResult = () => {
               <Box textAlign="center">
                 <Text fontSize="sm" color="brand.textSecondary" mb={2}>Estimated FMV</Text>
                 <Text fontSize="4xl" fontWeight="bold" color="brand.textPrimary">
-                  {formatCurrency(prediction.estimated_fmv)}
+                  {formatCurrency(prediction?.estimated_fmv || 0)}
                 </Text>
               </Box>
               
@@ -291,7 +304,7 @@ const ValuationResult = () => {
                   <HStack justify="space-between" w="full">
                     <Text fontSize="sm" color="brand.textSecondary">Low Range</Text>
                     <Text fontWeight="medium" color="brand.textPrimary">
-                      {formatCurrency(prediction.low_range)}
+                      {formatCurrency(prediction?.low_range || 0)}
                     </Text>
                   </HStack>
                   <Progress 
@@ -304,7 +317,7 @@ const ValuationResult = () => {
                   <HStack justify="space-between" w="full">
                     <Text fontSize="sm" color="brand.textSecondary">High Range</Text>
                     <Text fontWeight="medium" color="brand.textPrimary">
-                      {formatCurrency(prediction.high_range)}
+                      {formatCurrency(prediction?.high_range || 0)}
                     </Text>
                   </HStack>
                 </VStack>
@@ -315,7 +328,7 @@ const ValuationResult = () => {
                   <strong>Current Deal:</strong> {formatCurrency(parseFloat(deal.compensation_cash) || 0)}
                 </Text>
                 <Text fontSize="xs" color="blue.600" mt={1}>
-                  {prediction.market_comparison?.position_description || 'Compared to similar deals'}
+                  {prediction?.market_comparison?.position_description || 'Compared to similar deals'}
                 </Text>
               </Box>
             </VStack>
@@ -332,7 +345,7 @@ const ValuationResult = () => {
           </CardHeader>
           <CardBody>
             <VStack spacing={4} align="stretch">
-              {prediction.factors && Object.entries(prediction.factors).map(([key, factor]) => (
+              {prediction?.factors && Object.entries(prediction.factors).map(([key, factor]) => (
                 <Box key={key}>
                   <HStack justify="space-between" mb={2}>
                     <Text fontSize="sm" fontWeight="medium" color="brand.textPrimary">
@@ -383,7 +396,7 @@ const ValuationResult = () => {
               <AccordionPanel>
                 <Box bg="gray.50" p={4} rounded="lg">
                   <Text fontSize="sm" color="brand.textSecondary" whiteSpace="pre-line">
-                    {prediction.rationale}
+                    {prediction?.rationale || 'No detailed rationale available.'}
                   </Text>
                 </Box>
               </AccordionPanel>
@@ -401,7 +414,7 @@ const ValuationResult = () => {
               </AccordionButton>
               <AccordionPanel>
                 <VStack spacing={3} align="stretch">
-                  {prediction.market_comparison?.comparisons?.map((comp, index) => (
+                  {prediction?.market_comparison?.comparisons?.map((comp, index) => (
                     <Box key={index} p={3} bg="blue.50" rounded="lg">
                       <HStack justify="space-between">
                         <Text fontSize="sm" fontWeight="medium" color="blue.700">
@@ -417,7 +430,7 @@ const ValuationResult = () => {
                     </Box>
                   )) || (
                     <Text fontSize="sm" color="brand.textSecondary">
-                      {prediction.market_comparison?.overall_assessment || 'Market comparison data not available'}
+                      {prediction?.market_comparison?.overall_assessment || 'Market comparison data not available'}
                     </Text>
                   )}
                 </VStack>
@@ -436,7 +449,7 @@ const ValuationResult = () => {
               </AccordionButton>
               <AccordionPanel>
                 <VStack spacing={3} align="stretch">
-                  {prediction.optimization_recommendations?.map((rec, index) => (
+                  {prediction?.optimization_recommendations?.map((rec, index) => (
                     <Box key={index} p={3} bg="green.50" rounded="lg" borderLeft="3px" borderColor="green.400">
                       <Text fontSize="sm" fontWeight="medium" color="green.700" mb={1}>
                         {rec.title}
@@ -507,7 +520,7 @@ const ValuationResult = () => {
       {/* Additional Info */}
       <Box mt={8} textAlign="center">
         <Text fontSize="xs" color="brand.textSecondary">
-          Analysis completed on {new Date(prediction.predicted_at).toLocaleString()} • 
+          Analysis completed on {new Date(deal.prediction_calculated_at || Date.now()).toLocaleString()} • 
           Based on industry data from On3, Opendorse, and NIL market research
         </Text>
       </Box>

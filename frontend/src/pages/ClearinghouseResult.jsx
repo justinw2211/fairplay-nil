@@ -138,7 +138,7 @@ const ClearinghouseResult = () => {
     return configs[status] || configs.information_needed;
   };
 
-  const statusConfig = getStatusConfig(prediction.status);
+  const statusConfig = getStatusConfig(prediction?.status || 'information_needed');
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -226,7 +226,7 @@ const ClearinghouseResult = () => {
                 </Box>
                 <Box textAlign="center">
                   <CircularProgress
-                    value={prediction.confidence}
+                    value={prediction?.confidence || 0}
                     color={`${statusConfig.color}.500`}
                     size="80px"
                     thickness="8px"
@@ -236,7 +236,7 @@ const ClearinghouseResult = () => {
                       fontWeight="bold"
                       color="brand.textPrimary"
                     >
-                      {prediction.confidence}%
+                      {prediction?.confidence || 0}%
                     </CircularProgressLabel>
                   </CircularProgress>
                   <Text fontSize="sm" color="brand.textSecondary" mt={2}>
@@ -256,11 +256,11 @@ const ClearinghouseResult = () => {
               <Stat>
                 <StatLabel color="brand.textSecondary">Payor Association</StatLabel>
                 <StatNumber color="brand.textPrimary">
-                  {Math.round(prediction.factors.payor_association.score)}%
+                  {Math.round(prediction?.factors?.payor_association?.score || 0)}%
                 </StatNumber>
                 <StatHelpText>
-                  {prediction.details.payor_verification?.risk_level === 'low' ? 'Low Risk' : 
-                   prediction.details.payor_verification?.risk_level === 'medium' ? 'Medium Risk' : 'High Risk'}
+                  {prediction?.details?.payor_verification?.risk_level === 'low' ? 'Low Risk' : 
+                   prediction?.details?.payor_verification?.risk_level === 'medium' ? 'Medium Risk' : 'High Risk'}
                 </StatHelpText>
               </Stat>
             </CardBody>
@@ -272,10 +272,10 @@ const ClearinghouseResult = () => {
               <Stat>
                 <StatLabel color="brand.textSecondary">Business Purpose</StatLabel>
                 <StatNumber color="brand.textPrimary">
-                  {Math.round(prediction.factors.business_purpose.score)}%
+                  {Math.round(prediction?.factors?.business_purpose?.score || 0)}%
                 </StatNumber>
                 <StatHelpText>
-                  {prediction.details.business_purpose_verification?.has_valid_purpose ? 'Valid Purpose' : 'Needs Review'}
+                  {prediction?.details?.business_purpose_verification?.has_valid_purpose ? 'Valid Purpose' : 'Needs Review'}
                 </StatHelpText>
               </Stat>
             </CardBody>
@@ -287,10 +287,10 @@ const ClearinghouseResult = () => {
               <Stat>
                 <StatLabel color="brand.textSecondary">Compensation Range</StatLabel>
                 <StatNumber color="brand.textPrimary">
-                  {Math.round(prediction.factors.compensation_range.score)}%
+                  {Math.round(prediction?.factors?.compensation_range?.score || 0)}%
                 </StatNumber>
                 <StatHelpText>
-                  {prediction.details.fmv_analysis?.estimated_fmv ? 
+                  {prediction?.details?.fmv_analysis?.estimated_fmv ? 
                     `Est. FMV: ${formatCurrency(prediction.details.fmv_analysis.estimated_fmv)}` : 
                     'Analysis Complete'}
                 </StatHelpText>
@@ -300,9 +300,9 @@ const ClearinghouseResult = () => {
         </SimpleGrid>
 
         {/* Issues and Recommendations */}
-        {(prediction.issues.length > 0 || prediction.recommendations.length > 0) && (
+        {(prediction?.issues?.length > 0 || prediction?.recommendations?.length > 0) && (
           <Accordion allowToggle>
-            {prediction.issues.length > 0 && (
+            {prediction?.issues?.length > 0 && (
               <AccordionItem border="none" mb={4}>
                 <AccordionButton
                   bg="red.50"
@@ -315,23 +315,21 @@ const ClearinghouseResult = () => {
                   <HStack flex="1">
                     <Icon as={AlertCircle} color="red.500" />
                     <Text fontWeight="semibold" color="red.700">
-                      Issues Identified ({prediction.issues.length})
+                      Issues Identified ({prediction?.issues?.length || 0})
                     </Text>
                   </HStack>
                   <AccordionIcon color="red.500" />
                 </AccordionButton>
                 <AccordionPanel pb={4}>
                   <List spacing={3}>
-                    {prediction.issues.map((issue, index) => (
+                    {prediction?.issues?.map((issue, index) => (
                       <ListItem key={index}>
                         <Alert status="error" rounded="md" size="sm">
                           <AlertIcon />
                           <Box>
-                            <AlertTitle fontSize="sm" textTransform="capitalize">
-                              {issue.type.replace(/_/g, ' ')} - {issue.severity} Priority
-                            </AlertTitle>
+                            <AlertTitle fontSize="sm">{issue.title}</AlertTitle>
                             <AlertDescription fontSize="sm">
-                              {issue.message}
+                              {issue.description}
                             </AlertDescription>
                           </Box>
                         </Alert>
@@ -342,7 +340,7 @@ const ClearinghouseResult = () => {
               </AccordionItem>
             )}
 
-            {prediction.recommendations.length > 0 && (
+            {prediction?.recommendations?.length > 0 && (
               <AccordionItem border="none">
                 <AccordionButton
                   bg="blue.50"
@@ -353,22 +351,25 @@ const ClearinghouseResult = () => {
                   borderColor="blue.200"
                 >
                   <HStack flex="1">
-                    <Icon as={TrendingUp} color="blue.500" />
+                    <Icon as={CheckCircle} color="blue.500" />
                     <Text fontWeight="semibold" color="blue.700">
-                      Recommendations ({prediction.recommendations.length})
+                      Recommendations ({prediction?.recommendations?.length || 0})
                     </Text>
                   </HStack>
                   <AccordionIcon color="blue.500" />
                 </AccordionButton>
                 <AccordionPanel pb={4}>
                   <List spacing={3}>
-                    {prediction.recommendations.map((recommendation, index) => (
+                    {prediction?.recommendations?.map((recommendation, index) => (
                       <ListItem key={index}>
                         <Alert status="info" rounded="md" size="sm">
                           <AlertIcon />
-                          <AlertDescription fontSize="sm">
-                            {recommendation}
-                          </AlertDescription>
+                          <Box>
+                            <AlertTitle fontSize="sm">{recommendation.title}</AlertTitle>
+                            <AlertDescription fontSize="sm">
+                              {recommendation.description}
+                            </AlertDescription>
+                          </Box>
                         </Alert>
                       </ListItem>
                     ))}
@@ -404,7 +405,7 @@ const ClearinghouseResult = () => {
                 <Text fontSize="xs">Modify deal terms</Text>
               </Button>
 
-              {prediction.status !== 'cleared' && (
+              {prediction?.status !== 'cleared' && (
                 <Button
                   leftIcon={<Icon as={AlertTriangle} />}
                   colorScheme="orange"
@@ -420,7 +421,7 @@ const ClearinghouseResult = () => {
                 </Button>
               )}
 
-              {prediction.status === 'cleared' && (
+              {prediction?.status === 'cleared' && (
                 <Button
                   leftIcon={<Icon as={CheckCircle} />}
                   colorScheme="green"
