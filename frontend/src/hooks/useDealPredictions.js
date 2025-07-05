@@ -1,163 +1,117 @@
-import { useState, useCallback } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { supabase } from '../supabaseClient';
+import { useState, useEffect } from 'react';
 
 /**
- * Custom hook for deal prediction operations
- * Provides CRUD operations with loading and error states
- * Follows existing hook patterns from the codebase
+ * Custom hook for managing deal predictions (clearinghouse and valuation)
+ * Used by the prediction workflows to store and retrieve prediction data
  */
-const useDealPredictions = () => {
+export const useDealPredictions = (dealId) => {
+  const [clearinghousePrediction, setClearinghousePrediction] = useState(null);
+  const [valuationPrediction, setValuationPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { user } = useAuth();
 
-  // API base URL - use environment variable like other API calls  
-  const API_BASE = `${import.meta.env.VITE_API_URL}/api`;
-
-  // Helper function to get auth headers
-  const getAuthHeaders = useCallback(async () => {
+  const saveClearinghousePrediction = async (prediction) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
+      setLoading(true);
+      setError(null);
       
-      if (!token) {
-        throw new Error('No authentication token available');
+      if (!dealId) {
+        throw new Error('Deal ID is required');
       }
+
+      // For now, store in localStorage until backend API is ready
+      const key = `clearinghouse_prediction_${dealId}`;
+      localStorage.setItem(key, JSON.stringify(prediction));
       
-      return {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      };
-    } catch (error) {
-      throw new Error('Authentication error: ' + error.message);
-    }
-  }, []);
-
-  // Store clearinghouse prediction for a deal
-  const storeClearinghousePrediction = useCallback(async (dealId, predictionData) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const headers = await getAuthHeaders();
-      const response = await fetch(`${API_BASE}/deals/${dealId}/clearinghouse-prediction`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify(predictionData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || `HTTP ${response.status}: Failed to store clearinghouse prediction`);
-      }
-
-      const data = await response.json();
-      return data;
+      setClearinghousePrediction(prediction);
+      return prediction;
     } catch (err) {
-      const errorMessage = err.message || 'Failed to store clearinghouse prediction';
-      setError(errorMessage);
-      console.error('Error storing clearinghouse prediction:', err);
-      throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, [getAuthHeaders]);
-
-  // Store valuation prediction for a deal
-  const storeValuationPrediction = useCallback(async (dealId, predictionData) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const headers = await getAuthHeaders();
-      const response = await fetch(`${API_BASE}/deals/${dealId}/valuation-prediction`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify(predictionData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || `HTTP ${response.status}: Failed to store valuation prediction`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (err) {
-      const errorMessage = err.message || 'Failed to store valuation prediction';
-      setError(errorMessage);
-      console.error('Error storing valuation prediction:', err);
-      throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, [getAuthHeaders]);
-
-  // Fetch prediction data for a deal
-  const fetchPrediction = useCallback(async (dealId, predictionType) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const headers = await getAuthHeaders();
-      const response = await fetch(`${API_BASE}/deals/${dealId}/prediction/${predictionType}`, {
-        method: 'GET',
-        headers,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || `HTTP ${response.status}: Failed to fetch ${predictionType} prediction`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (err) {
-      const errorMessage = err.message || `Failed to load ${predictionType} prediction`;
-      setError(errorMessage);
-      console.error('Error fetching prediction:', err);
-      throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, [getAuthHeaders]);
-
-  // Clear error state
-  const clearError = useCallback(() => {
-    setError(null);
-  }, []);
-
-  // Retry functionality for failed requests
-  const retryLastOperation = useCallback(async (operation, ...args) => {
-    clearError();
-    
-    try {
-      switch (operation) {
-        case 'storeClearinghouse':
-          return await storeClearinghousePrediction(...args);
-        case 'storeValuation':
-          return await storeValuationPrediction(...args);
-        case 'fetch':
-          return await fetchPrediction(...args);
-        default:
-          throw new Error('Unknown operation');
-      }
-    } catch (err) {
-      // Error is already handled in individual functions
+      setError(err.message);
       throw err;
+    } finally {
+      setLoading(false);
     }
-  }, [storeClearinghousePrediction, storeValuationPrediction, fetchPrediction, clearError]);
+  };
+
+  const saveValuationPrediction = async (prediction) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      if (!dealId) {
+        throw new Error('Deal ID is required');
+      }
+
+      // For now, store in localStorage until backend API is ready
+      const key = `valuation_prediction_${dealId}`;
+      localStorage.setItem(key, JSON.stringify(prediction));
+      
+      setValuationPrediction(prediction);
+      return prediction;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPrediction = async (predictionType) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      if (!dealId) {
+        throw new Error('Deal ID is required');
+      }
+
+      // For now, fetch from localStorage until backend API is ready
+      const key = `${predictionType}_prediction_${dealId}`;
+      const stored = localStorage.getItem(key);
+      
+      if (!stored) {
+        return null; // No prediction found
+      }
+
+      const result = JSON.parse(stored);
+      
+      if (predictionType === 'clearinghouse') {
+        setClearinghousePrediction(result);
+      } else if (predictionType === 'valuation') {
+        setValuationPrediction(result);
+      }
+      
+      return result;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load predictions on mount if dealId is available
+  useEffect(() => {
+    if (dealId) {
+      fetchPrediction('clearinghouse').catch(() => {
+        // Ignore errors for missing predictions
+      });
+      fetchPrediction('valuation').catch(() => {
+        // Ignore errors for missing predictions
+      });
+    }
+  }, [dealId]);
 
   return {
+    clearinghousePrediction,
+    valuationPrediction,
     loading,
     error,
-    storeClearinghousePrediction,
-    storeValuationPrediction,
-    fetchPrediction,
-    clearError,
-    retryLastOperation
+    saveClearinghousePrediction,
+    saveValuationPrediction,
+    fetchPrediction
   };
 };
 
+// Also export as default for compatibility
 export default useDealPredictions; 
