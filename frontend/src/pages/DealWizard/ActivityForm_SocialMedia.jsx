@@ -156,6 +156,8 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
   };
 
   const handleNext = async () => {
+    console.log('📱 ActivityForm_SocialMedia handleNext called');
+    
     const formattedData = {
       platforms: selectedPlatforms.flatMap(platformId => {
         const platform = platforms.find(p => p.id === platformId);
@@ -170,6 +172,8 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
       description,
     };
 
+    console.log('📱 Social Media formattedData:', formattedData);
+
     await updateDeal(dealId, {
       obligations: {
         ...deal.obligations,
@@ -180,6 +184,7 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
       },
     });
     
+    console.log('📱 Calling onNext()');
     onNext();
   };
 

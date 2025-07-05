@@ -114,6 +114,11 @@ const Step3_SelectActivities = () => {
       }
     });
 
+    console.log('📝 Step3_SelectActivities Debug Info:');
+    console.log('selectedActivities:', selectedActivities);
+    console.log('newObligations:', newObligations);
+    console.log('otherActivity:', otherActivity);
+
     await updateDeal(dealId, { 
       obligations: newObligations,
       currentActivityIndex: 0,
@@ -124,6 +129,12 @@ const Step3_SelectActivities = () => {
     const firstActivity = selectedActivities[0];
     const encodedActivity = encodeURIComponent(firstActivity);
     const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+    
+    console.log('🎯 Navigating to first activity:');
+    console.log('firstActivity:', firstActivity);
+    console.log('encodedActivity:', encodedActivity);
+    console.log('Full URL:', `/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`);
+    
     navigate(`/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`);
   };
 

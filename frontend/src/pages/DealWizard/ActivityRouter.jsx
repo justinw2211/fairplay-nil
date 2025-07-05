@@ -59,6 +59,15 @@ const ActivityRouter = () => {
   }
 
   const decodedActivityType = decodeURIComponent(activityType);
+  
+  // DEBUG: Log the deal structure and activity info
+  console.log('🔍 ActivityRouter Debug Info:');
+  console.log('dealId:', dealId);
+  console.log('activityType (encoded):', activityType);
+  console.log('decodedActivityType:', decodedActivityType);
+  console.log('dealType:', dealType);
+  console.log('deal.obligations:', deal.obligations);
+  
   const ActivityComponent = activityComponentMap[decodedActivityType];
 
   if (!ActivityComponent) {
@@ -76,17 +85,30 @@ const ActivityRouter = () => {
   const totalActivities = selectedActivities.length;
   const progressPercentage = (currentActivityNumber / totalActivities) * 100;
 
+  // DEBUG: Log the activity processing info
+  console.log('selectedActivities:', selectedActivities);
+  console.log('currentIndex:', currentIndex);
+  console.log('currentActivityNumber:', currentActivityNumber);
+  console.log('totalActivities:', totalActivities);
+  console.log('progressPercentage:', progressPercentage);
+
   const handleNext = async () => {
+    console.log('🚀 handleNext called');
+    
     // Get the current obligations
     const updatedObligations = { ...deal.obligations };
     
     // Mark the current activity as completed
     if (updatedObligations[decodedActivityType]) {
       updatedObligations[decodedActivityType].completed = true;
+      console.log(`✅ Marked ${decodedActivityType} as completed`);
     }
 
     // Calculate the next activity index
     const nextIndex = currentIndex + 1;
+    console.log('nextIndex:', nextIndex);
+    console.log('selectedActivities.length:', selectedActivities.length);
+    console.log('Is this the last activity?', currentIndex === selectedActivities.length - 1);
 
     // Update the deal with completed activity and next index
     await updateDeal(dealId, {
@@ -99,6 +121,7 @@ const ActivityRouter = () => {
 
     // If this was the last activity, go to compliance
     if (currentIndex === selectedActivities.length - 1) {
+      console.log('🏁 Going to compliance (last activity)');
       navigate(`/add/deal/compliance/${dealId}${typeParam}`);
       return;
     }
@@ -106,6 +129,10 @@ const ActivityRouter = () => {
     // Otherwise, move to the next activity
     const nextActivity = selectedActivities[nextIndex];
     const encodedNextActivity = encodeURIComponent(nextActivity);
+    console.log('➡️ Moving to next activity:', nextActivity);
+    console.log('encodedNextActivity:', encodedNextActivity);
+    console.log('Full next URL:', `/add/deal/activity/${encodedNextActivity}/${dealId}${typeParam}`);
+    
     navigate(`/add/deal/activity/${encodedNextActivity}/${dealId}${typeParam}`);
   };
 
