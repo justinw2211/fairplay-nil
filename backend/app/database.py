@@ -104,21 +104,9 @@ class DatabaseClient:
             raise ValueError("FATAL: SUPABASE_SERVICE_ROLE_KEY environment variable is not set.")
 
         try:
-            # Initialize with connection pooling options
-            self._client = create_client(
-                supabase_url=url,
-                supabase_key=key,
-                options={
-                    "auto_refresh_token": True,
-                    "persist_session": True,
-                    "detect_session_in_url": False,
-                    "headers": {
-                        "Connection": "keep-alive",
-                        "Keep-Alive": "timeout=60, max=1000"
-                    }
-                }
-            )
-            logger.info("Successfully initialized Supabase client with connection pooling")
+            # Initialize Supabase client with basic configuration
+            self._client = create_client(url, key)
+            logger.info("Successfully initialized Supabase client")
         except Exception as e:
             logger.error(f"Failed to initialize Supabase client: {str(e)}")
             raise

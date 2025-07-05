@@ -16,8 +16,8 @@ class ProfileUpdate(BaseModel):
 
 # --- Schemas for Social Media Functionality ---
 class SocialMediaPlatform(BaseModel):
-    platform: str = Field(..., regex=r'^(instagram|twitter|tiktok|youtube|facebook)$')
-    handle: str = Field(..., regex=r'^@[a-zA-Z0-9_]+$')
+    platform: str = Field(..., pattern=r'^(instagram|twitter|tiktok|youtube|facebook)$')
+    handle: str = Field(..., pattern=r'^@[a-zA-Z0-9_]+$')
     followers: int = Field(..., ge=0)
     verified: bool = False
     
