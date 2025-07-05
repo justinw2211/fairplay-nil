@@ -96,6 +96,28 @@ alwaysApply: false
 - **API debugging**: Check browser Network tab to verify correct endpoint URLs are being called
 - **Hook usage verification**: Search codebase for existing hooks before creating new API calls
 
+### 🔍 Error-Specific Debugging Strategies
+- **"X is not a function" errors**: 
+  - **Check import/export consistency** first - most common cause
+  - **Verify function exists** in the imported module
+  - **Check if default vs named export** matches import style
+- **"Cannot read property of undefined" errors**:
+  - **Add console.log** to trace data flow and identify where undefined originates
+  - **Check component props** and state initialization
+  - **Verify API response structure** matches expected format
+- **React rendering errors (Error #31)**:
+  - **Check for unsafe object rendering** - wrap complex objects in try-catch
+  - **Add null checks** before accessing nested properties
+  - **Use React Error Boundaries** to catch and display helpful error messages
+- **Form data persistence issues**:
+  - **Log form data keys** being read vs written
+  - **Check state management** - ensure data isn't being lost on component re-renders
+  - **Verify routing parameters** are preserved across navigation
+- **Hook-related errors**:
+  - **Check hook parameters** are being passed correctly
+  - **Verify hook dependencies** array includes all required values
+  - **Test hook in isolation** to verify it works independently
+
 ### 🧪 Testing & Reliability
 - **Frontend**: Use Jest + React Testing Library (already configured)
 - **Backend**: Create Pytest tests for new API endpoints and business logic
@@ -136,6 +158,37 @@ alwaysApply: false
 - **Graceful degradation**: Handle API failures gracefully with loading states and retry options
 - **Form validation**: Provide real-time validation feedback using established patterns
 - **Error boundaries**: Use React Error Boundaries for component-level error handling
+
+### 🔧 Common Error Prevention Patterns
+- **Import/Export Consistency**: 
+  - **ALWAYS match import style with export style**: If `export default MyComponent`, use `import MyComponent from './MyComponent'`
+  - **If `export const MyComponent = ...`, use `import { MyComponent } from './MyComponent'`**
+  - **Double-check import statements** when debugging "is not a function" errors
+- **Function Name Consistency**: 
+  - **Function names in hooks MUST match actual function implementations**
+  - **Search codebase for existing function names** before creating new ones with similar purposes
+  - **Use consistent naming patterns**: `save*`, `store*`, `get*`, `fetch*` throughout the codebase
+- **Data Key Consistency**: 
+  - **Form data keys MUST match between read and write operations**
+  - **Use the same keys for reading from state and writing to state**
+  - **Document data structure keys** when dealing with complex nested objects
+- **Safe Property Access**: 
+  - **ALWAYS use optional chaining** (`?.`) for nested object properties that might be undefined
+  - **Add null checks** before rendering complex objects: `prediction && prediction.factors`
+  - **Use fallback values** for critical display data: `prediction?.value || 'Not calculated'`
+  - **Wrap object rendering in String()** conversion for safety: `String(prediction?.rationale || '')`
+- **Component State Management**: 
+  - **Never recalculate state from modified data** - store initial state and maintain it separately
+  - **Use stable state references** that don't change when underlying data is modified
+  - **Capture initial state once** and track changes through indices/flags rather than recalculating
+- **Hook Parameter Validation**: 
+  - **Always check required parameters** are provided when calling custom hooks
+  - **Add parameter validation** at the start of custom hooks
+  - **Use TypeScript/PropTypes** to enforce required parameters
+- **URL Parameter Completeness**: 
+  - **Include ALL required parameters** in navigation URLs
+  - **Double-check back navigation URLs** include necessary state parameters
+  - **Test navigation flows** to ensure parameters are preserved across route changes
 
 ### 🔌 API Design Standards (MVP)
 - **RESTful endpoints**: Use standard patterns (GET /deals, POST /deals, PUT /deals/{id})
