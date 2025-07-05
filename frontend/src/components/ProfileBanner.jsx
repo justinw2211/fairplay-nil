@@ -56,7 +56,7 @@ import {
   FiX
 } from 'react-icons/fi';
 import { keyframes } from '@emotion/react';
-import { useSocialMedia } from '../hooks/use-social-media';
+import useSocialMedia from '../hooks/use-social-media';
 
 // Animation keyframes for enhanced micro-interactions
 const pulseKeyframes = keyframes`
