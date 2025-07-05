@@ -5,6 +5,15 @@ const useAnalytics = (deals) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Ensure deals is always a valid array
+  const safeDeals = useMemo(() => {
+    if (!deals || !Array.isArray(deals)) {
+      return [];
+    }
+    // Filter out any invalid deal objects
+    return deals.filter(deal => deal && typeof deal === 'object' && deal.created_at);
+  }, [deals]);
+
   // Calculate date boundaries
   const getDateBoundary = (range) => {
     const now = new Date();
@@ -24,43 +33,63 @@ const useAnalytics = (deals) => {
 
   // Filter deals by date range
   const getFilteredDeals = (deals, range) => {
+    if (!deals || !Array.isArray(deals)) return [];
     if (range === 'all') return deals;
     const boundary = getDateBoundary(range);
+    if (!boundary) return deals;
+    
     return deals.filter(deal => {
-      const dealDate = new Date(deal.created_at);
-      return dealDate >= boundary;
+      if (!deal || !deal.created_at) return false;
+      try {
+        const dealDate = new Date(deal.created_at);
+        return dealDate >= boundary;
+      } catch (error) {
+        console.warn('Invalid date format in deal:', deal.created_at);
+        return false;
+      }
     });
   };
 
   // Calculate KPIs
   const kpis = useMemo(() => {
-    const currentDeals = getFilteredDeals(deals, dateRange);
+    const currentDeals = getFilteredDeals(safeDeals, dateRange);
     const previousRange = dateRange === '7d' ? '7d' : dateRange === '30d' ? '30d' : '90d';
     const previousBoundary = getDateBoundary(previousRange);
     const previousDeals = previousBoundary ? 
-      deals.filter(deal => {
-        const dealDate = new Date(deal.created_at);
-        const currentBoundary = getDateBoundary(dateRange);
-        return dealDate >= previousBoundary && dealDate < currentBoundary;
+      safeDeals.filter(deal => {
+        if (!deal || !deal.created_at) return false;
+        try {
+          const dealDate = new Date(deal.created_at);
+          const currentBoundary = getDateBoundary(dateRange);
+          return dealDate >= previousBoundary && dealDate < currentBoundary;
+        } catch (error) {
+          console.warn('Invalid date format in deal:', deal.created_at);
+          return false;
+        }
       }) : [];
+
+    const getSafeNumber = (value) => {
+      const num = Number(value);
+      return isNaN(num) ? 0 : num;
+    };
 
     const current = {
       totalDeals: currentDeals.length,
-      totalValue: currentDeals.reduce((sum, deal) => sum + (deal.fmv || 0), 0),
+      totalValue: currentDeals.reduce((sum, deal) => sum + getSafeNumber(deal.fmv), 0),
       activeDeals: currentDeals.filter(deal => deal.status === 'active' || deal.status === 'Active').length,
       completedDeals: currentDeals.filter(deal => deal.status === 'completed').length,
       draftDeals: currentDeals.filter(deal => deal.status === 'draft').length,
-      avgDealValue: currentDeals.length > 0 ? currentDeals.reduce((sum, deal) => sum + (deal.fmv || 0), 0) / currentDeals.length : 0,
+      avgDealValue: currentDeals.length > 0 ? currentDeals.reduce((sum, deal) => sum + getSafeNumber(deal.fmv), 0) / currentDeals.length : 0,
       completionRate: currentDeals.length > 0 ? (currentDeals.filter(deal => deal.status === 'completed').length / currentDeals.length) * 100 : 0
     };
 
     const previous = {
       totalDeals: previousDeals.length,
-      totalValue: previousDeals.reduce((sum, deal) => sum + (deal.fmv || 0), 0),
+      totalValue: previousDeals.reduce((sum, deal) => sum + getSafeNumber(deal.fmv), 0),
       activeDeals: previousDeals.filter(deal => deal.status === 'active' || deal.status === 'Active').length,
       completedDeals: previousDeals.filter(deal => deal.status === 'completed').length,
       draftDeals: previousDeals.filter(deal => deal.status === 'draft').length,
-      avgDealValue: previousDeals.length > 0 ? previousDeals.reduce((sum, deal) => sum + (deal.fmv || 0), 0) / previousDeals.length : 0,
+      avgDealValue: previousDeals.length > 0 ? previousDeals.reduce((sum, deal) => sum + getSafeNumber(deal.fmv), 0) / previousDeals.length : 0,
       completionRate: previousDeals.length > 0 ? (previousDeals.filter(deal => deal.status === 'completed').length / previousDeals.length) * 100 : 0
     };
 
@@ -82,7 +111,7 @@ const useAnalytics = (deals) => {
         completionRate: getTrend(current.completionRate, previous.completionRate)
       }
     };
-  }, [deals, dateRange]);
+  }, [safeDeals, dateRange]);
 
   // Monthly trend data
   const monthlyTrends = useMemo(() => {
@@ -102,35 +131,52 @@ const useAnalytics = (deals) => {
       const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
       const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
       
-      const monthDeals = deals.filter(deal => {
-        const dealDate = new Date(deal.created_at);
-        return dealDate >= monthStart && dealDate <= monthEnd;
+      const monthDeals = safeDeals.filter(deal => {
+        if (!deal || !deal.created_at) return false;
+        try {
+          const dealDate = new Date(deal.created_at);
+          return dealDate >= monthStart && dealDate <= monthEnd;
+        } catch (error) {
+          console.warn('Invalid date format in deal:', deal.created_at);
+          return false;
+        }
       });
+
+      const getSafeNumber = (value) => {
+        const num = Number(value);
+        return isNaN(num) ? 0 : num;
+      };
 
       return {
         month,
         deals: monthDeals.length,
-        value: monthDeals.reduce((sum, deal) => sum + (deal.fmv || 0), 0),
+        value: monthDeals.reduce((sum, deal) => sum + getSafeNumber(deal.fmv), 0),
         active: monthDeals.filter(deal => deal.status === 'active' || deal.status === 'Active').length,
         completed: monthDeals.filter(deal => deal.status === 'completed').length
       };
     });
-  }, [deals]);
+  }, [safeDeals]);
 
   // Deal type breakdown
   const dealTypeBreakdown = useMemo(() => {
-    const currentDeals = getFilteredDeals(deals, dateRange);
+    const currentDeals = getFilteredDeals(safeDeals, dateRange);
     const types = {
       simple: { count: 0, value: 0, color: '#3182CE' },
       clearinghouse: { count: 0, value: 0, color: '#38A169' },
       valuation: { count: 0, value: 0, color: '#D69E2E' }
     };
 
+    const getSafeNumber = (value) => {
+      const num = Number(value);
+      return isNaN(num) ? 0 : num;
+    };
+
     currentDeals.forEach(deal => {
+      if (!deal) return;
       const type = deal.deal_type || 'simple';
       if (types[type]) {
         types[type].count++;
-        types[type].value += deal.fmv || 0;
+        types[type].value += getSafeNumber(deal.fmv);
       }
     });
 
@@ -140,11 +186,11 @@ const useAnalytics = (deals) => {
       value: data.value,
       color: data.color
     }));
-  }, [deals, dateRange]);
+  }, [safeDeals, dateRange]);
 
   // Compensation ranges
   const compensationRanges = useMemo(() => {
-    const currentDeals = getFilteredDeals(deals, dateRange);
+    const currentDeals = getFilteredDeals(safeDeals, dateRange);
     const ranges = {
       '0-1000': 0,
       '1001-5000': 0,
@@ -154,8 +200,14 @@ const useAnalytics = (deals) => {
       '50001+': 0
     };
 
+    const getSafeNumber = (value) => {
+      const num = Number(value);
+      return isNaN(num) ? 0 : num;
+    };
+
     currentDeals.forEach(deal => {
-      const fmv = deal.fmv || 0;
+      if (!deal) return;
+      const fmv = getSafeNumber(deal.fmv);
       if (fmv <= 1000) ranges['0-1000']++;
       else if (fmv <= 5000) ranges['1001-5000']++;
       else if (fmv <= 10000) ranges['5001-10000']++;
@@ -169,17 +221,24 @@ const useAnalytics = (deals) => {
       count,
       color: `hsl(${200 + Object.keys(ranges).indexOf(range) * 30}, 70%, 50%)`
     }));
-  }, [deals, dateRange]);
+  }, [safeDeals, dateRange]);
 
   // Prediction accuracy (for clearinghouse and valuation deals)
   const predictionAccuracy = useMemo(() => {
-    const currentDeals = getFilteredDeals(deals, dateRange);
+    const currentDeals = getFilteredDeals(safeDeals, dateRange);
     const predictions = {
       clearinghouse: { total: 0, correct: 0 },
       valuation: { total: 0, correct: 0 }
     };
 
+    const getSafeNumber = (value) => {
+      const num = Number(value);
+      return isNaN(num) ? 0 : num;
+    };
+
     currentDeals.forEach(deal => {
+      if (!deal) return;
+      
       if (deal.deal_type === 'clearinghouse' && deal.clearinghouse_prediction) {
         predictions.clearinghouse.total++;
         // Assuming we have actual results to compare against
@@ -192,9 +251,14 @@ const useAnalytics = (deals) => {
         predictions.valuation.total++;
         // Assuming we have actual compensation to compare against
         if (deal.actual_compensation && deal.valuation_range) {
-          const [min, max] = deal.valuation_range.split('-').map(Number);
-          if (deal.actual_compensation >= min && deal.actual_compensation <= max) {
-            predictions.valuation.correct++;
+          try {
+            const [min, max] = deal.valuation_range.split('-').map(Number);
+            const actualComp = getSafeNumber(deal.actual_compensation);
+            if (!isNaN(min) && !isNaN(max) && actualComp >= min && actualComp <= max) {
+              predictions.valuation.correct++;
+            }
+          } catch (error) {
+            console.warn('Invalid valuation range format:', deal.valuation_range);
           }
         }
       }
@@ -206,7 +270,7 @@ const useAnalytics = (deals) => {
       valuation: predictions.valuation.total > 0 ? 
         (predictions.valuation.correct / predictions.valuation.total) * 100 : 0
     };
-  }, [deals, dateRange]);
+  }, [safeDeals, dateRange]);
 
   return {
     kpis,

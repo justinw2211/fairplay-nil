@@ -54,15 +54,39 @@ class ErrorBoundary extends React.Component {
     });
 
     // Report to error tracking service in production
-    if (import.meta.env.MODE === 'production') {
-      this.reportError(errorDetails);
+    if (import.meta.env.MODE === 'production' && import.meta.env.VITE_API_URL) {
+      fetch(`${import.meta.env.VITE_API_URL}/api/errors`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(errorDetails)
+      }).then(response => {
+        if (response.status === 404) {
+          // API endpoint doesn't exist - this is expected
+          logger.debug('Error reporting endpoint not available');
+          return;
+        }
+        if (!response.ok) {
+          logger.warn('Failed to report error to backend', { status: response.status });
+        }
+      }).catch(reportingError => {
+        // Silently fail - don't spam console with error reporting failures
+        logger.debug('Error reporting failed', { error: reportingError.message });
+      });
     }
   }
 
   reportError = async (errorDetails) => {
     try {
+      // Only attempt error reporting if we're in production AND have an API URL configured
+      if (import.meta.env.MODE !== 'production' || !import.meta.env.VITE_API_URL) {
+        logger.debug('Error reporting skipped - not in production or API URL not configured');
+        return;
+      }
+
       // Send error report to backend only if the endpoint exists
-      const response = await fetch('/api/errors', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/errors`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -80,10 +104,8 @@ class ErrorBoundary extends React.Component {
         logger.warn('Failed to report error to backend', { status: response.status });
       }
     } catch (reportingError) {
-      // Only log if it's not a network error (which would be expected if endpoint doesn't exist)
-      if (!reportingError.message.includes('fetch')) {
-        logger.error('Error reporting failed', { error: reportingError.message });
-      }
+      // Silently fail - don't spam console with error reporting failures
+      logger.debug('Error reporting failed', { error: reportingError.message });
     }
   };
 
@@ -160,8 +182,8 @@ export const useErrorHandler = () => {
     logger.error('Manual Error Report', errorDetails);
 
     // Report to error tracking service in production
-    if (import.meta.env.MODE === 'production') {
-      fetch('/api/errors', {
+    if (import.meta.env.MODE === 'production' && import.meta.env.VITE_API_URL) {
+      fetch(`${import.meta.env.VITE_API_URL}/api/errors`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -177,10 +199,8 @@ export const useErrorHandler = () => {
           logger.warn('Failed to report error to backend', { status: response.status });
         }
       }).catch(reportingError => {
-        // Only log if it's not a network error (which would be expected if endpoint doesn't exist)
-        if (!reportingError.message.includes('fetch')) {
-          logger.error('Error reporting failed', { error: reportingError.message });
-        }
+        // Silently fail - don't spam console with error reporting failures
+        logger.debug('Error reporting failed', { error: reportingError.message });
       });
     }
   }, []);

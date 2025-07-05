@@ -1,29 +1,37 @@
 // src/components/SummaryCards.jsx
 import React from 'react';
 import { 
-  SimpleGrid, Box, Text, Stat, StatLabel, StatNumber, StatHelpText, 
-  StatArrow, Card, CardBody, Icon, VStack, HStack, useColorModeValue,
+  SimpleGrid, Box, Text, Card, CardBody, Icon, VStack, HStack, useColorModeValue,
   Progress, Badge, Tooltip
 } from '@chakra-ui/react';
-import { FiDollarSign, FiTrendingUp, FiFileText, FiClock, FiCheck, FiAlertTriangle } from 'react-icons/fi';
+import { FiDollarSign, FiTrendingUp, FiFileText, FiClock, FiCheck, FiAlertTriangle, FiArrowUp, FiArrowDown } from 'react-icons/fi';
 
 const SummaryCards = ({ deals }) => {
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const hoverBg = useColorModeValue('brand.backgroundLight', 'gray.700');
 
+  // Ensure deals is always a valid array
+  const safeDeals = React.useMemo(() => {
+    if (!deals || !Array.isArray(deals)) {
+      return [];
+    }
+    // Filter out any invalid deal objects
+    return deals.filter(deal => deal && typeof deal === 'object');
+  }, [deals]);
+
   // Calculate statistics
-  const totalValue = deals.reduce((sum, deal) => sum + (deal.fmv || 0), 0);
-  const activeDeals = deals.filter(deal => deal.status === 'active' || deal.status === 'Active').length;
-  const completedDeals = deals.filter(deal => deal.status === 'completed').length;
-  const draftDeals = deals.filter(deal => deal.status === 'draft').length;
-  const totalDeals = deals.length;
+  const totalValue = safeDeals.reduce((sum, deal) => sum + (deal.fmv || 0), 0);
+  const activeDeals = safeDeals.filter(deal => deal.status === 'active' || deal.status === 'Active').length;
+  const completedDeals = safeDeals.filter(deal => deal.status === 'completed').length;
+  const draftDeals = safeDeals.filter(deal => deal.status === 'draft').length;
+  const totalDeals = safeDeals.length;
   
   // Deal type breakdown
   const dealTypes = {
-    simple: deals.filter(deal => deal.deal_type === 'simple').length,
-    clearinghouse: deals.filter(deal => deal.deal_type === 'clearinghouse').length,
-    valuation: deals.filter(deal => deal.deal_type === 'valuation').length
+    simple: safeDeals.filter(deal => deal.deal_type === 'simple').length,
+    clearinghouse: safeDeals.filter(deal => deal.deal_type === 'clearinghouse').length,
+    valuation: safeDeals.filter(deal => deal.deal_type === 'valuation').length
   };
 
   // Calculate completion rate
@@ -78,7 +86,7 @@ const SummaryCards = ({ deals }) => {
           {trend && (
             <Badge colorScheme={trend > 0 ? 'green' : 'red'} variant="subtle">
               <HStack spacing={1}>
-                <StatArrow type={trend > 0 ? 'increase' : 'decrease'} />
+                <Icon as={trend > 0 ? FiArrowUp : FiArrowDown} boxSize="10px" />
                 <Text fontSize="xs">{Math.abs(trend)}%</Text>
               </HStack>
             </Badge>

@@ -9,7 +9,6 @@ import {
   Badge,
   Tooltip,
   useColorModeValue,
-  StatArrow,
   Progress,
   Box,
   Flex,
@@ -24,7 +23,9 @@ import {
   FiTarget,
   FiClock,
   FiCheck,
-  FiActivity
+  FiActivity,
+  FiArrowUp,
+  FiArrowDown
 } from 'react-icons/fi';
 
 const KPICard = ({ 
@@ -148,7 +149,7 @@ const KPICard = ({
                   <Text fontSize="xs" color="brand.textSecondary">
                     Previous: {formatValue(previousValue)}
                   </Text>
-                  <StatArrow type={trend >= 0 ? 'increase' : 'decrease'} />
+                  <Icon as={trend >= 0 ? FiArrowUp : FiArrowDown} boxSize="10px" color={trendColor} />
                 </HStack>
               )}
             </VStack>
