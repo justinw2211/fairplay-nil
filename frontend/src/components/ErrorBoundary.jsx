@@ -61,7 +61,7 @@ class ErrorBoundary extends React.Component {
 
   reportError = async (errorDetails) => {
     try {
-      // Send error report to backend
+      // Send error report to backend only if the endpoint exists
       const response = await fetch('/api/errors', {
         method: 'POST',
         headers: {
@@ -70,11 +70,20 @@ class ErrorBoundary extends React.Component {
         body: JSON.stringify(errorDetails)
       });
 
+      if (response.status === 404) {
+        // API endpoint doesn't exist - this is expected in development
+        logger.debug('Error reporting endpoint not available');
+        return;
+      }
+
       if (!response.ok) {
         logger.warn('Failed to report error to backend', { status: response.status });
       }
     } catch (reportingError) {
-      logger.error('Error reporting failed', { error: reportingError.message });
+      // Only log if it's not a network error (which would be expected if endpoint doesn't exist)
+      if (!reportingError.message.includes('fetch')) {
+        logger.error('Error reporting failed', { error: reportingError.message });
+      }
     }
   };
 
@@ -158,8 +167,20 @@ export const useErrorHandler = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(errorDetails)
+      }).then(response => {
+        if (response.status === 404) {
+          // API endpoint doesn't exist - this is expected
+          logger.debug('Error reporting endpoint not available');
+          return;
+        }
+        if (!response.ok) {
+          logger.warn('Failed to report error to backend', { status: response.status });
+        }
       }).catch(reportingError => {
-        logger.error('Error reporting failed', { error: reportingError.message });
+        // Only log if it's not a network error (which would be expected if endpoint doesn't exist)
+        if (!reportingError.message.includes('fetch')) {
+          logger.error('Error reporting failed', { error: reportingError.message });
+        }
       });
     }
   }, []);
