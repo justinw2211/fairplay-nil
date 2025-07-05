@@ -268,7 +268,9 @@ const Dashboard = () => {
 
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error("API endpoint not found. Please verify the VITE_API_URL environment variable.");
+          console.warn("Backend API not available. Using empty data for development.");
+          setDeals([]); // Set empty deals array for development
+          return;
         }
         throw new Error("Failed to fetch deals from the server.");
       }
@@ -276,13 +278,19 @@ const Dashboard = () => {
       const data = await response.json();
       setDeals(data.deals || []); // Handle the new response format
     } catch (error) {
-      toast({
-        title: 'Error Fetching Deals',
-        description: error.message,
-        status: 'error',
-        duration: 9000,
-        isClosable: true,
-      });
+      // Handle network errors gracefully for development
+      if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
+        console.warn("Backend API not available. Using empty data for development.");
+        setDeals([]); // Set empty deals array for development
+      } else {
+        toast({
+          title: 'Error Fetching Deals',
+          description: error.message,
+          status: 'error',
+          duration: 9000,
+          isClosable: true,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -317,13 +325,24 @@ const Dashboard = () => {
       // Refresh the deals list after creating a new deal
       await fetchDeals();
     } catch (error) {
-      toast({
-        title: 'Error Creating Deal',
-        description: error.message,
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
+      // Handle backend not available for development
+      if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
+        toast({
+          title: 'Backend Not Available',
+          description: 'The backend API is not running. Please start the backend server to create deals.',
+          status: 'warning',
+          duration: 7000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: 'Error Creating Deal',
+          description: error.message,
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+      }
     }
   };
 

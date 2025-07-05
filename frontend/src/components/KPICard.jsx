@@ -108,13 +108,13 @@ const KPICard = ({
           {/* Header with title and trend */}
           <Flex align="center" justify="space-between">
             <HStack>
-              <Icon as={icon} color={color} size={styles.iconSize} />
+              <Icon as={icon} color={color} boxSize={styles.iconSize} />
               <Text fontSize="sm" fontWeight="medium" color="brand.textSecondary">
                 {title}
               </Text>
               {helpText && (
                 <Tooltip label={helpText} placement="top">
-                  <Icon as={FiInfo} color="gray.400" size="12px" cursor="help" />
+                  <Icon as={FiInfo} color="gray.400" boxSize="12px" cursor="help" />
                 </Tooltip>
               )}
             </HStack>
@@ -122,7 +122,7 @@ const KPICard = ({
             {trend !== undefined && (
               <Badge colorScheme={trend >= 0 ? 'green' : 'red'} variant="subtle">
                 <HStack spacing={1}>
-                  <Icon as={trendIcon} size="10px" />
+                  <Icon as={trendIcon} boxSize="10px" />
                   <Text fontSize="xs">
                     {Math.abs(trend).toFixed(1)}%
                   </Text>

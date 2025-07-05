@@ -66,7 +66,7 @@ const SummaryCards = ({ deals }) => {
         <HStack justify="space-between" align="start" mb={4}>
           <VStack align="start" spacing={1}>
             <HStack>
-              <Icon as={icon} color={color} size="20px" />
+              <Icon as={icon} color={color} boxSize="20px" />
               <Text fontSize="sm" fontWeight="medium" color="brand.textSecondary">
                 {title}
               </Text>
@@ -143,7 +143,7 @@ const SummaryCards = ({ deals }) => {
       >
         {draftDeals > 0 && (
           <HStack spacing={2} mt={2}>
-            <Icon as={FiAlertTriangle} color="orange.500" size="16px" />
+            <Icon as={FiAlertTriangle} color="orange.500" boxSize="16px" />
             <Text fontSize="xs" color="orange.500">
               Complete drafts to activate
             </Text>
