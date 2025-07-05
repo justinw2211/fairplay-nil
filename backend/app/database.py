@@ -266,7 +266,7 @@ class DatabaseClient:
             # Calculate pagination
             pagination_meta = PaginationHelper.calculate_pagination(page, limit, total_count)
             
-            # Get deals with profile data joined
+            # Get deals with profile data joined - fixed to use 'sports' (plural) and include more profile fields
             deals_query = self.client.table('deals').select(f"""
                 id,user_id,status,created_at,deal_nickname,deal_terms_url,deal_terms_file_name,
                 deal_terms_file_type,deal_terms_file_size,payor_name,payor_type,contact_name,
@@ -276,7 +276,7 @@ class DatabaseClient:
                 social_media_confirmed,social_media_confirmed_at,deal_type,clearinghouse_prediction,
                 valuation_prediction,brand_partner,clearinghouse_result,actual_compensation,
                 valuation_range,fmv,
-                profiles!deals_user_id_fkey(university,sport)
+                profiles!deals_user_id_fkey(full_name,university,sports,division,gender,email,phone,role,avatar_url)
             """).eq('user_id', user_id)
             
             # Apply filters
@@ -297,14 +297,56 @@ class DatabaseClient:
             deals_response = deals_query.execute()
             deals = deals_response.data or []
             
-            # Flatten the profile data into the deal objects for easier access
+            # Flatten the profile data into the deal objects and add field mappings for frontend compatibility
             for deal in deals:
                 if deal.get('profiles'):
                     profile = deal['profiles']
+                    # Map profile data to deal fields
                     deal['university'] = profile.get('university')
-                    deal['sport'] = profile.get('sport')
+                    deal['full_name'] = profile.get('full_name')
+                    deal['division'] = profile.get('division')
+                    deal['gender'] = profile.get('gender')
+                    deal['email'] = profile.get('email')
+                    deal['phone'] = profile.get('phone')
+                    deal['role'] = profile.get('role')
+                    deal['avatar_url'] = profile.get('avatar_url')
+                    
+                    # Handle sports array (convert to string for frontend compatibility)
+                    sports_data = profile.get('sports')
+                    if sports_data:
+                        if isinstance(sports_data, list):
+                            deal['sport'] = ', '.join(sports_data) if sports_data else ''
+                            deal['sports'] = sports_data
+                        else:
+                            # If it's already a string, use it
+                            deal['sport'] = sports_data
+                            deal['sports'] = [sports_data] if sports_data else []
+                    else:
+                        deal['sport'] = ''
+                        deal['sports'] = []
+                    
+                    # Add frontend-expected field mappings
+                    deal['athlete_name'] = profile.get('full_name', '')
+                    deal['school'] = profile.get('university', '')
+                    deal['description'] = deal.get('deal_nickname', '')
+                    
                     # Remove the nested profiles object to keep the response clean
                     del deal['profiles']
+                else:
+                    # Provide defaults if no profile data
+                    deal['university'] = ''
+                    deal['sport'] = ''
+                    deal['sports'] = []
+                    deal['athlete_name'] = ''
+                    deal['school'] = ''
+                    deal['description'] = deal.get('deal_nickname', '')
+                    deal['full_name'] = ''
+                    deal['division'] = ''
+                    deal['gender'] = ''
+                    deal['email'] = ''
+                    deal['phone'] = ''
+                    deal['role'] = ''
+                    deal['avatar_url'] = ''
             
             return {
                 "deals": deals,
