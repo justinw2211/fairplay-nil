@@ -43,7 +43,6 @@ const ActivityRouter = () => {
   
   // Store the activity sequence in component state for stability
   const [activitySequence, setActivitySequence] = useState([]);
-  const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
 
   useEffect(() => {
     if (!deal && dealId) {
@@ -62,15 +61,8 @@ const ActivityRouter = () => {
       
       console.log('🔄 Initializing activity sequence:', sequence);
       setActivitySequence(sequence);
-      
-      // Set current index based on the activity in URL
-      const decodedActivityType = decodeURIComponent(activityType);
-      const index = sequence.indexOf(decodedActivityType);
-      setCurrentActivityIndex(index >= 0 ? index : 0);
-      
-      console.log('📍 Current activity index set to:', index >= 0 ? index : 0);
     }
-  }, [deal, activityType, activitySequence.length]);
+  }, [deal, activitySequence.length]);
 
   if (loading || !deal) {
     return (
@@ -88,16 +80,24 @@ const ActivityRouter = () => {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Use our stable activity sequence
+  // Calculate current activity index directly from the URL and sequence
+  const currentActivityIndex = activitySequence.length > 0 ? activitySequence.indexOf(decodedActivityType) : -1;
   const totalActivities = activitySequence.length;
-  const currentActivityNumber = currentActivityIndex + 1;
+  const currentActivityNumber = currentActivityIndex >= 0 ? currentActivityIndex + 1 : 1;
   const progressPercentage = totalActivities > 0 ? (currentActivityNumber / totalActivities) * 100 : 0;
 
-  console.log('🎯 ActivityRouter State:');
+  console.log('🎯 ActivityRouter State (Direct Calculation):');
   console.log('activitySequence:', activitySequence);
+  console.log('decodedActivityType:', decodedActivityType);
   console.log('currentActivityIndex:', currentActivityIndex);
   console.log('totalActivities:', totalActivities);
   console.log('currentActivity:', decodedActivityType);
+
+  // Early return if we don't have a valid activity index
+  if (currentActivityIndex < 0 && activitySequence.length > 0) {
+    console.error('❌ Activity not found in sequence:', decodedActivityType);
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleNext = async () => {
     console.log('🚀 handleNext called with stable sequence');
