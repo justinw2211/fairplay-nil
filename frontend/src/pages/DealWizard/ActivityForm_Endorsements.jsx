@@ -95,19 +95,26 @@ const ActivityForm_Endorsements = ({ onNext, currentActivity, totalActivities })
 
   const handleNext = async () => {
     const formattedData = {
-      selectedTypes: selectedEndorsements,
-      details: endorsementDetails,
-      description,
-      duration,
+      productTypes: selectedEndorsements,
+      usageFrequency: endorsementDetails.usage || "",
+      usageLocations: endorsementDetails.usageLocations || [],
+      exclusivityPeriod: Number.parseInt(endorsementDetails.exclusivityPeriod) || 0,
+      hasProductSupply: endorsementDetails.hasProductSupply || false,
     };
+
+    // Get the existing activity entry to preserve sequence and completed status
+    const existingActivity = deal.obligations?.['endorsements'] || {};
 
     await updateDeal(dealId, {
       obligations: {
         ...deal.obligations,
-        'endorsements': formattedData,
+        'endorsements': {
+          ...existingActivity, // Preserve sequence, completed, etc.
+          ...formattedData,    // Add the form data
+        },
       },
     });
-    
+
     onNext();
   };
 

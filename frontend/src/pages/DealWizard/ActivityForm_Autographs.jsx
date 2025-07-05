@@ -49,13 +49,19 @@ const ActivityForm_Autographs = ({ onNext, currentActivity, totalActivities }) =
       itemTypes,
     };
 
+    // Get the existing activity entry to preserve sequence and completed status
+    const existingActivity = deal.obligations?.['autographs'] || {};
+
     await updateDeal(dealId, {
       obligations: {
         ...deal.obligations,
-        'autographs': formattedData,
+        'autographs': {
+          ...existingActivity, // Preserve sequence, completed, etc.
+          ...formattedData,    // Add the form data
+        },
       },
     });
-    
+
     onNext();
   };
 

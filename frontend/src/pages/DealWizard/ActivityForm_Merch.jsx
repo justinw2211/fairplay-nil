@@ -102,19 +102,27 @@ const ActivityForm_Merch = ({ onNext, currentActivity, totalActivities }) => {
 
   const handleNext = async () => {
     const formattedData = {
-      selectedTypes: selectedMerch,
-      details: merchDetails,
-      customMerch: customMerch,
-      totalItems: Object.values(merchDetails).reduce((sum, item) => sum + (item.quantity || 0), 0),
+      quantity: Number.parseInt(quantity),
+      productTypes,
+      retailPrice: Number.parseFloat(retailPrice) || 0,
+      hasRevShare,
+      revSharePercentage: hasRevShare ? Number.parseFloat(revSharePercentage) || 0 : 0,
+      expectedSales: Number.parseInt(expectedSales) || 0,
     };
+
+    // Get the existing activity entry to preserve sequence and completed status
+    const existingActivity = deal.obligations?.['merch-and-products'] || {};
 
     await updateDeal(dealId, {
       obligations: {
         ...deal.obligations,
-        'merch-and-products': formattedData,
+        'merch-and-products': {
+          ...existingActivity, // Preserve sequence, completed, etc.
+          ...formattedData,    // Add the form data
+        },
       },
     });
-    
+
     onNext();
   };
 

@@ -61,10 +61,16 @@ const ActivityForm_Content = ({ onNext, currentActivity, totalActivities }) => {
       description: contentDescription,
     };
 
+    // Get the existing activity entry to preserve sequence and completed status
+    const existingActivity = deal.obligations?.['content-for-brand'] || {};
+
     await updateDeal(dealId, {
       obligations: {
         ...deal.obligations,
-        'content-for-brand': formattedData,
+        'content-for-brand': {
+          ...existingActivity, // Preserve sequence, completed, etc.
+          ...formattedData,    // Add the form data
+        },
       },
     });
     onNext();

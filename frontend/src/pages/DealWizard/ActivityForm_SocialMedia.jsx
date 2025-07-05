@@ -173,7 +173,10 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
     await updateDeal(dealId, {
       obligations: {
         ...deal.obligations,
-        'social-media': formattedData,
+        'social-media': {
+          ...deal.obligations?.['social-media'],
+          ...formattedData,
+        },
       },
     });
     

@@ -104,10 +104,16 @@ const ActivityForm_Appearance = ({ onNext, currentActivity, totalActivities }) =
       otherAppearance,
     };
 
+    // Get the existing activity entry to preserve sequence and completed status
+    const existingActivity = deal.obligations?.['appearance'] || {};
+
     await updateDeal(dealId, {
       obligations: {
         ...deal.obligations,
-        'appearance': formattedData,
+        'appearance': {
+          ...existingActivity, // Preserve sequence, completed, etc.
+          ...formattedData,    // Add the form data
+        },
       },
     });
     onNext();

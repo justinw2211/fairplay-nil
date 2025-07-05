@@ -50,24 +50,26 @@ const ActivityForm_Other = ({ onNext, currentActivity, totalActivities }) => {
   };
 
   const handleNext = async () => {
-    if (!activityDescription.trim()) {
-      setShowError(true);
-      return;
-    }
-
     const formattedData = {
-      name: activityName.trim(),
-      description: activityDescription.trim(),
-      dueDate,
+      customActivity,
+      duration: Number.parseInt(duration),
+      deliverables,
+      timeline,
     };
+
+    // Get the existing activity entry to preserve sequence and completed status
+    const existingActivity = deal.obligations?.['other'] || {};
 
     await updateDeal(dealId, {
       obligations: {
         ...deal.obligations,
-        'other': formattedData,
+        'other': {
+          ...existingActivity, // Preserve sequence, completed, etc.
+          ...formattedData,    // Add the form data
+        },
       },
     });
-    
+
     onNext();
   };
 
