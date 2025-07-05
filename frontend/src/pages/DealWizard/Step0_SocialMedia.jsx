@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import { useAuth } from '../../context/AuthContext';
@@ -35,6 +35,10 @@ const Step0_SocialMedia = () => {
   const [socialMediaData, setSocialMediaData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [formValid, setFormValid] = useState(false);
+  
+  // Reference to trigger form submission
+  const formRef = useRef(null);
   
   const { fetchSocialMedia, updateSocialMedia } = useSocialMedia();
 
@@ -44,9 +48,9 @@ const Step0_SocialMedia = () => {
       try {
         const data = await fetchSocialMedia();
         setSocialMediaData(data || []);
-              } catch (error) {
-            // Log error without sensitive data
-            toast({
+      } catch (error) {
+        // Log error without sensitive data
+        toast({
           title: 'Notice',
           description: 'Could not load existing social media data. You can still add your information.',
           status: 'warning',
@@ -90,9 +94,9 @@ const Step0_SocialMedia = () => {
       // PATTERN: Navigate to next step based on deal type (maintain existing URLs with type parameter)
       const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
       navigate(`/add/deal/terms/${dealId}${typeParam}`);
-            } catch (error) {
-            // Log error without sensitive data
-            toast({
+    } catch (error) {
+      // Log error without sensitive data
+      toast({
         title: 'Error updating deal',
         description: error.message || 'Failed to confirm social media information. Please try again.',
         status: 'error',
@@ -106,6 +110,24 @@ const Step0_SocialMedia = () => {
 
   const handleFinishLater = () => {
     navigate('/dashboard');
+  };
+
+  const handleContinueClick = () => {
+    // Try multiple approaches to trigger form submission
+    if (formRef.current) {
+      // First try: dispatch submit event
+      const form = formRef.current.querySelector('#social-media-form');
+      if (form) {
+        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        return;
+      }
+    }
+    
+    // Fallback: click the hidden submit button
+    const submitButton = document.querySelector('[data-testid="social-media-submit"]');
+    if (submitButton) {
+      submitButton.click();
+    }
   };
 
   // Get deal type display information
@@ -229,11 +251,13 @@ const Step0_SocialMedia = () => {
             </Alert>
 
             {/* Social Media Form */}
-            <SocialMediaForm
-              initialData={socialMediaData}
-              onSubmit={handleNext}
-              isLoading={loading}
-            />
+            <Box ref={formRef} w="full">
+              <SocialMediaForm
+                initialData={socialMediaData}
+                onSubmit={handleNext}
+                isLoading={loading}
+              />
+            </Box>
 
             {/* Navigation Buttons */}
             <Flex justify="space-between" pt={8} w="full">
@@ -265,13 +289,7 @@ const Step0_SocialMedia = () => {
                 fontSize="base"
                 fontWeight="semibold"
                 isLoading={loading}
-                onClick={() => {
-                  // Trigger form submission
-                  const submitButton = document.querySelector('[data-testid="social-media-submit"]');
-                  if (submitButton) {
-                    submitButton.click();
-                  }
-                }}
+                onClick={handleContinueClick}
                 _hover={{
                   bg: "#c8aeb0",
                 }}

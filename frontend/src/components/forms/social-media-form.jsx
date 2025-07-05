@@ -302,25 +302,35 @@ const SocialMediaForm = ({
               ))}
             </VStack>
 
-                      {/* Add Platform Button */}
-          {fields.length < SOCIAL_PLATFORMS.length && (
-            <Button
-              leftIcon={<AddIcon />}
-              variant="outline"
-              onClick={addPlatform}
-              mt={4}
-              borderColor="brand.accentPrimary"
-              color="brand.accentPrimary"
-              _hover={{
-                bg: "brand.accentPrimary",
-                color: "white",
-              }}
-              isDisabled={isLoading}
-            >
-              Add Another Platform
-            </Button>
-          )}
-        </Box>
+            {/* Add Platform Button */}
+            {fields.length < SOCIAL_PLATFORMS.length && (
+              <Button
+                leftIcon={<AddIcon />}
+                variant="outline"
+                onClick={addPlatform}
+                mt={4}
+                borderColor="brand.accentPrimary"
+                color="brand.accentPrimary"
+                _hover={{
+                  bg: "brand.accentPrimary",
+                  color: "white",
+                }}
+                isDisabled={isLoading}
+              >
+                Add Another Platform
+              </Button>
+            )}
+          </Box>
+          
+          {/* Hidden submit button for external triggers */}
+          <Button
+            type="submit"
+            data-testid="social-media-submit"
+            style={{ display: 'none' }}
+            isLoading={isLoading}
+          >
+            Submit
+          </Button>
         </VStack>
       </form>
     </Box>
