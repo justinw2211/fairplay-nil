@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   Box, Flex, Heading, Button, Spinner, Text, VStack, useToast,
   HStack, Avatar, Badge, Divider, useColorModeValue, Icon,
-  Tooltip, Card, CardBody
+  Tooltip, Card, CardBody, SimpleGrid
 } from '@chakra-ui/react';
 import { useAuth } from '../context/AuthContext';
 import { useDeal } from '../context/DealContext';
@@ -11,9 +11,10 @@ import { useDeal } from '../context/DealContext';
 import { supabase } from '../supabaseClient';
 import DealsTable from '../components/DealsTable';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiUser, FiAward, FiMapPin } from 'react-icons/fi';
+import { FiEdit2, FiUser, FiAward, FiMapPin, FiPlus, FiFileText, FiShield, FiTrendingUp } from 'react-icons/fi';
 import SocialMediaModal from '../components/social-media-modal';
 import useSocialMedia from '../hooks/use-social-media';
+import DealTypeCard from '../components/DealTypeCard';
 
 const ProfileCard = ({ user, onEditClick }) => {
   const cardBg = useColorModeValue('white', 'gray.800');
@@ -173,12 +174,28 @@ const Dashboard = () => {
     fetchDeals();
   }, [fetchDeals]);
   
-  const handleAddNewDeal = async () => {
+  const handleDealTypeSelect = async (dealType) => {
     try {
-      const newDeal = await createDraftDeal();
+      const newDeal = await createDraftDeal({ deal_type: dealType });
       if (!newDeal) {
         throw new Error('Failed to create new deal');
       }
+      
+      // Navigate to the appropriate workflow based on deal type
+      switch (dealType) {
+        case 'simple':
+          navigate(`/add/deal/social-media/${newDeal.id}?type=simple`);
+          break;
+        case 'clearinghouse':
+          navigate(`/add/deal/social-media/${newDeal.id}?type=clearinghouse`);
+          break;
+        case 'valuation':
+          navigate(`/add/deal/social-media/${newDeal.id}?type=valuation`);
+          break;
+        default:
+          navigate(`/add/deal/social-media/${newDeal.id}`);
+      }
+      
       // Refresh the deals list after creating a new deal
       await fetchDeals();
     } catch (error) {
@@ -204,6 +221,27 @@ const Dashboard = () => {
     navigate('/edit-profile');
   };
 
+  const dealTypes = [
+    {
+      id: 'simple',
+      title: 'Simple Deal Logging',
+      description: 'Basic deal tracking without predictive analysis. Perfect for straightforward deals where you just need status management.',
+      icon: FiFileText
+    },
+    {
+      id: 'clearinghouse',
+      title: 'NIL Go Clearinghouse Check',
+      description: 'Get a prediction on whether your deal will be approved, denied, or flagged by the NIL Go Clearinghouse.',
+      icon: FiShield
+    },
+    {
+      id: 'valuation',
+      title: 'Deal Valuation Analysis',
+      description: 'Receive fair market value compensation ranges based on your deal parameters and athlete profile.',
+      icon: FiTrendingUp
+    }
+  ];
+
   if (loading) {
     return (<Flex justify="center" align="center" minH="80vh"><Spinner size="xl" /></Flex>);
   }
@@ -212,23 +250,25 @@ const Dashboard = () => {
     <Box p={8}>
       <ProfileCard user={user} onEditClick={handleEditProfile} />
       
-      <Flex justify="space-between" align="center" mb={8}>
-        <VStack align="flex-start">
-          <Heading as="h2" size="lg">Your NIL Deals</Heading>
-          <Text color="gray.500">Manage your deals and track your earnings.</Text>
+      <VStack spacing={8} mb={8}>
+        <VStack spacing={2}>
+          <Heading as="h2" size="lg" textAlign="center">Create New Deal</Heading>
+          <Text color="gray.500" textAlign="center">Choose the type of deal analysis you'd like to perform</Text>
         </VStack>
-        <Button 
-          leftIcon={<Icon as={FiEdit2} />}
-          colorScheme="pink" 
-          bg="brand.accentPrimary" 
-          color="white" 
-          onClick={handleAddNewDeal}
-          isLoading={isCreatingDeal}
-          _hover={{ bg: '#c8aeb0' }}
-        >
-          Add New Deal
-        </Button>
-      </Flex>
+        
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} w="full" justifyItems="center">
+          {dealTypes.map((dealType) => (
+            <DealTypeCard
+              key={dealType.id}
+              title={dealType.title}
+              description={dealType.description}
+              icon={dealType.icon}
+              onClick={() => handleDealTypeSelect(dealType.id)}
+              isLoading={isCreatingDeal}
+            />
+          ))}
+        </SimpleGrid>
+      </VStack>
       
       <Box mb={10}>
         <Heading as="h3" size="md" mb={4}>Draft Deals</Heading>
@@ -239,7 +279,7 @@ const Dashboard = () => {
             onDealDeleted={handleDealDeleted}
           />
         ) : (
-          <Text>You have no deals currently in progress. Click "Add New Deal" to get started.</Text>
+          <Text>You have no deals currently in progress. Choose a deal type above to get started.</Text>
         )}
       </Box>
 

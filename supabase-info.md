@@ -10,6 +10,11 @@
 **Authentication:** Supabase Auth integration
 **Migration System:** Custom migration files in `backend/migrations/`
 
+**⚠️ CRITICAL DEPLOYMENT REQUIREMENT:** 
+- **Supabase Python Library:** Must use `supabase>=2.16.0` 
+- **Known Issue:** Versions 1.0.3 and earlier have critical initialization bugs causing `AttributeError: 'dict' object has no attribute 'headers'`
+- **Dependencies:** When upgrading supabase library, also update httpx, typing-extensions, pydantic, anyio, aioredis (see cursor-rules.mdc for specific versions)
+
 ## Core Tables
 
 ### 1. `profiles` Table
@@ -115,6 +120,48 @@
 - `idx_social_media_user_id` - Foreign key index for user queries
 - `idx_social_media_platform` - Platform type filtering
 - `idx_social_media_followers` - Follower count ordering
+
+## ⚠️ CRITICAL: Database-Frontend Mapping Patterns
+
+### NCAA Division Enum Mapping
+**Database Storage:** The `ncaa_division` enum stores values as: `'I'`, `'II'`, `'III'`, `'NAIA'`, `'JUCO'`
+**Frontend Display:** The UI shows: `'Division I'`, `'Division II'`, `'Division III'`, `'NAIA'`, `'JUCO'`
+
+**⚠️ CRITICAL REQUIREMENT:** Always implement bidirectional mapping between database enum values and frontend display values:
+
+```javascript
+// Convert display to database enum (for form submission)
+const mapDisplayToEnum = (displayValue) => {
+  const mapping = {
+    'Division I': 'I',
+    'Division II': 'II', 
+    'Division III': 'III',
+    'NAIA': 'NAIA',
+    'JUCO': 'JUCO'
+  };
+  return mapping[displayValue] || displayValue;
+};
+
+// Convert database enum to display (for loading data)
+const mapEnumToDisplay = (enumValue) => {
+  const mapping = {
+    'I': 'Division I',
+    'II': 'Division II',
+    'III': 'Division III', 
+    'NAIA': 'NAIA',
+    'JUCO': 'JUCO'
+  };
+  return mapping[enumValue] || enumValue;
+};
+```
+
+**Files requiring division mapping:**
+- `frontend/src/pages/EditProfile.jsx`
+- `frontend/src/pages/SignUp.jsx`
+- Any other forms that handle division selection
+
+**Error Prevention:** Failure to implement this mapping will cause SQL errors like:
+`invalid input value for enum ncaa_division: "Division III"`
 
 ## JSONB Field Structures
 

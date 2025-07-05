@@ -62,16 +62,24 @@ export const DealProvider = ({ children }) => {
     }
   };
 
-  const createDraftDeal = useCallback(async () => {
+  const createDraftDeal = useCallback(async (dealOptions = {}) => {
     setLoading(true);
     setError(null);
     try {
+      const { deal_type } = dealOptions;
+      const requestBody = deal_type ? { deal_type } : {};
+      
       const response = await authenticatedFetch(`${import.meta.env.VITE_API_URL}/api/deals`, { 
-        method: 'POST' 
+        method: 'POST',
+        body: JSON.stringify(requestBody)
       });
       const newDraft = response;
       setDeal(newDraft);
-      navigate(`/add/deal/social-media/${newDraft.id}`);
+      
+      // Navigate with deal type parameter if provided
+      const typeParam = deal_type && deal_type !== 'standard' ? `?type=${deal_type}` : '';
+      navigate(`/add/deal/social-media/${newDraft.id}${typeParam}`);
+      
       return newDraft;
     } catch (err) {
       setError(err.message);

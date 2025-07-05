@@ -4,6 +4,14 @@ from typing import Optional, List, Dict, Any, Union
 from datetime import datetime
 import uuid
 import re
+from enum import Enum
+
+# Deal Type Enumeration
+class DealTypeEnum(str, Enum):
+    simple = "simple"
+    clearinghouse = "clearinghouse" 
+    valuation = "valuation"
+    standard = "standard"  # For backwards compatibility
 
 # --- Schemas for Profile Functionality ---
 class ProfileUpdate(BaseModel):
@@ -61,6 +69,26 @@ class ProfileResponse(ProfileUpdate):
     class Config:
         from_attributes = True
 
+# --- Schemas for Prediction Results ---
+class ClearinghousePrediction(BaseModel):
+    prediction: str = Field(pattern=r'^(approved|denied|flagged)$')
+    confidence: float = Field(ge=0.0, le=1.0)
+    reasons: List[str] = Field(default_factory=list)
+    payor_verification: Optional[Dict[str, Any]] = None
+    business_purpose_verification: Optional[Dict[str, Any]] = None
+    fmv_analysis: Optional[Dict[str, Any]] = None
+    predicted_at: datetime = Field(default_factory=datetime.utcnow)
+
+class ValuationPrediction(BaseModel):
+    estimated_fmv: float = Field(ge=0.0)
+    fmv_range: Dict[str, float] = Field(description="Fair market value range with min and max values")
+    factors: Dict[str, Any] = Field(default_factory=dict)
+    social_media_score: Optional[float] = None
+    school_tier_multiplier: Optional[float] = None
+    sport_multiplier: Optional[float] = None
+    activity_multiplier: Optional[float] = None
+    predicted_at: datetime = Field(default_factory=datetime.utcnow)
+
 # --- Schemas for the new Deal Wizard ---
 
 class OtherCompensationItem(BaseModel):
@@ -75,6 +103,11 @@ class ActivityDetails(BaseModel):
     deadlines: Optional[Dict[str, Any]] = None
 
 class DealUpdate(BaseModel):
+    # Deal Type and Prediction Fields
+    deal_type: Optional[DealTypeEnum] = Field(default=DealTypeEnum.simple, description="Type of deal workflow")
+    clearinghouse_prediction: Optional[Dict[str, Any]] = Field(None, description="NIL Go clearinghouse prediction results")
+    valuation_prediction: Optional[Dict[str, Any]] = Field(None, description="Fair market value prediction results")
+    
     # Step 0: Social Media (NEW)
     athlete_social_media: Optional[List[Dict[str, Any]]] = None
     social_media_confirmed: Optional[bool] = None
@@ -89,6 +122,7 @@ class DealUpdate(BaseModel):
     
     # Step 2: Payor Info
     payor_name: Optional[str] = None
+    payor_type: Optional[str] = Field(None, pattern=r'^(business|individual)$')
     contact_name: Optional[str] = None
     contact_email: Optional[EmailStr] = None
     contact_phone: Optional[str] = None
@@ -112,6 +146,12 @@ class DealUpdate(BaseModel):
     is_paid_to_llc: Optional[bool] = None
     status: Optional[str] = None
 
+    @validator('deal_type')
+    def validate_deal_type(cls, v):
+        if v and v not in [e.value for e in DealTypeEnum]:
+            raise ValueError(f'Deal type must be one of: {", ".join([e.value for e in DealTypeEnum])}')
+        return v
+
 class DealResponse(DealUpdate):
     id: int
     user_id: uuid.UUID
@@ -125,3 +165,4 @@ class DealCreateResponse(BaseModel):
     id: int
     user_id: uuid.UUID
     status: str
+    deal_type: Optional[str] = None

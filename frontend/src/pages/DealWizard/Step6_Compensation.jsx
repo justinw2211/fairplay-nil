@@ -1,34 +1,33 @@
 // frontend/src/pages/DealWizard/Step6_Compensation.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
+import { useAuth } from '../../context/AuthContext';
 import {
   Box,
   Button,
+  Card,
+  CardBody,
   Container,
   Flex,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   Icon,
   Input,
+  Progress,
+  Select,
   Text,
   Textarea,
   VStack,
-  Select,
-  Progress,
+  useToast,
+  Heading,
+  HStack,
   IconButton,
-  FormErrorMessage,
+  Alert,
+  AlertIcon,
 } from '@chakra-ui/react';
-import {
-  ChevronRight,
-  ChevronLeft,
-  Clock,
-  Plus,
-  DollarSign,
-  Trash2,
-  ChevronDown,
-  ChevronUp,
-} from 'lucide-react';
+import { DollarSign, Plus, Trash2, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, Clock } from 'lucide-react';
 import { formLogger } from '../../utils/logger';
 
 // Types
@@ -45,17 +44,46 @@ const CompensationItem = {
   expanded: Boolean,
 };
 
+const paymentSchedules = [
+  { value: 'lump_sum', label: 'Lump Sum' },
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'quarterly', label: 'Quarterly' },
+  { value: 'per_deliverable', label: 'Per Deliverable' },
+  { value: 'milestone_based', label: 'Milestone Based' },
+  { value: 'other', label: 'Other' }
+];
+
+const compensationTypes = [
+  { value: 'cash', label: 'Cash Payment', description: 'Direct monetary compensation' },
+  { value: 'non-cash', label: 'Goods/Products', description: 'Physical items or services' },
+  { value: 'bonus', label: 'Performance Bonus', description: 'Additional payment based on metrics' },
+  { value: 'royalty', label: 'Royalty Payment', description: 'Percentage of sales or revenue' },
+  { value: 'other', label: 'Other', description: 'Custom compensation type' },
+];
+
 const Step6_Compensation = () => {
   const { dealId } = useParams();
+  const [searchParams] = useSearchParams();
+  const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
+  const { user } = useAuth();
+  const toast = useToast();
 
   const [compensationItems, setCompensationItems] = useState([
-    { id: "1", type: "cash", expanded: true }
+    { 
+      id: 1, 
+      type: "cash", 
+      amount: "", 
+      schedule: "", 
+      description: "", 
+      expanded: true 
+    }
   ]);
 
   const validateAmount = (value) => {
-    return value && parseFloat(value) > 0;
+    const numericValue = parseFloat(value);
+    return !isNaN(numericValue) && numericValue > 0;
   };
 
   useEffect(() => {
@@ -64,72 +92,46 @@ const Step6_Compensation = () => {
     }
   }, [deal]);
 
-  const compensationTypes = [
-    { value: "cash", label: "Cash or Cash Equivalent" },
-    { value: "non-cash", label: "Goods, Services, & Experiences" },
-    { value: "bonus", label: "Bonus Payment" },
-    { value: "royalty", label: "Royalty Payment" },
-    { value: "other", label: "Other Payment Type" }
-  ];
-
-  const paymentSchedules = [
-    { value: "lump-sum", label: "Lump Sum (One Time)" },
-    { value: "monthly", label: "Monthly" },
-    { value: "per-deliverable", label: "Per-Deliverable" }
-  ];
-
   const getTypeDescription = (type) => {
-    switch (type) {
-      case "cash":
-        return "Includes all payments in cash, check, direct deposit, Venmo, PayPal, and more";
-      case "non-cash":
-        return "Includes items like clothes, food, concert tickets, or services like haircuts or an apartment lease";
-      case "bonus":
-        return "Payment in addition to primary contract payment that is conditional on certain activities or metrics";
-      case "royalty":
-        return "Payment based on set share of proceeds from sale of item or service";
-      case "other":
-        return "Other payment type not listed in the categories presented";
-      default:
-        return "";
-    }
+    const found = compensationTypes.find(ct => ct.value === type);
+    return found ? found.description : '';
   };
 
   const updateCompensationItem = (id, field, value) => {
-    setCompensationItems(items =>
-      items.map(item => item.id === id ? { ...item, [field]: value } : item)
-    );
+    setCompensationItems(prev => prev.map(item =>
+      item.id === id ? { ...item, [field]: value } : item
+    ));
   };
 
   const toggleExpanded = (id) => {
-    setCompensationItems(items =>
-      items.map(item => item.id === id ? { ...item, expanded: !item.expanded } : item)
-    );
+    setCompensationItems(prev => prev.map(item =>
+      item.id === id ? { ...item, expanded: !item.expanded } : item
+    ));
   };
 
   const addCompensationItem = () => {
-    const newId = (compensationItems.length + 1).toString();
-    setCompensationItems([...compensationItems, { id: newId, type: "cash", expanded: true }]);
+    const newId = Math.max(...compensationItems.map(item => item.id)) + 1;
+    setCompensationItems(prev => [...prev, { id: newId, type: "cash", amount: "", schedule: "", description: "", expanded: true }]);
   };
 
   const removeCompensationItem = (id) => {
     if (compensationItems.length > 1) {
-      setCompensationItems(items => items.filter(item => item.id !== id));
+      setCompensationItems(prev => prev.filter(item => item.id !== id));
     }
   };
 
   const isFormValid = () => {
     return compensationItems.every(item => {
       if (item.type === "cash") {
-        return validateAmount(item.amount) && item.schedule;
+        return item.amount && validateAmount(item.amount) && item.schedule;
       } else if (item.type === "non-cash") {
-        return item.description && validateAmount(item.value);
+        return item.description && item.value && validateAmount(item.value);
       } else if (item.type === "bonus") {
-        return validateAmount(item.amount) && item.requirements;
+        return item.amount && item.requirements;
       } else if (item.type === "royalty") {
-        return item.description && item.percentage && parseFloat(item.percentage) > 0 && parseFloat(item.percentage) <= 100;
+        return item.percentage && parseFloat(item.percentage) > 0 && parseFloat(item.percentage) <= 100;
       } else if (item.type === "other") {
-        return item.description && validateAmount(item.value);
+        return item.description && item.value && validateAmount(item.value);
       }
       return false;
     });
@@ -170,11 +172,52 @@ const Step6_Compensation = () => {
 
     try {
       await updateDeal(dealId, formattedData);
-      navigate(`/add/deal/review/${dealId}`);
+      
+      // Conditional navigation based on deal type
+      if (dealType === 'simple') {
+        // For simple deals, skip review and go directly to submission success
+        const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+        navigate(`/add/deal/submission-success/${dealId}${typeParam}`);
+      } else if (dealType === 'clearinghouse') {
+        // For clearinghouse deals, go to clearinghouse wizard
+        const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+        navigate(`/clearinghouse-wizard/${dealId}${typeParam}`);
+      } else if (dealType === 'valuation') {
+        // For valuation deals, go to valuation wizard (will be implemented in next task)
+        const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+        navigate(`/valuation-wizard/${dealId}${typeParam}`);
+      } else {
+        // For standard deal types, continue to review
+        const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+        navigate(`/add/deal/review/${dealId}${typeParam}`);
+      }
     } catch (error) {
       formLogger.error('Error updating deal', { error: error.message });
     }
   };
+
+  const handleFinishLater = () => {
+    navigate('/dashboard');
+  };
+
+  // Get progress information based on deal type
+  const getProgressInfo = () => {
+    if (dealType === 'simple') {
+      return {
+        stepNumber: '4 of 4',
+        percentage: 100,
+        isLastStep: true
+      };
+    } else {
+      return {
+        stepNumber: '7 of 9', 
+        percentage: 77.8,
+        isLastStep: false
+      };
+    }
+  };
+
+  const progressInfo = getProgressInfo();
 
   const renderCompensationFields = (item) => {
     switch (item.type) {
@@ -515,14 +558,14 @@ const Step6_Compensation = () => {
           <VStack spacing={3} mb={6}>
             <Flex justify="space-between" w="full" fontSize="sm">
               <Text color="brand.textSecondary" fontWeight="medium">
-                Step 7 of 9
+                {progressInfo.stepNumber}
               </Text>
               <Text color="brand.textSecondary">
-                77.8% Complete
+                {progressInfo.percentage.toFixed(1)}% Complete
               </Text>
             </Flex>
             <Progress
-              value={77.8}
+              value={progressInfo.percentage}
               w="full"
               h="2"
               bg="brand.accentSecondary"
@@ -687,7 +730,7 @@ const Step6_Compensation = () => {
                 fontSize="base"
                 fontWeight="medium"
                 color="brand.textSecondary"
-                onClick={() => navigate('/dashboard')}
+                onClick={handleFinishLater}
                 _hover={{
                   color: "brand.textPrimary"
                 }}
@@ -705,7 +748,15 @@ const Step6_Compensation = () => {
                   fontWeight="medium"
                   borderColor="brand.accentSecondary"
                   color="brand.textSecondary"
-                  onClick={() => navigate(`/add/deal/compliance/${dealId}`)}
+                  onClick={() => {
+                    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+                    // For simple deals, go back to payor step since compliance is skipped
+                    if (dealType === 'simple') {
+                      navigate(`/add/deal/payor/${dealId}${typeParam}`);
+                    } else {
+                      navigate(`/add/deal/compliance/${dealId}${typeParam}`);
+                    }
+                  }}
                   _hover={{
                     bg: "brand.backgroundLight",
                     borderColor: "brand.accentPrimary",

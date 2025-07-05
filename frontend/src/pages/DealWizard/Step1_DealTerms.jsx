@@ -1,6 +1,6 @@
 // frontend/src/pages/DealWizard/Step1_DealTerms.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -20,6 +20,8 @@ import {
   Text,
   VStack,
   useToast,
+  Alert,
+  AlertIcon,
 } from '@chakra-ui/react';
 import { Upload, ChevronRight, Clock } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
@@ -27,6 +29,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 const Step1_DealTerms = () => {
   const { dealId } = useParams();
+  const [searchParams] = useSearchParams();
+  const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
   const { user } = useAuth();
@@ -184,12 +188,32 @@ const Step1_DealTerms = () => {
     }
 
     await updateDeal(dealId, { deal_nickname: dealNickname });
-    navigate(`/add/deal/payor/${dealId}`);
+    
+    // Conditional navigation based on deal type
+    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+    navigate(`/add/deal/payor/${dealId}${typeParam}`);
   };
 
   const handleFinishLater = () => {
     navigate('/dashboard');
   };
+
+  // Get progress information based on deal type
+  const getProgressInfo = () => {
+    if (dealType === 'simple') {
+      return {
+        stepNumber: '2 of 4',
+        percentage: 50
+      };
+    } else {
+      return {
+        stepNumber: '2 of 9', 
+        percentage: 22.2
+      };
+    }
+  };
+
+  const progressInfo = getProgressInfo();
 
   return (
     <Container maxW="2xl" py={6}>
@@ -198,14 +222,14 @@ const Step1_DealTerms = () => {
           {/* Progress Indicator */}
           <VStack spacing={3} mb={6}>
             <Flex justify="space-between" w="full" fontSize="sm">
-              <Text color="brand.textSecondary" fontWeight="medium">Step 2 of 9</Text>
-              <Text color="brand.textSecondary">22.2% Complete</Text>
+              <Text color="brand.textSecondary" fontWeight="medium">{progressInfo.stepNumber}</Text>
+              <Text color="brand.textSecondary">{progressInfo.percentage}% Complete</Text>
             </Flex>
             <Box w="full" bg="brand.accentSecondary" h="2" rounded="full">
               <Box
                 bg="brand.accentPrimary"
                 h="2"
-                w="22.2%"
+                w={`${progressInfo.percentage}%`}
                 rounded="full"
                 transition="width 0.5s ease-out"
               />

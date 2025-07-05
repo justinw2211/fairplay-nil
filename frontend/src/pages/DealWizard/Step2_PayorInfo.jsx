@@ -1,6 +1,6 @@
 // frontend/src/pages/DealWizard/Step2_PayorInfo.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
   Box,
@@ -20,12 +20,15 @@ import {
   Stack,
   Text,
   VStack,
+  Icon,
 } from '@chakra-ui/react';
 import { ChevronRight, ChevronLeft, Clock } from 'lucide-react';
 import { formatPhoneNumber } from '../../utils/phoneUtils';
 
 const Step2_PayorInfo = () => {
   const { dealId } = useParams();
+  const [searchParams] = useSearchParams();
+  const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
 
@@ -63,15 +66,14 @@ const Step2_PayorInfo = () => {
   const isFormValid = payorType && payorName.trim() && 
                      (!payorEmail.trim() || validateEmail(payorEmail));
 
-
-
   const handlePhoneChange = (e) => {
     const formatted = formatPhoneNumber(e.target.value);
     setPayorPhone(formatted);
   };
 
   const handleBack = () => {
-    navigate(`/add/deal/terms/${dealId}`);
+    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+    navigate(`/add/deal/terms/${dealId}${typeParam}`);
   };
 
   const handleNext = async () => {
@@ -86,12 +88,38 @@ const Step2_PayorInfo = () => {
       payor_email: payorEmail,
       payor_phone: payorPhone,
     });
-    navigate(`/add/deal/activities/select/${dealId}`);
+    
+    // Conditional navigation based on deal type
+    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+    if (dealType === 'simple') {
+      // For simple deals, skip activities and compliance, go directly to compensation
+      navigate(`/add/deal/compensation/${dealId}${typeParam}`);
+    } else {
+      // For other deal types, continue to activities selection
+      navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
+    }
   };
 
   const handleFinishLater = () => {
     navigate('/dashboard');
   };
+
+  // Get progress information based on deal type
+  const getProgressInfo = () => {
+    if (dealType === 'simple') {
+      return {
+        stepNumber: '3 of 4',
+        percentage: 75
+      };
+    } else {
+      return {
+        stepNumber: '3 of 9', 
+        percentage: 33.3
+      };
+    }
+  };
+
+  const progressInfo = getProgressInfo();
 
   return (
     <Container maxW="2xl" py={6}>
@@ -100,14 +128,14 @@ const Step2_PayorInfo = () => {
           {/* Progress Indicator */}
           <VStack spacing={3} mb={6}>
             <Flex justify="space-between" w="full" fontSize="sm">
-              <Text color="brand.textSecondary" fontWeight="medium">Step 3 of 9</Text>
-              <Text color="brand.textSecondary">33.3% Complete</Text>
+              <Text color="brand.textSecondary" fontWeight="medium">{progressInfo.stepNumber}</Text>
+              <Text color="brand.textSecondary">{progressInfo.percentage}% Complete</Text>
             </Flex>
             <Box w="full" bg="brand.accentSecondary" h="2" rounded="full">
               <Box
                 bg="brand.accentPrimary"
                 h="2"
-                w="33.3%"
+                w={`${progressInfo.percentage}%`}
                 rounded="full"
                 transition="width 0.5s ease-out"
               />

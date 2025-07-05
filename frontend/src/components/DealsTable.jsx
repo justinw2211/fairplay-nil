@@ -26,6 +26,7 @@ import {
 import { TriangleDownIcon, TriangleUpIcon, DeleteIcon, HamburgerIcon } from '@chakra-ui/icons';
 import StatusBadge from './StatusBadge';
 import StatusMenu from './StatusMenu';
+import { ResultBadges } from './ResultBadge';
 import { supabase } from '../supabaseClient';
 
 const DealsTable = ({ deals, setDeals, onDealDeleted }) => {
@@ -145,6 +146,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted }) => {
               <Th cursor="pointer" onClick={() => requestSort('brand_partner')}>Brand {getSortIcon('brand_partner')}</Th>
               <Th cursor="pointer" onClick={() => requestSort('fmv')}>FMV {getSortIcon('fmv')}</Th>
               <Th cursor="pointer" onClick={() => requestSort('status')}>Status {getSortIcon('status')}</Th>
+              <Th>Analysis Results</Th>
               <Th cursor="pointer" onClick={() => requestSort('created_at')}>Date Added {getSortIcon('created_at')}</Th>
               <Th>Actions</Th>
             </Tr>
@@ -158,6 +160,9 @@ const DealsTable = ({ deals, setDeals, onDealDeleted }) => {
                   <StatusMenu deal={deal} onStatusChange={handleStatusChange}>
                     <StatusBadge status={deal.status} />
                   </StatusMenu>
+                </Td>
+                <Td>
+                  <ResultBadges deal={deal} />
                 </Td>
                 <Td>{formatDate(deal.created_at)}</Td>
                 <Td>
@@ -199,16 +204,12 @@ const DealsTable = ({ deals, setDeals, onDealDeleted }) => {
               <Text mb={4}>
                 Are you sure you want to delete this deal with {dealToDelete?.brand_partner || dealToDelete?.payor_name || 'N/A'}?
               </Text>
-              <Text color="red.500" fontWeight="bold">
-                This action cannot be undone.
+              <Text fontSize="sm" color="gray.600">
+                This action cannot be undone. All deal data and any analysis results will be permanently removed.
               </Text>
             </AlertDialogBody>
             <AlertDialogFooter>
-              <Button 
-                ref={cancelRef} 
-                onClick={() => setIsAlertOpen(false)}
-                isDisabled={isDeleting}
-              >
+              <Button ref={cancelRef} onClick={() => setIsAlertOpen(false)}>
                 Cancel
               </Button>
               <Button 

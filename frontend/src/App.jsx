@@ -30,6 +30,10 @@ import Step5_Compliance from './pages/DealWizard/Step5_Compliance';
 import Step6_Compensation from './pages/DealWizard/Step6_Compensation';
 import Step8_Review from './pages/DealWizard/Step8_Review';
 import SubmissionSuccess from './pages/DealWizard/SubmissionSuccess';
+import ClearinghouseWizard from './pages/DealWizard/ClearinghouseWizard';
+import ClearinghouseResult from './pages/ClearinghouseResult';
+import ValuationWizard from './pages/DealWizard/ValuationWizard';
+import ValuationResult from './pages/ValuationResult';
 
 // Import route protection components
 import DealWizardRoute from './components/DealWizardRoute';
@@ -158,6 +162,14 @@ function AppContent() {
         <Route path="/add/deal/compensation/:dealId" element={<DealWizardRoute><Step6_Compensation /></DealWizardRoute>} />
         <Route path="/add/deal/review/:dealId" element={<DealWizardRoute><Step8_Review /></DealWizardRoute>} />
         <Route path="/add/deal/submission-success/:dealId" element={<DealWizardRoute><SubmissionSuccess /></DealWizardRoute>} />
+        
+        {/* --- CLEARINGHOUSE WORKFLOW ROUTES --- */}
+        <Route path="/clearinghouse-wizard/:dealId" element={<DealWizardRoute><ClearinghouseWizard /></DealWizardRoute>} />
+        <Route path="/clearinghouse-result/:dealId" element={<DealWizardRoute><ClearinghouseResult /></DealWizardRoute>} />
+
+        {/* --- VALUATION WORKFLOW ROUTES --- */}
+        <Route path="/valuation-wizard/:dealId" element={<DealWizardRoute><ValuationWizard /></DealWizardRoute>} />
+        <Route path="/valuation-result/:dealId" element={<DealWizardRoute><ValuationResult /></DealWizardRoute>} />
 
         {/* Catch-all route for 404 */}
         <Route path="*" element={<NotFound />} />
