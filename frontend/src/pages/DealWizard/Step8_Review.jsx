@@ -1,6 +1,6 @@
 // frontend/src/pages/DealWizard/Step8_Review.jsx
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
   Box,
@@ -95,6 +95,8 @@ const SectionCard = ({ title, icon: IconComponent, children }) => (
 
 const Step8_Review = () => {
   const { dealId } = useParams();
+  const [searchParams] = useSearchParams();
+  const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
   const toast = useToast();
   const { deal, fetchDealById, updateDeal } = useDeal();
@@ -121,7 +123,6 @@ const Step8_Review = () => {
       const updateData = {
         status: 'submitted',
         submittedAt: new Date().toISOString(),
-        // Add any final flags needed
         is_submitted: true,
         submission_complete: true
       };
@@ -130,8 +131,17 @@ const Step8_Review = () => {
       
       await updateDeal(dealId, updateData);
       
-      // Navigate to success page
-      navigate(`/add/deal/submission-success/${dealId}`);
+      // Navigate based on deal type to appropriate prediction wizard
+      const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+      
+      if (dealType === 'clearinghouse') {
+        navigate(`/clearinghouse-wizard/${dealId}${typeParam}`);
+      } else if (dealType === 'valuation') {
+        navigate(`/valuation-wizard/${dealId}${typeParam}`);
+      } else {
+        // For simple and standard deals, go to success page
+        navigate(`/add/deal/submission-success/${dealId}${typeParam}`);
+      }
     } catch (error) {
       console.error('Error submitting deal:', error);
       toast({

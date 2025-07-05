@@ -89,34 +89,21 @@ const Step2_PayorInfo = () => {
       payor_phone: payorPhone,
     });
     
-    // Conditional navigation based on deal type
+    // ALL deal types now continue to activities selection (no more skipping)
     const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-    if (dealType === 'simple') {
-      // For simple deals, skip activities and compliance, go directly to compensation
-      navigate(`/add/deal/compensation/${dealId}${typeParam}`);
-    } else {
-      // For other deal types, continue to activities selection
-      navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
-    }
+    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
   };
 
   const handleFinishLater = () => {
     navigate('/dashboard');
   };
 
-  // Get progress information based on deal type
+  // Get progress information - all deal types use same 9-step flow
   const getProgressInfo = () => {
-    if (dealType === 'simple') {
-      return {
-        stepNumber: '3 of 4',
-        percentage: 75
-      };
-    } else {
-      return {
-        stepNumber: '3 of 9', 
-        percentage: 33.3
-      };
-    }
+    return {
+      stepNumber: '3 of 9', 
+      percentage: 33.3
+    };
   };
 
   const progressInfo = getProgressInfo();

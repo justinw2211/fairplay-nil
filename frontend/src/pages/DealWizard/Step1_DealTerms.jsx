@@ -198,19 +198,12 @@ const Step1_DealTerms = () => {
     navigate('/dashboard');
   };
 
-  // Get progress information based on deal type
+  // Get progress information - all deal types use same 9-step flow
   const getProgressInfo = () => {
-    if (dealType === 'simple') {
-      return {
-        stepNumber: '2 of 4',
-        percentage: 50
-      };
-    } else {
-      return {
-        stepNumber: '2 of 9', 
-        percentage: 22.2
-      };
-    }
+    return {
+      stepNumber: '2 of 9', 
+      percentage: 22.2
+    };
   };
 
   const progressInfo = getProgressInfo();

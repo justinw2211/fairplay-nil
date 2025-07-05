@@ -173,24 +173,9 @@ const Step6_Compensation = () => {
     try {
       await updateDeal(dealId, formattedData);
       
-      // Conditional navigation based on deal type
-      if (dealType === 'simple') {
-        // For simple deals, skip review and go directly to submission success
-        const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-        navigate(`/add/deal/submission-success/${dealId}${typeParam}`);
-      } else if (dealType === 'clearinghouse') {
-        // For clearinghouse deals, go to clearinghouse wizard
-        const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-        navigate(`/clearinghouse-wizard/${dealId}${typeParam}`);
-      } else if (dealType === 'valuation') {
-        // For valuation deals, go to valuation wizard (will be implemented in next task)
-        const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-        navigate(`/valuation-wizard/${dealId}${typeParam}`);
-      } else {
-        // For standard deal types, continue to review
-        const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-        navigate(`/add/deal/review/${dealId}${typeParam}`);
-      }
+      // ALL deal types now continue to review step (no more conditional navigation)
+      const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+      navigate(`/add/deal/review/${dealId}${typeParam}`);
     } catch (error) {
       formLogger.error('Error updating deal', { error: error.message });
     }
@@ -200,21 +185,13 @@ const Step6_Compensation = () => {
     navigate('/dashboard');
   };
 
-  // Get progress information based on deal type
+  // Get progress information - all deal types use same 9-step flow
   const getProgressInfo = () => {
-    if (dealType === 'simple') {
-      return {
-        stepNumber: '4 of 4',
-        percentage: 100,
-        isLastStep: true
-      };
-    } else {
-      return {
-        stepNumber: '7 of 9', 
-        percentage: 77.8,
-        isLastStep: false
-      };
-    }
+    return {
+      stepNumber: '7 of 9', 
+      percentage: 77.8,
+      isLastStep: false
+    };
   };
 
   const progressInfo = getProgressInfo();
@@ -750,12 +727,8 @@ const Step6_Compensation = () => {
                   color="brand.textSecondary"
                   onClick={() => {
                     const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-                    // For simple deals, go back to payor step since compliance is skipped
-                    if (dealType === 'simple') {
-                      navigate(`/add/deal/payor/${dealId}${typeParam}`);
-                    } else {
-                      navigate(`/add/deal/compliance/${dealId}${typeParam}`);
-                    }
+                    // ALL deal types go back to compliance step
+                    navigate(`/add/deal/compliance/${dealId}${typeParam}`);
                   }}
                   _hover={{
                     bg: "brand.backgroundLight",
