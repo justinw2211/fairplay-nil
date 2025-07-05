@@ -3,8 +3,9 @@ import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import { Box, Button, Container, Flex, Heading, Text, Spinner, VStack } from '@chakra-ui/react';
+import ErrorBoundary from '../../components/ErrorBoundary';
 
-const DealWizardLayout = ({ children, title, instructions, onContinue, isContinueDisabled = false }) => {
+const DealWizardLayoutContent = ({ children, title, instructions, onContinue, isContinueDisabled = false }) => {
   const { dealId } = useParams();
   const navigate = useNavigate();
   const { deal, fetchDealById, loading } = useDeal();
@@ -65,6 +66,14 @@ const DealWizardLayout = ({ children, title, instructions, onContinue, isContinu
         </Flex>
       </VStack>
     </Container>
+  );
+};
+
+const DealWizardLayout = (props) => {
+  return (
+    <ErrorBoundary context="DealWizard">
+      <DealWizardLayoutContent {...props} />
+    </ErrorBoundary>
   );
 };
 

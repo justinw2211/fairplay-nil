@@ -7,6 +7,7 @@ import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Select from 'react-select';
+import ErrorBoundary from '../components/ErrorBoundary';
 import {
   Box,
   Button,
@@ -106,7 +107,7 @@ const schema = yup.object().shape({
     .required('At least one sport is required'),
 });
 
-const EditProfile = () => {
+const EditProfileContent = () => {
   const { user } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
@@ -947,6 +948,14 @@ const EditProfile = () => {
         </AlertDialogOverlay>
       </AlertDialog>
     </Container>
+  );
+};
+
+const EditProfile = () => {
+  return (
+    <ErrorBoundary context="Profile">
+      <EditProfileContent />
+    </ErrorBoundary>
   );
 };
 

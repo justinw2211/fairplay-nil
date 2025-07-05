@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, NavLink, useLocation, useNavigate } from 'reac
 import { useAuth } from './context/AuthContext';
 import { Box, Button, Flex, Heading, Text } from "@chakra-ui/react";
 import React, { useState } from "react";
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Import all the page components that will be used in the routes.
 import Home from './pages/Home';
@@ -34,7 +35,7 @@ import SubmissionSuccess from './pages/DealWizard/SubmissionSuccess';
 import DealWizardRoute from './components/DealWizardRoute';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
-function App() {
+function AppContent() {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -163,6 +164,14 @@ function App() {
 
       </Routes>
     </Box>
+  );
+}
+
+function App() {
+  return (
+    <ErrorBoundary context="Application">
+      <AppContent />
+    </ErrorBoundary>
   );
 }
 
