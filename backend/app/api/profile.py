@@ -1,7 +1,7 @@
 # backend/app/api/profile.py
 from fastapi import APIRouter, Depends, HTTPException
 from app.dependencies import get_user_id
-from app.database import supabase
+from app.database import supabase, db
 from app.schemas import ProfileUpdate, ProfileResponse, SocialMediaUpdate, SocialMediaResponse
 from app.middleware.validation import validate_request_data, ValidationError, SecurityError
 from typing import List, Optional
@@ -12,43 +12,44 @@ logger = logging.getLogger(__name__)
 
 @router.get("/schools")
 async def get_schools(division: Optional[str] = None):
-    """Get all schools, optionally filtered by division."""
+    """Get all schools, optionally filtered by division with caching."""
     try:
-        query = supabase.from_("schools").select("id,name,division")
-        if division:
-            query = query.eq("division", division)
-        query = query.order("name")
-        data = query.execute()
-        
-        if not data.data:
-            return []
-        return data.data
+        # Use cached version for better performance
+        schools = await db.get_schools_cached(division)
+        return schools or []
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error fetching schools: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch schools")
 
 @router.get("/profile", response_model=ProfileResponse)
 async def get_profile(user_id: str = Depends(get_user_id)):
-    data = supabase.from_("profiles").select("*").eq("id", user_id).single().execute()
-    if not data.data:
-        raise HTTPException(status_code=404, detail="Profile not found")
-    
-    profile_data = data.data
-    
-    # Convert division format from database to frontend format
-    if profile_data.get('division'):
-        division_map = {
-            'I': 'Division I',
-            'II': 'Division II',
-            'III': 'Division III',
-            'NAIA': 'NAIA',
-            'JUCO': 'JUCO'
-        }
-        profile_data['division'] = division_map.get(profile_data['division'], profile_data['division'])
-    
-    return profile_data
+    """Get user profile with caching for better performance."""
+    try:
+        profile_data = await db.get_profile_cached(user_id)
+        if not profile_data:
+            raise HTTPException(status_code=404, detail="Profile not found")
+        
+        # Convert division format from database to frontend format
+        if profile_data.get('division'):
+            division_map = {
+                'I': 'Division I',
+                'II': 'Division II',
+                'III': 'Division III',
+                'NAIA': 'NAIA',
+                'JUCO': 'JUCO'
+            }
+            profile_data['division'] = division_map.get(profile_data['division'], profile_data['division'])
+        
+        return profile_data
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching profile: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch profile")
 
 @router.put("/profile", response_model=ProfileResponse)
 async def update_profile(profile_data: ProfileUpdate, user_id: str = Depends(get_user_id)):
+    """Update user profile with cache invalidation for optimal performance."""
     try:
         update_data = profile_data.dict(exclude_unset=True)
         
@@ -70,15 +71,11 @@ async def update_profile(profile_data: ProfileUpdate, user_id: str = Depends(get
             }
             update_data['division'] = division_map.get(update_data['division'], update_data['division'])
         
-        data = supabase.from_("profiles").update(update_data).eq("id", user_id).execute()
-        if not data.data:
-            raise HTTPException(status_code=404, detail="Profile not found or update failed")
-        
-        updated_profile = supabase.from_("profiles").select("*").eq("id", user_id).single().execute()
-        profile_data = updated_profile.data
+        # Use optimized update with cache invalidation
+        updated_profile = await db.update_profile_with_cache_invalidation(user_id, update_data)
         
         # Convert division format from database to frontend format
-        if profile_data.get('division'):
+        if updated_profile.get('division'):
             division_map = {
                 'I': 'Division I',
                 'II': 'Division II',
@@ -86,11 +83,13 @@ async def update_profile(profile_data: ProfileUpdate, user_id: str = Depends(get
                 'NAIA': 'NAIA',
                 'JUCO': 'JUCO'
             }
-            profile_data['division'] = division_map.get(profile_data['division'], profile_data['division'])
+            updated_profile['division'] = division_map.get(updated_profile['division'], updated_profile['division'])
         
-        return profile_data
+        return updated_profile
     except (ValidationError, SecurityError):
         raise  # Re-raise validation errors as-is
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error updating profile: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")

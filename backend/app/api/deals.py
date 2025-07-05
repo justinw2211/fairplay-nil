@@ -4,7 +4,7 @@ from app.dependencies import get_user_id
 from app.database import db
 from app.schemas import DealUpdate, DealResponse, DealCreateResponse
 from app.middleware.validation import validate_request_data, ValidationError, SecurityError
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import logging
 from fastapi.responses import JSONResponse
 
@@ -60,7 +60,7 @@ async def update_deal(
     deal_data: DealUpdate,
     user_id: str = Depends(get_user_id)
 ):
-    """Update a deal with comprehensive validation."""
+    """Update a deal with comprehensive validation and cache invalidation."""
     try:
         update_data = deal_data.dict(exclude_unset=True)
         if not update_data:
@@ -77,54 +77,40 @@ async def update_deal(
         if update_data.get('social_media_confirmed') is True:
             update_data['social_media_confirmed_at'] = 'now()'
 
-        with db.transaction():
-            data = db.client.from_("deals").update(
-                update_data
-            ).eq("id", deal_id).eq("user_id", user_id).execute()
-
-            if not data.data:
-                raise HTTPException(
-                    status_code=404,
-                    detail="Deal not found or user does not have access."
-                )
-            return DealResponse(**data.data[0])
+        # Use optimized update with cache invalidation
+        updated_deal = await db.update_deal_with_cache_invalidation(deal_id, user_id, update_data)
+        return DealResponse(**updated_deal)
+        
     except (ValidationError, SecurityError):
         raise  # Re-raise validation errors as-is
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error updating deal {deal_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@router.get("/deals", response_model=List[DealResponse], summary="Get all of a user's deals")
+@router.get("/deals", summary="Get all of a user's deals with optimized pagination")
 async def get_deals(
     user_id: str = Depends(get_user_id),
-    limit: int = Query(50, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
     status: Optional[str] = Query(None),
     sort_by: str = Query("created_at", pattern="^(created_at|fmv|compensation_cash)$"),
     sort_order: str = Query("desc", pattern="^(asc|desc)$")
-):
-    """Get deals with pagination, filtering, and optimized field selection."""
+) -> Dict[str, Any]:
+    """Get deals with optimized pagination, filtering, and caching."""
     try:
-        query = db.client.from_("deals").select(DEAL_SELECT_FIELDS)
-        query = query.eq("user_id", user_id)
-
-        if status:
-            query = query.eq("status", status)
-
-        # Add sorting
-        query = query.order(sort_by, desc=(sort_order == "desc"))
-
-        # Add pagination
-        query = query.range(offset, offset + limit - 1)
-
-        data = query.execute()
+        # Use optimized paginated query with caching
+        result = await db.get_deals_paginated(
+            user_id=user_id,
+            page=page,
+            limit=limit,
+            status=status,
+            sort_by=sort_by,
+            sort_order=sort_order
+        )
         
-        return JSONResponse({
-            "deals": data.data,
-            "total": len(data.data),
-            "limit": limit,
-            "offset": offset
-        })
+        return JSONResponse(result)
     except Exception as e:
         logger.error(f"Error fetching deals: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
