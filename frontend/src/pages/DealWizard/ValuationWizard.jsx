@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import { useDealPredictions } from '../../hooks/useDealPredictions';
-import { predictValuation } from '../../components/PredictionEngines/ValuationPredictor';
+import predictValuation from '../../components/PredictionEngines/ValuationPredictor';
 import {
   Box,
   Button,
@@ -103,7 +103,7 @@ const ValuationWizard = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const { deal, fetchDealById, updateDeal } = useDeal();
-  const { storeValuationPrediction } = useDealPredictions();
+  const { saveValuationPrediction } = useDealPredictions(dealId);
   const [isCalculating, setIsCalculating] = useState(false);
   const [showPredictionProcess, setShowPredictionProcess] = useState(false);
 
@@ -144,6 +144,11 @@ const ValuationWizard = () => {
   };
 
   const handleRunValuation = async () => {
+    console.log('🔍 Starting valuation prediction...');
+    console.log('Deal data:', deal);
+    console.log('Deal ID:', dealId);
+    console.log('predictValuation function:', typeof predictValuation);
+    
     setIsCalculating(true);
     setShowPredictionProcess(true);
     
@@ -163,8 +168,12 @@ const ValuationWizard = () => {
         achievements: deal.athlete_achievements || []
       };
       
+      console.log('📊 Running valuation prediction with data:', { deal, athleteData });
+      
       // Run the valuation prediction
       const prediction = predictValuation(deal, athleteData);
+      
+      console.log('✅ Valuation result:', prediction);
       
       // Store prediction in deal record
       const updateData = {
@@ -172,19 +181,23 @@ const ValuationWizard = () => {
         prediction_calculated_at: new Date().toISOString()
       };
       
+      console.log('💾 Updating deal with valuation data...');
       await updateDeal(dealId, updateData);
       
+      console.log('💾 Saving valuation via hook...');
       // Store prediction via API for future reference
-      await storeValuationPrediction(dealId, prediction);
+      await saveValuationPrediction(prediction);
       
+      console.log('🎯 Navigating to results page...');
       // Navigate to results page
       navigate(`/valuation-result/${dealId}?type=${dealType}`);
       
     } catch (error) {
-      console.error('Error running valuation prediction:', error);
+      console.error('❌ Error running valuation prediction:', error);
+      console.error('Error stack:', error.stack);
       toast({
         title: 'Valuation Error',
-        description: 'Unable to calculate fair market value. Please try again.',
+        description: `Unable to calculate fair market value: ${error.message}`,
         status: 'error',
         duration: 5000,
         isClosable: true,
