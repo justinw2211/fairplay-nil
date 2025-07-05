@@ -88,8 +88,8 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
   const [description, setDescription] = useState("");
 
   useEffect(() => {
-    if (deal?.obligations?.['Social Media']) {
-      const socialMediaData = deal.obligations['Social Media'];
+    if (deal?.obligations?.['social-media']) {
+      const socialMediaData = deal.obligations['social-media'];
       if (Array.isArray(socialMediaData)) {
         const converted = {};
         socialMediaData.forEach(item => {
@@ -107,7 +107,7 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
         setPlatformContent(converted);
         setSelectedPlatforms(Object.keys(converted));
       }
-      setDescription(deal.obligations['Social Media'].description || "");
+      setDescription(deal.obligations['social-media'].description || "");
     }
   }, [deal]);
 

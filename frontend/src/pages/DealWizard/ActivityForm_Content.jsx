@@ -35,8 +35,8 @@ const ActivityForm_Content = ({ onNext, currentActivity, totalActivities }) => {
   const [showError, setShowError] = useState(false);
 
   useEffect(() => {
-    if (deal?.obligations?.['Content']) {
-      const contentData = deal.obligations['Content'];
+    if (deal?.obligations?.['content-for-brand']) {
+      const contentData = deal.obligations['content-for-brand'];
       setQuantityOfContent(contentData.quantity || "");
       setContentDescription(contentData.description || "");
     }

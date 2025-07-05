@@ -47,8 +47,8 @@ const ActivityForm_Appearance = ({ onNext, currentActivity, totalActivities }) =
   const [otherAppearance, setOtherAppearance] = useState("");
 
   useEffect(() => {
-    if (deal?.obligations?.['Appearance']) {
-      const appearanceData = deal.obligations['Appearance'];
+    if (deal?.obligations?.['appearance']) {
+      const appearanceData = deal.obligations['appearance'];
       setSelectedAppearances(appearanceData.selectedTypes || []);
       setAppearanceDetails(appearanceData.details || {});
       setDescription(appearanceData.description || "");

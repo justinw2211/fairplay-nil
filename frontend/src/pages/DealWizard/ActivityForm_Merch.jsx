@@ -102,12 +102,9 @@ const ActivityForm_Merch = ({ onNext, currentActivity, totalActivities }) => {
 
   const handleNext = async () => {
     const formattedData = {
-      quantity: Number.parseInt(quantity),
-      productTypes,
-      retailPrice: Number.parseFloat(retailPrice) || 0,
-      hasRevShare,
-      revSharePercentage: hasRevShare ? Number.parseFloat(revSharePercentage) || 0 : 0,
-      expectedSales: Number.parseInt(expectedSales) || 0,
+      selectedTypes: selectedMerch,
+      details: merchDetails,
+      customMerch,
     };
 
     // Get the existing activity entry to preserve sequence and completed status

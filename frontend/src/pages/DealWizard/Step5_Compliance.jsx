@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
   Box,
@@ -28,6 +28,8 @@ import { formLogger } from '../../utils/logger';
 
 const Step5_Compliance = () => {
   const { dealId } = useParams();
+  const [searchParams] = useSearchParams();
+  const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
 
@@ -189,14 +191,34 @@ const Step5_Compliance = () => {
 
     try {
       await updateDeal(dealId, formattedData);
-      navigate(`/add/deal/compensation/${dealId}`);
+      const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+      navigate(`/add/deal/compensation/${dealId}${typeParam}`);
     } catch (error) {
       formLogger.error('Error updating deal', { error: error.message });
     }
   };
 
   const handleBack = () => {
-    navigate(`/add/deal/activity/${dealId}`);
+    // Need to get the last completed activity or the last activity in sequence
+    if (deal?.obligations) {
+      const selectedActivities = Object.entries(deal.obligations)
+        .sort((a, b) => a[1].sequence - b[1].sequence)
+        .map(([activity]) => activity);
+      
+      // Find the last activity (either the last completed one or the last in sequence)
+      const lastActivity = deal.lastCompletedActivity || selectedActivities[selectedActivities.length - 1];
+      
+      if (lastActivity) {
+        const encodedActivity = encodeURIComponent(lastActivity);
+        const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+        navigate(`/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`);
+        return;
+      }
+    }
+    
+    // Fallback to activities selection if we can't determine the last activity
+    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
   };
 
   return (

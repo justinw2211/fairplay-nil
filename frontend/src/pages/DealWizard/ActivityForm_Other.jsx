@@ -51,10 +51,9 @@ const ActivityForm_Other = ({ onNext, currentActivity, totalActivities }) => {
 
   const handleNext = async () => {
     const formattedData = {
-      customActivity,
-      duration: Number.parseInt(duration),
-      deliverables,
-      timeline,
+      name: activityName,
+      description: activityDescription,
+      dueDate: dueDate,
     };
 
     // Get the existing activity entry to preserve sequence and completed status

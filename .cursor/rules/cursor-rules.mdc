@@ -51,13 +51,29 @@ alwaysApply: false
 
 ### 🔄 Frontend/Backend Data Synchronization
 - **Division mapping consistency**: When adding divisions to database, update frontend constants in `frontend/src/data/formConstants.js`
+- **CRITICAL: Division enum mapping pattern**: 
+  - Database enum: `'I'`, `'II'`, `'III'`, `'NAIA'`, `'JUCO'`
+  - Frontend display: `'Division I'`, `'Division II'`, `'Division III'`, `'NAIA'`, `'JUCO'`
+  - **ALWAYS implement bidirectional mapping**: Convert display values to enum values on form submission, convert enum values to display values when loading data
+  - **Mapping locations**: EditProfile.jsx, SignUp.jsx, and any other forms that handle division selection
 - **Schema change checklist**: 
   1. Update database migration
   2. Update backend validation schemas (`backend/app/schemas.py`)
   3. Update frontend constants and validation
   4. Update TypeScript types if applicable
 - **Keep dropdown options in sync**: Always verify frontend dropdown options match available database values
-- **Division format consistency**: Database uses `'I'`, `'II'`, `'III'`, `'NAIA'`, `'JUCO'` - frontend shows `'Division I'`, etc.
+
+### 🚀 Deployment & Dependency Management
+- **Supabase Python Library**: Use supabase>=2.16.0 (versions 1.0.3 and earlier have critical initialization bugs)
+- **Deployment dependency conflicts**: When upgrading supabase library, also update:
+  - httpx>=0.26,<0.29 (not ==0.23.0)
+  - typing-extensions>=4.14.0,<5.0.0 (not ==4.5.0)
+  - pydantic>=1.10.7,<3.0.0 (flexible for v1/v2 compatibility)
+  - anyio>=3.6.2,<5.0.0 (not ==3.6.2)
+  - aioredis>=2.0.1,<3.0.0 (not ==2.0.1)
+- **Missing production dependencies**: Always include email-validator, redis, psutil in requirements.txt
+- **Pydantic compatibility**: Use `pattern` instead of `regex` for v2 compatibility in schema validation
+- **Deployment testing**: Local development may not catch all dependency issues - test in production environment
 
 ### 🧱 Code Structure & Modularity
 - **Backend (FastAPI)**: 
