@@ -243,6 +243,82 @@ class DatabaseClient:
             cache_ttl=3600  # 1 hour cache
         )
 
+    async def get_deals_paginated_with_profile(self, user_id: str, page: int = 1, limit: int = 20, 
+                                             status: Optional[str] = None, deal_type: Optional[str] = None,
+                                             sort_by: str = "created_at", sort_order: str = "desc") -> Dict[str, Any]:
+        """Get paginated deals with profile information joined for analytics"""
+        
+        # Build cache key
+        cache_key = f"deals_with_profile:{user_id}:{page}:{limit}:{status}:{deal_type}:{sort_by}:{sort_order}"
+        cache_ttl = 60  # 1 minute for deals with profile data
+        
+        def query_func():
+            # First get total count for pagination
+            count_query = self.client.table('deals').select("*", count="exact").eq('user_id', user_id)
+            if status:
+                count_query = count_query.eq('status', status)
+            if deal_type:
+                count_query = count_query.eq('deal_type', deal_type)
+            
+            count_response = count_query.execute()
+            total_count = count_response.count or 0
+            
+            # Calculate pagination
+            pagination_meta = PaginationHelper.calculate_pagination(page, limit, total_count)
+            
+            # Get deals with profile data joined
+            deals_query = self.client.table('deals').select(f"""
+                id,user_id,status,created_at,deal_nickname,deal_terms_url,deal_terms_file_name,
+                deal_terms_file_type,deal_terms_file_size,payor_name,payor_type,contact_name,
+                contact_email,contact_phone,activities,obligations,grant_exclusivity,
+                uses_school_ip,licenses_nil,compensation_cash,compensation_goods,
+                compensation_other,is_group_deal,is_paid_to_llc,athlete_social_media,
+                social_media_confirmed,social_media_confirmed_at,deal_type,clearinghouse_prediction,
+                valuation_prediction,brand_partner,clearinghouse_result,actual_compensation,
+                valuation_range,fmv,
+                profiles!deals_user_id_fkey(university,sport)
+            """).eq('user_id', user_id)
+            
+            # Apply filters
+            if status:
+                deals_query = deals_query.eq('status', status)
+            if deal_type:
+                deals_query = deals_query.eq('deal_type', deal_type)
+            
+            # Apply sorting
+            if sort_order == "desc":
+                deals_query = deals_query.order(sort_by, desc=True)
+            else:
+                deals_query = deals_query.order(sort_by)
+            
+            # Apply pagination
+            deals_query = PaginationHelper.apply_pagination(deals_query, page, limit)
+            
+            deals_response = deals_query.execute()
+            deals = deals_response.data or []
+            
+            # Flatten the profile data into the deal objects for easier access
+            for deal in deals:
+                if deal.get('profiles'):
+                    profile = deal['profiles']
+                    deal['university'] = profile.get('university')
+                    deal['sport'] = profile.get('sport')
+                    # Remove the nested profiles object to keep the response clean
+                    del deal['profiles']
+            
+            return {
+                "deals": deals,
+                "pagination": pagination_meta
+            }
+        
+        return await self.execute_with_monitoring(
+            "get_deals_paginated_with_profile", 
+            query_func, 
+            use_cache=True, 
+            cache_key=cache_key, 
+            cache_ttl=cache_ttl
+        )
+
     async def update_profile_with_cache_invalidation(self, user_id: str, update_data: Dict[str, Any]) -> Dict[str, Any]:
         """Update profile and invalidate related cache"""
         def query_func():

@@ -145,6 +145,13 @@ class DealUpdate(BaseModel):
     is_group_deal: Optional[bool] = None
     is_paid_to_llc: Optional[bool] = None
     status: Optional[str] = None
+    
+    # Analytics Fields (NEW - for dashboard support)
+    brand_partner: Optional[str] = Field(None, description="Brand partner name for analytics")
+    clearinghouse_result: Optional[str] = Field(None, pattern=r'^(approved|denied|flagged|pending)$', description="Actual clearinghouse result")
+    actual_compensation: Optional[float] = Field(None, ge=0.0, description="Actual compensation received")
+    valuation_range: Optional[str] = Field(None, description="Valuation range for analytics (e.g., '1000-5000')")
+    fmv: Optional[float] = Field(None, ge=0.0, description="Fair market value")
 
     @validator('deal_type')
     def validate_deal_type(cls, v):
