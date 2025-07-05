@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import { useDealPredictions } from '../../hooks/useDealPredictions';
-import { predictClearinghouse } from '../../components/PredictionEngines/ClearinghousePredictor';
+import predictClearinghouse from '../../components/PredictionEngines/ClearinghousePredictor';
 import {
   Box,
   Button,
@@ -101,7 +101,7 @@ const ClearinghouseWizard = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const { deal, fetchDealById, updateDeal } = useDeal();
-  const { storeClearinghousePrediction } = useDealPredictions();
+  const { saveClearinghousePrediction } = useDealPredictions(dealId);
   const [isCalculating, setIsCalculating] = useState(false);
   const [showPredictionProcess, setShowPredictionProcess] = useState(false);
 
@@ -142,6 +142,11 @@ const ClearinghouseWizard = () => {
   };
 
   const handleRunPrediction = async () => {
+    console.log('🔍 Starting clearinghouse prediction...');
+    console.log('Deal data:', deal);
+    console.log('Deal ID:', dealId);
+    console.log('predictClearinghouse function:', typeof predictClearinghouse);
+    
     setIsCalculating(true);
     setShowPredictionProcess(true);
     
@@ -149,8 +154,12 @@ const ClearinghouseWizard = () => {
       // Simulate prediction process with realistic delays
       await new Promise(resolve => setTimeout(resolve, 1000));
       
+      console.log('📊 Running clearinghouse prediction with data:', { deal });
+      
       // Run the clearinghouse prediction
       const prediction = predictClearinghouse(deal, deal);
+      
+      console.log('✅ Prediction result:', prediction);
       
       // Store prediction in deal record
       const updateData = {
@@ -158,19 +167,23 @@ const ClearinghouseWizard = () => {
         prediction_calculated_at: new Date().toISOString()
       };
       
+      console.log('💾 Updating deal with prediction data...');
       await updateDeal(dealId, updateData);
       
+      console.log('💾 Saving prediction via hook...');
       // Store prediction via API for future reference
-      await storeClearinghousePrediction(dealId, prediction);
+      await saveClearinghousePrediction(prediction);
       
+      console.log('🎯 Navigating to results page...');
       // Navigate to results page
       navigate(`/clearinghouse-result/${dealId}?type=${dealType}`);
       
     } catch (error) {
-      console.error('Error running clearinghouse prediction:', error);
+      console.error('❌ Error running clearinghouse prediction:', error);
+      console.error('Error stack:', error.stack);
       toast({
         title: 'Prediction Error',
-        description: 'Unable to calculate clearinghouse prediction. Please try again.',
+        description: `Unable to calculate clearinghouse prediction: ${error.message}`,
         status: 'error',
         duration: 5000,
         isClosable: true,
