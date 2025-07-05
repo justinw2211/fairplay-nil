@@ -18,67 +18,11 @@ import SocialMediaModal from '../components/social-media-modal';
 import useSocialMedia from '../hooks/use-social-media';
 import DealTypeCard from '../components/DealTypeCard';
 import AnalyticsTab from '../components/AnalyticsTab';
+import ProfileBanner from '../components/ProfileBanner';
+import useProfile from '../hooks/useProfile';
+import ErrorBoundary from '../components/ErrorBoundary';
 
-const ProfileCard = ({ user, onEditClick }) => {
-  const cardBg = useColorModeValue('white', 'gray.800');
-  const borderColor = useColorModeValue('gray.200', 'gray.700');
-
-  return (
-    <Card 
-      bg={cardBg} 
-      borderWidth="1px" 
-      borderColor={borderColor} 
-      borderRadius="lg" 
-      overflow="hidden"
-      mb={6}
-    >
-      <CardBody>
-        <Flex justify="space-between" align="center">
-          <HStack spacing={4}>
-            <Avatar 
-              size="lg" 
-              name={user?.full_name} 
-              src={user?.avatar_url}
-              bg="brand.accentPrimary"
-            />
-            <VStack align="start" spacing={1}>
-              <HStack>
-                <Text fontSize="xl" fontWeight="bold" color="brand.textPrimary">{user?.full_name}</Text>
-                <Badge bg="brand.accentPrimary" color="white">{user?.division || 'Athlete'}</Badge>
-              </HStack>
-              <HStack spacing={4} color="brand.textSecondary">
-                <HStack>
-                  <Icon as={FiMapPin} />
-                  <Text>{user?.university || 'University'}</Text>
-                </HStack>
-                <HStack>
-                  <Icon as={FiAward} />
-                  <Text>{user?.sport || 'Sport'}</Text>
-                </HStack>
-              </HStack>
-            </VStack>
-          </HStack>
-          <Tooltip label="Edit Profile" placement="top">
-            <Button
-              leftIcon={<FiEdit2 />}
-              variant="outline"
-              size="sm"
-              onClick={onEditClick}
-              borderColor="brand.accentPrimary"
-              color="brand.accentPrimary"
-              _hover={{
-                bg: 'brand.accentPrimary',
-                color: 'white'
-              }}
-            >
-              Edit Profile
-            </Button>
-          </Tooltip>
-        </Flex>
-      </CardBody>
-    </Card>
-  );
-};
+// ProfileCard component removed - replaced with enhanced ProfileBanner
 
 // Create New Deal Section Component
 const CreateDealSection = ({ onDealTypeSelect, isCreatingDeal }) => {
@@ -193,9 +137,12 @@ const DraftsTab = ({ deals, setDeals, onDealDeleted }) => {
 const Dashboard = () => {
   const { user } = useAuth();
   const { createDraftDeal, loading: isCreatingDeal } = useDeal();
+  const { profile, loading: profileLoading, error: profileError, fetchProfile } = useProfile();
+  const { fetchSocialMedia: loadSocialMediaData } = useSocialMedia();
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
+  const [socialMediaCount, setSocialMediaCount] = useState(0);
   const toast = useToast();
   const navigate = useNavigate();
   
@@ -203,7 +150,6 @@ const Dashboard = () => {
   const [showSocialMediaModal, setShowSocialMediaModal] = useState(false);
   const [socialMediaCheckComplete, setSocialMediaCheckComplete] = useState(false);
   const [socialMediaData, setSocialMediaData] = useState(null);
-  const { fetchSocialMedia } = useSocialMedia();
 
   // Responsive values
   const tabSize = useBreakpointValue({ base: 'sm', md: 'md' });
@@ -215,7 +161,7 @@ const Dashboard = () => {
       if (!user || socialMediaCheckComplete) return;
       
       try {
-        const data = await fetchSocialMedia();
+        const data = await loadSocialMediaData();
         setSocialMediaData(data);
         setSocialMediaCheckComplete(true);
         
@@ -230,14 +176,16 @@ const Dashboard = () => {
     };
 
     checkSocialMediaCompletion();
-  }, [user, fetchSocialMedia, socialMediaCheckComplete]);
+  }, [user, loadSocialMediaData, socialMediaCheckComplete]);
 
   const handleSocialMediaComplete = async () => {
     setShowSocialMediaModal(false);
     // Refresh social media data after completion
     try {
-      const data = await fetchSocialMedia();
+      const data = await loadSocialMediaData();
       setSocialMediaData(data);
+      // Also update the social media count for the banner
+      setSocialMediaCount(data?.length || 0);
     } catch (error) {
       console.error('Error refreshing social media data:', error);
     }
@@ -298,7 +246,31 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDeals();
-  }, [fetchDeals]);
+    
+    // Fetch profile data on mount
+    if (user) {
+      fetchProfile().catch(error => {
+        console.error('Error fetching profile on dashboard mount:', error);
+      });
+    }
+  }, [fetchDeals, fetchProfile, user]);
+
+  // Fetch social media count for the profile banner
+  useEffect(() => {
+    const fetchSocialMediaCount = async () => {
+      try {
+        const socialMediaData = await loadSocialMediaData();
+        setSocialMediaCount(socialMediaData?.length || 0);
+      } catch (error) {
+        console.error('Error fetching social media count:', error);
+        setSocialMediaCount(0);
+      }
+    };
+
+    if (user) {
+      fetchSocialMediaCount();
+    }
+  }, [user, loadSocialMediaData]);
   
   const handleDealTypeSelect = async (dealType) => {
     try {
@@ -365,7 +337,17 @@ const Dashboard = () => {
 
   return (
     <Container maxW={containerMaxW} p={{ base: 4, md: 8 }}>
-      <ProfileCard user={user} onEditClick={handleEditProfile} />
+      <ErrorBoundary context="Profile">
+        <ProfileBanner 
+          profile={profile || user} 
+          loading={profileLoading}
+          error={profileError}
+          onEditClick={handleEditProfile}
+          onRetry={fetchProfile}
+          showSocialMedia={true}
+          socialMediaCount={socialMediaCount}
+        />
+      </ErrorBoundary>
       
       <Tabs 
         index={activeTab} 
