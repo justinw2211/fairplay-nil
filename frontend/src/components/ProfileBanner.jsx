@@ -220,8 +220,8 @@ const ProfileBanner = ({
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const gradientBg = useColorModeValue(
-    'linear(to-r, brand.accentPrimary, #c9b2a9)',
-    'linear(to-r, brand.accentPrimary, #a69690)'
+    'black',
+    'black'
   );
   const overlayBg = useColorModeValue('rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)');
   const textOnGradient = 'white';
