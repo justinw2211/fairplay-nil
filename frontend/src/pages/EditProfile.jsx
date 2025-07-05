@@ -264,21 +264,9 @@ const EditProfileContent = () => {
   // Handle division change
   useEffect(() => {
     if (selectedDivision && schools.length > 0) {
-      // Map display division to enum for filtering schools
-      const mapDivisionToEnum = (division) => {
-        const divisionMap = {
-          'Division I': 'I',
-          'Division II': 'II',
-          'Division III': 'III',
-          'NAIA': 'NAIA',
-          'JUCO': 'JUCO'
-        };
-        return divisionMap[division] || division;
-      };
-
-      const enumDivision = mapDivisionToEnum(selectedDivision);
+      // Filter schools using display values (schools already have display values from fetchSchools)
       const filtered = schools.filter(
-        school => school.division === enumDivision
+        school => school.division === selectedDivision
       );
       
       // If we're not in initial load and the university exists

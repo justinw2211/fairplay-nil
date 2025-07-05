@@ -183,11 +183,23 @@ const SignUp = () => {
   const onSubmitStep2 = async (data) => {
     setIsLoading(true);
     try {
+      // Map display division values to database enum values
+      const mapDivisionToEnum = (division) => {
+        const divisionMap = {
+          'Division I': 'I',
+          'Division II': 'II',
+          'Division III': 'III',
+          'NAIA': 'NAIA',
+          'JUCO': 'JUCO'
+        };
+        return divisionMap[division] || division;
+      };
+
       const { error } = await signUp(initialData.email, initialData.password, {
         role: 'student-athlete',
         full_name: data.full_name,
         phone: unformatPhoneNumber(data.phone), // Unformat phone for backend
-        division: data.division,
+        division: mapDivisionToEnum(data.division), // Map display to enum value
         university: data.university,
         gender: data.gender,
         sports: data.sports,
