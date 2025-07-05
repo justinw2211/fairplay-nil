@@ -1,6 +1,6 @@
 // frontend/src/pages/DealWizard/ActivityForm_Content.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
   Box,
@@ -25,6 +25,8 @@ import {
 
 const ActivityForm_Content = ({ onNext, currentActivity, totalActivities }) => {
   const { dealId } = useParams();
+  const [searchParams] = useSearchParams();
+  const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
 
@@ -214,7 +216,12 @@ const ActivityForm_Content = ({ onNext, currentActivity, totalActivities }) => {
                   fontWeight="medium"
                   borderColor="brand.accentSecondary"
                   color="brand.textSecondary"
-                  onClick={() => navigate(`/add/deal/activities/select/${dealId}`)}
+                  onClick={() => {
+                    const searchParams = new URLSearchParams(window.location.search);
+                    const dealType = searchParams.get('type') || 'standard';
+                    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+                    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
+                  }}
                   _hover={{
                     bg: "brand.backgroundLight",
                     borderColor: "brand.accentPrimary",

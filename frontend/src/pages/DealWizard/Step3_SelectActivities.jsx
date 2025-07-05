@@ -1,6 +1,6 @@
 // frontend/src/pages/DealWizard/Step3_SelectActivities.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
   Box,
@@ -61,6 +61,8 @@ const activities = [
 
 const Step3_SelectActivities = () => {
   const { dealId } = useParams();
+  const [searchParams] = useSearchParams();
+  const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
   
@@ -90,7 +92,8 @@ const Step3_SelectActivities = () => {
   const isFormValid = selectedActivities.length > 0 && (!selectedActivities.includes("other") || otherActivity.trim());
 
   const handleBack = () => {
-    navigate(`/add/deal/payor/${dealId}`);
+    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+    navigate(`/add/deal/payor/${dealId}${typeParam}`);
   };
 
   const handleNext = async () => {
@@ -120,7 +123,8 @@ const Step3_SelectActivities = () => {
     
     const firstActivity = selectedActivities[0];
     const encodedActivity = encodeURIComponent(firstActivity);
-    navigate(`/add/deal/activity/${encodedActivity}/${dealId}`);
+    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+    navigate(`/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`);
   };
 
   const handleFinishLater = () => {

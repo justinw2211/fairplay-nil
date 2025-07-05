@@ -1,6 +1,6 @@
 // frontend/src/pages/DealWizard/ActivityForm_SocialMedia.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
   Box,
@@ -78,6 +78,8 @@ const platforms = [
 
 const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalActivities }) => {
   const { dealId } = useParams();
+  const [searchParams] = useSearchParams();
+  const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
 
@@ -553,7 +555,10 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
                   borderWidth="2px"
                   borderColor="brand.accentSecondary"
                   color="brand.textSecondary"
-                  onClick={() => navigate(`/add/deal/activities/select/${dealId}`)}
+                  onClick={() => {
+                    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+                    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
+                  }}
                   rounded="xl"
                   _hover={{
                     bg: "brand.backgroundLight",

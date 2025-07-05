@@ -1,6 +1,6 @@
 // frontend/src/pages/DealWizard/ActivityRouter.jsx
 import React, { useEffect } from 'react';
-import { useParams, Navigate, useNavigate } from 'react-router-dom';
+import { useParams, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import { Spinner, Flex, Box, Text, Progress } from '@chakra-ui/react';
 
@@ -36,6 +36,8 @@ const activityTitleMap = {
 
 const ActivityRouter = () => {
   const { dealId, activityType } = useParams();
+  const [searchParams] = useSearchParams();
+  const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
   const { deal, loading, fetchDealById, updateDeal } = useDeal();
 
@@ -93,16 +95,18 @@ const ActivityRouter = () => {
       lastCompletedActivity: decodedActivityType
     });
 
+    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+
     // If this was the last activity, go to compliance
     if (currentIndex === selectedActivities.length - 1) {
-      navigate(`/add/deal/compliance/${dealId}`);
+      navigate(`/add/deal/compliance/${dealId}${typeParam}`);
       return;
     }
 
     // Otherwise, move to the next activity
     const nextActivity = selectedActivities[nextIndex];
     const encodedNextActivity = encodeURIComponent(nextActivity);
-    navigate(`/add/deal/activity/${encodedNextActivity}/${dealId}`);
+    navigate(`/add/deal/activity/${encodedNextActivity}/${dealId}${typeParam}`);
   };
 
   return (
