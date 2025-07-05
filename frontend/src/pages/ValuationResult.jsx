@@ -86,7 +86,10 @@ const ValuationResult = () => {
   console.log('📊 ValuationResult - Current state:', {
     deal: deal ? 'loaded' : 'loading',
     prediction: prediction ? 'available' : 'not available',
-    predictionData: prediction
+    predictionData: prediction,
+    predictionKeys: prediction ? Object.keys(prediction) : 'none',
+    factorsType: prediction?.factors ? typeof prediction.factors : 'none',
+    rationaleType: prediction?.rationale ? typeof prediction.rationale : 'none'
   });
 
   if (!deal) {
@@ -228,6 +231,15 @@ const ValuationResult = () => {
   };
 
   try {
+    console.log('📊 ValuationResult - About to render with prediction:', {
+      hasFactors: !!prediction?.factors,
+      factorsKeys: prediction?.factors ? Object.keys(prediction.factors) : [],
+      hasRationale: !!prediction?.rationale,
+      rationaleType: typeof prediction?.rationale,
+      hasMarketComparison: !!prediction?.market_comparison,
+      hasOptimizationRecs: !!prediction?.optimization_recommendations
+    });
+
     return (
       <Container maxW="5xl" py={8}>
         {/* Header */}
@@ -237,7 +249,7 @@ const ValuationResult = () => {
               Fair Market Value Analysis
             </Heading>
             <Text color="brand.textSecondary" fontSize="lg">
-              Deal #{dealId} • {deal.deal_nickname || 'Untitled Deal'}
+              Deal #{dealId} • {String(deal?.deal_nickname || 'Untitled Deal')}
             </Text>
           </Box>
 
@@ -263,10 +275,10 @@ const ValuationResult = () => {
                 </Box>
                 <Box flex={1}>
                   <Heading size="lg" color={`${assessment.color}.700`} mb={1}>
-                    {assessment.title}
+                    {String(assessment.title)}
                   </Heading>
                   <Text color={`${assessment.color}.600`} fontSize="md">
-                    {assessment.description}
+                    {String(assessment.description)}
                   </Text>
                 </Box>
                 <VStack align="end" spacing={1}>
@@ -363,12 +375,21 @@ const ValuationResult = () => {
                   <Box key={key}>
                     <HStack justify="space-between" mb={2}>
                       <Text fontSize="sm" fontWeight="medium" color="brand.textPrimary">
-                        {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        {String(key).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                       </Text>
                       <Badge colorScheme={getFactorScore(factor) > 80 ? 'green' : getFactorScore(factor) > 60 ? 'yellow' : 'red'}>
-                        {factor?.multiplier ? `${factor.multiplier}x` : 
-                         factor?.value ? formatCurrency(factor.value) : 
-                         factor?.score ? `${Math.round(factor.score)}%` : 'N/A'}
+                        {(() => {
+                          if (factor?.multiplier && typeof factor.multiplier === 'number') {
+                            return `${factor.multiplier}x`;
+                          }
+                          if (factor?.value && typeof factor.value === 'number') {
+                            return formatCurrency(factor.value);
+                          }
+                          if (factor?.score && typeof factor.score === 'number') {
+                            return `${Math.round(factor.score)}%`;
+                          }
+                          return 'N/A';
+                        })()}
                       </Badge>
                     </HStack>
                     <Progress 
@@ -380,7 +401,7 @@ const ValuationResult = () => {
                       mb={1}
                     />
                     <Text fontSize="xs" color="brand.textSecondary">
-                      {factor?.description || 'No description available'}
+                      {String(factor?.description || 'No description available')}
                     </Text>
                   </Box>
                 ))}
@@ -419,7 +440,18 @@ const ValuationResult = () => {
                 <AccordionPanel>
                   <Box bg="gray.50" p={4} rounded="lg">
                     <Text fontSize="sm" color="brand.textSecondary" whiteSpace="pre-line">
-                      {prediction?.rationale || 'No detailed rationale available.'}
+                      {(() => {
+                        const rationale = prediction?.rationale;
+                        if (!rationale) return 'No detailed rationale available.';
+                        if (typeof rationale === 'string') return rationale;
+                        if (typeof rationale === 'object') {
+                          // Convert object to readable string
+                          return Object.entries(rationale)
+                            .map(([key, value]) => `${key.replace(/_/g, ' ')}: ${value}`)
+                            .join('\n');
+                        }
+                        return String(rationale);
+                      })()}
                     </Text>
                   </Box>
                 </AccordionPanel>
@@ -441,19 +473,20 @@ const ValuationResult = () => {
                       <Box key={index} p={3} bg="blue.50" rounded="lg">
                         <HStack justify="space-between">
                           <Text fontSize="sm" fontWeight="medium" color="blue.700">
-                            {comp.category}
+                            {String(comp?.category || 'Unknown Category')}
                           </Text>
                           <Text fontSize="sm" color="blue.600">
-                            {formatCurrency(comp.average_value)}
+                            {comp?.average_value && typeof comp.average_value === 'number' ? 
+                              formatCurrency(comp.average_value) : 'N/A'}
                           </Text>
                         </HStack>
                         <Text fontSize="xs" color="blue.600" mt={1}>
-                          {comp.description}
+                          {String(comp?.description || 'No description available')}
                         </Text>
                       </Box>
                     )) || (
                       <Text fontSize="sm" color="brand.textSecondary">
-                        {prediction?.market_comparison?.overall_assessment || 'Market comparison data not available'}
+                        {String(prediction?.market_comparison?.overall_assessment || 'Market comparison data not available')}
                       </Text>
                     )}
                   </VStack>
@@ -475,12 +508,12 @@ const ValuationResult = () => {
                     {prediction?.optimization_recommendations?.map((rec, index) => (
                       <Box key={index} p={3} bg="green.50" rounded="lg" borderLeft="3px" borderColor="green.400">
                         <Text fontSize="sm" fontWeight="medium" color="green.700" mb={1}>
-                          {rec.title}
+                          {String(rec?.title || 'Recommendation')}
                         </Text>
                         <Text fontSize="xs" color="green.600">
-                          {rec.description}
+                          {String(rec?.description || 'No description available')}
                         </Text>
-                        {rec.potential_increase && (
+                        {rec?.potential_increase && typeof rec.potential_increase === 'number' && (
                           <Text fontSize="xs" color="green.500" mt={1} fontWeight="medium">
                             Potential increase: {formatCurrency(rec.potential_increase)}
                           </Text>
