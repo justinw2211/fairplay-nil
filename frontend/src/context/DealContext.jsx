@@ -29,7 +29,7 @@ export const DealProvider = ({ children }) => {
 
   const createDraftDeal = useCallback(async (dealType) => {
     console.log('[DealContext] createDraftDeal called with dealType:', dealType);
-    
+
     if (!_user) {
       console.error('[DealContext] No user authenticated for deal creation');
       throw new Error('User must be authenticated to create a deal');
@@ -130,6 +130,11 @@ export const DealProvider = ({ children }) => {
         )
       );
 
+      // Also update the currentDeal if it matches the updated deal
+      setCurrentDeal(prevCurrentDeal =>
+        prevCurrentDeal && prevCurrentDeal.id === dealId ? { ...prevCurrentDeal, ...data } : prevCurrentDeal
+      );
+
       return data;
     } catch (err) {
       const errorMessage = err.message || 'Failed to update deal';
@@ -180,10 +185,10 @@ export const DealProvider = ({ children }) => {
 
       const data = await response.json();
       console.log('[DealContext] Deal data received:', data);
-      
+
       // Set the current deal in state
       setCurrentDeal(data);
-      
+
       return data;
     } catch (err) {
       const errorMessage = err.message || 'Failed to fetch deal';

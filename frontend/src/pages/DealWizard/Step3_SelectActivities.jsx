@@ -1,5 +1,5 @@
 // frontend/src/pages/DealWizard/Step3_SelectActivities.jsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
@@ -18,9 +18,11 @@ import {
   Input,
   Text,
   VStack,
+  useToast
 } from '@chakra-ui/react';
 import { ChevronRight, ChevronLeft, Clock } from 'lucide-react';
 import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
+import * as Sentry from '@sentry/react';
 
 const activities = [
   {
@@ -66,6 +68,7 @@ const Step3_SelectActivities = () => {
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
+  const toast = useToast();
 
   const [selectedActivities, setSelectedActivities] = useState([]);
   const [otherActivity, setOtherActivity] = useState("");
@@ -120,23 +123,34 @@ const Step3_SelectActivities = () => {
     console.log('newObligations:', newObligations);
     console.log('otherActivity:', otherActivity);
 
-    await updateDeal(dealId, {
-      obligations: newObligations,
-      currentActivityIndex: 0,
-      totalActivities: selectedActivities.length,
-      lastCompletedActivity: null // Track the last completed activity
-    });
+    try {
+      await updateDeal(dealId, {
+        obligations: newObligations,
+        currentActivityIndex: 0,
+        totalActivities: selectedActivities.length,
+        lastCompletedActivity: null // Track the last completed activity
+      });
 
-    const firstActivity = selectedActivities[0];
-    const encodedActivity = encodeURIComponent(firstActivity);
-    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+      const firstActivity = selectedActivities[0];
+      const encodedActivity = encodeURIComponent(firstActivity);
+      const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
 
-    console.log('🎯 Navigating to first activity:');
-    console.log('firstActivity:', firstActivity);
-    console.log('encodedActivity:', encodedActivity);
-    console.log('Full URL:', `/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`);
+      console.log('🎯 Navigating to first activity:');
+      console.log('firstActivity:', firstActivity);
+      console.log('encodedActivity:', encodedActivity);
+      console.log('Full URL:', `/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`);
 
-    navigate(`/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`);
+      navigate(`/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`);
+    } catch (error) {
+      Sentry.captureException(error);
+      toast({
+        title: "Error saving activities.",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
   };
 
   const handleFinishLater = () => {

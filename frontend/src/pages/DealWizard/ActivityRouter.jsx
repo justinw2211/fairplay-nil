@@ -1,9 +1,10 @@
 // frontend/src/pages/DealWizard/ActivityRouter.jsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
-import { Spinner, Flex, Box, Text, Progress } from '@chakra-ui/react';
+import { Spinner, Flex } from '@chakra-ui/react';
 import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
+import * as Sentry from '@sentry/react';
 
 // Import all the possible activity form components
 import ActivityForm_SocialMedia from './ActivityForm_SocialMedia';
@@ -25,15 +26,15 @@ const activityComponentMap = {
 };
 
 // Map to convert between kebab-case IDs and display titles
-const activityTitleMap = {
-  "social-media": "Social Media",
-  "appearance": "Appearance",
-  "content-for-brand": "Content for Brand",
-  "autographs": "Autographs",
-  "merch-and-products": "Merch and Products",
-  "endorsements": "Endorsements",
-  "other": "Other",
-};
+// const activityTitleMap = {
+//   "social-media": "Social Media",
+//   "appearance": "Appearance",
+//   "content-for-brand": "Content for Brand",
+//   "autographs": "Autographs",
+//   "merch-and-products": "Merch and Products",
+//   "endorsements": "Endorsements",
+//   "other": "Other",
+// };
 
 const ActivityRouter = () => {
   const { dealId, activityType } = useParams();
@@ -62,6 +63,20 @@ const ActivityRouter = () => {
 
       console.log('🔄 Initializing activity sequence:', sequence);
       setActivitySequence(sequence);
+
+      // Track successful activity sequence initialization in Sentry
+      Sentry.captureMessage('Activity sequence initialized successfully', 'info', {
+        tags: {
+          component: 'ActivityRouter',
+          action: 'initialize_sequence',
+          dealId
+        },
+        extra: {
+          dealId,
+          sequenceLength: sequence.length,
+          activities: sequence
+        }
+      });
     }
   }, [deal, activitySequence.length]);
 
@@ -85,7 +100,7 @@ const ActivityRouter = () => {
   const currentActivityIndex = activitySequence.length > 0 ? activitySequence.indexOf(decodedActivityType) : -1;
   const totalActivities = activitySequence.length;
   const currentActivityNumber = currentActivityIndex >= 0 ? currentActivityIndex + 1 : 1;
-  const progressPercentage = totalActivities > 0 ? (currentActivityNumber / totalActivities) * 100 : 0;
+  // const progressPercentage = totalActivities > 0 ? (currentActivityNumber / totalActivities) * 100 : 0;
 
   console.log('🎯 ActivityRouter State (Direct Calculation):');
   console.log('activitySequence:', activitySequence);
