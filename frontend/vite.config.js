@@ -3,18 +3,20 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig(({ mode }) => {
   const isProduction = mode === 'production'
-  const isStaging = process.env.VITE_ENVIRONMENT === 'staging'
-  
+
   return {
     plugins: [react()],
-    
+
+    // Base path for production
+    base: '/',
+
     // Environment-specific settings
     define: {
       __APP_VERSION__: JSON.stringify(process.env.VITE_APP_VERSION || '1.0.0'),
       __BUILD_TIME__: JSON.stringify(process.env.VITE_BUILD_TIME || new Date().toISOString()),
       __ENVIRONMENT__: JSON.stringify(process.env.VITE_ENVIRONMENT || mode),
     },
-    
+
     // Build optimization
     build: {
       outDir: 'dist',
@@ -33,7 +35,7 @@ export default defineConfig(({ mode }) => {
         }
       }
     },
-    
+
     // Development server
     server: {
       port: 3000,
@@ -46,10 +48,10 @@ export default defineConfig(({ mode }) => {
         }
       }
     },
-    
+
     // Environment variables
     envPrefix: 'VITE_',
-    
+
     // Optimizations
     optimizeDeps: {
       include: ['react', 'react-dom', '@chakra-ui/react']
