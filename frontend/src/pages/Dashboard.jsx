@@ -274,7 +274,7 @@ const Dashboard = () => {
 
   const handleDealTypeSelect = async (dealType) => {
     try {
-      const newDeal = await createDraftDeal({ deal_type: dealType });
+      const newDeal = await createDraftDeal(dealType);
       if (!newDeal) {
         throw new Error('Failed to create new deal');
       }
