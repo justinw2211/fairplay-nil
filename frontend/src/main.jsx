@@ -8,10 +8,15 @@ import { ChakraProvider } from "@chakra-ui/react";
 import { AuthProvider } from "./context/AuthContext";
 import { DealProvider } from "./context/DealContext";
 import theme from "./theme";
-import * as Sentry from "@sentry/react";
-import { BrowserTracing } from "@sentry/tracing";
+import "./index.css";
+
+// Temporarily disabled Sentry to fix blank website issue
+// import * as Sentry from "@sentry/react";
+// import { BrowserTracing } from "@sentry/tracing";
 
 // Initialize Sentry
+// Temporarily disabled to fix blank website issue
+/*
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN || "https://8a759dc24e0d183c942867eb9d1eadc6@o4509759316426752.ingest.us.sentry.io/4509759319572480",
   integrations: [new BrowserTracing()],
@@ -26,6 +31,7 @@ Sentry.init({
     return event;
   },
 });
+*/
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
