@@ -42,9 +42,39 @@ const ActivityRouter = () => {
   console.log('loading:', loading);
   console.log('activitySequence:', activitySequence);
 
+  // Track component initialization
+  Sentry.captureMessage('ActivityRouter: Component initialized', 'info', {
+    tags: {
+      component: 'ActivityRouter',
+      action: 'component_init',
+      dealId
+    },
+    extra: {
+      dealId,
+      activityType,
+      loading,
+      hasDeal: !!deal,
+      activitySequenceLength: activitySequence.length
+    }
+  });
+
   useEffect(() => {
     if (!deal && dealId) {
       console.log('🔄 Fetching deal by ID:', dealId);
+
+      // Track deal fetching attempt
+      Sentry.captureMessage('ActivityRouter: Fetching deal', 'info', {
+        tags: {
+          component: 'ActivityRouter',
+          action: 'fetch_deal',
+          dealId
+        },
+        extra: {
+          dealId,
+          activityType
+        }
+      });
+
       fetchDealById(dealId);
     }
   }, [deal, dealId, fetchDealById]);
@@ -54,6 +84,21 @@ const ActivityRouter = () => {
     console.log('🔄 Checking deal obligations for sequence initialization');
     console.log('deal?.obligations:', deal?.obligations);
     console.log('activitySequence.length:', activitySequence.length);
+
+    // Track sequence initialization attempt
+    Sentry.captureMessage('ActivityRouter: Checking sequence initialization', 'info', {
+      tags: {
+        component: 'ActivityRouter',
+        action: 'sequence_check',
+        dealId
+      },
+      extra: {
+        dealId,
+        hasObligations: !!deal?.obligations,
+        obligationsKeys: deal?.obligations ? Object.keys(deal.obligations) : [],
+        activitySequenceLength: activitySequence.length
+      }
+    });
 
     if (deal?.obligations && activitySequence.length === 0) {
       // Get the original activity sequence from obligations
@@ -75,7 +120,8 @@ const ActivityRouter = () => {
         extra: {
           dealId,
           sequenceLength: sequence.length,
-          activities: sequence
+          activities: sequence,
+          obligations: deal.obligations
         }
       });
     }
@@ -83,6 +129,22 @@ const ActivityRouter = () => {
 
   if (loading || !deal) {
     console.log('⏳ Showing loading spinner - loading:', loading, 'deal:', !!deal);
+
+    // Track loading state
+    Sentry.captureMessage('ActivityRouter: Showing loading spinner', 'info', {
+      tags: {
+        component: 'ActivityRouter',
+        action: 'loading_state',
+        dealId
+      },
+      extra: {
+        dealId,
+        loading,
+        hasDeal: !!deal,
+        activityType
+      }
+    });
+
     return (
       <Flex justify="center" align="center" minH="80vh">
         <Spinner size="xl" color="brand.accentPrimary" />
@@ -97,8 +159,38 @@ const ActivityRouter = () => {
   console.log('decodedActivityType:', decodedActivityType);
   console.log('ActivityComponent:', ActivityComponent);
 
+  // Track component resolution
+  Sentry.captureMessage('ActivityRouter: Component resolution', 'info', {
+    tags: {
+      component: 'ActivityRouter',
+      action: 'component_resolution',
+      dealId
+    },
+    extra: {
+      dealId,
+      decodedActivityType,
+      hasComponent: !!ActivityComponent,
+      availableComponents: Object.keys(activityComponentMap)
+    }
+  });
+
   if (!ActivityComponent) {
     console.error(`❌ No component found for activity type: ${decodedActivityType}`);
+
+    // Track missing component error
+    Sentry.captureMessage('ActivityRouter: No component found', 'error', {
+      tags: {
+        component: 'ActivityRouter',
+        action: 'missing_component',
+        dealId
+      },
+      extra: {
+        dealId,
+        decodedActivityType,
+        availableComponents: Object.keys(activityComponentMap)
+      }
+    });
+
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -114,10 +206,43 @@ const ActivityRouter = () => {
   console.log('totalActivities:', totalActivities);
   console.log('currentActivity:', decodedActivityType);
 
+  // Track state calculation
+  Sentry.captureMessage('ActivityRouter: State calculation', 'info', {
+    tags: {
+      component: 'ActivityRouter',
+      action: 'state_calculation',
+      dealId
+    },
+    extra: {
+      dealId,
+      activitySequence,
+      decodedActivityType,
+      currentActivityIndex,
+      totalActivities,
+      currentActivityNumber
+    }
+  });
+
   // Early return if we don't have a valid activity index
   if (currentActivityIndex < 0 && activitySequence.length > 0) {
     console.error('❌ Activity not found in sequence:', decodedActivityType);
     console.error('Available activities:', activitySequence);
+
+    // Track activity not found error
+    Sentry.captureMessage('ActivityRouter: Activity not found in sequence', 'error', {
+      tags: {
+        component: 'ActivityRouter',
+        action: 'activity_not_found',
+        dealId
+      },
+      extra: {
+        dealId,
+        decodedActivityType,
+        activitySequence,
+        currentActivityIndex
+      }
+    });
+
     return <Navigate to="/dashboard" replace />;
   }
 

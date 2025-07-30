@@ -293,7 +293,7 @@ const Dashboard = () => {
     console.log('[Dashboard] user:', user);
     console.log('[Dashboard] navigate function:', typeof navigate);
     console.log('[Dashboard] toast function:', typeof toast);
-    
+
     // Safety check: Ensure createDraftDeal is defined
     if (typeof createDraftDeal !== 'function') {
       console.error('[Dashboard] createDraftDeal is not a function:', createDraftDeal);
@@ -306,12 +306,12 @@ const Dashboard = () => {
       });
       return;
     }
-    
+
     try {
       console.log('[Dashboard] About to call createDraftDeal...');
       const newDeal = await createDraftDeal(dealType);
       console.log('[Dashboard] Draft deal created:', newDeal);
-      
+
       if (!newDeal) {
         throw new Error('Failed to create new deal');
       }
@@ -319,7 +319,7 @@ const Dashboard = () => {
       // Navigate to the appropriate workflow based on deal type
       const targetUrl = `/add/deal/social-media/${newDeal.id}?type=${dealType}`;
       console.log('[Dashboard] Navigating to:', targetUrl);
-      
+
       switch (dealType) {
         case 'simple':
           console.log('[Dashboard] Routing to SIMPLE deal workflow');
@@ -340,14 +340,14 @@ const Dashboard = () => {
 
       console.log('[Dashboard] Navigation completed');
       console.log('[Dashboard] ===== DEAL CREATION FLOW COMPLETE =====');
-      
+
       // Temporarily comment out fetchDeals to isolate the issue
       // await fetchDeals();
     } catch (error) {
       console.error('[Dashboard] ===== ERROR IN DEAL CREATION FLOW =====');
       console.error('[Dashboard] Error in handleDealTypeSelect:', error);
       console.error('[Dashboard] Error stack:', error.stack);
-      
+
       // Handle backend not available for development
       if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
         toast({

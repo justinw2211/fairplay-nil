@@ -4,6 +4,7 @@ import { useAuth } from './context/AuthContext';
 import { Box, Button, Flex, Heading, Text } from "@chakra-ui/react";
 import React, { useState } from "react";
 import ErrorBoundary from './components/ErrorBoundary';
+import * as Sentry from "@sentry/react";
 
 // Import all the page components that will be used in the routes.
 import Home from './pages/Home';
@@ -181,9 +182,9 @@ function AppContent() {
 
 function App() {
   return (
-    <ErrorBoundary context="Application">
+    <Sentry.ErrorBoundary fallback={<ErrorBoundary context="Application" />}>
       <AppContent />
-    </ErrorBoundary>
+    </Sentry.ErrorBoundary>
   );
 }
 

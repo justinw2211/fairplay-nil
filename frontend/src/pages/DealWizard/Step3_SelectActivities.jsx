@@ -123,12 +123,59 @@ const Step3_SelectActivities = () => {
     console.log('newObligations:', newObligations);
     console.log('otherActivity:', otherActivity);
 
+    // Track the start of the navigation process
+    Sentry.captureMessage('Step3_SelectActivities: Starting navigation process', 'info', {
+      tags: {
+        component: 'Step3_SelectActivities',
+        action: 'handleNext',
+        dealId
+      },
+      extra: {
+        dealId,
+        selectedActivities,
+        newObligations,
+        otherActivity,
+        dealType
+      }
+    });
+
     try {
+      // Track the updateDeal call
+      Sentry.captureMessage('Step3_SelectActivities: Calling updateDeal', 'info', {
+        tags: {
+          component: 'Step3_SelectActivities',
+          action: 'updateDeal',
+          dealId
+        },
+        extra: {
+          dealId,
+          updateData: {
+            obligations: newObligations,
+            currentActivityIndex: 0,
+            totalActivities: selectedActivities.length,
+            lastCompletedActivity: null
+          }
+        }
+      });
+
       await updateDeal(dealId, {
         obligations: newObligations,
         currentActivityIndex: 0,
         totalActivities: selectedActivities.length,
         lastCompletedActivity: null // Track the last completed activity
+      });
+
+      // Track successful updateDeal
+      Sentry.captureMessage('Step3_SelectActivities: updateDeal completed successfully', 'info', {
+        tags: {
+          component: 'Step3_SelectActivities',
+          action: 'updateDeal_success',
+          dealId
+        },
+        extra: {
+          dealId,
+          selectedActivities
+        }
       });
 
       const firstActivity = selectedActivities[0];
@@ -140,9 +187,57 @@ const Step3_SelectActivities = () => {
       console.log('encodedActivity:', encodedActivity);
       console.log('Full URL:', `/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`);
 
+      // Track navigation attempt
+      Sentry.captureMessage('Step3_SelectActivities: Attempting navigation', 'info', {
+        tags: {
+          component: 'Step3_SelectActivities',
+          action: 'navigation_attempt',
+          dealId
+        },
+        extra: {
+          dealId,
+          firstActivity,
+          encodedActivity,
+          fullUrl: `/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`,
+          typeParam
+        }
+      });
+
       navigate(`/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`);
+
+      // Track successful navigation
+      Sentry.captureMessage('Step3_SelectActivities: Navigation completed', 'info', {
+        tags: {
+          component: 'Step3_SelectActivities',
+          action: 'navigation_success',
+          dealId
+        },
+        extra: {
+          dealId,
+          firstActivity,
+          fullUrl: `/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`
+        }
+      });
+
     } catch (error) {
-      Sentry.captureException(error);
+      // Track the error with detailed context
+      Sentry.captureException(error, {
+        tags: {
+          component: 'Step3_SelectActivities',
+          action: 'handleNext_error',
+          dealId
+        },
+        extra: {
+          dealId,
+          selectedActivities,
+          newObligations,
+          otherActivity,
+          dealType,
+          errorMessage: error.message,
+          errorStack: error.stack
+        }
+      });
+
       toast({
         title: "Error saving activities.",
         description: error.message,

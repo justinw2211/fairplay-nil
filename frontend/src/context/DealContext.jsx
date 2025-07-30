@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '../supabaseClient';
 import { createLogger } from '../utils/logger';
+import * as Sentry from '@sentry/react';
 
 // Create logger instance for this context
 const dealLogger = createLogger('DealContext');
@@ -99,6 +100,20 @@ export const DealProvider = ({ children }) => {
     setLoading(true);
     setError(null);
 
+    // Track updateDeal start
+    Sentry.captureMessage('DealContext: updateDeal started', 'info', {
+      tags: {
+        component: 'DealContext',
+        action: 'updateDeal_start',
+        dealId
+      },
+      extra: {
+        dealId,
+        updates,
+        userId: _user?.id
+      }
+    });
+
     try {
       const sessionRes = await supabase.auth.getSession();
       const token = sessionRes.data.session?.access_token;
@@ -106,6 +121,20 @@ export const DealProvider = ({ children }) => {
       if (!token) {
         throw new Error('No authentication token available');
       }
+
+      // Track API request
+      Sentry.captureMessage('DealContext: Making API request', 'info', {
+        tags: {
+          component: 'DealContext',
+          action: 'api_request',
+          dealId
+        },
+        extra: {
+          dealId,
+          apiUrl: `${import.meta.env.VITE_API_URL}/api/deals/${dealId}`,
+          hasToken: !!token
+        }
+      });
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
         method: 'PUT',
@@ -116,12 +145,40 @@ export const DealProvider = ({ children }) => {
         body: JSON.stringify(updates)
       });
 
+      // Track API response
+      Sentry.captureMessage('DealContext: API response received', 'info', {
+        tags: {
+          component: 'DealContext',
+          action: 'api_response',
+          dealId
+        },
+        extra: {
+          dealId,
+          responseStatus: response.status,
+          responseOk: response.ok,
+          responseStatusText: response.statusText
+        }
+      });
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
+
+      // Track successful data parsing
+      Sentry.captureMessage('DealContext: Data parsed successfully', 'info', {
+        tags: {
+          component: 'DealContext',
+          action: 'data_parsed',
+          dealId
+        },
+        extra: {
+          dealId,
+          dataKeys: Object.keys(data)
+        }
+      });
 
       // Update the deal in the deals list
       setDeals(prevDeals =>
@@ -135,9 +192,39 @@ export const DealProvider = ({ children }) => {
         prevCurrentDeal && prevCurrentDeal.id === dealId ? { ...prevCurrentDeal, ...data } : prevCurrentDeal
       );
 
+      // Track successful state updates
+      Sentry.captureMessage('DealContext: State updated successfully', 'info', {
+        tags: {
+          component: 'DealContext',
+          action: 'state_updated',
+          dealId
+        },
+        extra: {
+          dealId,
+          updatedDataKeys: Object.keys(data)
+        }
+      });
+
       return data;
     } catch (err) {
       const errorMessage = err.message || 'Failed to update deal';
+
+      // Track error with detailed context
+      Sentry.captureException(err, {
+        tags: {
+          component: 'DealContext',
+          action: 'updateDeal_error',
+          dealId
+        },
+        extra: {
+          dealId,
+          updates,
+          userId: _user?.id,
+          errorMessage,
+          errorStack: err.stack
+        }
+      });
+
       dealLogger.error('Error updating deal', { error: errorMessage });
       setError(errorMessage);
       throw err;
