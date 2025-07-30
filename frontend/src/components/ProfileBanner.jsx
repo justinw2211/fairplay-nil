@@ -190,7 +190,7 @@ const ProfileBanner = ({
         <CardBody p={0}>
           {/* Gradient Header Section */}
           <Box
-            bgGradient={`linear(to-r, ${gradientStart}, ${gradientEnd})`}
+            bg="brand.textPrimary"
             p={cardPadding}
             position="relative"
             overflow="hidden"

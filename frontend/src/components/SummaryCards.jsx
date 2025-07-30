@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   SimpleGrid, Text, Card, CardBody, Icon, VStack, HStack, useColorModeValue,
-  Progress, Badge
+  Badge
 } from '@chakra-ui/react';
 import { FiDollarSign, FiTrendingUp, FiClock, FiAlertTriangle, FiArrowUp, FiArrowDown, FiUsers, FiInstagram, FiTwitter, FiYoutube } from 'react-icons/fi';
 import useSocialMedia from '../hooks/use-social-media';
@@ -153,14 +153,7 @@ const SummaryCards = ({ deals }) => {
         icon={FiTrendingUp}
         color="green.500"
         helpText={`${completedDeals} completed deals`}
-      >
-        <Progress
-          value={totalDeals > 0 ? (activeDeals / totalDeals) * 100 : 0}
-          colorScheme="green"
-          size="sm"
-          borderRadius="full"
-        />
-      </SummaryCard>
+      />
 
       <SummaryCard
         title="Social Media Followers"
