@@ -23,9 +23,7 @@ import {
   Button,
   Text,
   Checkbox,
-  HStack,
   VStack,
-  Badge,
   Tooltip,
   Input,
   Select,
@@ -448,16 +446,29 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
     <VStack spacing={4} align="stretch">
       {/* Bulk Operations Toolbar */}
       {selectedDeals.size > 0 && (
-        <Flex bg="brand.backgroundLight" p={4} borderRadius="md" align="center">
+        <Flex
+          bg="brand.backgroundLight"
+          p={4}
+          borderRadius="md"
+          align="center"
+          direction={{ base: "column", md: "row" }}
+          gap={3}
+        >
           <Text color="brand.textPrimary" fontWeight="medium">
             {selectedDeals.size} deal{selectedDeals.size > 1 ? 's' : ''} selected
           </Text>
-          <Spacer />
-          <ButtonGroup size="sm" spacing={2}>
+          <Spacer display={{ base: "none", md: "block" }} />
+          <Flex
+            gap={2}
+            flexWrap="wrap"
+            justify={{ base: "center", md: "flex-end" }}
+            w={{ base: "full", md: "auto" }}
+          >
             <Select
               placeholder="Change Status"
               onChange={(e) => e.target.value && handleBulkStatusChange(e.target.value)}
               isDisabled={isBulkOperating}
+              minW="140px"
             >
               <option value="draft">Draft</option>
               <option value="active">Active</option>
@@ -469,16 +480,18 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
               variant="outline"
               onClick={onBulkDeleteOpen}
               isLoading={isBulkOperating}
+              minW="120px"
             >
               Delete Selected
             </Button>
             <Button
               variant="ghost"
               onClick={() => setSelectedDeals(new Set())}
+              minW="120px"
             >
               Clear Selection
             </Button>
-          </ButtonGroup>
+          </Flex>
         </Flex>
       )}
 
