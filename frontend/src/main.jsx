@@ -8,38 +8,24 @@ import { ChakraProvider } from "@chakra-ui/react";
 import { AuthProvider } from "./context/AuthContext";
 import { DealProvider } from "./context/DealContext";
 import theme from "./theme";
+import * as Sentry from "@sentry/react";
+import { BrowserTracing } from "@sentry/tracing";
 
-// Import environment configuration
-import { errorTrackingConfig, isErrorTrackingEnabled } from "./config/environment";
-
-// Initialize Sentry only if enabled and DSN is available
-if (isErrorTrackingEnabled() && errorTrackingConfig.sentry.dsn) {
-  try {
-    // Dynamic import to avoid issues if Sentry fails to load
-    import("@sentry/react").then((Sentry) => {
-      import("@sentry/tracing").then(({ BrowserTracing }) => {
-        Sentry.init({
-          dsn: errorTrackingConfig.sentry.dsn,
-          environment: errorTrackingConfig.sentry.environment,
-          debug: errorTrackingConfig.sentry.debug,
-          tracesSampleRate: errorTrackingConfig.sentry.tracesSampleRate,
-          replaysSessionSampleRate: errorTrackingConfig.sentry.replaysSessionSampleRate,
-          replaysOnErrorSampleRate: errorTrackingConfig.sentry.replaysOnErrorSampleRate,
-          integrations: [
-            new BrowserTracing(),
-          ],
-          defaultTags: errorTrackingConfig.sentry.defaultTags,
-        });
-      }).catch((error) => {
-        console.warn("Failed to initialize Sentry tracing:", error);
-      });
-    }).catch((error) => {
-      console.warn("Failed to initialize Sentry:", error);
-    });
-  } catch (error) {
-    console.warn("Sentry initialization failed:", error);
-  }
-}
+// Initialize Sentry
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN || "https://8a759dc24e0d183c942867eb9d1eadc6@o4509759316426752.ingest.us.sentry.io/4509759319572480",
+  integrations: [new BrowserTracing()],
+  tracesSampleRate: 1.0, // Adjust this value in production
+  environment: import.meta.env.MODE,
+  debug: import.meta.env.MODE === 'development', // Enable debug in development
+  beforeSend(event) {
+    // Filter out sensitive data
+    if (event.request?.headers) {
+      delete event.request.headers['authorization'];
+    }
+    return event;
+  },
+});
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

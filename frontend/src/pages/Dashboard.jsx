@@ -151,6 +151,15 @@ const Dashboard = () => {
   console.log('[Dashboard] createDraftDeal function:', typeof createDraftDeal);
   console.log('[Dashboard] createDraftDeal is function:', typeof createDraftDeal === 'function');
 
+  // Test Sentry integration
+  console.log('[Dashboard] Testing Sentry integration...');
+  try {
+    Sentry.captureMessage('Dashboard component loaded successfully', 'info');
+    console.log('[Dashboard] Sentry test message sent');
+  } catch (error) {
+    console.error('[Dashboard] Sentry test failed:', error);
+  }
+
   // Social media modal state
   const [showSocialMediaModal, setShowSocialMediaModal] = useState(false);
   const [socialMediaCheckComplete, setSocialMediaCheckComplete] = useState(false);
