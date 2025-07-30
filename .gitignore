@@ -47,3 +47,4 @@ env/
 # Python cache files
 __pycache__/
 *.pyc
+.vercel

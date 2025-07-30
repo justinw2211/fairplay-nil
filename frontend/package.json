@@ -5,12 +5,20 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:debug": "VITE_DEBUG=true vite",
     "build": "vite build",
-    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "build:staging": "VITE_ENVIRONMENT=staging vite build",
+    "build:production": "VITE_ENVIRONMENT=production vite build",
     "preview": "vite preview",
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext js,jsx --fix",
+    "format": "prettier --write src/",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "validate:env": "node -e \"import('./src/config/environment.js').then(m => console.log('Environment config:', m.validateEnvironmentConfig()))\"",
+    "deploy:staging": "npm run build:staging && npx vercel --prod",
+    "deploy:production": "npm run build:production && npx vercel --prod"
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.1.1",
@@ -57,6 +65,7 @@
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.0.5",
     "jest-environment-jsdom": "^30.0.5",
+    "vercel": "^44.6.4",
     "vite": "^5.4.1"
   }
 }
