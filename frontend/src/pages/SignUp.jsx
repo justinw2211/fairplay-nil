@@ -20,7 +20,7 @@ import {
   Progress,
   FormHelperText,
 } from '@chakra-ui/react';
-import SocialMediaModal from '../components/social-media-modal';
+
 import { useForm, Controller } from 'react-hook-form';
 import ReactSelect from 'react-select';
 import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, NCAA_DIVISIONS } from '../data/formConstants';
@@ -49,14 +49,7 @@ const SignUp = () => {
   const [filteredSchools, setFilteredSchools] = useState([]);
   const [isLoadingSchools, setIsLoadingSchools] = useState(false);
   
-  // Social media modal state
-  const [showSocialMediaModal, setShowSocialMediaModal] = useState(false);
-  const [signUpComplete, setSignUpComplete] = useState(false);
 
-  // Debug modal state changes
-  useEffect(() => {
-    console.log('Modal state changed to:', showSocialMediaModal);
-  }, [showSocialMediaModal]);
 
   // Step 1 form
   const {
@@ -275,10 +268,7 @@ const SignUp = () => {
         // Don't fail signup if auto sign-in fails
       }
 
-      console.log('Signup successful, showing social media modal');
-      setSignUpComplete(true);
-      setShowSocialMediaModal(true);
-      console.log('Modal state set to true, showSocialMediaModal should be:', true);
+      console.log('Signup successful, navigating to dashboard');
       
       toast({
         title: 'Account Created!',
@@ -287,6 +277,9 @@ const SignUp = () => {
         duration: 5000,
         isClosable: true,
       });
+
+      // Navigate to dashboard immediately - the dashboard will handle showing the social media modal
+      navigate('/dashboard');
     } catch (error) {
       toast({
         title: 'Error',
@@ -300,15 +293,7 @@ const SignUp = () => {
     }
   };
 
-  const handleSocialMediaComplete = () => {
-    setShowSocialMediaModal(false);
-    navigate('/dashboard');
-  };
 
-  const handleSocialMediaSkip = () => {
-    setShowSocialMediaModal(false);
-    navigate('/dashboard');
-  };
 
   return (
     <>
@@ -656,18 +641,7 @@ const SignUp = () => {
           )}
         </VStack>
             </Box>
-    </Flex>
-      
-      {/* Social Media Modal - Rendered at root level */}
-      {console.log('Rendering modal with isOpen:', showSocialMediaModal)}
-      <SocialMediaModal
-        isOpen={showSocialMediaModal}
-        onClose={() => setShowSocialMediaModal(false)}
-        onComplete={handleSocialMediaComplete}
-        onSkip={handleSocialMediaSkip}
-        title="Complete Your Profile"
-        subtitle="Add your social media information to enhance your NIL profile"
-      />
+          </Flex>
     </>
   );
 };

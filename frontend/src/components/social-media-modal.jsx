@@ -94,8 +94,6 @@ const SocialMediaModal = ({
     });
   };
 
-  console.log('SocialMediaModal render - isOpen:', isOpen, 'title:', title);
-  
   return (
     <Modal 
       isOpen={isOpen} 
