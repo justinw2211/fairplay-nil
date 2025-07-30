@@ -223,6 +223,8 @@ const SignUp = () => {
         return;
       }
 
+
+
       // Save profile data directly to profiles table since trigger isn't working
       if (signUpData?.user) {
         try {
@@ -250,6 +252,25 @@ const SignUp = () => {
         }
       }
 
+      // Sign in the user immediately after signup
+      try {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: initialData.email,
+          password: initialData.password,
+        });
+
+        if (signInError) {
+          console.error('Auto sign-in error:', signInError);
+          // Don't fail signup if auto sign-in fails
+        } else {
+          console.log('Auto sign-in successful');
+        }
+      } catch (signInError) {
+        console.error('Auto sign-in error:', signInError);
+        // Don't fail signup if auto sign-in fails
+      }
+
+      console.log('Signup successful, showing social media modal');
       setSignUpComplete(true);
       setShowSocialMediaModal(true);
       
@@ -402,10 +423,10 @@ const SignUp = () => {
                   render={({ field, fieldState: { error } }) => (
                     <FormControl isInvalid={!!error}>
                       <FormLabel>Full Name</FormLabel>
-                      <Input
-                        {...field}
-                        placeholder="Enter your full name"
-                      />
+                                        <Input
+                    {...field}
+                    placeholder="Enter your full name"
+                  />
                       <FormErrorMessage>{error?.message}</FormErrorMessage>
                     </FormControl>
                   )}
@@ -610,6 +631,7 @@ const SignUp = () => {
                   isLoading={isLoading}
                   loadingText="Creating Account..."
                   _hover={{ bg: '#c8aeb0' }}
+
                 >
                   Complete Sign Up
                 </Button>
