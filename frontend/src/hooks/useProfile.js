@@ -160,15 +160,27 @@ const useProfile = () => {
     if (!forceRefresh) {
       const cachedProfile = getCachedProfile(user.id);
       if (cachedProfile) {
-        setProfile(cachedProfile);
-        cacheRef.current = { data: cachedProfile, timestamp: Date.now(), TTL: CACHE_TTL };
-        return cachedProfile;
+        // If cached profile doesn't have expected_graduation_year field, force refresh
+        if (cachedProfile.expected_graduation_year === undefined) {
+          logger.info('Cached profile missing expected_graduation_year, forcing refresh', { userId: user.id });
+          invalidateCache(user.id);
+        } else {
+          setProfile(cachedProfile);
+          cacheRef.current = { data: cachedProfile, timestamp: Date.now(), TTL: CACHE_TTL };
+          return cachedProfile;
+        }
       }
 
       // Return memory cache if valid and not forcing refresh
       if (isCacheValid()) {
-        setProfile(cacheRef.current.data);
-        return cacheRef.current.data;
+        // If memory cache doesn't have expected_graduation_year field, force refresh
+        if (cacheRef.current.data?.expected_graduation_year === undefined) {
+          logger.info('Memory cache missing expected_graduation_year, forcing refresh', { userId: user.id });
+          cacheRef.current = { data: null, timestamp: null, TTL: CACHE_TTL };
+        } else {
+          setProfile(cacheRef.current.data);
+          return cacheRef.current.data;
+        }
       }
     }
 
@@ -241,9 +253,19 @@ const useProfile = () => {
           TTL: CACHE_TTL
         };
         setCachedProfile(user.id, formattedData);
+        
+        // Clear cache if expected_graduation_year is missing from cached data
+        // This ensures users get the updated field even if they had cached data
+        if (!formattedData.expected_graduation_year && cacheRef.current.data?.expected_graduation_year === undefined) {
+          invalidateCache(user.id);
+          logger.info('Cache invalidated due to missing expected_graduation_year field', { userId: user.id });
+        }
 
         setProfile(formattedData);
         logger.info('Profile fetched and cached successfully', { userId: user.id });
+        
+
+        
         return formattedData;
       }
 

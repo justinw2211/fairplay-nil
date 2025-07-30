@@ -247,9 +247,9 @@ const Dashboard = () => {
   useEffect(() => {
     fetchDeals();
     
-    // Fetch profile data on mount
+    // Fetch profile data on mount with force refresh to ensure latest data
     if (user) {
-      fetchProfile().catch(error => {
+      fetchProfile(true).catch(error => {
         console.error('Error fetching profile on dashboard mount:', error);
       });
     }

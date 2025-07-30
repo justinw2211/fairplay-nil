@@ -146,7 +146,7 @@ const ProfileBanner = ({
     
     const optionalFields = [
       'phone', 'phone_number', // Phone fields
-      'graduation_year', 'class_year', // Graduation fields
+      'expected_graduation_year', // Graduation field
       'avatar_url', 'profile_image', // Avatar fields
       'bio', 'description', // Bio fields
       'email' // Email field
@@ -259,6 +259,8 @@ const ProfileBanner = ({
     bio: profile?.bio || profile?.description || '',
     avatar_url: profile?.avatar_url || profile?.profile_image || ''
   };
+
+
 
   // Social media data with calculations
   const socialMediaInfo = {
