@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, memo } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import {
   Box,
   Card,
@@ -16,12 +16,9 @@ import {
   useColorModeValue,
   useBreakpointValue,
   Skeleton,
-  SkeletonText,
   SkeletonCircle,
-  Divider,
   SimpleGrid,
   Circle,
-  Fade,
   ScaleFade,
   SlideFade,
   usePrefersReducedMotion,
@@ -30,7 +27,6 @@ import {
   useDisclosure,
   Alert,
   AlertIcon,
-  AlertTitle,
   AlertDescription,
   useToast
 } from '@chakra-ui/react';
@@ -41,19 +37,15 @@ import {
   FiCalendar,
   FiTrendingUp,
   FiMail,
-  FiUser,
   FiStar,
   FiUsers,
   FiBookOpen,
   FiChevronDown,
   FiChevronUp,
-  FiEye,
-  FiEyeOff,
   FiInstagram,
   FiTwitter,
   FiYoutube,
-  FiCheck,
-  FiX
+  FiCheck
 } from 'react-icons/fi';
 import { keyframes } from '@emotion/react';
 import useSocialMedia from '../hooks/use-social-media';
@@ -65,17 +57,11 @@ const pulseKeyframes = keyframes`
   100% { transform: scale(1); opacity: 1; }
 `;
 
-const fadeInUpKeyframes = keyframes`
-  0% { opacity: 0; transform: translateY(20px); }
-  100% { opacity: 1; transform: translateY(0); }
-`;
-
 const ProfileBanner = ({
   profile,
   loading = false,
   onEditClick,
   showSocialMedia = false,
-  socialMediaCount = 0,
   ...props
 }) => {
   // Component state for enhanced interactivity
@@ -220,10 +206,9 @@ const ProfileBanner = ({
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const gradientBg = useColorModeValue(
-    'linear(to-r, brand.accentPrimary, #c9b2a9)',
+    'linear(to-r, brand.accentPrimary, #a69690)',
     'linear(to-r, brand.accentPrimary, #a69690)'
   );
-  const overlayBg = useColorModeValue('rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)');
   const textOnGradient = 'white';
   const textOnCard = useColorModeValue('brand.textPrimary', 'white');
   const textSecondary = useColorModeValue('brand.textSecondary', 'gray.400');
@@ -240,14 +225,21 @@ const ProfileBanner = ({
   const flexDirection = useBreakpointValue({ base: 'column', lg: 'row' });
   const textAlign = useBreakpointValue({ base: 'center', lg: 'left' });
   const buttonSize = useBreakpointValue({ base: 'xs', sm: 'sm', md: 'md' });
-  const showDetailedInfo = useBreakpointValue({ base: false, sm: true });
   const stackStats = useBreakpointValue({ base: true, md: false });
   const compactView = useBreakpointValue({ base: true, sm: false });
 
   // Profile data with fallbacks and calculated completion
   const profileData = {
-    name: profile?.displayName || profile?.full_name || 'Student-Athlete',
-    initials: profile?.initials || 'SA',
+    name: profile?.displayName ||
+          profile?.full_name ||
+          profile?.first_name ||
+          profile?.last_name ||
+          profile?.email?.split('@')[0] ||
+          profile?.user_metadata?.full_name ||
+          'Student-Athlete',
+    initials: profile?.initials ||
+              (profile?.displayName || profile?.full_name || profile?.first_name || profile?.last_name || profile?.email)?.substring(0, 2).toUpperCase() ||
+              'SA',
     university: profile?.university || profile?.school || 'University',
     sports: profile?.sports?.join(', ') || profile?.sport || 'Sport',
     division: profile?.division || 'Division',
@@ -259,7 +251,6 @@ const ProfileBanner = ({
     bio: profile?.bio || profile?.description || '',
     avatar_url: profile?.avatar_url || profile?.profile_image || ''
   };
-
 
   // Social media data with calculations
   const socialMediaInfo = {

@@ -1,151 +1,185 @@
 // frontend/src/context/DealContext.jsx
-import React, { createContext, useState, useContext, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
+import { createContext, useContext, useState, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { dealLogger } from '../utils/logger';
+import { supabase } from '../supabaseClient';
+import { createLogger } from '../utils/logger';
 
+// Create logger instance for this context
+const dealLogger = createLogger('DealContext');
+
+// Create context
 const DealContext = createContext();
 
-export const useDeal = () => useContext(DealContext);
+// Custom hook to use deal context
+export const useDeal = () => {
+  const context = useContext(DealContext);
+  if (!context) {
+    throw new Error('useDeal must be used within a DealProvider');
+  }
+  return context;
+};
 
+// Provider component
 export const DealProvider = ({ children }) => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [deal, setDeal] = useState(null);
+  const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { user: _user } = useAuth(); // Prefix with underscore to indicate intentionally unused
 
-  // Centralized helper for all authenticated API calls with logging
-  const authenticatedFetch = async (url, options = {}) => {
-    dealLogger.debug(`Starting API call: ${options.method || 'GET'}`);
+  const createDraftDeal = useCallback(async (dealType) => {
+    if (!_user) {
+      throw new Error('User must be authenticated to create a deal');
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      dealLogger.debug('Starting API call: POST');
+
+      const sessionRes = await supabase.auth.getSession();
+      const token = sessionRes.data.session?.access_token;
+
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          deal_type: dealType,
+          status: 'draft'
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      dealLogger.debug(`API call complete with status: ${response.status}`);
+
+      // Add the new deal to the deals list
+      setDeals(prevDeals => [...prevDeals, data]);
+
+      return data;
+    } catch (err) {
+      const errorMessage = err.message || 'Failed to create deal';
+      dealLogger.error('Error creating deal', { error: errorMessage });
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [_user]);
+
+  const updateDeal = useCallback(async (dealId, updates) => {
+    if (!_user) {
+      throw new Error('User must be authenticated to update a deal');
+    }
+
+    setLoading(true);
+    setError(null);
 
     try {
       const sessionRes = await supabase.auth.getSession();
       const token = sessionRes.data.session?.access_token;
 
       if (!token) {
-        dealLogger.error("Auth fetch failed: No token available");
-        throw new Error("Authentication error: Your session may have expired. Please log in again.");
+        throw new Error('No authentication token available');
       }
 
-      const response = await fetch(url, {
-        ...options,
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
+        method: 'PUT',
         headers: {
-          ...options.headers,
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`
         },
-        credentials: 'include', // Add this to ensure cookies are sent
+        body: JSON.stringify(updates)
       });
 
-      dealLogger.debug(`API call complete with status: ${response.status}`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // Update the deal in the deals list
+      setDeals(prevDeals =>
+        prevDeals.map(deal =>
+          deal.id === dealId ? { ...deal, ...data } : deal
+        )
+      );
+
+      return data;
+    } catch (err) {
+      const errorMessage = err.message || 'Failed to update deal';
+      dealLogger.error('Error updating deal', { error: errorMessage });
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [_user]);
+
+  const fetchDealById = useCallback(async (dealId) => {
+    if (!_user) {
+      throw new Error('User must be authenticated to fetch a deal');
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const sessionRes = await supabase.auth.getSession();
+      const token = sessionRes.data.session?.access_token;
+
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
       if (!response.ok) {
-        let errorMessage = `API request failed with status ${response.status}`;
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.detail || errorMessage;
-        } catch (e) {
-          // If parsing JSON fails, use text content
-          const errorText = await response.text();
-          errorMessage = errorText || errorMessage;
-        }
-        throw new Error(errorMessage);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
       return data;
-    } catch (error) {
-      dealLogger.error("API Error", { error: error.message });
-      throw error;
-    }
-  };
-
-  const createDraftDeal = useCallback(async (dealOptions = {}) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { deal_type } = dealOptions;
-      const requestBody = deal_type ? { deal_type } : {};
-
-      const response = await authenticatedFetch(`${import.meta.env.VITE_API_URL}/api/deals`, {
-        method: 'POST',
-        body: JSON.stringify(requestBody)
-      });
-      const newDraft = response;
-      setDeal(newDraft);
-
-      // Navigate with deal type parameter if provided
-      const typeParam = deal_type && deal_type !== 'standard' ? `?type=${deal_type}` : '';
-      navigate(`/add/deal/social-media/${newDraft.id}${typeParam}`);
-
-      return newDraft;
     } catch (err) {
-      setError(err.message);
-      throw err; // Re-throw to allow handling by the caller
-    } finally {
-      setLoading(false);
-    }
-  }, [navigate]);
-
-  const updateDeal = useCallback(async (dealId, updateData) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await authenticatedFetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
-        method: 'PUT',
-        body: JSON.stringify(updateData),
-      });
-      const updatedDeal = response;
-      setDeal(updatedDeal);
-      return updatedDeal;
-    } catch (err) {
-      setError(err.message);
+      const errorMessage = err.message || 'Failed to fetch deal';
+      dealLogger.error('Error fetching deal', { error: errorMessage });
+      setError(errorMessage);
       throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  const fetchDealById = useCallback(async (dealId) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await authenticatedFetch(`${import.meta.env.VITE_API_URL}/api/deals`, {
-        method: 'GET'
-      });
-      // Handle the new response format which includes deals in a nested property
-      const deals = response.deals || response;
-      const specificDeal = deals.find(d => d.id.toString() === dealId.toString());
-
-      if (!specificDeal) {
-        throw new Error("Deal not found.");
-      }
-
-      setDeal(specificDeal);
-      return specificDeal;
-    } catch (err) {
-      setError(err.message);
-      navigate('/dashboard');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [navigate]);
+  }, [_user]);
 
   const value = {
-    deal,
+    deals,
+    setDeals,
     loading,
     error,
     createDraftDeal,
     updateDeal,
-    fetchDealById,
-    setDeal,
+    fetchDealById
   };
 
-  return <DealContext.Provider value={value}>{children}</DealContext.Provider>;
+  return (
+    <DealContext.Provider value={value}>
+      {children}
+    </DealContext.Provider>
+  );
 };
-
-// ✅ This enables named import: { DealContext }
-export { DealContext };
