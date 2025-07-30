@@ -1,9 +1,7 @@
-import React from 'react';
 import {
   Card,
   CardBody,
   VStack,
-  HStack,
   Text,
   Icon,
   useColorModeValue,
@@ -42,7 +40,6 @@ const DealTypeCard = ({
         <VStack spacing={4} align="center" textAlign="center" h="full">
           <Icon
             as={icon}
-            size="lg"
             color="brand.accentPrimary"
             boxSize={8}
           />
