@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 import {
   Box,
   Button,
@@ -195,7 +196,7 @@ const SignUp = () => {
         return divisionMap[division] || division;
       };
 
-      const { error } = await signUp(initialData.email, initialData.password, {
+      const { data: signUpData, error } = await signUp(initialData.email, initialData.password, {
         role: 'student-athlete',
         full_name: data.full_name,
         phone: unformatPhoneNumber(data.phone), // Unformat phone for backend
@@ -215,6 +216,33 @@ const SignUp = () => {
           isClosable: true,
         });
         return;
+      }
+
+      // Save profile data directly to profiles table since trigger isn't working
+      if (signUpData?.user) {
+        try {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: signUpData.user.id,
+              full_name: data.full_name,
+              role: 'athlete',
+              phone: unformatPhoneNumber(data.phone),
+              division: mapDivisionToEnum(data.division),
+              university: data.university,
+              gender: data.gender,
+              sports: data.sports,
+              expected_graduation_year: data.expected_graduation_year,
+            });
+
+          if (profileError) {
+            console.error('Profile save error:', profileError);
+            // Don't fail signup if profile save fails
+          }
+        } catch (profileError) {
+          console.error('Profile save error:', profileError);
+          // Don't fail signup if profile save fails
+        }
       }
 
       toast({
