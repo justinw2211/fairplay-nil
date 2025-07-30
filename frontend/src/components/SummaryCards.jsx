@@ -1,15 +1,37 @@
 // src/components/SummaryCards.jsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  SimpleGrid, Box, Text, Card, CardBody, Icon, VStack, HStack, useColorModeValue,
-  Progress, Badge, Tooltip
+  SimpleGrid, Text, Card, CardBody, Icon, VStack, HStack, useColorModeValue,
+  Progress, Badge
 } from '@chakra-ui/react';
-import { FiDollarSign, FiTrendingUp, FiFileText, FiClock, FiCheck, FiAlertTriangle, FiArrowUp, FiArrowDown } from 'react-icons/fi';
+import { FiDollarSign, FiTrendingUp, FiClock, FiAlertTriangle, FiArrowUp, FiArrowDown, FiUsers, FiInstagram, FiTwitter, FiYoutube } from 'react-icons/fi';
+import useSocialMedia from '../hooks/use-social-media';
 
 const SummaryCards = ({ deals }) => {
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const hoverBg = useColorModeValue('brand.backgroundLight', 'gray.700');
+  const [socialMediaData, setSocialMediaData] = useState([]);
+  const [socialMediaLoading, setSocialMediaLoading] = useState(false);
+  const { fetchSocialMedia } = useSocialMedia();
+
+  // Fetch social media data
+  useEffect(() => {
+    const loadSocialMedia = async () => {
+      setSocialMediaLoading(true);
+      try {
+        const data = await fetchSocialMedia();
+        setSocialMediaData(data || []);
+      } catch (error) {
+        console.error('Error fetching social media data:', error);
+        setSocialMediaData([]);
+      } finally {
+        setSocialMediaLoading(false);
+      }
+    };
+
+    loadSocialMedia();
+  }, [fetchSocialMedia]);
 
   // Ensure deals is always a valid array
   const safeDeals = React.useMemo(() => {
@@ -27,18 +49,13 @@ const SummaryCards = ({ deals }) => {
   const draftDeals = safeDeals.filter(deal => deal.status === 'draft').length;
   const totalDeals = safeDeals.length;
 
-  // Deal type breakdown
-  const dealTypes = {
-    simple: safeDeals.filter(deal => deal.deal_type === 'simple').length,
-    clearinghouse: safeDeals.filter(deal => deal.deal_type === 'clearinghouse').length,
-    valuation: safeDeals.filter(deal => deal.deal_type === 'valuation').length
-  };
-
-  // Calculate completion rate
-  const completionRate = totalDeals > 0 ? (completedDeals / totalDeals) * 100 : 0;
-
   // Calculate average deal value
   const avgDealValue = totalDeals > 0 ? totalValue / totalDeals : 0;
+
+  // Calculate social media statistics
+  const totalFollowers = socialMediaData.reduce((total, platform) => {
+    return total + (parseInt(platform.followers) || 0);
+  }, 0);
 
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('en-US', {
@@ -49,8 +66,26 @@ const SummaryCards = ({ deals }) => {
     }).format(value);
   };
 
-  const formatPercent = (value) => {
-    return `${value.toFixed(1)}%`;
+  const formatFollowerCount = (count) => {
+    if (count >= 1000000) {
+      return `${(count / 1000000).toFixed(1)}M`;
+    } else if (count >= 1000) {
+      return `${(count / 1000).toFixed(1)}K`;
+    }
+    return count.toString();
+  };
+
+  const getPlatformIcon = (platform) => {
+    switch (platform) {
+      case 'instagram':
+        return FiInstagram;
+      case 'twitter':
+        return FiTwitter;
+      case 'tiktok':
+        return FiYoutube; // Using YouTube icon for TikTok
+      default:
+        return FiUsers;
+    }
   };
 
   // Enhanced summary card component
@@ -117,7 +152,7 @@ const SummaryCards = ({ deals }) => {
         value={activeDeals}
         icon={FiTrendingUp}
         color="green.500"
-        helpText={`${totalDeals} total deals`}
+        helpText={`${completedDeals} completed deals`}
       >
         <Progress
           value={totalDeals > 0 ? (activeDeals / totalDeals) * 100 : 0}
@@ -128,18 +163,34 @@ const SummaryCards = ({ deals }) => {
       </SummaryCard>
 
       <SummaryCard
-        title="Completion Rate"
-        value={formatPercent(completionRate)}
-        icon={FiCheck}
-        color="blue.500"
-        helpText={`${completedDeals} completed`}
+        title="Social Media Followers"
+        value={socialMediaLoading ? "..." : formatFollowerCount(totalFollowers)}
+        icon={FiUsers}
+        color="purple.500"
+        helpText={`${socialMediaData.length} platform${socialMediaData.length !== 1 ? 's' : ''}`}
       >
-        <Progress
-          value={completionRate}
-          colorScheme="blue"
-          size="sm"
-          borderRadius="full"
-        />
+        {socialMediaData.length > 0 && (
+          <VStack spacing={2} mt={2} align="start">
+            {socialMediaData.map((platform, index) => (
+              <HStack key={index} spacing={2} w="full" justify="space-between">
+                <HStack spacing={2}>
+                  <Icon as={getPlatformIcon(platform.platform)} color="purple.500" boxSize="14px" />
+                  <Text fontSize="xs" color="brand.textSecondary" textTransform="capitalize">
+                    {platform.platform}
+                  </Text>
+                </HStack>
+                <Text fontSize="xs" color="brand.textPrimary" fontWeight="medium">
+                  {formatFollowerCount(platform.followers || 0)}
+                </Text>
+              </HStack>
+            ))}
+          </VStack>
+        )}
+        {socialMediaData.length === 0 && !socialMediaLoading && (
+          <Text fontSize="xs" color="brand.textSecondary" mt={2}>
+            No social media platforms connected
+          </Text>
+        )}
       </SummaryCard>
 
       <SummaryCard
