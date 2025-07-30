@@ -147,6 +147,10 @@ const Dashboard = () => {
   const toast = useToast();
   const navigate = useNavigate();
 
+  // Debug: Check if createDraftDeal is defined
+  console.log('[Dashboard] createDraftDeal function:', typeof createDraftDeal);
+  console.log('[Dashboard] createDraftDeal is function:', typeof createDraftDeal === 'function');
+
   // Social media modal state
   const [showSocialMediaModal, setShowSocialMediaModal] = useState(false);
   const [socialMediaCheckComplete, setSocialMediaCheckComplete] = useState(false);
@@ -276,6 +280,19 @@ const Dashboard = () => {
   const handleDealTypeSelect = async (dealType) => {
     console.log('[Dashboard] ===== STARTING DEAL CREATION FLOW =====');
     console.log('[Dashboard] handleDealTypeSelect called with dealType:', dealType);
+    
+    // Safety check: Ensure createDraftDeal is defined
+    if (typeof createDraftDeal !== 'function') {
+      console.error('[Dashboard] createDraftDeal is not a function:', createDraftDeal);
+      toast({
+        title: 'Error',
+        description: 'Deal creation function is not available. Please refresh the page.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
     
     // Start Sentry transaction for deal creation
     const transaction = Sentry.startTransaction({
