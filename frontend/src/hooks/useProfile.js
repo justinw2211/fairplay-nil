@@ -236,12 +236,14 @@ const useProfile = () => {
           // Ensure email from auth data
           email: user.email || profileData.email || '',
           // Add computed fields
-          displayName: profileData.first_name && profileData.last_name
-            ? `${profileData.first_name} ${profileData.last_name}`
-            : profileData.first_name || profileData.last_name || 'Student-Athlete',
-          initials: profileData.first_name && profileData.last_name
-            ? `${profileData.first_name[0]}${profileData.last_name[0]}`
-            : profileData.first_name?.[0] || profileData.last_name?.[0] || 'SA',
+          displayName: profileData.full_name ||
+            (profileData.first_name && profileData.last_name
+              ? `${profileData.first_name} ${profileData.last_name}`
+              : profileData.first_name || profileData.last_name || 'Student-Athlete'),
+          initials: profileData.full_name?.split(' ').map(n => n[0]).join('') ||
+            (profileData.first_name && profileData.last_name
+              ? `${profileData.first_name[0]}${profileData.last_name[0]}`
+              : profileData.first_name?.[0] || profileData.last_name?.[0] || 'SA'),
           // Profile completion percentage
           completionPercentage: calculateCompletionPercentage(profileData)
         };
