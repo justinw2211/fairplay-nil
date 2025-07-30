@@ -53,6 +53,11 @@ const SignUp = () => {
   const [showSocialMediaModal, setShowSocialMediaModal] = useState(false);
   const [signUpComplete, setSignUpComplete] = useState(false);
 
+  // Debug modal state changes
+  useEffect(() => {
+    console.log('Modal state changed to:', showSocialMediaModal);
+  }, [showSocialMediaModal]);
+
   // Step 1 form
   const {
     register: register1,
@@ -273,6 +278,7 @@ const SignUp = () => {
       console.log('Signup successful, showing social media modal');
       setSignUpComplete(true);
       setShowSocialMediaModal(true);
+      console.log('Modal state set to true, showSocialMediaModal should be:', true);
       
       toast({
         title: 'Account Created!',
@@ -305,7 +311,8 @@ const SignUp = () => {
   };
 
   return (
-    <Flex minH="100vh" align="center" justify="center" bg="brand.backgroundLight">
+    <>
+      <Flex minH="100vh" align="center" justify="center" bg="brand.backgroundLight">
       <Box p={8} maxWidth="500px" borderWidth={1} borderRadius="lg" boxShadow="lg" bg="brand.background">
         <VStack spacing={6}>
           <Heading color="brand.textPrimary">Create an Account</Heading>
@@ -648,9 +655,11 @@ const SignUp = () => {
             </form>
           )}
         </VStack>
-      </Box>
+            </Box>
+    </Flex>
       
-      {/* Social Media Modal */}
+      {/* Social Media Modal - Rendered at root level */}
+      {console.log('Rendering modal with isOpen:', showSocialMediaModal)}
       <SocialMediaModal
         isOpen={showSocialMediaModal}
         onClose={() => setShowSocialMediaModal(false)}
@@ -659,7 +668,7 @@ const SignUp = () => {
         title="Complete Your Profile"
         subtitle="Add your social media information to enhance your NIL profile"
       />
-    </Flex>
+    </>
   );
 };
 
