@@ -145,6 +145,7 @@ async def store_valuation_prediction(
         logger.error(f"Error storing valuation prediction for deal {deal_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
+# Force redeployment - GET endpoint for individual deals
 @router.get("/deals/{deal_id}", response_model=DealResponse, summary="Get a specific deal")
 async def get_deal(deal_id: int, user_id: str = Depends(get_user_id)):
     """Get a specific deal by ID with user authorization."""
