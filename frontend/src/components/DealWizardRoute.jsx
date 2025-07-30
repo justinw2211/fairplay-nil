@@ -3,7 +3,8 @@ import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { useDeal } from '../context/DealContext';
 import { useAuth } from '../context/AuthContext';
 import { Spinner, Flex } from '@chakra-ui/react';
-import * as Sentry from '@sentry/react';
+// Temporarily disabled Sentry to fix build issues
+// import * as Sentry from '@sentry/react';
 
 const DealWizardRoute = ({ children }) => {
   const { dealId } = useParams();
@@ -20,25 +21,25 @@ const DealWizardRoute = ({ children }) => {
   useEffect(() => {
     const validateDealId = async () => {
       console.log('[DealWizardRoute] validateDealId called');
-      
+
       // Start Sentry transaction for deal validation
-      const transaction = Sentry.startTransaction({
-        name: `Deal Validation - ${dealId}`,
-        op: 'deal.validation'
-      });
-      
-      Sentry.setContext('deal_validation', {
-        dealId,
-        userId: user?.id,
-        timestamp: new Date().toISOString()
-      });
-      
+      // const transaction = Sentry.startTransaction({
+      //   name: `Deal Validation - ${dealId}`,
+      //   op: 'deal.validation'
+      // });
+
+      // Sentry.setContext('deal_validation', {
+      //   dealId,
+      //   userId: user?.id,
+      //   timestamp: new Date().toISOString()
+      // });
+
       if (!dealId) {
         console.log('[DealWizardRoute] No dealId, navigating to dashboard');
-        Sentry.captureMessage('No dealId provided, redirecting to dashboard', 'warning');
+        // Sentry.captureMessage('No dealId provided, redirecting to dashboard', 'warning');
         navigate('/dashboard');
-        transaction.setStatus('invalid_argument');
-        transaction.finish();
+        // transaction.setStatus('invalid_argument');
+        // transaction.finish();
         return;
       }
 
@@ -47,29 +48,29 @@ const DealWizardRoute = ({ children }) => {
         await fetchDealById(dealId);
         console.log('[DealWizardRoute] Deal fetched successfully');
         setIsLoading(false);
-        transaction.setStatus('ok');
+        // transaction.setStatus('ok');
       } catch (error) {
         console.error('[DealWizardRoute] Error fetching deal:', error);
-        
+
         // Capture error in Sentry
-        Sentry.captureException(error, {
-          tags: {
-            component: 'DealWizardRoute',
-            action: 'validateDealId',
-            dealId
-          },
-          extra: {
-            dealId,
-            userId: user?.id,
-            errorMessage: error.message
-          }
-        });
-        
-        transaction.setStatus('internal_error');
+        // Sentry.captureException(error, {
+        //   tags: {
+        //     component: 'DealWizardRoute',
+        //     action: 'validateDealId',
+        //     dealId
+        //   },
+        //   extra: {
+        //     dealId,
+        //     userId: user?.id,
+        //     errorMessage: error.message
+        //   }
+        // });
+
+        // transaction.setStatus('internal_error');
         // Log error without sensitive data
         navigate('/dashboard');
       } finally {
-        transaction.finish();
+        // transaction.finish();
       }
     };
 
@@ -79,7 +80,7 @@ const DealWizardRoute = ({ children }) => {
   // First check authentication
   if (!user) {
     console.log('[DealWizardRoute] No user, redirecting to login');
-    Sentry.captureMessage('User not authenticated, redirecting to login', 'warning');
+    // Sentry.captureMessage('User not authenticated, redirecting to login', 'warning');
     return <Navigate to="/login" replace />;
   }
 
@@ -95,22 +96,22 @@ const DealWizardRoute = ({ children }) => {
 
   // Then check deal data
   console.log('[DealWizardRoute] Rendering children, deal exists:', !!currentDeal);
-  
+
   if (!currentDeal) {
-    Sentry.captureMessage('Deal not found after successful fetch', 'error', {
-      tags: {
-        component: 'DealWizardRoute',
-        action: 'render',
-        dealId
-      },
-      extra: {
-        dealId,
-        userId: user?.id,
-        isLoading
-      }
-    });
+    // Sentry.captureMessage('Deal not found after successful fetch', 'error', {
+    //   tags: {
+    //     component: 'DealWizardRoute',
+    //     action: 'render',
+    //     dealId
+    //   },
+    //   extra: {
+    //     dealId,
+    //     userId: user?.id,
+    //     isLoading
+    //   }
+    // });
   }
-  
+
   return currentDeal ? children : null;
 };
 

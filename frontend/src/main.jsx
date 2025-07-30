@@ -8,7 +8,6 @@ import { ChakraProvider } from "@chakra-ui/react";
 import { AuthProvider } from "./context/AuthContext";
 import { DealProvider } from "./context/DealContext";
 import theme from "./theme";
-import "./index.css";
 
 // Temporarily disabled Sentry to fix blank website issue
 // import * as Sentry from "@sentry/react";
