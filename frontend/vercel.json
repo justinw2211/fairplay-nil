@@ -18,11 +18,5 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "env": {
-    "VITE_API_URL": "@vite_api_url",
-    "VITE_SENTRY_DSN": "@vite_sentry_dsn",
-    "VITE_APP_VERSION": "@vite_app_version",
-    "VITE_BUILD_TIME": "@vite_build_time"
-  }
+  ]
 } 

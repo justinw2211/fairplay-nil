@@ -4,13 +4,21 @@
  */
 
 // Environment detection with deployment support
-const isDevelopment = import.meta.env.MODE === 'development';
-const isProduction = import.meta.env.MODE === 'production';
-const isStaging = import.meta.env.MODE === 'staging' || import.meta.env.VITE_ENVIRONMENT === 'staging';
-const isPreview = import.meta.env.VITE_VERCEL_ENV === 'preview';
+const getEnvVar = (key) => {
+  try {
+    return import.meta?.env?.[key];
+  } catch {
+    return undefined;
+  }
+};
+
+const isDevelopment = getEnvVar('MODE') === 'development';
+const isProduction = getEnvVar('MODE') === 'production';
+const isStaging = getEnvVar('MODE') === 'staging' || getEnvVar('VITE_ENVIRONMENT') === 'staging';
+const isPreview = getEnvVar('VITE_VERCEL_ENV') === 'preview';
 
 // Deployment environment detection
-const deploymentEnvironment = import.meta.env.VITE_VERCEL_ENV || 'development';
+const deploymentEnvironment = getEnvVar('VITE_VERCEL_ENV') || 'development';
 const isVercelProduction = deploymentEnvironment === 'production';
 const isVercelPreview = deploymentEnvironment === 'preview';
 
@@ -29,7 +37,7 @@ export const config = {
     enableConsoleOutput: true
   },
   staging: {
-    apiUrl: import.meta.env.VITE_API_URL || 'https://staging-api.fairplay-nil.com',
+    apiUrl: getEnvVar('VITE_API_URL') || 'https://staging-api.fairplay-nil.com',
     debug: false,
     logLevel: 'info',
     enableErrorTracking: true,
@@ -41,7 +49,7 @@ export const config = {
     enableConsoleOutput: false
   },
   production: {
-    apiUrl: import.meta.env.VITE_API_URL || 'https://api.fairplay-nil.com',
+    apiUrl: getEnvVar('VITE_API_URL') || 'https://api.fairplay-nil.com',
     debug: false,
     logLevel: 'error',
     enableErrorTracking: true,
@@ -69,8 +77,8 @@ export const getConfig = () => {
 export const errorTrackingConfig = {
   // Sentry Configuration
   sentry: {
-    dsn: import.meta.env.VITE_SENTRY_DSN || '',
-    enabled: getConfig().enableErrorTracking && !!import.meta.env.VITE_SENTRY_DSN,
+    dsn: getEnvVar('VITE_SENTRY_DSN') || '',
+    enabled: getConfig().enableErrorTracking && !!getEnvVar('VITE_SENTRY_DSN'),
     environment: deploymentEnvironment,
     debug: isDevelopment,
 
@@ -87,8 +95,8 @@ export const errorTrackingConfig = {
     // Context and Tags
     defaultTags: {
       environment: deploymentEnvironment,
-      version: import.meta.env.VITE_APP_VERSION || '1.0.0',
-      buildTime: import.meta.env.VITE_BUILD_TIME || new Date().toISOString(),
+      version: getEnvVar('VITE_APP_VERSION') || '1.0.0',
+      buildTime: getEnvVar('VITE_BUILD_TIME') || new Date().toISOString(),
       deployment: deploymentEnvironment
     }
   },
@@ -175,11 +183,11 @@ export const validateEnvironmentConfig = () => {
   const currentConfig = getConfig();
 
   // Validate required environment variables
-  if (isProduction && !import.meta.env.VITE_SENTRY_DSN) {
+  if (isProduction && !getEnvVar('VITE_SENTRY_DSN')) {
     errors.push('VITE_SENTRY_DSN is required in production environment');
   }
 
-  if (isProduction && !import.meta.env.VITE_API_URL) {
+  if (isProduction && !getEnvVar('VITE_API_URL')) {
     errors.push('VITE_API_URL is required in production environment');
   }
 
