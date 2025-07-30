@@ -48,6 +48,7 @@ import {
   Clock,
   Zap,
 } from 'lucide-react';
+import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-US', {
@@ -269,212 +270,196 @@ const ClearinghouseWizard = () => {
   }
 
   return (
-    <Container maxW="4xl" py={8}>
-      {/* Header */}
-      <VStack spacing={6} align="stretch" mb={8}>
-        <Box>
-          <VStack spacing={3} mb={6}>
-            <Flex justify="space-between" w="full" fontSize="sm">
-              <Text color="brand.textSecondary" fontWeight="medium">
-                Final Review - Clearinghouse
-              </Text>
-              <Text color="brand.textSecondary">
-                Ready for Prediction
-              </Text>
-            </Flex>
-            <Progress
-              value={100}
-              w="full"
-              h="2"
-              bg="brand.accentSecondary"
-              sx={{
-                '& > div': {
-                  bg: 'brand.accentPrimary',
-                  transition: 'width 0.5s ease-out'
-                }
-              }}
-              rounded="full"
-            />
-          </VStack>
-
-          <Flex justify="space-between" align="center" mb={2}>
-            <Heading size="lg" color="brand.textPrimary">NIL Go Clearinghouse Review</Heading>
-            <StatusBadge status={deal.status} />
-          </Flex>
-          <Text color="brand.textSecondary">
-            Your deal is ready for NIL Go clearinghouse analysis. Review the details below and run the prediction.
-          </Text>
-        </Box>
-
-        <Alert status="info" rounded="lg">
-          <AlertIcon />
+    <DealWizardStepWrapper stepNumber={9} stepName="Clearinghouse Prediction">
+      <Container maxW="4xl" py={8}>
+        {/* Header */}
+        <VStack spacing={6} align="stretch" mb={8}>
           <Box>
-            <AlertTitle>About NIL Go Clearinghouse</AlertTitle>
-            <AlertDescription>
-              This prediction simulates Deloitte's NIL Go clearinghouse process, which evaluates deals over $600 
-              using a 3-step analysis: Payor Association, Business Purpose, and Fair Market Value assessment.
-            </AlertDescription>
-          </Box>
-        </Alert>
-
-        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-          <SectionCard title="Deal Overview" icon={Briefcase}>
-            <VStack align="stretch" spacing={4}>
-              <Box>
-                <Text fontWeight="medium" color="brand.textSecondary">Total Compensation</Text>
-                <Text fontSize="2xl" fontWeight="bold" color="brand.textPrimary">
-                  {formatCurrency(getTotalCompensation())}
+            <VStack spacing={3} mb={6}>
+              <Flex justify="space-between" w="full" fontSize="sm">
+                <Text color="brand.textSecondary" fontWeight="medium">
+                  Final Review - Clearinghouse
                 </Text>
-              </Box>
-              <Box>
-                <Text fontWeight="medium" color="brand.textSecondary">Deal Nickname</Text>
-                <Text color="brand.textPrimary">{deal.deal_nickname || 'Untitled Deal'}</Text>
-              </Box>
-              <Box>
-                <Text fontWeight="medium" color="brand.textSecondary">Deal Type</Text>
-                <Tag colorScheme="blue" size="sm">NIL Go Clearinghouse</Tag>
-              </Box>
+                <Text color="brand.textSecondary">
+                  Ready for Prediction
+                </Text>
+              </Flex>
+              <Progress
+                value={100}
+                w="full"
+                h="2"
+                bg="brand.accentSecondary"
+                sx={{
+                  '& > div': {
+                    bg: 'brand.accentPrimary',
+                    transition: 'width 0.5s ease-out'
+                  }
+                }}
+                rounded="full"
+              />
             </VStack>
-          </SectionCard>
 
-          <SectionCard title="Payor Information" icon={Users}>
-            <VStack align="stretch" spacing={3}>
-              <Box>
-                <Text fontWeight="medium" color="brand.textSecondary">Payor Name</Text>
-                <Text color="brand.textPrimary">{deal.payor_name || 'Not specified'}</Text>
-              </Box>
-              <Box>
-                <Text fontWeight="medium" color="brand.textSecondary">Payor Type</Text>
-                <Text color="brand.textPrimary">{deal.payor_type || 'Not specified'}</Text>
-              </Box>
-              <Box>
-                <Text fontWeight="medium" color="brand.textSecondary">Contact</Text>
-                <Text color="brand.textPrimary">{deal.contact_name || 'Not specified'}</Text>
-              </Box>
-            </VStack>
-          </SectionCard>
-        </SimpleGrid>
+            <Flex justify="space-between" align="center" mb={2}>
+              <Heading size="lg" color="brand.textPrimary">NIL Go Clearinghouse Review</Heading>
+              <StatusBadge status={deal.status} />
+            </Flex>
+            <Text color="brand.textSecondary">
+              Your deal is ready for NIL Go clearinghouse analysis. Review the details below and run the prediction.
+            </Text>
+          </Box>
 
-        <Accordion allowToggle>
-          <AccordionItem border="none" mb={4}>
-            <AccordionButton
-              bg="brand.backgroundLight"
-              _hover={{ bg: 'brand.backgroundLight' }}
-              rounded="lg"
-              p={4}
-            >
-              <HStack flex="1">
-                <Icon as={Calendar} />
-                <Text fontWeight="semibold">Activities & Requirements</Text>
-              </HStack>
-              <AccordionIcon />
-            </AccordionButton>
-            <AccordionPanel pb={4}>
-              {deal.activities && deal.activities.length > 0 ? (
+          <Alert status="info" rounded="lg">
+            <AlertIcon />
+            <Box>
+              <AlertTitle>About NIL Go Clearinghouse</AlertTitle>
+              <AlertDescription>
+                This prediction simulates Deloitte's NIL Go clearinghouse process, which evaluates deals over $600 
+                using a 3-step analysis: Payor Association, Business Purpose, and Fair Market Value assessment.
+              </AlertDescription>
+            </Box>
+          </Alert>
+
+          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+            <SectionCard title="Deal Overview" icon={Briefcase}>
+              <VStack align="stretch" spacing={4}>
+                <Box>
+                  <Text fontWeight="medium" color="brand.textSecondary">Total Compensation</Text>
+                  <Text fontSize="2xl" fontWeight="bold" color="brand.textPrimary">
+                    {formatCurrency(getTotalCompensation())}
+                  </Text>
+                </Box>
+                <Box>
+                  <Text fontWeight="medium" color="brand.textSecondary">Deal Nickname</Text>
+                  <Text color="brand.textPrimary">{deal.deal_nickname || 'Untitled Deal'}</Text>
+                </Box>
+                <Box>
+                  <Text fontWeight="medium" color="brand.textSecondary">Deal Type</Text>
+                  <Tag colorScheme="blue" size="sm">NIL Go Clearinghouse</Tag>
+                </Box>
+              </VStack>
+            </SectionCard>
+
+            <SectionCard title="Payor Information" icon={Users}>
+              <VStack align="stretch" spacing={3}>
+                <Box>
+                  <Text fontWeight="medium" color="brand.textSecondary">Payor Name</Text>
+                  <Text color="brand.textPrimary">{deal.payor_name || 'Not specified'}</Text>
+                </Box>
+                <Box>
+                  <Text fontWeight="medium" color="brand.textSecondary">Payor Type</Text>
+                  <Text color="brand.textPrimary">{deal.payor_type || 'Not specified'}</Text>
+                </Box>
+                <Box>
+                  <Text fontWeight="medium" color="brand.textSecondary">Contact</Text>
+                  <Text color="brand.textPrimary">{deal.contact_name || 'Not specified'}</Text>
+                </Box>
+              </VStack>
+            </SectionCard>
+          </SimpleGrid>
+
+          <Accordion allowToggle>
+            <AccordionItem border="none" mb={4}>
+              <AccordionButton
+                bg="brand.backgroundLight"
+                _hover={{ bg: 'brand.backgroundLight' }}
+                rounded="lg"
+                p={4}
+              >
+                <HStack flex="1">
+                  <Icon as={Calendar} />
+                  <Text fontWeight="semibold">Activities & Requirements</Text>
+                </HStack>
+                <AccordionIcon />
+              </AccordionButton>
+              <AccordionPanel pb={4}>
+                {deal.activities && deal.activities.length > 0 ? (
+                  <List spacing={3}>
+                    {deal.activities.map((activity, index) => (
+                      <ListItem key={index}>
+                        <HStack align="start">
+                          <Icon as={CheckCircle} color="green.500" mt={1} />
+                          <Box>
+                            <Text fontWeight="semibold" color="brand.textPrimary">
+                              {activity.activity_type?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            </Text>
+                            <Text color="brand.textSecondary">
+                              {activity.details?.description || 'Activity details provided'}
+                            </Text>
+                          </Box>
+                        </HStack>
+                      </ListItem>
+                    ))}
+                  </List>
+                ) : (
+                  <Text color="brand.textSecondary">No activities specified</Text>
+                )}
+              </AccordionPanel>
+            </AccordionItem>
+
+            <AccordionItem border="none">
+              <AccordionButton
+                bg="brand.backgroundLight"
+                _hover={{ bg: 'brand.backgroundLight' }}
+                rounded="lg"
+                p={4}
+              >
+                <HStack flex="1">
+                  <Icon as={Shield} />
+                  <Text fontWeight="semibold">Compliance Factors</Text>
+                </HStack>
+                <AccordionIcon />
+              </AccordionButton>
+              <AccordionPanel pb={4}>
                 <List spacing={3}>
-                  {deal.activities.map((activity, index) => (
-                    <ListItem key={index}>
-                      <HStack align="start">
-                        <Icon as={CheckCircle} color="green.500" mt={1} />
-                        <Box>
-                          <Text fontWeight="semibold" color="brand.textPrimary">
-                            {activity.activity_type?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                          </Text>
-                          <Text color="brand.textSecondary">
-                            {activity.details?.description || 'Activity details provided'}
-                          </Text>
-                        </Box>
-                      </HStack>
-                    </ListItem>
-                  ))}
+                  <ListItem>
+                    <HStack align="start">
+                      <Icon 
+                        as={deal.uses_school_ip ? AlertCircle : CheckCircle} 
+                        color={deal.uses_school_ip ? "orange.500" : "green.500"} 
+                        mt={1} 
+                      />
+                      <Box>
+                        <Text fontWeight="semibold" color="brand.textPrimary">School IP Usage</Text>
+                        <Text color="brand.textSecondary">
+                          {deal.uses_school_ip ? 'Uses school intellectual property' : 'No school IP used'}
+                        </Text>
+                      </Box>
+                    </HStack>
+                  </ListItem>
+                  <ListItem>
+                    <HStack align="start">
+                      <Icon 
+                        as={deal.grant_exclusivity === 'yes' ? AlertCircle : CheckCircle} 
+                        color={deal.grant_exclusivity === 'yes' ? "orange.500" : "green.500"} 
+                        mt={1} 
+                      />
+                      <Box>
+                        <Text fontWeight="semibold" color="brand.textPrimary">Exclusivity Terms</Text>
+                        <Text color="brand.textSecondary">
+                          {deal.grant_exclusivity === 'yes' ? 'Exclusive representation required' : 'Non-exclusive arrangement'}
+                        </Text>
+                      </Box>
+                    </HStack>
+                  </ListItem>
                 </List>
-              ) : (
-                <Text color="brand.textSecondary">No activities specified</Text>
-              )}
-            </AccordionPanel>
-          </AccordionItem>
+              </AccordionPanel>
+            </AccordionItem>
+          </Accordion>
+        </VStack>
 
-          <AccordionItem border="none">
-            <AccordionButton
-              bg="brand.backgroundLight"
-              _hover={{ bg: 'brand.backgroundLight' }}
-              rounded="lg"
-              p={4}
-            >
-              <HStack flex="1">
-                <Icon as={Shield} />
-                <Text fontWeight="semibold">Compliance Factors</Text>
-              </HStack>
-              <AccordionIcon />
-            </AccordionButton>
-            <AccordionPanel pb={4}>
-              <List spacing={3}>
-                <ListItem>
-                  <HStack align="start">
-                    <Icon 
-                      as={deal.uses_school_ip ? AlertCircle : CheckCircle} 
-                      color={deal.uses_school_ip ? "orange.500" : "green.500"} 
-                      mt={1} 
-                    />
-                    <Box>
-                      <Text fontWeight="semibold" color="brand.textPrimary">School IP Usage</Text>
-                      <Text color="brand.textSecondary">
-                        {deal.uses_school_ip ? 'Uses school intellectual property' : 'No school IP used'}
-                      </Text>
-                    </Box>
-                  </HStack>
-                </ListItem>
-                <ListItem>
-                  <HStack align="start">
-                    <Icon 
-                      as={deal.grant_exclusivity === 'yes' ? AlertCircle : CheckCircle} 
-                      color={deal.grant_exclusivity === 'yes' ? "orange.500" : "green.500"} 
-                      mt={1} 
-                    />
-                    <Box>
-                      <Text fontWeight="semibold" color="brand.textPrimary">Exclusivity Terms</Text>
-                      <Text color="brand.textSecondary">
-                        {deal.grant_exclusivity === 'yes' ? 'Exclusive representation required' : 'Non-exclusive arrangement'}
-                      </Text>
-                    </Box>
-                  </HStack>
-                </ListItem>
-              </List>
-            </AccordionPanel>
-          </AccordionItem>
-        </Accordion>
-      </VStack>
-
-      {/* Footer Navigation */}
-      <Box
-        borderTop="1px"
-        borderColor="brand.accentSecondary"
-        pt={6}
-        mt={8}
-      >
-        <Flex justify="space-between">
-          <Button
-            leftIcon={<Icon as={ChevronLeft} />}
-            variant="ghost"
-            color="brand.textSecondary"
-            onClick={() => navigate(`/add/deal/compensation/${dealId}?type=${dealType}`)}
-            px={8}
-            py={6}
-            h="auto"
-            fontSize="md"
-            _hover={{
-              bg: "brand.backgroundLight",
-              color: "brand.textPrimary",
-            }}
-          >
-            Back to Wizard
-          </Button>
-
-          <Flex gap={4}>
+        {/* Footer Navigation */}
+        <Box
+          borderTop="1px"
+          borderColor="brand.accentSecondary"
+          pt={6}
+          mt={8}
+        >
+          <Flex justify="space-between">
             <Button
+              leftIcon={<Icon as={ChevronLeft} />}
               variant="ghost"
               color="brand.textSecondary"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate(`/add/deal/compensation/${dealId}?type=${dealType}`)}
               px={8}
               py={6}
               h="auto"
@@ -484,31 +469,49 @@ const ClearinghouseWizard = () => {
                 color: "brand.textPrimary",
               }}
             >
-              Save as Draft
+              Back to Wizard
             </Button>
 
-            <Button
-              rightIcon={<Icon as={Zap} />}
-              variant="solid"
-              bg="brand.accentPrimary"
-              color="white"
-              onClick={handleRunPrediction}
-              isLoading={isCalculating}
-              loadingText="Analyzing..."
-              px={8}
-              py={6}
-              h="auto"
-              fontSize="md"
-              _hover={{
-                bg: "brand.accentPrimaryHover",
-              }}
-            >
-              Run NIL Go Prediction
-            </Button>
+            <Flex gap={4}>
+              <Button
+                variant="ghost"
+                color="brand.textSecondary"
+                onClick={() => navigate('/dashboard')}
+                px={8}
+                py={6}
+                h="auto"
+                fontSize="md"
+                _hover={{
+                  bg: "brand.backgroundLight",
+                  color: "brand.textPrimary",
+                }}
+              >
+                Save as Draft
+              </Button>
+
+              <Button
+                rightIcon={<Icon as={Zap} />}
+                variant="solid"
+                bg="brand.accentPrimary"
+                color="white"
+                onClick={handleRunPrediction}
+                isLoading={isCalculating}
+                loadingText="Analyzing..."
+                px={8}
+                py={6}
+                h="auto"
+                fontSize="md"
+                _hover={{
+                  bg: "brand.accentPrimaryHover",
+                }}
+              >
+                Run NIL Go Prediction
+              </Button>
+            </Flex>
           </Flex>
-        </Flex>
-      </Box>
-    </Container>
+        </Box>
+      </Container>
+    </DealWizardStepWrapper>
   );
 };
 

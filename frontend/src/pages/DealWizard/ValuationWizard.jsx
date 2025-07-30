@@ -50,6 +50,7 @@ import {
   BarChart3,
   Target,
 } from 'lucide-react';
+import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-US', {
@@ -268,157 +269,159 @@ const ValuationWizard = () => {
   }
 
   return (
-    <Container maxW="5xl" py={8}>
-      {/* Header */}
-      <VStack spacing={6} align="stretch" mb={8}>
-        <Box textAlign="center">
-          <Heading size="xl" color="brand.textPrimary" mb={2}>
-            Deal Valuation Analysis
-          </Heading>
-          <Text color="brand.textSecondary" fontSize="lg">
-            Get fair market value recommendations for your NIL deal
-          </Text>
-        </Box>
+    <DealWizardStepWrapper stepNumber={10} stepName="Valuation Prediction">
+      <Container maxW="4xl" py={8}>
+        {/* Header */}
+        <VStack spacing={6} align="stretch" mb={8}>
+          <Box textAlign="center">
+            <Heading size="xl" color="brand.textPrimary" mb={2}>
+              Deal Valuation Analysis
+            </Heading>
+            <Text color="brand.textSecondary" fontSize="lg">
+              Get fair market value recommendations for your NIL deal
+            </Text>
+          </Box>
 
-        {/* Deal Summary Card */}
-        <Card variant="outline" borderColor="brand.accentSecondary" shadow="lg">
-          <CardHeader bg="brand.backgroundLight" borderBottom="1px" borderColor="brand.accentSecondary">
-            <HStack justify="space-between">
-              <VStack align="start" spacing={1}>
-                <Heading size="md" color="brand.textPrimary">
-                  {deal.deal_nickname || 'Deal Summary'}
-                </Heading>
-                <HStack>
-                  <StatusBadge status={deal.status} />
-                  <Text color="brand.textSecondary" fontSize="sm">
-                    Created {new Date(deal.created_at).toLocaleDateString()}
+          {/* Deal Summary Card */}
+          <Card variant="outline" borderColor="brand.accentSecondary" shadow="lg">
+            <CardHeader bg="brand.backgroundLight" borderBottom="1px" borderColor="brand.accentSecondary">
+              <HStack justify="space-between">
+                <VStack align="start" spacing={1}>
+                  <Heading size="md" color="brand.textPrimary">
+                    {deal.deal_nickname || 'Deal Summary'}
+                  </Heading>
+                  <HStack>
+                    <StatusBadge status={deal.status} />
+                    <Text color="brand.textSecondary" fontSize="sm">
+                      Created {new Date(deal.created_at).toLocaleDateString()}
+                    </Text>
+                  </HStack>
+                </VStack>
+                <VStack align="end" spacing={1}>
+                  <Text color="brand.textSecondary" fontSize="sm">Current Compensation</Text>
+                  <Text fontSize="2xl" fontWeight="bold" color="brand.textPrimary">
+                    {formatCurrency(getTotalCompensation())}
                   </Text>
-                </HStack>
-              </VStack>
-              <VStack align="end" spacing={1}>
-                <Text color="brand.textSecondary" fontSize="sm">Current Compensation</Text>
-                <Text fontSize="2xl" fontWeight="bold" color="brand.textPrimary">
-                  {formatCurrency(getTotalCompensation())}
+                </VStack>
+              </HStack>
+            </CardHeader>
+            <CardBody>
+              <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6}>
+                <SectionCard title="Deal Terms" icon={Briefcase}>
+                  <VStack align="start" spacing={2}>
+                    <Text><strong>Type:</strong> {deal.deal_type || 'Standard Deal'}</Text>
+                    <Text><strong>Activities:</strong> {deal.activities?.join(', ') || 'Not specified'}</Text>
+                    <Text><strong>Duration:</strong> {deal.start_date && deal.end_date ? 
+                      `${new Date(deal.start_date).toLocaleDateString()} - ${new Date(deal.end_date).toLocaleDateString()}` : 
+                      'Not specified'}</Text>
+                  </VStack>
+                </SectionCard>
+
+                <SectionCard title="Payor Information" icon={Users}>
+                  <VStack align="start" spacing={2}>
+                    <Text><strong>Company:</strong> {deal.payor_name || 'Not specified'}</Text>
+                    <Text><strong>Type:</strong> {deal.payor_type || 'Not specified'}</Text>
+                    <Text><strong>Industry:</strong> {deal.payor_industry || 'Not specified'}</Text>
+                  </VStack>
+                </SectionCard>
+
+                <SectionCard title="Deliverables" icon={Target}>
+                  <VStack align="start" spacing={2}>
+                    <Text><strong>Posts:</strong> {deal.social_media_posts || 0} posts</Text>
+                    <Text><strong>Platforms:</strong> {deal.platforms?.join(', ') || 'Not specified'}</Text>
+                    <Text><strong>Timeline:</strong> {deal.deliverable_timeline || 'Not specified'}</Text>
+                  </VStack>
+                </SectionCard>
+              </SimpleGrid>
+            </CardBody>
+          </Card>
+        </VStack>
+
+        {/* Analysis Info */}
+        <Card variant="outline" borderColor="blue.200" bg="blue.50" mb={8}>
+          <CardBody>
+            <HStack spacing={4}>
+              <Icon as={BarChart3} color="blue.500" boxSize={6} />
+              <Box flex={1}>
+                <Heading size="sm" color="blue.700" mb={2}>
+                  What is Fair Market Value Analysis?
+                </Heading>
+                <Text color="blue.600" fontSize="sm">
+                  Our valuation engine analyzes your deal using real NIL market data to determine if your compensation 
+                  is fair compared to similar deals. We consider social media following, school tier, sport popularity, 
+                  activity type, and current market trends to provide accurate compensation recommendations.
                 </Text>
-              </VStack>
+              </Box>
             </HStack>
+          </CardBody>
+        </Card>
+
+        {/* Analysis Factors Preview */}
+        <Card variant="outline" borderColor="brand.accentSecondary" mb={8}>
+          <CardHeader>
+            <Heading size="md" color="brand.textPrimary">Analysis Factors</Heading>
           </CardHeader>
           <CardBody>
-            <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6}>
-              <SectionCard title="Deal Terms" icon={Briefcase}>
-                <VStack align="start" spacing={2}>
-                  <Text><strong>Type:</strong> {deal.deal_type || 'Standard Deal'}</Text>
-                  <Text><strong>Activities:</strong> {deal.activities?.join(', ') || 'Not specified'}</Text>
-                  <Text><strong>Duration:</strong> {deal.start_date && deal.end_date ? 
-                    `${new Date(deal.start_date).toLocaleDateString()} - ${new Date(deal.end_date).toLocaleDateString()}` : 
-                    'Not specified'}</Text>
-                </VStack>
-              </SectionCard>
-
-              <SectionCard title="Payor Information" icon={Users}>
-                <VStack align="start" spacing={2}>
-                  <Text><strong>Company:</strong> {deal.payor_name || 'Not specified'}</Text>
-                  <Text><strong>Type:</strong> {deal.payor_type || 'Not specified'}</Text>
-                  <Text><strong>Industry:</strong> {deal.payor_industry || 'Not specified'}</Text>
-                </VStack>
-              </SectionCard>
-
-              <SectionCard title="Deliverables" icon={Target}>
-                <VStack align="start" spacing={2}>
-                  <Text><strong>Posts:</strong> {deal.social_media_posts || 0} posts</Text>
-                  <Text><strong>Platforms:</strong> {deal.platforms?.join(', ') || 'Not specified'}</Text>
-                  <Text><strong>Timeline:</strong> {deal.deliverable_timeline || 'Not specified'}</Text>
-                </VStack>
-              </SectionCard>
+            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+              <VStack align="start" spacing={3}>
+                <HStack>
+                  <Icon as={Users} color="brand.accentPrimary" />
+                  <Text fontWeight="medium">Social Media Reach</Text>
+                </HStack>
+                <HStack>
+                  <Icon as={TrendingUp} color="brand.accentPrimary" />
+                  <Text fontWeight="medium">School Tier & Conference</Text>
+                </HStack>
+                <HStack>
+                  <Icon as={Zap} color="brand.accentPrimary" />
+                  <Text fontWeight="medium">Sport Popularity</Text>
+                </HStack>
+              </VStack>
+              <VStack align="start" spacing={3}>
+                <HStack>
+                  <Icon as={Briefcase} color="brand.accentPrimary" />
+                  <Text fontWeight="medium">Activity Type Value</Text>
+                </HStack>
+                <HStack>
+                  <Icon as={BarChart3} color="brand.accentPrimary" />
+                  <Text fontWeight="medium">Market Trends</Text>
+                </HStack>
+                <HStack>
+                  <Icon as={Target} color="brand.accentPrimary" />
+                  <Text fontWeight="medium">Deal Complexity</Text>
+                </HStack>
+              </VStack>
             </SimpleGrid>
           </CardBody>
         </Card>
-      </VStack>
 
-      {/* Analysis Info */}
-      <Card variant="outline" borderColor="blue.200" bg="blue.50" mb={8}>
-        <CardBody>
-          <HStack spacing={4}>
-            <Icon as={BarChart3} color="blue.500" boxSize={6} />
-            <Box flex={1}>
-              <Heading size="sm" color="blue.700" mb={2}>
-                What is Fair Market Value Analysis?
-              </Heading>
-              <Text color="blue.600" fontSize="sm">
-                Our valuation engine analyzes your deal using real NIL market data to determine if your compensation 
-                is fair compared to similar deals. We consider social media following, school tier, sport popularity, 
-                activity type, and current market trends to provide accurate compensation recommendations.
-              </Text>
-            </Box>
-          </HStack>
-        </CardBody>
-      </Card>
-
-      {/* Analysis Factors Preview */}
-      <Card variant="outline" borderColor="brand.accentSecondary" mb={8}>
-        <CardHeader>
-          <Heading size="md" color="brand.textPrimary">Analysis Factors</Heading>
-        </CardHeader>
-        <CardBody>
-          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-            <VStack align="start" spacing={3}>
-              <HStack>
-                <Icon as={Users} color="brand.accentPrimary" />
-                <Text fontWeight="medium">Social Media Reach</Text>
-              </HStack>
-              <HStack>
-                <Icon as={TrendingUp} color="brand.accentPrimary" />
-                <Text fontWeight="medium">School Tier & Conference</Text>
-              </HStack>
-              <HStack>
-                <Icon as={Zap} color="brand.accentPrimary" />
-                <Text fontWeight="medium">Sport Popularity</Text>
-              </HStack>
-            </VStack>
-            <VStack align="start" spacing={3}>
-              <HStack>
-                <Icon as={Briefcase} color="brand.accentPrimary" />
-                <Text fontWeight="medium">Activity Type Value</Text>
-              </HStack>
-              <HStack>
-                <Icon as={BarChart3} color="brand.accentPrimary" />
-                <Text fontWeight="medium">Market Trends</Text>
-              </HStack>
-              <HStack>
-                <Icon as={Target} color="brand.accentPrimary" />
-                <Text fontWeight="medium">Deal Complexity</Text>
-              </HStack>
-            </VStack>
-          </SimpleGrid>
-        </CardBody>
-      </Card>
-
-      {/* Action Buttons */}
-      <Flex justify="space-between" align="center">
-        <Button
-          leftIcon={<ChevronLeft />}
-          variant="outline"
-          onClick={() => navigate('/dashboard')}
-          borderColor="brand.accentSecondary"
-          color="brand.textPrimary"
-        >
-          Back to Dashboard
-        </Button>
-        
-        <Button
-          rightIcon={<BarChart3 />}
-          bg="brand.accentPrimary"
-          color="white"
-          size="lg"
-          onClick={handleRunValuation}
-          isLoading={isCalculating}
-          loadingText="Analyzing..."
-          _hover={{ bg: 'brand.accentPrimary', opacity: 0.9 }}
-        >
-          Calculate Fair Market Value
-        </Button>
-      </Flex>
-    </Container>
+        {/* Action Buttons */}
+        <Flex justify="space-between" align="center">
+          <Button
+            leftIcon={<ChevronLeft />}
+            variant="outline"
+            onClick={() => navigate('/dashboard')}
+            borderColor="brand.accentSecondary"
+            color="brand.textPrimary"
+          >
+            Back to Dashboard
+          </Button>
+          
+          <Button
+            rightIcon={<BarChart3 />}
+            bg="brand.accentPrimary"
+            color="white"
+            size="lg"
+            onClick={handleRunValuation}
+            isLoading={isCalculating}
+            loadingText="Analyzing..."
+            _hover={{ bg: 'brand.accentPrimary', opacity: 0.9 }}
+          >
+            Calculate Fair Market Value
+          </Button>
+        </Flex>
+      </Container>
+    </DealWizardStepWrapper>
   );
 };
 

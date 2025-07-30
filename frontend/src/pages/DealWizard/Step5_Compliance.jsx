@@ -25,6 +25,7 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import { formLogger } from '../../utils/logger';
+import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
 
 const Step5_Compliance = () => {
   const { dealId } = useParams();
@@ -222,163 +223,146 @@ const Step5_Compliance = () => {
   };
 
   return (
-    <Container maxW="3xl" py={6}>
-      <Box
-        borderWidth="1px"
-        borderColor="brand.accentSecondary"
-        shadow="lg"
-        bg="white"
-        rounded="lg"
-      >
-        {/* Header Section */}
-        <Box p={6}>
-          {/* Progress Indicator */}
-          <VStack spacing={3} mb={6}>
-            <Flex justify="space-between" w="full" fontSize="sm">
-              <Text color="brand.textSecondary" fontWeight="medium">
-                Step 6 of 9
-              </Text>
-              <Text color="brand.textSecondary">
-                66.7% Complete
-              </Text>
-            </Flex>
-            <Progress
-              value={66.7}
-              w="full"
-              h="2"
-              bg="brand.accentSecondary"
-              sx={{
-                '& > div': {
-                  bg: 'brand.accentPrimary',
-                  transition: 'width 0.5s ease-out'
-                }
-              }}
-              rounded="full"
-            />
-          </VStack>
+    <DealWizardStepWrapper stepNumber={5} stepName="Compliance Review">
+      <Container maxW="3xl" py={6}>
+        <Box
+          borderWidth="1px"
+          borderColor="brand.accentSecondary"
+          shadow="lg"
+          bg="white"
+          rounded="lg"
+        >
+          {/* Header Section */}
+          <Box p={6}>
+            {/* Progress Indicator */}
+            <VStack spacing={3} mb={6}>
+              <Flex justify="space-between" w="full" fontSize="sm">
+                <Text color="brand.textSecondary" fontWeight="medium">
+                  Step 6 of 9
+                </Text>
+                <Text color="brand.textSecondary">
+                  66.7% Complete
+                </Text>
+              </Flex>
+              <Progress
+                value={66.7}
+                w="full"
+                h="2"
+                bg="brand.accentSecondary"
+                sx={{
+                  '& > div': {
+                    bg: 'brand.accentPrimary',
+                    transition: 'width 0.5s ease-out'
+                  }
+                }}
+                rounded="full"
+              />
+            </VStack>
 
-          {/* Title Section */}
-          <Flex gap={3} mb={4}>
-            <Box
-              w="12"
-              h="12"
-              bg="brand.accentPrimary"
-              rounded="xl"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              shadow="lg"
-            >
-              <Icon as={Shield} w="6" h="6" color="white" />
-            </Box>
-            <Box>
-              <Text fontSize="3xl" fontWeight="bold" color="brand.textPrimary">
-                Compliance Questions
-              </Text>
-              <Text fontSize="lg" color="brand.textSecondary" mt={2}>
-                Please answer the following questions to help ensure your deal is compliant with school and NCAA policies.
-              </Text>
-            </Box>
-          </Flex>
-        </Box>
-
-        {/* Questions Section */}
-        <Box p={6} pt={0}>
-          <VStack spacing={10}>
-            {complianceQuestions.map((question, index) => (
-              <Box key={question.id} w="full">
-                <FormControl>
-                  <FormLabel color="brand.textPrimary" fontWeight="semibold">
-                    {index + 1}. {question.question}
-                  </FormLabel>
-                  {question.description && (
-                    <Text fontSize="sm" color="brand.textSecondary" mt={2} mb={4}>
-                      {question.description}
-                    </Text>
-                  )}
-                  
-                  <RadioGroup
-                    value={question.value}
-                    onChange={question.setValue}
-                    mt={4}
-                  >
-                    <HStack spacing={4}>
-                      {question.options.map((option) => (
-                        <Box
-                          key={option.value}
-                          onClick={() => question.setValue(option.value)}
-                          cursor="pointer"
-                          bg={question.value === option.value ? "brand.accentPrimary" : "white"}
-                          color={question.value === option.value ? "white" : "brand.textPrimary"}
-                          px={6}
-                          py={2}
-                          rounded="full"
-                          border="2px"
-                          borderColor={question.value === option.value ? "brand.accentPrimary" : "brand.accentSecondary"}
-                          _hover={{
-                            bg: question.value === option.value ? "brand.accentPrimary" : "brand.backgroundLight",
-                          }}
-                          transition="all 0.2s"
-                        >
-                          {option.label}
-                        </Box>
-                      ))}
-                    </HStack>
-                  </RadioGroup>
-
-                  {question.additionalInfo?.show && (
-                    <Box mt={4}>
-                      <FormControl>
-                        <FormLabel color="brand.textSecondary" fontSize="sm">
-                          Please provide additional details:
-                        </FormLabel>
-                        <Textarea
-                          value={question.additionalInfo.value}
-                          onChange={(e) => question.additionalInfo.setValue(e.target.value)}
-                          placeholder="Enter your explanation here..."
-                          rows={3}
-                          resize="none"
-                          borderColor="brand.accentSecondary"
-                          _focus={{
-                            borderColor: "brand.accentPrimary",
-                            boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
-                          }}
-                        />
-                      </FormControl>
-                    </Box>
-                  )}
-                </FormControl>
+            {/* Title Section */}
+            <Flex gap={3} mb={4}>
+              <Box
+                w="12"
+                h="12"
+                bg="brand.accentPrimary"
+                rounded="xl"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                shadow="lg"
+              >
+                <Icon as={Shield} w="6" h="6" color="white" />
               </Box>
-            ))}
-          </VStack>
-        </Box>
+              <Box>
+                <Text fontSize="3xl" fontWeight="bold" color="brand.textPrimary">
+                  Compliance Questions
+                </Text>
+                <Text fontSize="lg" color="brand.textSecondary" mt={2}>
+                  Please answer the following questions to help ensure your deal is compliant with school and NCAA policies.
+                </Text>
+              </Box>
+            </Flex>
+          </Box>
 
-        {/* Footer Navigation */}
-        <Box p={6} borderTop="1px" borderColor="brand.accentSecondary">
-          <Flex justify="space-between">
-            <Button
-              leftIcon={<Icon as={ChevronLeft} />}
-              variant="ghost"
-              color="brand.textSecondary"
-              onClick={handleBack}
-              px={8}
-              py={6}
-              h="auto"
-              fontSize="md"
-              _hover={{
-                bg: "brand.backgroundLight",
-                color: "brand.textPrimary",
-              }}
-            >
-              Back
-            </Button>
+          {/* Questions Section */}
+          <Box p={6} pt={0}>
+            <VStack spacing={10}>
+              {complianceQuestions.map((question, index) => (
+                <Box key={question.id} w="full">
+                  <FormControl>
+                    <FormLabel color="brand.textPrimary" fontWeight="semibold">
+                      {index + 1}. {question.question}
+                    </FormLabel>
+                    {question.description && (
+                      <Text fontSize="sm" color="brand.textSecondary" mt={2} mb={4}>
+                        {question.description}
+                      </Text>
+                    )}
+                    
+                    <RadioGroup
+                      value={question.value}
+                      onChange={question.setValue}
+                      mt={4}
+                    >
+                      <HStack spacing={4}>
+                        {question.options.map((option) => (
+                          <Box
+                            key={option.value}
+                            onClick={() => question.setValue(option.value)}
+                            cursor="pointer"
+                            bg={question.value === option.value ? "brand.accentPrimary" : "white"}
+                            color={question.value === option.value ? "white" : "brand.textPrimary"}
+                            px={6}
+                            py={2}
+                            rounded="full"
+                            border="2px"
+                            borderColor={question.value === option.value ? "brand.accentPrimary" : "brand.accentSecondary"}
+                            _hover={{
+                              bg: question.value === option.value ? "brand.accentPrimary" : "brand.backgroundLight",
+                            }}
+                            transition="all 0.2s"
+                          >
+                            {option.label}
+                          </Box>
+                        ))}
+                      </HStack>
+                    </RadioGroup>
 
-            <Flex gap={4}>
+                    {question.additionalInfo?.show && (
+                      <Box mt={4}>
+                        <FormControl>
+                          <FormLabel color="brand.textSecondary" fontSize="sm">
+                            Please provide additional details:
+                          </FormLabel>
+                          <Textarea
+                            value={question.additionalInfo.value}
+                            onChange={(e) => question.additionalInfo.setValue(e.target.value)}
+                            placeholder="Enter your explanation here..."
+                            rows={3}
+                            resize="none"
+                            borderColor="brand.accentSecondary"
+                            _focus={{
+                              borderColor: "brand.accentPrimary",
+                              boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
+                            }}
+                          />
+                        </FormControl>
+                      </Box>
+                    )}
+                  </FormControl>
+                </Box>
+              ))}
+            </VStack>
+          </Box>
+
+          {/* Footer Navigation */}
+          <Box p={6} borderTop="1px" borderColor="brand.accentSecondary">
+            <Flex justify="space-between">
               <Button
-                leftIcon={<Icon as={Clock} />}
+                leftIcon={<Icon as={ChevronLeft} />}
                 variant="ghost"
                 color="brand.textSecondary"
-                onClick={() => navigate('/dashboard')}
+                onClick={handleBack}
                 px={8}
                 py={6}
                 h="auto"
@@ -388,31 +372,50 @@ const Step5_Compliance = () => {
                   color: "brand.textPrimary",
                 }}
               >
-                Finish Later
+                Back
               </Button>
 
-              <Button
-                rightIcon={<Icon as={ChevronRight} />}
-                variant="solid"
-                bg="brand.accentPrimary"
-                color="white"
-                onClick={handleNext}
-                isDisabled={!isFormValid()}
-                px={8}
-                py={6}
-                h="auto"
-                fontSize="md"
-                _hover={{
-                  bg: "brand.accentPrimaryHover",
-                }}
-              >
-                Continue
-              </Button>
+              <Flex gap={4}>
+                <Button
+                  leftIcon={<Icon as={Clock} />}
+                  variant="ghost"
+                  color="brand.textSecondary"
+                  onClick={() => navigate('/dashboard')}
+                  px={8}
+                  py={6}
+                  h="auto"
+                  fontSize="md"
+                  _hover={{
+                    bg: "brand.backgroundLight",
+                    color: "brand.textPrimary",
+                  }}
+                >
+                  Finish Later
+                </Button>
+
+                <Button
+                  rightIcon={<Icon as={ChevronRight} />}
+                  variant="solid"
+                  bg="brand.accentPrimary"
+                  color="white"
+                  onClick={handleNext}
+                  isDisabled={!isFormValid()}
+                  px={8}
+                  py={6}
+                  h="auto"
+                  fontSize="md"
+                  _hover={{
+                    bg: "brand.accentPrimaryHover",
+                  }}
+                >
+                  Continue
+                </Button>
+              </Flex>
             </Flex>
-          </Flex>
+          </Box>
         </Box>
-      </Box>
-    </Container>
+      </Container>
+    </DealWizardStepWrapper>
   );
 };
 

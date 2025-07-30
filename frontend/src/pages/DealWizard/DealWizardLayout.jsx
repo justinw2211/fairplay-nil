@@ -4,8 +4,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import { Box, Button, Container, Flex, Heading, Text, Spinner, VStack } from '@chakra-ui/react';
 import ErrorBoundary from '../../components/ErrorBoundary';
+import DealWizardErrorFallback from '../../components/DealWizardErrorFallback';
 
-const DealWizardLayoutContent = ({ children, title, instructions, onContinue, isContinueDisabled = false }) => {
+const DealWizardLayoutContent = ({ children, title, instructions, onContinue, isContinueDisabled = false, currentStep = 0 }) => {
   const { dealId } = useParams();
   const navigate = useNavigate();
   const { deal, fetchDealById, loading } = useDeal();
@@ -70,9 +71,22 @@ const DealWizardLayoutContent = ({ children, title, instructions, onContinue, is
 };
 
 const DealWizardLayout = (props) => {
+  // Extract currentStep from props or determine from URL
+  const { dealId } = useParams();
+  const currentStep = props.currentStep || 0;
+
   return (
-    <ErrorBoundary context="DealWizard">
-      <DealWizardLayoutContent {...props} />
+    <ErrorBoundary 
+      context="DealWizard" 
+      fallbackRender={(fallbackProps) => (
+        <DealWizardErrorFallback 
+          {...fallbackProps} 
+          currentStep={currentStep}
+          onRetry={() => window.location.reload()}
+        />
+      )}
+    >
+      <DealWizardLayoutContent {...props} currentStep={currentStep} />
     </ErrorBoundary>
   );
 };

@@ -26,6 +26,7 @@ import {
 import { Upload, ChevronRight, Clock } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
+import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
 
 const Step1_DealTerms = () => {
   const { dealId } = useParams();
@@ -209,206 +210,208 @@ const Step1_DealTerms = () => {
   const progressInfo = getProgressInfo();
 
   return (
-    <Container maxW="2xl" py={6}>
-      <Card borderColor="brand.accentSecondary" shadow="lg" bg="white">
-        <CardHeader pb={6}>
-          {/* Progress Indicator */}
-          <VStack spacing={3} mb={6}>
-            <Flex justify="space-between" w="full" fontSize="sm">
-              <Text color="brand.textSecondary" fontWeight="medium">{progressInfo.stepNumber}</Text>
-              <Text color="brand.textSecondary">{progressInfo.percentage}% Complete</Text>
-            </Flex>
-            <Box w="full" bg="brand.accentSecondary" h="2" rounded="full">
-              <Box
-                bg="brand.accentPrimary"
-                h="2"
-                w={`${progressInfo.percentage}%`}
-                rounded="full"
-                transition="width 0.5s ease-out"
-              />
-            </Box>
-          </VStack>
-
-          {/* Header */}
-          <VStack spacing={3} align="start">
-            <Heading size="lg" color="brand.textPrimary">Deal Terms</Heading>
-            <Text color="brand.textSecondary" fontSize="lg">
-              Let's start with the basics. Upload the agreement and tell us the essentials of your deal.
-            </Text>
-          </VStack>
-        </CardHeader>
-
-        <CardBody pt={0}>
-          <VStack spacing={8}>
-            {/* File Upload Area */}
-            <FormControl>
-              <FormLabel color="brand.textPrimary" fontWeight="semibold">
-                Contract Upload (optional)
-              </FormLabel>
-              <Box
-                position="relative"
-                borderWidth={2}
-                borderStyle="dashed"
-                rounded="xl"
-                p={12}
-                textAlign="center"
-                cursor="pointer"
-                transition="all 0.2s"
-                borderColor={dragActive ? "brand.accentPrimary" : "brand.accentSecondary"}
-                bg={dragActive ? "brand.accentPrimary" : "transparent"}
-                _hover={{
-                  borderColor: "brand.accentPrimary",
-                  bg: "brand.backgroundLight",
-                }}
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
-                onClick={() => document.getElementById('file-upload').click()}
-              >
-                <input
-                  id="file-upload"
-                  type="file"
-                  onChange={handleFileChange}
-                  accept=".pdf,.docx,.png,.jpg,.jpeg"
-                  style={{ display: 'none' }}
+    <DealWizardStepWrapper stepNumber={1} stepName="Deal Terms" dealId={dealId}>
+      <Container maxW="2xl" py={6}>
+        <Card borderColor="brand.accentSecondary" shadow="lg" bg="white">
+          <CardHeader pb={6}>
+            {/* Progress Indicator */}
+            <VStack spacing={3} mb={6}>
+              <Flex justify="space-between" w="full" fontSize="sm">
+                <Text color="brand.textSecondary" fontWeight="medium">{progressInfo.stepNumber}</Text>
+                <Text color="brand.textSecondary">{progressInfo.percentage}% Complete</Text>
+              </Flex>
+              <Box w="full" bg="brand.accentSecondary" h="2" rounded="full">
+                <Box
+                  bg="brand.accentPrimary"
+                  h="2"
+                  w={`${progressInfo.percentage}%`}
+                  rounded="full"
+                  transition="width 0.5s ease-out"
                 />
-
-                {uploadedFile ? (
-                  <VStack spacing={4}>
-                    <Flex
-                      w="16"
-                      h="16"
-                      bg="green.100"
-                      rounded="full"
-                      align="center"
-                      justify="center"
-                    >
-                      <Icon as={Upload} boxSize={8} color="green.600" />
-                    </Flex>
-                    <VStack spacing={2}>
-                      <Text color="brand.textPrimary" fontWeight="semibold" fontSize="lg">
-                        {uploadedFile.name}
-                      </Text>
-                      <Text color="brand.textSecondary">
-                        {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB • Uploaded successfully
-                      </Text>
-                    </VStack>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      color="brand.accentPrimary"
-                      _hover={{ bg: "brand.backgroundLight" }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setUploadedFile(null);
-                      }}
-                    >
-                      Remove file
-                    </Button>
-                  </VStack>
-                ) : (
-                  <VStack spacing={6}>
-                    <Flex
-                      w="20"
-                      h="20"
-                      bg="brand.accentSecondary"
-                      rounded="full"
-                      align="center"
-                      justify="center"
-                      transition="all 0.2s"
-                      _groupHover={{ bg: "brand.backgroundLight" }}
-                    >
-                      <Icon
-                        as={Upload}
-                        boxSize={10}
-                        color="brand.textSecondary"
-                        _groupHover={{ color: "brand.accentPrimary" }}
-                      />
-                    </Flex>
-                    <VStack spacing={3}>
-                      <Text color="brand.textPrimary" fontWeight="semibold" fontSize="lg">
-                        Drag & drop your contract here, or click to upload
-                      </Text>
-                      <Text color="brand.textSecondary">
-                        Accepted file types: PDF, DOCX, PNG, JPG. Max size: 10MB
-                      </Text>
-                    </VStack>
-                  </VStack>
-                )}
               </Box>
-            </FormControl>
+            </VStack>
 
-            {/* Deal Nickname Input */}
-            <FormControl>
-              <FormLabel color="brand.textPrimary" fontWeight="semibold">
-                Deal Nickname *
-              </FormLabel>
-              <Input
-                value={dealNickname}
-                onChange={(e) => setDealNickname(e.target.value)}
-                placeholder="e.g., 'Nike Fall Photoshoot'"
-                size="lg"
-                borderColor="brand.accentSecondary"
-                _focus={{
-                  borderColor: "brand.accentPrimary",
-                  boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
-                }}
-              />
-            </FormControl>
+            {/* Header */}
+            <VStack spacing={3} align="start">
+              <Heading size="lg" color="brand.textPrimary">Deal Terms</Heading>
+              <Text color="brand.textSecondary" fontSize="lg">
+                Let's start with the basics. Upload the agreement and tell us the essentials of your deal.
+              </Text>
+            </VStack>
+          </CardHeader>
 
-            {/* Navigation Buttons */}
-            <Flex justify="space-between" pt={8} w="full">
-              <Button
-                leftIcon={<Icon as={Clock} />}
-                variant="ghost"
-                color="brand.textSecondary"
-                px={8}
-                py={3}
-                h={12}
-                fontSize="base"
-                fontWeight="semibold"
-                onClick={handleFinishLater}
-                _hover={{
-                  bg: "brand.backgroundLight",
-                  color: "brand.textPrimary",
-                }}
-              >
-                Finish Later
-              </Button>
-              <Button
-                rightIcon={<Icon as={ChevronRight} />}
-                bg={dealNickname.trim() ? "brand.accentPrimary" : "brand.accentSecondary"}
-                color="white"
-                px={8}
-                py={3}
-                h={12}
-                fontSize="base"
-                fontWeight="semibold"
-                transition="all 0.2s"
-                _hover={
-                  dealNickname.trim()
-                    ? {
-                        transform: "scale(1.05)",
-                        bg: "brand.accentPrimary",
-                        shadow: "xl",
-                      }
-                    : {}
-                }
-                _disabled={{
-                  opacity: 0.6,
-                  cursor: "not-allowed",
-                }}
-                isDisabled={!dealNickname.trim()}
-                onClick={onContinue}
-              >
-                Next
-              </Button>
-            </Flex>
-          </VStack>
-        </CardBody>
-      </Card>
-    </Container>
+          <CardBody pt={0}>
+            <VStack spacing={8}>
+              {/* File Upload Area */}
+              <FormControl>
+                <FormLabel color="brand.textPrimary" fontWeight="semibold">
+                  Contract Upload (optional)
+                </FormLabel>
+                <Box
+                  position="relative"
+                  borderWidth={2}
+                  borderStyle="dashed"
+                  rounded="xl"
+                  p={12}
+                  textAlign="center"
+                  cursor="pointer"
+                  transition="all 0.2s"
+                  borderColor={dragActive ? "brand.accentPrimary" : "brand.accentSecondary"}
+                  bg={dragActive ? "brand.accentPrimary" : "transparent"}
+                  _hover={{
+                    borderColor: "brand.accentPrimary",
+                    bg: "brand.backgroundLight",
+                  }}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                  onClick={() => document.getElementById('file-upload').click()}
+                >
+                  <input
+                    id="file-upload"
+                    type="file"
+                    onChange={handleFileChange}
+                    accept=".pdf,.docx,.png,.jpg,.jpeg"
+                    style={{ display: 'none' }}
+                  />
+
+                  {uploadedFile ? (
+                    <VStack spacing={4}>
+                      <Flex
+                        w="16"
+                        h="16"
+                        bg="green.100"
+                        rounded="full"
+                        align="center"
+                        justify="center"
+                      >
+                        <Icon as={Upload} boxSize={8} color="green.600" />
+                      </Flex>
+                      <VStack spacing={2}>
+                        <Text color="brand.textPrimary" fontWeight="semibold" fontSize="lg">
+                          {uploadedFile.name}
+                        </Text>
+                        <Text color="brand.textSecondary">
+                          {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB • Uploaded successfully
+                        </Text>
+                      </VStack>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        color="brand.accentPrimary"
+                        _hover={{ bg: "brand.backgroundLight" }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setUploadedFile(null);
+                        }}
+                      >
+                        Remove file
+                      </Button>
+                    </VStack>
+                  ) : (
+                    <VStack spacing={6}>
+                      <Flex
+                        w="20"
+                        h="20"
+                        bg="brand.accentSecondary"
+                        rounded="full"
+                        align="center"
+                        justify="center"
+                        transition="all 0.2s"
+                        _groupHover={{ bg: "brand.backgroundLight" }}
+                      >
+                        <Icon
+                          as={Upload}
+                          boxSize={10}
+                          color="brand.textSecondary"
+                          _groupHover={{ color: "brand.accentPrimary" }}
+                        />
+                      </Flex>
+                      <VStack spacing={3}>
+                        <Text color="brand.textPrimary" fontWeight="semibold" fontSize="lg">
+                          Drag & drop your contract here, or click to upload
+                        </Text>
+                        <Text color="brand.textSecondary">
+                          Accepted file types: PDF, DOCX, PNG, JPG. Max size: 10MB
+                        </Text>
+                      </VStack>
+                    </VStack>
+                  )}
+                </Box>
+              </FormControl>
+
+              {/* Deal Nickname Input */}
+              <FormControl>
+                <FormLabel color="brand.textPrimary" fontWeight="semibold">
+                  Deal Nickname *
+                </FormLabel>
+                <Input
+                  value={dealNickname}
+                  onChange={(e) => setDealNickname(e.target.value)}
+                  placeholder="e.g., 'Nike Fall Photoshoot'"
+                  size="lg"
+                  borderColor="brand.accentSecondary"
+                  _focus={{
+                    borderColor: "brand.accentPrimary",
+                    boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
+                  }}
+                />
+              </FormControl>
+
+              {/* Navigation Buttons */}
+              <Flex justify="space-between" pt={8} w="full">
+                <Button
+                  leftIcon={<Icon as={Clock} />}
+                  variant="ghost"
+                  color="brand.textSecondary"
+                  px={8}
+                  py={3}
+                  h={12}
+                  fontSize="base"
+                  fontWeight="semibold"
+                  onClick={handleFinishLater}
+                  _hover={{
+                    bg: "brand.backgroundLight",
+                    color: "brand.textPrimary",
+                  }}
+                >
+                  Finish Later
+                </Button>
+                <Button
+                  rightIcon={<Icon as={ChevronRight} />}
+                  bg={dealNickname.trim() ? "brand.accentPrimary" : "brand.accentSecondary"}
+                  color="white"
+                  px={8}
+                  py={3}
+                  h={12}
+                  fontSize="base"
+                  fontWeight="semibold"
+                  transition="all 0.2s"
+                  _hover={
+                    dealNickname.trim()
+                      ? {
+                          transform: "scale(1.05)",
+                          bg: "brand.accentPrimary",
+                          shadow: "xl",
+                        }
+                      : {}
+                  }
+                  _disabled={{
+                    opacity: 0.6,
+                    cursor: "not-allowed",
+                  }}
+                  isDisabled={!dealNickname.trim()}
+                  onClick={onContinue}
+                >
+                  Next
+                </Button>
+              </Flex>
+            </VStack>
+          </CardBody>
+        </Card>
+      </Container>
+    </DealWizardStepWrapper>
   );
 };
 

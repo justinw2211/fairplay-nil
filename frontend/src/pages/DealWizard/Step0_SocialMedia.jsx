@@ -21,6 +21,7 @@ import {
 import { ChevronRight, Clock, Users } from 'lucide-react';
 import SocialMediaForm from '../../components/forms/social-media-form';
 import useSocialMedia from '../../hooks/use-social-media';
+import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
 
 const Step0_SocialMedia = () => {
   // PATTERN: Follow Step1_DealTerms.jsx structure exactly (cursor rule)
@@ -183,117 +184,119 @@ const Step0_SocialMedia = () => {
 
   // CRITICAL: Maintain existing UI patterns (cursor rule)
   return (
-    <Container maxW="2xl" py={6}>
-      <Card borderColor="brand.accentSecondary" shadow="lg" bg="white">
-        <CardHeader pb={6}>
-          {/* Progress Indicator - Updated for new step */}
-          <VStack spacing={3} mb={6}>
-            <Flex justify="space-between" w="full" fontSize="sm">
-              <Text color="brand.textSecondary" fontWeight="medium">{progressInfo.stepNumber}</Text>
-              <Text color="brand.textSecondary">{progressInfo.percentage}% Complete</Text>
-            </Flex>
-            <Box w="full" bg="brand.accentSecondary" h="2" rounded="full">
-              <Box
-                bg="brand.accentPrimary"
-                h="2"
-                w={`${progressInfo.percentage}%`}
-                rounded="full"
-                transition="width 0.5s ease-out"
-              />
-            </Box>
-          </VStack>
+    <DealWizardStepWrapper stepNumber={0} stepName="Social Media Setup" dealId={dealId}>
+      <Container maxW="2xl" py={6}>
+        <Card borderColor="brand.accentSecondary" shadow="lg" bg="white">
+          <CardHeader pb={6}>
+            {/* Progress Indicator - Updated for new step */}
+            <VStack spacing={3} mb={6}>
+              <Flex justify="space-between" w="full" fontSize="sm">
+                <Text color="brand.textSecondary" fontWeight="medium">{progressInfo.stepNumber}</Text>
+                <Text color="brand.textSecondary">{progressInfo.percentage}% Complete</Text>
+              </Flex>
+              <Box w="full" bg="brand.accentSecondary" h="2" rounded="full">
+                <Box
+                  bg="brand.accentPrimary"
+                  h="2"
+                  w={`${progressInfo.percentage}%`}
+                  rounded="full"
+                  transition="width 0.5s ease-out"
+                />
+              </Box>
+            </VStack>
 
-          {/* Deal Type Indicator */}
-          {dealType !== 'standard' && (
-            <Alert status="info" borderRadius="lg" mb={4}>
-              <AlertIcon />
-              <VStack align="start" spacing={1} flex={1}>
-                <Text fontWeight="semibold" color="brand.textPrimary">
-                  {dealTypeInfo.title}
-                </Text>
-                <Text fontSize="sm" color="brand.textSecondary">
-                  {dealTypeInfo.description}
-                </Text>
-              </VStack>
-            </Alert>
-          )}
+            {/* Deal Type Indicator */}
+            {dealType !== 'standard' && (
+              <Alert status="info" borderRadius="lg" mb={4}>
+                <AlertIcon />
+                <VStack align="start" spacing={1} flex={1}>
+                  <Text fontWeight="semibold" color="brand.textPrimary">
+                    {dealTypeInfo.title}
+                  </Text>
+                  <Text fontSize="sm" color="brand.textSecondary">
+                    {dealTypeInfo.description}
+                  </Text>
+                </VStack>
+              </Alert>
+            )}
 
-          {/* Header */}
-          <VStack spacing={3} align="start">
-            <Heading size="lg" color="brand.textPrimary">Confirm Social Media</Heading>
-            <Text color="brand.textSecondary" fontSize="lg">
-              Please confirm your current social media information. This data will be used for NIL compliance and deal valuation.
-            </Text>
-          </VStack>
-        </CardHeader>
+            {/* Header */}
+            <VStack spacing={3} align="start">
+              <Heading size="lg" color="brand.textPrimary">Confirm Social Media</Heading>
+              <Text color="brand.textSecondary" fontSize="lg">
+                Please confirm your current social media information. This data will be used for NIL compliance and deal valuation.
+              </Text>
+            </VStack>
+          </CardHeader>
 
-        <CardBody>
-          <VStack spacing={6}>
-            {/* NIL Compliance Notice */}
-            <Alert status="info" borderRadius="lg">
-              <AlertIcon />
-              <VStack align="start" spacing={1} flex={1}>
-                <Text fontWeight="semibold" color="brand.textPrimary">
-                  Why we need this information
-                </Text>
-                <Text fontSize="sm" color="brand.textSecondary">
-                  Your social media follower counts are required for NCAA compliance reporting and help determine deal value. 
-                  This information will be attached to your NIL deal for transparency and regulatory purposes.
-                </Text>
-              </VStack>
-            </Alert>
+          <CardBody>
+            <VStack spacing={6}>
+              {/* NIL Compliance Notice */}
+              <Alert status="info" borderRadius="lg">
+                <AlertIcon />
+                <VStack align="start" spacing={1} flex={1}>
+                  <Text fontWeight="semibold" color="brand.textPrimary">
+                    Why we need this information
+                  </Text>
+                  <Text fontSize="sm" color="brand.textSecondary">
+                    Your social media follower counts are required for NCAA compliance reporting and help determine deal value. 
+                    This information will be attached to your NIL deal for transparency and regulatory purposes.
+                  </Text>
+                </VStack>
+              </Alert>
 
-            {/* Social Media Form */}
-            <Box ref={formRef} w="full">
-              <SocialMediaForm
-                initialData={socialMediaData}
-                onSubmit={handleNext}
-                isLoading={loading}
-              />
-            </Box>
+              {/* Social Media Form */}
+              <Box ref={formRef} w="full">
+                <SocialMediaForm
+                  initialData={socialMediaData}
+                  onSubmit={handleNext}
+                  isLoading={loading}
+                />
+              </Box>
 
-            {/* Navigation Buttons */}
-            <Flex justify="space-between" pt={8} w="full">
-              <Button
-                leftIcon={<Icon as={Clock} />}
-                variant="ghost"
-                color="brand.textSecondary"
-                px={8}
-                py={3}
-                h={12}
-                fontSize="base"
-                fontWeight="semibold"
-                onClick={handleFinishLater}
-                isDisabled={loading}
-                _hover={{
-                  bg: "brand.backgroundLight",
-                  color: "brand.textPrimary",
-                }}
-              >
-                Finish Later
-              </Button>
-              <Button
-                rightIcon={<Icon as={ChevronRight} />}
-                bg="brand.accentPrimary"
-                color="white"
-                px={8}
-                py={3}
-                h={12}
-                fontSize="base"
-                fontWeight="semibold"
-                isLoading={loading}
-                onClick={handleContinueClick}
-                _hover={{
-                  bg: "#c8aeb0",
-                }}
-              >
-                Continue
-              </Button>
-            </Flex>
-          </VStack>
-        </CardBody>
-      </Card>
-    </Container>
+              {/* Navigation Buttons */}
+              <Flex justify="space-between" pt={8} w="full">
+                <Button
+                  leftIcon={<Icon as={Clock} />}
+                  variant="ghost"
+                  color="brand.textSecondary"
+                  px={8}
+                  py={3}
+                  h={12}
+                  fontSize="base"
+                  fontWeight="semibold"
+                  onClick={handleFinishLater}
+                  isDisabled={loading}
+                  _hover={{
+                    bg: "brand.backgroundLight",
+                    color: "brand.textPrimary",
+                  }}
+                >
+                  Finish Later
+                </Button>
+                <Button
+                  rightIcon={<Icon as={ChevronRight} />}
+                  bg="brand.accentPrimary"
+                  color="white"
+                  px={8}
+                  py={3}
+                  h={12}
+                  fontSize="base"
+                  fontWeight="semibold"
+                  isLoading={loading}
+                  onClick={handleContinueClick}
+                  _hover={{
+                    bg: "#c8aeb0",
+                  }}
+                >
+                  Continue
+                </Button>
+              </Flex>
+            </VStack>
+          </CardBody>
+        </Card>
+      </Container>
+    </DealWizardStepWrapper>
   );
 };
 

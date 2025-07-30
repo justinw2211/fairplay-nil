@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import { Spinner, Flex, Box, Text, Progress } from '@chakra-ui/react';
+import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
 
 // Import all the possible activity form components
 import ActivityForm_SocialMedia from './ActivityForm_SocialMedia';
@@ -141,13 +142,13 @@ const ActivityRouter = () => {
   };
 
   return (
-    <>
+    <DealWizardStepWrapper stepNumber={4} stepName="Activity Forms">
       <ActivityComponent 
         onNext={handleNext}
         currentActivity={currentActivityNumber}
         totalActivities={totalActivities}
       />
-    </>
+    </DealWizardStepWrapper>
   );
 };
 

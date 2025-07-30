@@ -16,6 +16,7 @@ import {
   useToast
 } from '@chakra-ui/react';
 import { CheckCircleIcon, WarningIcon, AttachmentIcon } from '@chakra-ui/icons';
+import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
 
 const ContractUpload = ({ onUploadComplete }) => {
   const { user } = useAuth();
@@ -96,7 +97,8 @@ const ContractUpload = ({ onUploadComplete }) => {
   };
 
   return (
-    <Box borderWidth="1px" borderRadius="lg" p={4} borderColor="brand.accentSecondary">
+    <DealWizardStepWrapper stepNumber={7} stepName="Contract Upload">
+      <Box borderWidth="1px" borderRadius="lg" p={4} borderColor="brand.accentSecondary">
         <FormControl>
             <Input
                 type="file"
@@ -125,7 +127,8 @@ const ContractUpload = ({ onUploadComplete }) => {
                 <Text fontSize="sm" fontWeight="medium">{fileName}</Text>
             </HStack>
         )}
-    </Box>
+      </Box>
+    </DealWizardStepWrapper>
   );
 };
 

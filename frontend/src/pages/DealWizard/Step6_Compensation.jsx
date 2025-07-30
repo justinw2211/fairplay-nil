@@ -29,6 +29,7 @@ import {
 } from '@chakra-ui/react';
 import { DollarSign, Plus, Trash2, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, Clock } from 'lucide-react';
 import { formLogger } from '../../utils/logger';
+import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
 
 // Types
 const CompensationItem = {
@@ -521,255 +522,257 @@ const Step6_Compensation = () => {
   };
 
   return (
-    <Container maxW="3xl" py={6}>
-      <Box
-        borderWidth="1px"
-        borderColor="brand.accentSecondary"
-        shadow="lg"
-        bg="white"
-        rounded="lg"
-      >
-        {/* Header Section */}
-        <Box p={6}>
-          {/* Progress Indicator */}
-          <VStack spacing={3} mb={6}>
-            <Flex justify="space-between" w="full" fontSize="sm">
-              <Text color="brand.textSecondary" fontWeight="medium">
-                {progressInfo.stepNumber}
-              </Text>
-              <Text color="brand.textSecondary">
-                {progressInfo.percentage.toFixed(1)}% Complete
-              </Text>
-            </Flex>
-            <Progress
-              value={progressInfo.percentage}
-              w="full"
-              h="2"
-              bg="brand.accentSecondary"
-              sx={{
-                '& > div': {
-                  bg: 'brand.accentPrimary',
-                  transition: 'width 0.5s ease-out'
-                }
-              }}
-              rounded="full"
-            />
-          </VStack>
-
-          {/* Title Section */}
-          <Flex gap={3} mb={4}>
-            <Box
-              w="12"
-              h="12"
-              bg="brand.accentPrimary"
-              rounded="xl"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              shadow="lg"
-            >
-              <Icon as={DollarSign} w="6" h="6" color="white" />
-            </Box>
-            <Box>
-              <Text fontSize="3xl" fontWeight="bold" color="brand.textPrimary">
-                Compensation Details
-              </Text>
-              <Text fontSize="lg" color="brand.textSecondary" mt={2}>
-                How are you being compensated for this deal? You can add multiple forms of payment.
-              </Text>
-            </Box>
-          </Flex>
-        </Box>
-
-        {/* Content Section */}
-        <Box p={6} pt={0}>
-          <VStack spacing={6}>
-            {/* Compensation Items */}
-            {compensationItems.map((item) => (
-              <Box
-                key={item.id}
+    <DealWizardStepWrapper stepNumber={6} stepName="Compensation Details">
+      <Container maxW="3xl" py={6}>
+        <Box
+          borderWidth="1px"
+          borderColor="brand.accentSecondary"
+          shadow="lg"
+          bg="white"
+          rounded="lg"
+        >
+          {/* Header Section */}
+          <Box p={6}>
+            {/* Progress Indicator */}
+            <VStack spacing={3} mb={6}>
+              <Flex justify="space-between" w="full" fontSize="sm">
+                <Text color="brand.textSecondary" fontWeight="medium">
+                  {progressInfo.stepNumber}
+                </Text>
+                <Text color="brand.textSecondary">
+                  {progressInfo.percentage.toFixed(1)}% Complete
+                </Text>
+              </Flex>
+              <Progress
+                value={progressInfo.percentage}
                 w="full"
-                borderWidth="1px"
-                borderColor="brand.accentSecondary"
-                rounded="lg"
-                overflow="hidden"
-              >
-                {/* Header */}
-                <Flex
-                  p={4}
-                  bg="gray.50"
-                  cursor="pointer"
-                  onClick={() => toggleExpanded(item.id)}
-                  align="center"
-                  justify="space-between"
-                  _hover={{ bg: "gray.100" }}
-                >
-                  <Flex align="center" gap={3}>
-                    <Box
-                      w="8"
-                      h="8"
-                      bg="brand.accentPrimary"
-                      rounded="lg"
-                      display="flex"
-                      alignItems="center"
-                      justifyContent="center"
-                    >
-                      <Icon as={DollarSign} w="4" h="4" color="white" />
-                    </Box>
-                    <Box>
-                      <Text fontWeight="semibold" color="brand.textPrimary">
-                        {compensationTypes.find(t => t.value === item.type)?.label || "Select Type"}
-                      </Text>
-                      <Text fontSize="sm" color="brand.textSecondary">
-                        {getTypeDescription(item.type)}
-                      </Text>
-                    </Box>
-                  </Flex>
-                  <Flex align="center" gap={2}>
-                    {compensationItems.length > 1 && (
-                      <IconButton
-                        icon={<Icon as={Trash2} w="4" h="4" />}
-                        variant="ghost"
-                        size="sm"
-                        color="red.600"
-                        _hover={{ bg: "red.50", color: "red.700" }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeCompensationItem(item.id);
-                        }}
-                      />
-                    )}
-                    <Icon
-                      as={item.expanded ? ChevronUp : ChevronDown}
-                      w="5"
-                      h="5"
-                      color="brand.textSecondary"
-                    />
-                  </Flex>
-                </Flex>
+                h="2"
+                bg="brand.accentSecondary"
+                sx={{
+                  '& > div': {
+                    bg: 'brand.accentPrimary',
+                    transition: 'width 0.5s ease-out'
+                  }
+                }}
+                rounded="full"
+              />
+            </VStack>
 
-                {/* Expanded Content */}
-                {item.expanded && (
-                  <Box p={6} borderTopWidth="1px" borderColor="brand.accentSecondary">
-                    <FormControl mb={6}>
-                      <FormLabel color="brand.textPrimary" fontWeight="semibold">
-                        Type of Compensation *
-                      </FormLabel>
-                      <Select
-                        value={item.type}
-                        onChange={(e) => updateCompensationItem(item.id, "type", e.target.value)}
-                        h="12"
-                        borderColor="brand.accentSecondary"
-                        _focus={{
-                          borderColor: "brand.accentPrimary",
-                          boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)"
-                        }}
-                      >
-                        {compensationTypes.map(type => (
-                          <option key={type.value} value={type.value}>
-                            {type.label}
-                          </option>
-                        ))}
-                      </Select>
-                    </FormControl>
-
-                    {renderCompensationFields(item)}
-                  </Box>
-                )}
-              </Box>
-            ))}
-
-            {/* Add Another Button */}
-            <Button
-              variant="outline"
-              w="full"
-              h="12"
-              borderWidth="2px"
-              borderStyle="dashed"
-              borderColor="brand.accentPrimary"
-              color="brand.accentPrimary"
-              leftIcon={<Icon as={Plus} w="4" h="4" />}
-              onClick={addCompensationItem}
-              _hover={{
-                bg: "brand.accentPrimary.50"
-              }}
-            >
-              Add another form of compensation
-            </Button>
-
-            {/* Navigation */}
-            <Flex justify="space-between" align="center" pt={8} w="full">
-              <Button
-                leftIcon={<Icon as={Clock} w="5" h="5" />}
-                variant="ghost"
+            {/* Title Section */}
+            <Flex gap={3} mb={4}>
+              <Box
+                w="12"
                 h="12"
-                px="6"
-                fontSize="base"
-                fontWeight="medium"
-                color="brand.textSecondary"
-                onClick={handleFinishLater}
+                bg="brand.accentPrimary"
+                rounded="xl"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                shadow="lg"
+              >
+                <Icon as={DollarSign} w="6" h="6" color="white" />
+              </Box>
+              <Box>
+                <Text fontSize="3xl" fontWeight="bold" color="brand.textPrimary">
+                  Compensation Details
+                </Text>
+                <Text fontSize="lg" color="brand.textSecondary" mt={2}>
+                  How are you being compensated for this deal? You can add multiple forms of payment.
+                </Text>
+              </Box>
+            </Flex>
+          </Box>
+
+          {/* Content Section */}
+          <Box p={6} pt={0}>
+            <VStack spacing={6}>
+              {/* Compensation Items */}
+              {compensationItems.map((item) => (
+                <Box
+                  key={item.id}
+                  w="full"
+                  borderWidth="1px"
+                  borderColor="brand.accentSecondary"
+                  rounded="lg"
+                  overflow="hidden"
+                >
+                  {/* Header */}
+                  <Flex
+                    p={4}
+                    bg="gray.50"
+                    cursor="pointer"
+                    onClick={() => toggleExpanded(item.id)}
+                    align="center"
+                    justify="space-between"
+                    _hover={{ bg: "gray.100" }}
+                  >
+                    <Flex align="center" gap={3}>
+                      <Box
+                        w="8"
+                        h="8"
+                        bg="brand.accentPrimary"
+                        rounded="lg"
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <Icon as={DollarSign} w="4" h="4" color="white" />
+                      </Box>
+                      <Box>
+                        <Text fontWeight="semibold" color="brand.textPrimary">
+                          {compensationTypes.find(t => t.value === item.type)?.label || "Select Type"}
+                        </Text>
+                        <Text fontSize="sm" color="brand.textSecondary">
+                          {getTypeDescription(item.type)}
+                        </Text>
+                      </Box>
+                    </Flex>
+                    <Flex align="center" gap={2}>
+                      {compensationItems.length > 1 && (
+                        <IconButton
+                          icon={<Icon as={Trash2} w="4" h="4" />}
+                          variant="ghost"
+                          size="sm"
+                          color="red.600"
+                          _hover={{ bg: "red.50", color: "red.700" }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeCompensationItem(item.id);
+                          }}
+                        />
+                      )}
+                      <Icon
+                        as={item.expanded ? ChevronUp : ChevronDown}
+                        w="5"
+                        h="5"
+                        color="brand.textSecondary"
+                      />
+                    </Flex>
+                  </Flex>
+
+                  {/* Expanded Content */}
+                  {item.expanded && (
+                    <Box p={6} borderTopWidth="1px" borderColor="brand.accentSecondary">
+                      <FormControl mb={6}>
+                        <FormLabel color="brand.textPrimary" fontWeight="semibold">
+                          Type of Compensation *
+                        </FormLabel>
+                        <Select
+                          value={item.type}
+                          onChange={(e) => updateCompensationItem(item.id, "type", e.target.value)}
+                          h="12"
+                          borderColor="brand.accentSecondary"
+                          _focus={{
+                            borderColor: "brand.accentPrimary",
+                            boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)"
+                          }}
+                        >
+                          {compensationTypes.map(type => (
+                            <option key={type.value} value={type.value}>
+                              {type.label}
+                            </option>
+                          ))}
+                        </Select>
+                      </FormControl>
+
+                      {renderCompensationFields(item)}
+                    </Box>
+                  )}
+                </Box>
+              ))}
+
+              {/* Add Another Button */}
+              <Button
+                variant="outline"
+                w="full"
+                h="12"
+                borderWidth="2px"
+                borderStyle="dashed"
+                borderColor="brand.accentPrimary"
+                color="brand.accentPrimary"
+                leftIcon={<Icon as={Plus} w="4" h="4" />}
+                onClick={addCompensationItem}
                 _hover={{
-                  color: "brand.textPrimary"
+                  bg: "brand.accentPrimary.50"
                 }}
               >
-                Finish Later
+                Add another form of compensation
               </Button>
 
-              <Flex gap={4}>
+              {/* Navigation */}
+              <Flex justify="space-between" align="center" pt={8} w="full">
                 <Button
-                  leftIcon={<Icon as={ChevronLeft} w="5" h="5" />}
-                  variant="outline"
+                  leftIcon={<Icon as={Clock} w="5" h="5" />}
+                  variant="ghost"
                   h="12"
                   px="6"
                   fontSize="base"
                   fontWeight="medium"
-                  borderColor="brand.accentSecondary"
                   color="brand.textSecondary"
-                  onClick={() => {
-                    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-                    // ALL deal types go back to compliance step
-                    navigate(`/add/deal/compliance/${dealId}${typeParam}`);
-                  }}
+                  onClick={handleFinishLater}
                   _hover={{
-                    bg: "brand.backgroundLight",
-                    borderColor: "brand.accentPrimary",
                     color: "brand.textPrimary"
                   }}
                 >
-                  Back
+                  Finish Later
                 </Button>
-                <Button
-                  rightIcon={<Icon as={ChevronRight} w="5" h="5" />}
-                  h="12"
-                  px="8"
-                  fontSize="base"
-                  fontWeight="semibold"
-                  bg={isFormValid() ? "brand.accentPrimary" : "brand.accentSecondary"}
-                  color="white"
-                  isDisabled={!isFormValid()}
-                  onClick={handleNext}
-                  transition="all 0.2s"
-                  _hover={
-                    isFormValid()
-                      ? {
-                          transform: "scale(1.05)",
-                          shadow: "xl"
-                        }
-                      : {}
-                  }
-                  _disabled={{
-                    opacity: 0.6,
-                    cursor: "not-allowed"
-                  }}
-                >
-                  Next
-                </Button>
+
+                <Flex gap={4}>
+                  <Button
+                    leftIcon={<Icon as={ChevronLeft} w="5" h="5" />}
+                    variant="outline"
+                    h="12"
+                    px="6"
+                    fontSize="base"
+                    fontWeight="medium"
+                    borderColor="brand.accentSecondary"
+                    color="brand.textSecondary"
+                    onClick={() => {
+                      const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+                      // ALL deal types go back to compliance step
+                      navigate(`/add/deal/compliance/${dealId}${typeParam}`);
+                    }}
+                    _hover={{
+                      bg: "brand.backgroundLight",
+                      borderColor: "brand.accentPrimary",
+                      color: "brand.textPrimary"
+                    }}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    rightIcon={<Icon as={ChevronRight} w="5" h="5" />}
+                    h="12"
+                    px="8"
+                    fontSize="base"
+                    fontWeight="semibold"
+                    bg={isFormValid() ? "brand.accentPrimary" : "brand.accentSecondary"}
+                    color="white"
+                    isDisabled={!isFormValid()}
+                    onClick={handleNext}
+                    transition="all 0.2s"
+                    _hover={
+                      isFormValid()
+                        ? {
+                            transform: "scale(1.05)",
+                            shadow: "xl"
+                          }
+                        : {}
+                    }
+                    _disabled={{
+                      opacity: 0.6,
+                      cursor: "not-allowed"
+                    }}
+                  >
+                    Next
+                  </Button>
+                </Flex>
               </Flex>
-            </Flex>
-          </VStack>
+            </VStack>
+          </Box>
         </Box>
-      </Box>
-    </Container>
+      </Container>
+    </DealWizardStepWrapper>
   );
 };
 
