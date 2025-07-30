@@ -280,6 +280,10 @@ const Dashboard = () => {
   const handleDealTypeSelect = async (dealType) => {
     console.log('[Dashboard] ===== STARTING DEAL CREATION FLOW =====');
     console.log('[Dashboard] handleDealTypeSelect called with dealType:', dealType);
+    console.log('[Dashboard] createDraftDeal type:', typeof createDraftDeal);
+    console.log('[Dashboard] user:', user);
+    console.log('[Dashboard] navigate function:', typeof navigate);
+    console.log('[Dashboard] toast function:', typeof toast);
     
     // Safety check: Ensure createDraftDeal is defined
     if (typeof createDraftDeal !== 'function') {
@@ -294,20 +298,8 @@ const Dashboard = () => {
       return;
     }
     
-    // Start Sentry transaction for deal creation
-    const transaction = Sentry.startTransaction({
-      name: `Deal Creation - ${dealType}`,
-      op: 'deal.creation'
-    });
-    
-    Sentry.setContext('deal_creation', {
-      dealType,
-      userId: user?.id,
-      timestamp: new Date().toISOString()
-    });
-    
     try {
-      console.log('[Dashboard] Creating draft deal...');
+      console.log('[Dashboard] About to call createDraftDeal...');
       const newDeal = await createDraftDeal(dealType);
       console.log('[Dashboard] Draft deal created:', newDeal);
       
@@ -318,18 +310,6 @@ const Dashboard = () => {
       // Navigate to the appropriate workflow based on deal type
       const targetUrl = `/add/deal/social-media/${newDeal.id}?type=${dealType}`;
       console.log('[Dashboard] Navigating to:', targetUrl);
-      
-      // Track navigation in Sentry
-      Sentry.addBreadcrumb({
-        category: 'navigation',
-        message: `Navigating to deal wizard`,
-        level: 'info',
-        data: {
-          targetUrl,
-          dealId: newDeal.id,
-          dealType
-        }
-      });
       
       switch (dealType) {
         case 'simple':
@@ -352,31 +332,12 @@ const Dashboard = () => {
       console.log('[Dashboard] Navigation completed');
       console.log('[Dashboard] ===== DEAL CREATION FLOW COMPLETE =====');
       
-      // Mark transaction as successful
-      transaction.setStatus('ok');
-      
-      // Refresh the deals list after creating a new deal
-      await fetchDeals();
+      // Temporarily comment out fetchDeals to isolate the issue
+      // await fetchDeals();
     } catch (error) {
       console.error('[Dashboard] ===== ERROR IN DEAL CREATION FLOW =====');
       console.error('[Dashboard] Error in handleDealTypeSelect:', error);
-      
-      // Capture error in Sentry
-      Sentry.captureException(error, {
-        tags: {
-          component: 'Dashboard',
-          action: 'handleDealTypeSelect',
-          dealType
-        },
-        extra: {
-          dealType,
-          userId: user?.id,
-          errorMessage: error.message
-        }
-      });
-      
-      // Mark transaction as failed
-      transaction.setStatus('internal_error');
+      console.error('[Dashboard] Error stack:', error.stack);
       
       // Handle backend not available for development
       if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
@@ -396,8 +357,6 @@ const Dashboard = () => {
           isClosable: true,
         });
       }
-    } finally {
-      transaction.finish();
     }
   };
 
