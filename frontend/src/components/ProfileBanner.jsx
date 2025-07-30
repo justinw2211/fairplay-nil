@@ -124,19 +124,6 @@ const ProfileBanner = ({
     avatar_url: profile?.avatar_url || profile?.profile_image || ''
   };
 
-  // Status badge configuration
-  const getStatusBadge = () => {
-    if (profileData.completionPercentage >= 90) {
-      return { text: 'Complete', colorScheme: 'green' };
-    } else if (profileData.completionPercentage >= 70) {
-      return { text: 'Almost Done', colorScheme: 'orange' };
-    } else {
-      return { text: 'Needs Work', colorScheme: 'red' };
-    }
-  };
-
-  const statusBadge = getStatusBadge();
-
   // Loading state - only show if truly loading and not initialized
   if (loading && !hasInitialized) {
     return (
@@ -319,29 +306,17 @@ const ProfileBanner = ({
                   <Button
                     leftIcon={<FiUser />}
                     size={buttonSize}
-                    bg="white"
-                    color="brand.accentPrimary"
-                    borderColor="white"
+                    variant="ghost"
+                    color="white"
                     _hover={{
-                      bg: 'brand.backgroundLight',
+                      bg: 'rgba(255, 255, 255, 0.1)',
                       transform: 'scale(1.05)'
                     }}
                     onClick={onContactOpen}
-                    shadow="md"
                   >
                     Contact
                   </Button>
                 </Tooltip>
-                <Badge
-                  colorScheme={statusBadge.colorScheme}
-                  variant="solid"
-                  px={3}
-                  py={1}
-                  borderRadius="full"
-                  fontSize="xs"
-                >
-                  {statusBadge.text}
-                </Badge>
               </VStack>
             </Flex>
           </Box>
