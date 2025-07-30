@@ -145,6 +145,23 @@ async def store_valuation_prediction(
         logger.error(f"Error storing valuation prediction for deal {deal_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
+@router.get("/deals/{deal_id}", response_model=DealResponse, summary="Get a specific deal")
+async def get_deal(deal_id: int, user_id: str = Depends(get_user_id)):
+    """Get a specific deal by ID with user authorization."""
+    try:
+        data = db.client.from_("deals").select(DEAL_SELECT_FIELDS).eq("id", deal_id).eq("user_id", user_id).execute()
+        
+        if not data.data:
+            raise HTTPException(status_code=404, detail="Deal not found")
+        
+        deal = data.data[0]
+        return DealResponse(**deal)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching deal {deal_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
 @router.get("/deals/{deal_id}/prediction/{prediction_type}", summary="Get prediction data")
 async def get_prediction(
     deal_id: int,
