@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import { useAuth } from '../../context/AuthContext';
@@ -31,15 +31,20 @@ const Step0_SocialMedia = () => {
   const { dealId } = useParams();
   const [searchParams] = useSearchParams();
   const dealType = searchParams.get('type') || 'standard';
-  const { deal, updateDeal } = useDeal();
+  const { currentDeal, updateDeal } = useDeal();
   const { user } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
 
+  console.log('[Step0_SocialMedia] ===== COMPONENT RENDERED =====');
+  console.log('[Step0_SocialMedia] dealId:', dealId);
+  console.log('[Step0_SocialMedia] dealType:', dealType);
+  console.log('[Step0_SocialMedia] currentDeal:', currentDeal);
+  console.log('[Step0_SocialMedia] user authenticated:', !!user);
+
   const [socialMediaData, setSocialMediaData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [formValid, setFormValid] = useState(false);
 
   // Reference to trigger form submission
   const formRef = useRef(null);

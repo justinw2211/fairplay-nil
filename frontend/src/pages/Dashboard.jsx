@@ -273,6 +273,7 @@ const Dashboard = () => {
   }, [user, loadSocialMediaData]);
 
   const handleDealTypeSelect = async (dealType) => {
+    console.log('[Dashboard] ===== STARTING DEAL CREATION FLOW =====');
     console.log('[Dashboard] handleDealTypeSelect called with dealType:', dealType);
     
     try {
@@ -290,23 +291,29 @@ const Dashboard = () => {
       
       switch (dealType) {
         case 'simple':
+          console.log('[Dashboard] Routing to SIMPLE deal workflow');
           navigate(`/add/deal/social-media/${newDeal.id}?type=simple`);
           break;
         case 'clearinghouse':
+          console.log('[Dashboard] Routing to CLEARINGHOUSE deal workflow');
           navigate(`/add/deal/social-media/${newDeal.id}?type=clearinghouse`);
           break;
         case 'valuation':
+          console.log('[Dashboard] Routing to VALUATION deal workflow');
           navigate(`/add/deal/social-media/${newDeal.id}?type=valuation`);
           break;
         default:
+          console.log('[Dashboard] Routing to DEFAULT deal workflow');
           navigate(`/add/deal/social-media/${newDeal.id}`);
       }
 
       console.log('[Dashboard] Navigation completed');
+      console.log('[Dashboard] ===== DEAL CREATION FLOW COMPLETE =====');
       
       // Refresh the deals list after creating a new deal
       await fetchDeals();
     } catch (error) {
+      console.error('[Dashboard] ===== ERROR IN DEAL CREATION FLOW =====');
       console.error('[Dashboard] Error in handleDealTypeSelect:', error);
       
       // Handle backend not available for development
