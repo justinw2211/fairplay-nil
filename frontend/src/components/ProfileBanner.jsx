@@ -236,9 +236,19 @@ const ProfileBanner = ({
           profile?.last_name ||
           profile?.email?.split('@')[0] ||
           profile?.user_metadata?.full_name ||
+          // Handle Supabase user object structure
+          (profile?.user_metadata?.first_name && profile?.user_metadata?.last_name
+            ? `${profile.user_metadata.first_name} ${profile.user_metadata.last_name}`
+            : profile?.user_metadata?.first_name || profile?.user_metadata?.last_name) ||
+          // Email prefix as last resort
+          (profile?.email ? profile.email.split('@')[0] : null) ||
           'Student-Athlete',
     initials: profile?.initials ||
               (profile?.displayName || profile?.full_name || profile?.first_name || profile?.last_name || profile?.email)?.substring(0, 2).toUpperCase() ||
+              // Handle Supabase user metadata for initials
+              (profile?.user_metadata?.first_name && profile?.user_metadata?.last_name
+                ? `${profile.user_metadata.first_name[0]}${profile.user_metadata.last_name[0]}`
+                : profile?.user_metadata?.first_name?.[0] || profile?.user_metadata?.last_name?.[0]) ||
               'SA',
     university: profile?.university || profile?.school || 'University',
     sports: profile?.sports?.join(', ') || profile?.sport || 'Sport',
@@ -251,6 +261,19 @@ const ProfileBanner = ({
     bio: profile?.bio || profile?.description || '',
     avatar_url: profile?.avatar_url || profile?.profile_image || ''
   };
+
+  // Temporary debugging to understand the issue
+  console.log('ProfileBanner Debug:', {
+    profile: profile,
+    profileData: profileData,
+    displayName: profile?.displayName,
+    fullName: profile?.full_name,
+    firstName: profile?.first_name,
+    lastName: profile?.last_name,
+    email: profile?.email,
+    userMetadata: profile?.user_metadata,
+    finalName: profileData.name
+  });
 
   // Social media data with calculations
   const socialMediaInfo = {
