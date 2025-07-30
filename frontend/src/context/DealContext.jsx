@@ -22,6 +22,7 @@ export const useDeal = () => {
 // Provider component
 export const DealProvider = ({ children }) => {
   const [deals, setDeals] = useState([]);
+  const [currentDeal, setCurrentDeal] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { user: _user } = useAuth(); // Prefix with underscore to indicate intentionally unused
@@ -179,6 +180,10 @@ export const DealProvider = ({ children }) => {
 
       const data = await response.json();
       console.log('[DealContext] Deal data received:', data);
+      
+      // Set the current deal in state
+      setCurrentDeal(data);
+      
       return data;
     } catch (err) {
       const errorMessage = err.message || 'Failed to fetch deal';
@@ -198,7 +203,8 @@ export const DealProvider = ({ children }) => {
     error,
     createDraftDeal,
     updateDeal,
-    fetchDealById
+    fetchDealById,
+    currentDeal
   };
 
   return (

@@ -7,13 +7,13 @@ import { Spinner, Flex } from '@chakra-ui/react';
 const DealWizardRoute = ({ children }) => {
   const { dealId } = useParams();
   const navigate = useNavigate();
-  const { deal, fetchDealById } = useDeal();
+  const { currentDeal, fetchDealById } = useDeal();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
 
   console.log('[DealWizardRoute] Component rendered with dealId:', dealId);
   console.log('[DealWizardRoute] User:', user ? 'authenticated' : 'not authenticated');
-  console.log('[DealWizardRoute] Deal:', deal);
+  console.log('[DealWizardRoute] currentDeal:', currentDeal);
   console.log('[DealWizardRoute] isLoading:', isLoading);
 
   useEffect(() => {
@@ -58,8 +58,8 @@ const DealWizardRoute = ({ children }) => {
   }
 
   // Then check deal data
-  console.log('[DealWizardRoute] Rendering children, deal exists:', !!deal);
-  return deal ? children : null;
+  console.log('[DealWizardRoute] Rendering children, deal exists:', !!currentDeal);
+  return currentDeal ? children : null;
 };
 
 export default DealWizardRoute;
