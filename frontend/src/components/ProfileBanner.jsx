@@ -18,7 +18,6 @@ import {
   Skeleton,
   SkeletonCircle,
   SimpleGrid,
-  Circle,
   ScaleFade,
   SlideFade,
   usePrefersReducedMotion,
@@ -37,7 +36,6 @@ import {
   FiCalendar,
   FiTrendingUp,
   FiMail,
-  FiStar,
   FiUsers,
   FiBookOpen,
   FiChevronDown,
@@ -89,7 +87,9 @@ const ProfileBanner = ({
 
   // Memoized social media data fetching
   const fetchSocialMediaData = useCallback(async () => {
-    if (!showSocialMedia || loading) {return;}
+    if (!showSocialMedia || loading) {
+      return;
+    }
 
     try {
       const data = await fetchSocialMedia();
@@ -98,129 +98,83 @@ const ProfileBanner = ({
       console.error('Error fetching social media:', error);
       setSocialMediaData([]);
 
-      // Show toast notification for social media errors (but not too frequently)
-      const errorKey = `social_media_${error.message}`;
+      // Show error toast only once per error
+      const errorKey = error.message || 'unknown';
       if (lastErrorShown !== errorKey) {
         setLastErrorShown(errorKey);
         toast({
-          title: "Social Media Loading Error",
-          description: "Unable to load social media data. Using cached information.",
+          title: "Social Media Error",
+          description: "Unable to load social media data. Please try again.",
           status: "warning",
-          duration: 4000,
+          duration: 5000,
           isClosable: true,
-          position: "bottom-right"
         });
       }
     }
-  }, [showSocialMedia, loading, fetchSocialMedia, lastErrorShown, toast]);
+  }, [showSocialMedia, loading, fetchSocialMedia, toast, lastErrorShown]);
 
-  // Fetch social media data on component mount
+  // Fetch social media data on mount and when dependencies change
   useEffect(() => {
     fetchSocialMediaData();
   }, [fetchSocialMediaData]);
 
-  // Calculate profile completion percentage
-  const calculateProfileCompletion = useCallback((profileData) => {
-    if (!profileData) {return 0;}
+  // Profile completion calculation
+  const calculateProfileCompletion = useCallback((profile) => {
+    if (!profile) {
+      return 0;
+    }
 
-    const requiredFields = [
-      'full_name', 'displayName', 'first_name', 'last_name', // Name fields
-      'university', 'school', // University fields
-      'sports', 'sport', // Sport fields
-      'division' // Division field
+    const fields = [
+      profile?.displayName || profile?.full_name || profile?.first_name || profile?.last_name,
+      profile?.university || profile?.school,
+      profile?.sports || profile?.sport,
+      profile?.division
     ];
 
-    const optionalFields = [
-      'phone', 'phone_number', // Phone fields
-      'expected_graduation_year', // Graduation field
-      'avatar_url', 'profile_image', // Avatar fields
-      'bio', 'description', // Bio fields
-      'email' // Email field
-    ];
-
-    // Check required fields (worth 60% of completion)
-    const filledRequired = requiredFields.filter(field => {
-      const value = profileData[field];
-      return value && value !== '' && value !== null && value !== undefined;
-    }).length;
-
-    // Check optional fields (worth 40% of completion)
-    const filledOptional = optionalFields.filter(field => {
-      const value = profileData[field];
-      return value && value !== '' && value !== null && value !== undefined;
-    }).length;
-
-    // Calculate completion percentage
-    const requiredScore = (filledRequired / Math.min(requiredFields.length, 4)) * 60; // Cap at 4 required fields
-    const optionalScore = (filledOptional / optionalFields.length) * 40;
-
-    return Math.min(Math.round(requiredScore + optionalScore), 100);
+    const completedFields = fields.filter(Boolean).length;
+    return Math.round((completedFields / fields.length) * 100);
   }, []);
 
-  // Calculate social media completion
-  const calculateSocialMediaCompletion = useCallback((socialPlatforms) => {
-    if (!socialPlatforms || socialPlatforms.length === 0) {return 0;}
-
-    const totalPlatforms = 3; // Instagram, Twitter, TikTok
-    const activePlatforms = socialPlatforms.filter(platform =>
-      platform.handle && platform.followers >= 0
-    ).length;
-
-    return Math.min((activePlatforms / totalPlatforms) * 100, 100);
+  // Social media completion calculation
+  const calculateSocialMediaCompletion = useCallback((platforms) => {
+    if (!platforms || platforms.length === 0) {
+      return 0;
+    }
+    const validPlatforms = platforms.filter(p => p.platform && p.handle);
+    return Math.round((validPlatforms.length / Math.max(platforms.length, 1)) * 100);
   }, []);
 
-  // Calculate total follower count
-  const calculateTotalFollowers = useCallback((socialPlatforms) => {
-    if (!socialPlatforms || socialPlatforms.length === 0) {return 0;}
-
-    return socialPlatforms.reduce((total, platform) => {
-      return total + (platform.followers || 0);
+  // Total followers calculation
+  const calculateTotalFollowers = useCallback((platforms) => {
+    if (!platforms || platforms.length === 0) {
+      return 0;
+    }
+    return platforms.reduce((total, platform) => {
+      return total + (parseInt(platform.followers) || 0);
     }, 0);
   }, []);
 
-  // Retry handler for failed operations
-  const handleRetry = useCallback(async () => {
-    try {
-      await fetchSocialMediaData();
-      toast({
-        title: "Retry Successful",
-        description: "Data has been refreshed successfully.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-        position: "bottom-right"
-      });
-    } catch (error) {
-      toast({
-        title: "Retry Failed",
-        description: "Unable to refresh data. Please try again later.",
-        status: "error",
-        duration: 4000,
-        isClosable: true,
-        position: "bottom-right"
-      });
-    }
-  }, [fetchSocialMediaData, toast]);
+  // Retry handler for social media
+  const handleRetry = useCallback(() => {
+    fetchSocialMediaData();
+  }, [fetchSocialMediaData]);
 
-  // Theme values
+  // Responsive design values
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
-  const gradientBg = useColorModeValue(
-    'linear(to-r, brand.accentPrimary, #a69690)',
-    'linear(to-r, brand.accentPrimary, #a69690)'
-  );
+  const textOnCard = useColorModeValue('gray.800', 'white');
+  const textSecondary = useColorModeValue('gray.600', 'gray.400');
   const textOnGradient = 'white';
-  const textOnCard = useColorModeValue('brand.textPrimary', 'white');
-  const textSecondary = useColorModeValue('brand.textSecondary', 'gray.400');
+  const gradientStart = 'brand.accentPrimary';
+  const gradientEnd = 'brand.accentSecondary';
 
-  // Enhanced responsive values with more granular breakpoints
+  // Responsive sizing
   const isMobile = useBreakpointValue({ base: true, md: false });
   const isTablet = useBreakpointValue({ base: false, md: true, lg: false });
   const isDesktop = useBreakpointValue({ base: false, lg: true });
-
-  const avatarSize = useBreakpointValue({ base: 'lg', sm: 'xl', md: '2xl' });
-  const cardPadding = useBreakpointValue({ base: 3, sm: 4, md: 6 });
-  const titleSize = useBreakpointValue({ base: 'lg', sm: 'xl', md: '2xl' });
+  const cardPadding = useBreakpointValue({ base: 4, md: 6 });
+  const avatarSize = useBreakpointValue({ base: 'lg', md: 'xl' });
+  const titleSize = useBreakpointValue({ base: 'xl', md: '2xl' });
   const spacing = useBreakpointValue({ base: 3, sm: 4, md: 6 });
   const flexDirection = useBreakpointValue({ base: 'column', lg: 'row' });
   const textAlign = useBreakpointValue({ base: 'center', lg: 'left' });
@@ -262,19 +216,6 @@ const ProfileBanner = ({
     avatar_url: profile?.avatar_url || profile?.profile_image || ''
   };
 
-  // Temporary debugging to understand the issue
-  console.log('ProfileBanner Debug:', {
-    profile: profile,
-    profileData: profileData,
-    displayName: profile?.displayName,
-    fullName: profile?.full_name,
-    firstName: profile?.first_name,
-    lastName: profile?.last_name,
-    email: profile?.email,
-    userMetadata: profile?.user_metadata,
-    finalName: profileData.name
-  });
-
   // Social media data with calculations
   const socialMediaInfo = {
     platforms: socialMediaData,
@@ -310,28 +251,32 @@ const ProfileBanner = ({
         overflow="hidden"
         mb={6}
         shadow="lg"
-        {...props}
       >
-        <CardBody p={cardPadding}>
-          <Flex
-            direction={flexDirection}
-            align="center"
-            justify="space-between"
-            gap={spacing}
+        <CardBody p={0}>
+          {/* Gradient Header Skeleton */}
+          <Box
+            bgGradient={`linear(to-r, ${gradientStart}, ${gradientEnd})`}
+            p={cardPadding}
           >
-            <HStack spacing={spacing} flex={1}>
-              <SkeletonCircle size={avatarSize === '2xl' ? '96px' : '80px'} />
-              <VStack align="start" spacing={2} flex={1}>
-                <Skeleton height="32px" width="200px" />
-                <Skeleton height="20px" width="150px" />
-                <Skeleton height="16px" width="300px" />
+            <Flex
+              direction={flexDirection}
+              align="center"
+              justify="space-between"
+              gap={spacing}
+            >
+              <HStack spacing={spacing} flex={1}>
+                <SkeletonCircle size={avatarSize} />
+                <VStack align={textAlign === 'center' ? 'center' : 'start'} spacing={2} flex={1}>
+                  <Skeleton height="24px" width="200px" />
+                  <Skeleton height="16px" width="150px" />
+                </VStack>
+              </HStack>
+              <VStack spacing={3} align="center">
+                <Skeleton height="32px" width="100px" />
+                <Skeleton height="20px" width="80px" />
               </VStack>
-            </HStack>
-            <VStack spacing={2}>
-              <Skeleton height="40px" width="120px" />
-              <Skeleton height="24px" width="80px" />
-            </VStack>
-          </Flex>
+            </Flex>
+          </Box>
         </CardBody>
       </Card>
     );
@@ -365,160 +310,136 @@ const ProfileBanner = ({
         <CardBody p={0}>
           {/* Gradient Header Section */}
           <Box
-            bgGradient={gradientBg}
+            bgGradient={`linear(to-r, ${gradientStart}, ${gradientEnd})`}
+            p={cardPadding}
             position="relative"
             overflow="hidden"
-            p={cardPadding}
           >
             {/* Background Pattern */}
             <Box
               position="absolute"
-              top={0}
-              left={0}
-              right={0}
-              bottom={0}
-              opacity={0.1}
-              bg="repeating-linear-gradient(
-                45deg,
-                white,
-                white 10px,
-                transparent 10px,
-                transparent 20px
-              )"
+              top="0"
+              right="0"
+              width="200px"
+              height="200px"
+              opacity="0.1"
+              background="radial-gradient(circle, white 2px, transparent 2px)"
+              backgroundSize="20px 20px"
+              transform="rotate(45deg)"
             />
 
-            {/* Header Content */}
-            <Box position="relative">
-              <Flex
-                direction={flexDirection}
-                align="center"
-                justify="space-between"
-                gap={spacing}
-              >
-                {/* Profile Info Section */}
-                <HStack spacing={spacing} flex={1} textAlign={textAlign}>
-                  {/* Avatar with Status Indicator */}
-                  <SlideFade
-                    in={!loading}
-                    offsetY="20px"
-                    delay={prefersReducedMotion ? 0 : 0.1}
-                  >
-                    <Box position="relative">
-                      <Avatar
-                        size={avatarSize}
-                        name={profileData.name}
-                        src={profile?.avatar_url}
-                        bg="white"
-                        color="brand.accentPrimary"
-                        border="4px solid"
-                        borderColor="white"
-                        shadow="lg"
-                        transition={prefersReducedMotion ? "none" : "all 0.3s ease"}
-                        _hover={{
-                          shadow: "xl",
-                          transform: prefersReducedMotion ? "none" : "scale(1.05)"
-                        }}
-                        cursor="pointer"
-                      />
-                      {/* Status Indicator */}
-                      <Circle
-                        size="6"
-                        animation={prefersReducedMotion ? "none" : `${pulseKeyframes} 2s infinite`}
-                      bg={statusBadge.colorScheme === 'green' ? 'green.500' : 'orange.500'}
-                      position="absolute"
-                      bottom="0"
-                      right="0"
-                      border="2px solid"
-                      borderColor="white"
-                    >
-                      <Icon
-                        as={statusBadge.colorScheme === 'green' ? FiStar : FiTrendingUp}
-                        boxSize="3"
-                        color="white"
-                      />
-                    </Circle>
-                  </Box>
-                  </SlideFade>
+            <Flex
+              direction={flexDirection}
+              align="center"
+              justify="space-between"
+              gap={spacing}
+              position="relative"
+              zIndex={1}
+            >
+              {/* Profile Info Section */}
+              <HStack spacing={spacing} flex={1} textAlign={textAlign}>
+                {/* Avatar */}
+                <SlideFade
+                  in={!loading}
+                  offsetY="20px"
+                  delay={prefersReducedMotion ? 0 : 0.1}
+                >
+                  <Avatar
+                    size={avatarSize}
+                    name={profileData.name}
+                    src={profile?.avatar_url}
+                    bg="white"
+                    color="brand.accentPrimary"
+                    border="4px solid"
+                    borderColor="white"
+                    shadow="lg"
+                    transition={prefersReducedMotion ? "none" : "all 0.3s ease"}
+                    _hover={{
+                      shadow: "xl",
+                      transform: prefersReducedMotion ? "none" : "scale(1.05)"
+                    }}
+                    cursor="pointer"
+                  />
+                </SlideFade>
 
-                  {/* Name and Details */}
-                  <VStack align={textAlign === 'center' ? 'center' : 'start'} spacing={2} flex={1}>
-                    <HStack spacing={3} flexWrap="wrap" justify={textAlign === 'center' ? 'center' : 'start'}>
-                      <Text
-                        fontSize={titleSize}
-                        fontWeight="bold"
-                        color={textOnGradient}
-                        lineHeight="none"
-                      >
-                        {profileData.name}
-                      </Text>
-                      <Badge
-                        bg="white"
-                        color="brand.accentPrimary"
-                        fontWeight="bold"
-                        px={3}
-                        py={1}
-                        borderRadius="full"
-                      >
-                        {profileData.division}
-                      </Badge>
-                    </HStack>
-
-                    <HStack
-                      spacing={6}
+                {/* Name and Details */}
+                <VStack align={textAlign === 'center' ? 'center' : 'start'} spacing={2} flex={1}>
+                  <HStack spacing={3} flexWrap="wrap" justify={textAlign === 'center' ? 'center' : 'start'}>
+                    <Text
+                      fontSize={titleSize}
+                      fontWeight="bold"
                       color={textOnGradient}
-                      opacity={0.9}
-                      fontSize="md"
-                      flexWrap="wrap"
-                      justify={textAlign === 'center' ? 'center' : 'start'}
+                      lineHeight="none"
                     >
-                      <HStack spacing={2}>
-                        <Icon as={FiMapPin} boxSize="4" />
-                        <Text>{profileData.university}</Text>
-                      </HStack>
-                      <HStack spacing={2}>
-                        <Icon as={FiAward} boxSize="4" />
-                        <Text>{profileData.sports}</Text>
-                      </HStack>
-                      <HStack spacing={2}>
-                        <Icon as={FiCalendar} boxSize="4" />
-                        <Text>{profileData.graduationYear}</Text>
-                      </HStack>
-                    </HStack>
-                  </VStack>
-                </HStack>
-
-                {/* Action Buttons */}
-                <VStack spacing={3} align="center">
-                  <Tooltip label="Edit Profile" placement="top">
-                    <Button
-                      leftIcon={<FiEdit2 />}
-                      size={buttonSize}
+                      {profileData.name}
+                    </Text>
+                    <Badge
                       bg="white"
                       color="brand.accentPrimary"
-                      borderColor="white"
-                      _hover={{
-                        bg: 'brand.backgroundLight',
-                        transform: 'scale(1.05)'
-                      }}
-                      onClick={onEditClick}
-                      shadow="md"
+                      fontWeight="bold"
+                      px={3}
+                      py={1}
+                      borderRadius="full"
                     >
-                      Edit Profile
-                    </Button>
-                  </Tooltip>
-                  <Badge
-                    colorScheme={statusBadge.colorScheme}
-                    variant="solid"
-                    px={3}
-                    py={1}
-                    borderRadius="full"
-                    fontSize="xs"
+                      {profileData.division}
+                    </Badge>
+                  </HStack>
+
+                  <HStack
+                    spacing={6}
+                    color={textOnGradient}
+                    opacity={0.9}
+                    fontSize="md"
+                    flexWrap="wrap"
+                    justify={textAlign === 'center' ? 'center' : 'start'}
                   >
-                    {statusBadge.text}
-                  </Badge>
+                    <HStack spacing={2}>
+                      <Icon as={FiMapPin} boxSize="4" />
+                      <Text>{profileData.university}</Text>
+                    </HStack>
+                    <HStack spacing={2}>
+                      <Icon as={FiAward} boxSize="4" />
+                      <Text>{profileData.sports}</Text>
+                    </HStack>
+                    <HStack spacing={2}>
+                      <Icon as={FiCalendar} boxSize="4" />
+                      <Text>{profileData.graduationYear}</Text>
+                    </HStack>
+                  </HStack>
                 </VStack>
-              </Flex>
-            </Box>
+              </HStack>
+
+              {/* Action Buttons */}
+              <VStack spacing={3} align="center">
+                <Tooltip label="Edit Profile" placement="top">
+                  <Button
+                    leftIcon={<FiEdit2 />}
+                    size={buttonSize}
+                    bg="white"
+                    color="brand.accentPrimary"
+                    borderColor="white"
+                    _hover={{
+                      bg: 'brand.backgroundLight',
+                      transform: 'scale(1.05)'
+                    }}
+                    onClick={onEditClick}
+                    shadow="md"
+                  >
+                    Edit Profile
+                  </Button>
+                </Tooltip>
+                <Badge
+                  colorScheme={statusBadge.colorScheme}
+                  variant="solid"
+                  px={3}
+                  py={1}
+                  borderRadius="full"
+                  fontSize="xs"
+                >
+                  {statusBadge.text}
+                </Badge>
+              </VStack>
+            </Flex>
           </Box>
 
           {/* Stats Section */}
@@ -544,206 +465,171 @@ const ProfileBanner = ({
                 columns={stackStats ? 1 : { base: 1, md: 3 }}
                 spacing={compactView ? 4 : 6}
               >
-              {/* Profile Completion */}
-              <VStack spacing={2}>
-                <HStack spacing={2} w="full" justify="space-between">
-                  <HStack spacing={2}>
-                    <Icon as={FiBookOpen} color="brand.accentPrimary" boxSize="4" />
-                    <Text fontSize="sm" fontWeight="medium" color={textOnCard}>
-                      Profile Completion
-                    </Text>
-                  </HStack>
-                  <Tooltip
-                    label={`${profileData.completionPercentage}% Complete. Essential fields: Name, University, Sport, Division. Bonus: Phone, Bio, Avatar.`}
-                    placement="top"
-                  >
-                    <HStack spacing={2}>
-                      <Text fontSize="sm" fontWeight="bold" color={textOnCard}>
-                        {profileData.completionPercentage}%
-                      </Text>
-                      <Icon
-                        as={profileData.isComplete ? FiCheck : FiTrendingUp}
-                        color={profileData.isComplete ? "green.500" : "orange.500"}
-                        boxSize="3"
-                      />
-                    </HStack>
-                  </Tooltip>
-                </HStack>
-                <Progress
-                  value={profileData.completionPercentage}
-                  size="sm"
-                  borderRadius="full"
-                  bg="brand.backgroundLight"
-                  colorScheme={statusBadge.colorScheme}
-                  w="full"
-                  hasStripe={!prefersReducedMotion}
-                  isAnimated={!prefersReducedMotion}
-                  transition="all 0.5s ease"
-                />
-                {!compactView && profileData.completionPercentage < 100 && (
-                  <VStack spacing={1} w="full" align="start">
-                    <Text fontSize="xs" color={textSecondary} fontWeight="medium">
-                      Missing fields:
-                    </Text>
-                    <HStack spacing={2} flexWrap="wrap">
-                      {!profileData.name && (
-                        <Badge colorScheme="orange" variant="outline" fontSize="xs">Name</Badge>
-                      )}
-                      {!profileData.university && (
-                        <Badge colorScheme="orange" variant="outline" fontSize="xs">University</Badge>
-                      )}
-                      {!profileData.sports && (
-                        <Badge colorScheme="orange" variant="outline" fontSize="xs">Sport</Badge>
-                      )}
-                      {!profileData.division && (
-                        <Badge colorScheme="orange" variant="outline" fontSize="xs">Division</Badge>
-                      )}
-                      {!profileData.phone && (
-                        <Badge colorScheme="gray" variant="outline" fontSize="xs">Phone</Badge>
-                      )}
-                      {!profileData.bio && (
-                        <Badge colorScheme="gray" variant="outline" fontSize="xs">Bio</Badge>
-                      )}
-                      {!profileData.avatar_url && (
-                        <Badge colorScheme="gray" variant="outline" fontSize="xs">Avatar</Badge>
-                      )}
-                    </HStack>
-                  </VStack>
-                )}
-              </VStack>
-
-              {/* Social Media Status */}
-              {showSocialMedia && (
+                {/* Profile Completion */}
                 <VStack spacing={2}>
                   <HStack spacing={2} w="full" justify="space-between">
                     <HStack spacing={2}>
-                      <Icon as={FiUsers} color="brand.accentPrimary" boxSize="4" />
+                      <Icon as={FiBookOpen} color="brand.accentPrimary" boxSize="4" />
                       <Text fontSize="sm" fontWeight="medium" color={textOnCard}>
-                        Social Media
+                        Profile Completion
                       </Text>
                     </HStack>
-                    <HStack spacing={2}>
-                      <Badge
-                        colorScheme={socialMediaInfo.isComplete ? 'green' : 'orange'}
-                        variant="subtle"
-                        fontSize="xs"
-                      >
-                        {socialMediaInfo.count} Platform{socialMediaInfo.count !== 1 ? 's' : ''}
-                      </Badge>
-                      {socialMediaInfo.totalFollowers > 0 && (
-                        <Badge
-                          colorScheme="blue"
-                          variant="outline"
-                          fontSize="xs"
-                        >
-                          {socialMediaInfo.totalFollowers.toLocaleString()} followers
-                        </Badge>
-                      )}
-                    </HStack>
+                    <Tooltip
+                      label={`${profileData.completionPercentage}% Complete. Essential fields: Name, University, Sport, Division.`}
+                      placement="top"
+                    >
+                      <HStack spacing={2}>
+                        <Text fontSize="sm" fontWeight="bold" color={textOnCard}>
+                          {profileData.completionPercentage}%
+                        </Text>
+                        <Icon
+                          as={profileData.isComplete ? FiCheck : FiTrendingUp}
+                          color={profileData.isComplete ? "green.500" : "orange.500"}
+                          boxSize="3"
+                        />
+                      </HStack>
+                    </Tooltip>
                   </HStack>
                   <Progress
-                    value={socialMediaInfo.completionPercentage}
+                    value={profileData.completionPercentage}
                     size="sm"
                     borderRadius="full"
                     bg="brand.backgroundLight"
-                    colorScheme={socialMediaInfo.isComplete ? "green" : "orange"}
+                    colorScheme={statusBadge.colorScheme}
                     w="full"
                     hasStripe={!prefersReducedMotion}
                     isAnimated={!prefersReducedMotion}
                     transition="all 0.5s ease"
                   />
-                  {socialMediaInfo.platforms.length > 0 && !compactView && (
-                    <HStack spacing={2} w="full" justify="center">
-                      {socialMediaInfo.platforms.map((platform, index) => (
-                        <Tooltip key={index} label={`${platform.handle} - ${platform.followers?.toLocaleString()} followers`}>
+                </VStack>
+
+                {/* Social Media Status */}
+                {showSocialMedia && (
+                  <VStack spacing={2}>
+                    <HStack spacing={2} w="full" justify="space-between">
+                      <HStack spacing={2}>
+                        <Icon as={FiUsers} color="brand.accentPrimary" boxSize="4" />
+                        <Text fontSize="sm" fontWeight="medium" color={textOnCard}>
+                          Social Media
+                        </Text>
+                      </HStack>
+                      <VStack spacing={1} align="end">
+                        <Badge
+                          colorScheme={socialMediaInfo.isComplete ? 'green' : 'orange'}
+                          variant="subtle"
+                          fontSize="xs"
+                        >
+                          {socialMediaInfo.count} Platform{socialMediaInfo.count !== 1 ? 's' : ''}
+                        </Badge>
+                        {socialMediaInfo.totalFollowers > 0 && (
                           <Badge
-                            colorScheme="gray"
+                            colorScheme="blue"
                             variant="outline"
                             fontSize="xs"
-                            px={2}
-                            py={1}
-                            borderRadius="full"
                           >
-                            <HStack spacing={1}>
-                              <Icon
-                                as={platform.platform === 'instagram' ? FiInstagram :
-                                    platform.platform === 'twitter' ? FiTwitter :
-                                    platform.platform === 'tiktok' ? FiYoutube : FiUsers}
-                                boxSize="3"
-                              />
-                              <Text fontSize="xs">{platform.platform}</Text>
-                            </HStack>
+                            {socialMediaInfo.totalFollowers.toLocaleString()} followers
                           </Badge>
-                        </Tooltip>
-                      ))}
+                        )}
+                      </VStack>
                     </HStack>
-                                     )}
-                 </VStack>
-               )}
-
-              {/* Social Media Error Display */}
-              {showSocialMedia && socialMediaInfo.error && (
-                <Alert status="warning" borderRadius="md" fontSize="sm">
-                  <AlertIcon boxSize="4" />
-                  <VStack align="start" spacing={2} flex={1}>
-                    <AlertDescription>
-                      Unable to load social media data. Please try again.
-                    </AlertDescription>
-                    <Button
-                      size="xs"
-                      colorScheme="orange"
-                      variant="outline"
-                      leftIcon={<Icon as={FiEdit2} />}
-                      onClick={handleRetry}
-                      isLoading={socialMediaInfo.loading}
-                      loadingText="Retrying..."
-                    >
-                      Retry
-                    </Button>
-                  </VStack>
-                </Alert>
-              )}
-
-              {/* Contact Information */}
-              <VStack spacing={2}>
-                <HStack spacing={2} w="full" justify="space-between">
-                  <HStack spacing={2}>
-                    <Icon as={FiMail} color="brand.accentPrimary" boxSize="4" />
-                    <Text fontSize="sm" fontWeight="medium" color={textOnCard}>
-                      Contact
-                    </Text>
-                  </HStack>
-                  <VStack spacing={1} align="end">
-                    <Badge
-                      colorScheme={profileData.email ? 'green' : 'gray'}
-                      variant="subtle"
-                      fontSize="xs"
-                    >
-                      {profileData.email ? 'Email Set' : 'No Email'}
-                    </Badge>
-                    {profileData.phone && (
-                      <Badge
-                        colorScheme="blue"
-                        variant="outline"
-                        fontSize="xs"
-                      >
-                        Phone Set
-                      </Badge>
+                    <Progress
+                      value={socialMediaInfo.completionPercentage}
+                      size="sm"
+                      borderRadius="full"
+                      bg="brand.backgroundLight"
+                      colorScheme={socialMediaInfo.isComplete ? "green" : "orange"}
+                      w="full"
+                      hasStripe={!prefersReducedMotion}
+                      isAnimated={!prefersReducedMotion}
+                      transition="all 0.5s ease"
+                    />
+                    {socialMediaInfo.platforms.length > 0 && !compactView && (
+                      <HStack spacing={2} w="full" justify="center">
+                        {socialMediaInfo.platforms.map((platform, index) => (
+                          <Tooltip key={index} label={`${platform.handle} - ${platform.followers?.toLocaleString()} followers`}>
+                            <Badge
+                              colorScheme="gray"
+                              variant="outline"
+                              fontSize="xs"
+                              px={2}
+                              py={1}
+                              borderRadius="full"
+                            >
+                              <HStack spacing={1}>
+                                <Icon
+                                  as={platform.platform === 'instagram' ? FiInstagram :
+                                      platform.platform === 'twitter' ? FiTwitter :
+                                      platform.platform === 'tiktok' ? FiYoutube : FiUsers}
+                                  boxSize="3"
+                                />
+                                <Text fontSize="xs">{platform.platform}</Text>
+                              </HStack>
+                            </Badge>
+                          </Tooltip>
+                        ))}
+                      </HStack>
+                    )}
+                    {/* Missing Social Media Warning */}
+                    {socialMediaInfo.count === 0 && !compactView && (
+                      <VStack spacing={1} w="full" align="start">
+                        <Text fontSize="xs" color={textSecondary} fontWeight="medium">
+                          Missing social media:
+                        </Text>
+                        <HStack spacing={2} flexWrap="wrap">
+                          <Badge colorScheme="orange" variant="outline" fontSize="xs">Instagram</Badge>
+                          <Badge colorScheme="orange" variant="outline" fontSize="xs">Twitter/X</Badge>
+                          <Badge colorScheme="orange" variant="outline" fontSize="xs">TikTok</Badge>
+                        </HStack>
+                      </VStack>
                     )}
                   </VStack>
-                </HStack>
-                {profileData.email && !compactView && (
-                  <Text fontSize="xs" color={textSecondary} w="full" textAlign="left">
-                    {profileData.email}
-                  </Text>
                 )}
-                {profileData.phone && !compactView && (
-                  <Text fontSize="xs" color={textSecondary} w="full" textAlign="left">
-                    {profileData.phone}
-                  </Text>
+
+                {/* Social Media Error Display */}
+                {showSocialMedia && socialMediaInfo.error && (
+                  <Alert status="warning" borderRadius="md" fontSize="sm">
+                    <AlertIcon boxSize="4" />
+                    <VStack align="start" spacing={2} flex={1}>
+                      <AlertDescription>
+                        Unable to load social media data. Please try again.
+                      </AlertDescription>
+                      <Button
+                        size="xs"
+                        colorScheme="orange"
+                        variant="outline"
+                        leftIcon={<Icon as={FiEdit2} />}
+                        onClick={handleRetry}
+                        isLoading={socialMediaInfo.loading}
+                        loadingText="Retrying..."
+                      >
+                        Retry
+                      </Button>
+                    </VStack>
+                  </Alert>
                 )}
-              </VStack>
-            </SimpleGrid>
+
+                {/* Contact Information */}
+                <VStack spacing={2}>
+                  <HStack spacing={2} w="full" justify="space-between">
+                    <HStack spacing={2}>
+                      <Icon as={FiMail} color="brand.accentPrimary" boxSize="4" />
+                      <Text fontSize="sm" fontWeight="medium" color={textOnCard}>
+                        Contact
+                      </Text>
+                    </HStack>
+                  </HStack>
+                  {profileData.email && !compactView && (
+                    <Text fontSize="xs" color={textSecondary} w="full" textAlign="left">
+                      {profileData.email}
+                    </Text>
+                  )}
+                  {profileData.phone && !compactView && (
+                    <Text fontSize="xs" color={textSecondary} w="full" textAlign="left">
+                      {profileData.phone}
+                    </Text>
+                  )}
+                </VStack>
+              </SimpleGrid>
             </Collapse>
 
             {/* Call to Action for Profile Completion */}
@@ -804,7 +690,7 @@ const ProfileBanner = ({
                   borderColor="green.400"
                 >
                   <HStack spacing={2}>
-                    <Icon as={FiStar} color="green.600" boxSize="4" />
+                    <Icon as={FiCheck} color="green.600" boxSize="4" />
                     <Text fontSize="sm" color="green.700" fontWeight="medium">
                       🎉 Profile complete! You're ready for premium deal opportunities
                     </Text>
