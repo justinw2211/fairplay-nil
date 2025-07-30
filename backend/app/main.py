@@ -5,6 +5,7 @@ from fastapi.responses import PlainTextResponse
 from app.api import profile, deals, errors
 from app.database import supabase, db
 from app.middleware.rate_limiting import RateLimitMiddleware
+from app.middleware.error_handling import ErrorHandlingMiddleware
 from app.cache import init_cache_system, cleanup_cache_system, get_cache_manager
 from app.monitoring.health import health_monitor
 from app.monitoring.metrics import metrics_collector, prometheus_exporter
@@ -69,6 +70,13 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["X-Token-Expired", "WWW-Authenticate", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset", "X-RateLimit-Window"]
 )
+
+# Add error handling middleware (early in stack to catch all exceptions)
+@app.middleware("http")
+async def error_handling_middleware(request: Request, call_next):
+    """Error handling middleware to catch unhandled exceptions"""
+    error_handler = ErrorHandlingMiddleware()
+    return await error_handler(request, call_next)
 
 # Add rate limiting middleware
 @app.middleware("http")

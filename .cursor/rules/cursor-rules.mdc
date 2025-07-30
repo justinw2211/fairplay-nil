@@ -1,8 +1,3 @@
----
-description: 
-globs: 
-alwaysApply: false
----
 ### 🔄 Project Awareness & Context
 - **Always read `PLANNING.md`** at the start of a new conversation to understand the project's architecture, goals, style, and constraints.
 - **Check `TASK.md`** before starting a new task. If the task isn't listed, add it with a brief description and today's date.
@@ -235,6 +230,77 @@ alwaysApply: false
   - Universities: Institution management
 - **School Integration**: Use existing NCAA schools data from `frontend/src/data/ncaaSchools.js`
 - **Geographic Restrictions**: State laws may affect available deal types
+- **Form Validation**: Use established validation patterns from `frontend/src/validation/`
+- **Authentication**: Leverage Supabase Auth patterns already implemented
+- **File Uploads**: Contract uploads are critical - handle securely with proper validation
+- **Compliance Workflow**: Approval required before deal activation
+- **Data Sensitivity**: Handle personal information, financial data, and compliance records with care
+
+### 🛠️ Critical Infrastructure & Code Quality (Updated 2025)
+- **ESLint Configuration**: Enhanced bug prevention rules in root `.eslintrc.cjs`
+  - **React-specific rules**: `react-hooks/exhaustive-deps`, `react-hooks/rules-of-hooks`, `react/jsx-key`
+  - **JavaScript safety**: `no-unused-vars`, `no-undef`, `no-console`, `prefer-const`
+  - **Async/await safety**: `no-async-promise-executor`, `require-await`
+  - **Common mistakes**: `eqeqeq`, `curly`, `no-eval`
+  - **ALWAYS run `npm run lint` before committing** to catch bugs early
+  - **Fix auto-fixable issues**: `npm run lint --fix` to automatically resolve simple issues
+
+- **Test Utilities**: Centralized testing infrastructure in `frontend/src/utils/test-utils.js`
+  - **Use `renderWithProviders`** for components needing all providers (Chakra + Router + Auth + Deal)
+  - **Use `renderWithChakra`** for simple UI components needing only ChakraProvider
+  - **Use `renderWithChakraAndRouter`** for navigation components
+  - **Use `renderWithMockedContexts`** for isolated testing with mock data
+  - **Mock contexts available**: `mockAuthContext`, `mockDealContext`, `mockDealContextWithDeal`
+  - **Test data utilities**: `testData`, `createTestProps`, `waitForAsync`, `mockConsole`
+  - **NEVER import actual contexts in test utilities** - use mocks to avoid Jest/import.meta.env issues
+
+- **Error Tracking & Monitoring**: Production-ready error handling
+  - **Sentry Integration**: Configured in `frontend/src/main.jsx` with environment-specific settings
+  - **Error Boundaries**: Enhanced `frontend/src/components/ErrorBoundary.jsx` with Sentry reporting
+  - **Logger Utility**: Centralized logging in `frontend/src/utils/logger.js` with Sentry integration
+  - **Environment Config**: Centralized in `frontend/src/config/environment.js` for consistent error handling
+  - **ALWAYS use logger instead of console.log**: `logger.info()`, `logger.error()`, `logger.warn()`
+  - **Error reporting**: Automatic error reporting to Sentry in production
+
+- **API Mocking**: Comprehensive mocks for testing in `frontend/src/__mocks__/api.js`
+  - **Mock API object**: `mockApi.deals`, `mockApi.profiles`, `mockApi.socialMedia`, `mockApi.schools`
+  - **Global mockFetch**: Handles all API endpoints with realistic responses
+  - **Immutable test data**: Uses `createMockData()` factory to prevent test state pollution
+  - **Realistic responses**: Includes pagination, filtering, error handling
+  - **Test file**: `frontend/src/__mocks__/api.test.js` validates mock functionality
+
+- **Environment Variables**: Production-ready configuration
+  - **Required**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_API_URL`
+  - **Optional**: `VITE_SENTRY_DSN` for error tracking
+  - **Validation**: Environment config validates required variables in production
+  - **ALWAYS check environment variables** before using them in production code
+
+- **Build & Deployment**: Optimized for Vercel deployment
+  - **ES Modules**: Project uses `"type": "module"` in package.json
+  - **Vite configuration**: Optimized for production builds
+  - **Environment detection**: Automatic production/development mode detection
+  - **Error sampling**: Reduced error reporting in production to manage costs
+
+- **Code Quality Standards**:
+  - **ALWAYS run ESLint before committing**: `npm run lint`
+  - **Fix warnings**: Address all ESLint warnings, not just errors
+  - **Use test utilities**: Leverage centralized test utilities for consistent testing
+  - **Mock external dependencies**: Use mocks for API calls, contexts, and external services
+  - **Error boundaries**: Wrap critical components in ErrorBoundary for graceful error handling
+  - **Logging**: Use structured logging with appropriate levels (info, warn, error, debug)
+
+- **Testing Best Practices**:
+  - **Component testing**: Use `renderWithProviders` or `renderWithChakra` for consistent test setup
+  - **API testing**: Use `mockApi` or `mockFetch` for testing API-dependent components
+  - **Context testing**: Use mock contexts for isolated component testing
+  - **Error testing**: Test error boundaries and error handling paths
+  - **Integration testing**: Test complete user workflows, especially deal creation
+
+- **Performance & Monitoring**:
+  - **Sentry performance monitoring**: Automatic performance tracking in production
+  - **Error sampling**: Configured to reduce costs while maintaining visibility
+  - **Session replay**: Available for debugging user interactions
+  - **Environment-specific settings**: Different configurations for dev/staging/production
 - **Form Validation**: Use established validation patterns from `frontend/src/validation/`
 - **Authentication**: Leverage Supabase Auth patterns already implemented
 - **File Uploads**: Contract uploads are critical - handle securely with proper validation
