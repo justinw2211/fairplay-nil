@@ -45,8 +45,8 @@ export const useFilters = (deals = []) => {
 
   // Filtered deals based on current filters
   const filteredDeals = useMemo(() => {
-    if (!deals || deals.length === 0) return [];
-    
+    if (!deals || deals.length === 0) {return [];}
+
     setIsLoading(true);
     try {
       const result = filterDeals(deals, filters);
@@ -85,7 +85,7 @@ export const useFilters = (deals = []) => {
   const clearFilter = useCallback((key) => {
     setFilters(prev => ({
       ...prev,
-      [key]: Array.isArray(defaultFilters[key]) ? [] : 
+      [key]: Array.isArray(defaultFilters[key]) ? [] :
              typeof defaultFilters[key] === 'object' ? { ...defaultFilters[key] } :
              defaultFilters[key]
     }));
@@ -94,13 +94,13 @@ export const useFilters = (deals = []) => {
   // Get active filter count
   const activeFilterCount = useMemo(() => {
     let count = 0;
-    if (filters.search && filters.search.trim()) count++;
-    if (filters.dealTypes && filters.dealTypes.length > 0) count++;
-    if (filters.statuses && filters.statuses.length > 0) count++;
-    if (filters.schools && filters.schools.length > 0) count++;
-    if (filters.dateRange && filters.dateRange.startDate && filters.dateRange.endDate) count++;
-    if (filters.fmvRange && (filters.fmvRange[0] > 0 || filters.fmvRange[1] < 100000)) count++;
-    if (filters.analysisResults && filters.analysisResults.length > 0) count++;
+    if (filters.search && filters.search.trim()) {count++;}
+    if (filters.dealTypes && filters.dealTypes.length > 0) {count++;}
+    if (filters.statuses && filters.statuses.length > 0) {count++;}
+    if (filters.schools && filters.schools.length > 0) {count++;}
+    if (filters.dateRange && filters.dateRange.startDate && filters.dateRange.endDate) {count++;}
+    if (filters.fmvRange && (filters.fmvRange[0] > 0 || filters.fmvRange[1] < 100000)) {count++;}
+    if (filters.analysisResults && filters.analysisResults.length > 0) {count++;}
     return count;
   }, [filters]);
 
@@ -112,41 +112,41 @@ export const useFilters = (deals = []) => {
   // Get filter summary for display
   const filterSummary = useMemo(() => {
     const summary = [];
-    
+
     if (filters.search && filters.search.trim()) {
       summary.push(`Search: "${filters.search}"`);
     }
-    
+
     if (filters.dealTypes && filters.dealTypes.length > 0) {
       summary.push(`Types: ${filters.dealTypes.join(', ')}`);
     }
-    
+
     if (filters.statuses && filters.statuses.length > 0) {
       summary.push(`Status: ${filters.statuses.join(', ')}`);
     }
-    
+
     if (filters.schools && filters.schools.length > 0) {
-      const schoolText = filters.schools.length > 2 
+      const schoolText = filters.schools.length > 2
         ? `${filters.schools.slice(0, 2).join(', ')} +${filters.schools.length - 2} more`
         : filters.schools.join(', ');
       summary.push(`Schools: ${schoolText}`);
     }
-    
+
     if (filters.dateRange && filters.dateRange.startDate && filters.dateRange.endDate) {
       const start = new Date(filters.dateRange.startDate).toLocaleDateString();
       const end = new Date(filters.dateRange.endDate).toLocaleDateString();
       summary.push(`Date: ${start} - ${end}`);
     }
-    
+
     if (filters.fmvRange && (filters.fmvRange[0] > 0 || filters.fmvRange[1] < 100000)) {
       const formatValue = (value) => value >= 1000 ? `$${(value / 1000).toFixed(0)}K` : `$${value}`;
       summary.push(`FMV: ${formatValue(filters.fmvRange[0])} - ${formatValue(filters.fmvRange[1])}`);
     }
-    
+
     if (filters.analysisResults && filters.analysisResults.length > 0) {
       summary.push(`Analysis: ${filters.analysisResults.join(', ')}`);
     }
-    
+
     return summary;
   }, [filters]);
 
@@ -201,13 +201,13 @@ export const useFilters = (deals = []) => {
     try {
       // Validate imported filters structure
       const validatedFilters = { ...defaultFilters };
-      
+
       Object.keys(defaultFilters).forEach(key => {
         if (importedFilters[key] !== undefined) {
           validatedFilters[key] = importedFilters[key];
         }
       });
-      
+
       setFilters(validatedFilters);
       return true;
     } catch (error) {
@@ -224,7 +224,7 @@ export const useFilters = (deals = []) => {
     activeFilterCount,
     hasActiveFilters,
     filterSummary,
-    
+
     // Actions
     updateFilter,
     updateFilters,
@@ -233,8 +233,8 @@ export const useFilters = (deals = []) => {
     applyQuickFilter,
     exportFilters,
     importFilters,
-    
+
     // Utilities
     setFilters
   };
-}; 
+};

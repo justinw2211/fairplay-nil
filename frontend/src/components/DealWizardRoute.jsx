@@ -48,4 +48,4 @@ const DealWizardRoute = ({ children }) => {
   return deal ? children : null;
 };
 
-export default DealWizardRoute; 
+export default DealWizardRoute;

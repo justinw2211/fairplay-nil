@@ -170,9 +170,9 @@ describe('DealWizard Error Scenarios', () => {
       const mockSupabase = require('../../supabaseClient').supabase;
       mockSupabase.from.mockImplementation(() => ({
         insert: jest.fn(() => ({
-          select: jest.fn().mockResolvedValue({ 
-            data: null, 
-            error: { message: 'Database connection failed' } 
+          select: jest.fn().mockResolvedValue({
+            data: null,
+            error: { message: 'Database connection failed' }
           })
         }))
       }));
@@ -200,9 +200,9 @@ describe('DealWizard Error Scenarios', () => {
       const mockSupabase = require('../../supabaseClient').supabase;
       mockSupabase.from.mockImplementation(() => ({
         insert: jest.fn(() => ({
-          select: jest.fn().mockResolvedValue({ 
-            data: null, 
-            error: { message: 'Submission failed - server error' } 
+          select: jest.fn().mockResolvedValue({
+            data: null,
+            error: { message: 'Submission failed - server error' }
           })
         }))
       }));
@@ -252,7 +252,7 @@ describe('DealWizard Error Scenarios', () => {
   describe('Cross-Step Error Recovery', () => {
     it('maintains progress across error recovery attempts', async () => {
       const mockRecovery = require('../../hooks/useDealWizardRecovery')();
-      
+
       render(
         <TestWrapper>
           <Step0_SocialMedia />
@@ -393,9 +393,9 @@ describe('DealWizard Error Scenarios', () => {
         // Create error component
         const ErrorComponent = () => {
           const error = new Error(errorType.message);
-          if (errorType.type === 'network') error.name = 'NetworkError';
-          if (errorType.type === 'validation') error.name = 'ValidationError';
-          if (errorType.type === 'runtime') error.name = 'TypeError';
+          if (errorType.type === 'network') {error.name = 'NetworkError';}
+          if (errorType.type === 'validation') {error.name = 'ValidationError';}
+          if (errorType.type === 'runtime') {error.name = 'TypeError';}
           throw error;
         };
 
@@ -442,4 +442,4 @@ describe('DealWizard Error Scenarios', () => {
       console.error = originalError;
     });
   });
-}); 
+});

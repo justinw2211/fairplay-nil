@@ -95,10 +95,10 @@ const SocialMediaModal = ({
   };
 
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={onClose} 
-      size="xl" 
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      size="xl"
       closeOnOverlayClick={false}
       isCentered
     >
@@ -114,9 +114,9 @@ const SocialMediaModal = ({
             </Text>
           </VStack>
         </ModalHeader>
-        
+
         <ModalCloseButton />
-        
+
                  <ModalBody pb={6}>
            <VStack spacing={6}>
              {/* Visual Element */}
@@ -139,7 +139,7 @@ const SocialMediaModal = ({
                onSubmit={handleSubmit}
                isLoading={isLoading}
              />
-             
+
              {/* Action Buttons */}
              <VStack spacing={4} w="full" pt={4}>
                <Button
@@ -159,7 +159,7 @@ const SocialMediaModal = ({
                >
                  Complete Profile
                </Button>
-               
+
                <Button
                  variant="ghost"
                  color="brand.textSecondary"
@@ -180,4 +180,4 @@ const SocialMediaModal = ({
    );
  };
 
-export default SocialMediaModal; 
+export default SocialMediaModal;

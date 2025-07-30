@@ -137,7 +137,7 @@ const ValuationResult = () => {
   const getValuationAssessment = () => {
     const currentCompensation = parseFloat(deal.compensation_cash) || 0;
     const fmv = prediction?.estimated_fmv || 0;
-    
+
     if (fmv === 0) {
       return {
         status: 'unknown',
@@ -149,7 +149,7 @@ const ValuationResult = () => {
         borderColor: 'gray.200'
       };
     }
-    
+
     const difference = ((currentCompensation - fmv) / fmv) * 100;
 
     if (Math.abs(difference) <= 15) {
@@ -220,7 +220,7 @@ const ValuationResult = () => {
   };
 
   const getFactorScore = (factor) => {
-    if (!factor || typeof factor !== 'object') return 75;
+    if (!factor || typeof factor !== 'object') {return 75;}
     if (factor.multiplier && typeof factor.multiplier === 'number') {
       return Math.min(Math.round(factor.multiplier * 75), 100);
     }
@@ -254,8 +254,8 @@ const ValuationResult = () => {
           </Box>
 
           {/* Valuation Status Card */}
-          <Card 
-            variant="outline" 
+          <Card
+            variant="outline"
             bg={assessment.bgColor}
             borderColor={assessment.borderColor}
             borderWidth="2px"
@@ -283,14 +283,14 @@ const ValuationResult = () => {
                 </Box>
                 <VStack align="end" spacing={1}>
                   <Text fontSize="sm" color={`${assessment.color}.600`}>Confidence Score</Text>
-                  <CircularProgress 
-                    value={prediction?.confidence || 0} 
+                  <CircularProgress
+                    value={prediction?.confidence || 0}
                     color={`${assessment.color}.500`}
                     size="60px"
                     thickness="8px"
                   >
-                    <CircularProgressLabel 
-                      fontSize="sm" 
+                    <CircularProgressLabel
+                      fontSize="sm"
                       fontWeight="bold"
                       color={`${assessment.color}.700`}
                     >
@@ -321,9 +321,9 @@ const ValuationResult = () => {
                     {formatCurrency(prediction?.estimated_fmv || 0)}
                   </Text>
                 </Box>
-                
+
                 <Divider />
-                
+
                 <Box>
                   <Text fontSize="sm" color="brand.textSecondary" mb={3}>Compensation Range</Text>
                   <VStack spacing={3}>
@@ -333,10 +333,10 @@ const ValuationResult = () => {
                         {formatCurrency(prediction?.low_range || 0)}
                       </Text>
                     </HStack>
-                    <Progress 
-                      value={75} 
-                      size="lg" 
-                      colorScheme="green" 
+                    <Progress
+                      value={75}
+                      size="lg"
+                      colorScheme="green"
                       bg="brand.backgroundLight"
                       rounded="full"
                     />
@@ -348,7 +348,7 @@ const ValuationResult = () => {
                     </HStack>
                   </VStack>
                 </Box>
-                
+
                 <Box bg="blue.50" p={4} rounded="lg" borderLeft="4px" borderColor="blue.400">
                   <Text fontSize="sm" color="blue.700">
                     <strong>Current Deal:</strong> {formatCurrency(parseFloat(deal.compensation_cash) || 0)}
@@ -394,9 +394,9 @@ const ValuationResult = () => {
                         })()}
                       </Badge>
                     </HStack>
-                    <Progress 
-                      value={getFactorScore(factor)} 
-                      size="sm" 
+                    <Progress
+                      value={getFactorScore(factor)}
+                      size="sm"
                       colorScheme={getFactorScore(factor) > 80 ? 'green' : getFactorScore(factor) > 60 ? 'yellow' : 'red'}
                       bg="brand.backgroundLight"
                       rounded="full"
@@ -444,8 +444,8 @@ const ValuationResult = () => {
                     <Text fontSize="sm" color="brand.textSecondary" whiteSpace="pre-line">
                       {(() => {
                         const rationale = prediction?.rationale;
-                        if (!rationale) return 'No detailed rationale available.';
-                        if (typeof rationale === 'string') return rationale;
+                        if (!rationale) {return 'No detailed rationale available.';}
+                        if (typeof rationale === 'string') {return rationale;}
                         if (typeof rationale === 'object') {
                           // Convert object to readable string
                           return Object.entries(rationale)
@@ -478,7 +478,7 @@ const ValuationResult = () => {
                             {String(comp?.category || 'Unknown Category')}
                           </Text>
                           <Text fontSize="sm" color="blue.600">
-                            {comp?.average_value && typeof comp.average_value === 'number' ? 
+                            {comp?.average_value && typeof comp.average_value === 'number' ?
                               formatCurrency(comp.average_value) : 'N/A'}
                           </Text>
                         </HStack>
@@ -547,7 +547,7 @@ const ValuationResult = () => {
           >
             Back to Dashboard
           </Button>
-          
+
           <Button
             leftIcon={<RotateCcw />}
             colorScheme="yellow"
@@ -555,7 +555,7 @@ const ValuationResult = () => {
           >
             Optimize Deal
           </Button>
-          
+
           <Button
             leftIcon={<Target />}
             colorScheme="blue"
@@ -563,7 +563,7 @@ const ValuationResult = () => {
           >
             Negotiation Tips
           </Button>
-          
+
           <Button
             leftIcon={<CheckCircle />}
             bg="brand.accentPrimary"
@@ -578,7 +578,7 @@ const ValuationResult = () => {
         {/* Additional Info */}
         <Box mt={8} textAlign="center">
           <Text fontSize="xs" color="brand.textSecondary">
-            Analysis completed on {new Date(deal.prediction_calculated_at || Date.now()).toLocaleString()} • 
+            Analysis completed on {new Date(deal.prediction_calculated_at || Date.now()).toLocaleString()} •
             Based on industry data from On3, Opendorse, and NIL market research
           </Text>
         </Box>
@@ -586,7 +586,7 @@ const ValuationResult = () => {
     );
   } catch (error) {
     console.error('❌ ValuationResult rendering error:', error);
-    
+
     return (
       <Container maxW="2xl" py={8}>
         <Alert status="error" rounded="lg">
@@ -594,7 +594,7 @@ const ValuationResult = () => {
           <Box>
             <AlertTitle>Rendering Error</AlertTitle>
             <AlertDescription>
-              There was an error displaying the valuation results. 
+              There was an error displaying the valuation results.
               Error: {error.message}
             </AlertDescription>
           </Box>
@@ -612,4 +612,4 @@ const ValuationResult = () => {
   }
 };
 
-export default ValuationResult; 
+export default ValuationResult;

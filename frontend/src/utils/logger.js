@@ -3,6 +3,8 @@
  * Filters sensitive data and respects environment settings
  */
 
+import * as Sentry from '@sentry/react';
+
 const isDevelopment = import.meta.env.MODE === 'development';
 
 // Sensitive data patterns to filter out
@@ -25,10 +27,10 @@ const SENSITIVE_PATTERNS = [
 
 // Filter sensitive data from objects
 const sanitizeData = (data) => {
-  if (!data || typeof data !== 'object') return data;
-  
+  if (!data || typeof data !== 'object') {return data;}
+
   const sanitized = Array.isArray(data) ? [...data] : { ...data };
-  
+
   Object.keys(sanitized).forEach(key => {
     if (SENSITIVE_PATTERNS.some(pattern => pattern.test(key))) {
       sanitized[key] = '[REDACTED]';
@@ -36,7 +38,7 @@ const sanitizeData = (data) => {
       sanitized[key] = sanitizeData(sanitized[key]);
     }
   });
-  
+
   return sanitized;
 };
 
@@ -60,7 +62,7 @@ class Logger {
 
     const timestamp = new Date().toISOString();
     const prefix = `[${timestamp}] [${this.context}] [${level.toUpperCase()}]`;
-    
+
     if (data) {
       const sanitizedData = sanitizeData(data);
       console[level](prefix, message, sanitizedData);
@@ -70,7 +72,39 @@ class Logger {
   }
 
   error(message, data = null) {
+    // Log the error first (existing functionality)
     this._log(LOG_LEVELS.ERROR, message, data);
+
+    // Report to Sentry with enhanced context
+    try {
+      // Create error object for Sentry if message is not already an Error
+      const error = message instanceof Error ? message : new Error(message);
+
+      Sentry.captureException(error, {
+        contexts: {
+          logger: {
+            context: this.context,
+            message: message,
+            timestamp: new Date().toISOString(),
+            url: window.location.href,
+            userAgent: navigator.userAgent
+          }
+        },
+        tags: {
+          logger: 'true',
+          context: this.context,
+          level: 'error'
+        },
+        extra: {
+          loggerMessage: message,
+          loggerData: data ? sanitizeData(data) : null,
+          loggerContext: this.context
+        }
+      });
+    } catch (sentryError) {
+      // Fallback if Sentry fails - don't break existing logging
+      console.warn('Sentry error reporting failed in logger:', sentryError.message);
+    }
   }
 
   warn(message, data = null) {
@@ -98,4 +132,4 @@ export const dealLogger = new Logger('DealContext');
 export const apiLogger = new Logger('API');
 export const formLogger = new Logger('Form');
 
-export default logger; 
+export default logger;

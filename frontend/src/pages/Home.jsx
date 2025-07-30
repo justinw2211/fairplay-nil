@@ -1,18 +1,18 @@
 // frontend/src/pages/Home.jsx
 import React from 'react';
-import { 
-  Box, 
-  Button, 
+import {
+  Box,
+  Button,
   Container,
-  Flex, 
+  Flex,
   Grid,
-  Heading, 
+  Heading,
   HStack,
   Icon,
   Image,
   Link,
   Stack,
-  Text, 
+  Text,
   VStack,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';

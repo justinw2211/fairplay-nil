@@ -158,4 +158,4 @@ const SurveyLayout = ({
   );
 };
 
-export default SurveyLayout; 
+export default SurveyLayout;

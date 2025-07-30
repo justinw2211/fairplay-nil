@@ -12,7 +12,7 @@ class DealWizardErrorReporter {
     this.maxQueueSize = 50;
     this.reportingEndpoint = null;
     this.isReportingEnabled = import.meta.env.MODE === 'production';
-    
+
     // Initialize reporting endpoint
     if (import.meta.env.VITE_API_URL) {
       this.reportingEndpoint = `${import.meta.env.VITE_API_URL}/api/errors/dealwizard`;
@@ -24,13 +24,13 @@ class DealWizardErrorReporter {
    */
   reportError(error, errorInfo = {}) {
     const errorReport = this.createErrorReport(error, errorInfo);
-    
+
     // Add to queue for batch processing
     this.addToQueue(errorReport);
-    
+
     // Log locally
     this.logError(errorReport);
-    
+
     // Report to backend if enabled
     if (this.isReportingEnabled && this.reportingEndpoint) {
       this.sendToBackend(errorReport);
@@ -43,7 +43,7 @@ class DealWizardErrorReporter {
   createErrorReport(error, errorInfo) {
     const timestamp = new Date().toISOString();
     const errorId = errorInfo.errorId || `dealwizard_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     return {
       // Core error information
       errorId,
@@ -54,7 +54,7 @@ class DealWizardErrorReporter {
         stack: error.stack,
         cause: error.cause
       },
-      
+
       // DealWizard specific context
       dealWizardContext: {
         stepNumber: errorInfo.stepNumber,
@@ -64,7 +64,7 @@ class DealWizardErrorReporter {
         recoveryStrategy: errorInfo.recoveryStrategy,
         errorContext: errorInfo.errorContext
       },
-      
+
       // User and session context
       userContext: {
         userAgent: navigator.userAgent,
@@ -75,7 +75,7 @@ class DealWizardErrorReporter {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         language: navigator.language
       },
-      
+
       // Application context
       appContext: {
         mode: import.meta.env.MODE,
@@ -83,7 +83,7 @@ class DealWizardErrorReporter {
         buildTime: import.meta.env.VITE_BUILD_TIME || timestamp,
         apiUrl: import.meta.env.VITE_API_URL
       },
-      
+
       // Performance context
       performanceContext: {
         memoryUsage: performance.memory ? {
@@ -93,10 +93,10 @@ class DealWizardErrorReporter {
         } : null,
         navigationTiming: performance.getEntriesByType('navigation')[0] || null
       },
-      
+
       // Error categorization
       categorization: this.categorizeError(error, errorInfo),
-      
+
       // Additional context from errorInfo
       additionalContext: {
         ...errorInfo,
@@ -151,7 +151,7 @@ class DealWizardErrorReporter {
    */
   addToQueue(errorReport) {
     this.errorQueue.push(errorReport);
-    
+
     // Maintain queue size
     if (this.errorQueue.length > this.maxQueueSize) {
       this.errorQueue.shift();
@@ -316,4 +316,4 @@ class DealWizardErrorReporter {
 export const dealWizardErrorReporter = new DealWizardErrorReporter();
 
 // Export the class for testing
-export { DealWizardErrorReporter }; 
+export { DealWizardErrorReporter };

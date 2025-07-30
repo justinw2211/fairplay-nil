@@ -96,7 +96,7 @@ const ActivityForm_Merch = ({ onNext, currentActivity, totalActivities }) => {
   };
 
   const isFormValid = () => {
-    return selectedMerch.length > 0 && 
+    return selectedMerch.length > 0 &&
            (!selectedMerch.includes("custom") || customMerch.trim());
   };
 
@@ -271,7 +271,7 @@ const ActivityForm_Merch = ({ onNext, currentActivity, totalActivities }) => {
                 {selectedMerch.map((merchId) => {
                   const merch = merchTypes.find(m => m.id === merchId);
                   const details = merchDetails[merchId] || {};
-                  
+
                   return (
                     <Box
                       key={merchId}
@@ -285,7 +285,7 @@ const ActivityForm_Merch = ({ onNext, currentActivity, totalActivities }) => {
                       <Text color="brand.textPrimary" fontWeight="semibold" mb={4}>
                         {merch?.name} {merchId === "custom" ? `(${customMerch})` : ""}
                       </Text>
-                      
+
                       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
                         <FormControl>
                           <FormLabel fontSize="sm" color="brand.textSecondary">

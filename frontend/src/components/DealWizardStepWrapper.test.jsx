@@ -56,7 +56,7 @@ describe('DealWizardStepWrapper', () => {
         </DealWizardStepWrapper>
       </TestWrapper>
     );
-    
+
     expect(screen.getByText('Test content')).toBeInTheDocument();
   });
 
@@ -89,7 +89,7 @@ describe('DealWizardStepWrapper', () => {
 
   it('logs step-specific error message to console', () => {
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    
+
     render(
       <TestWrapper>
         <DealWizardStepWrapper stepNumber={3} stepName="Custom Step">
@@ -97,20 +97,20 @@ describe('DealWizardStepWrapper', () => {
         </DealWizardStepWrapper>
       </TestWrapper>
     );
-    
+
     expect(consoleSpy).toHaveBeenCalledWith(
       'Error in DealWizard Step 3 (Custom Step):',
       expect.any(Error)
     );
-    
+
     consoleSpy.mockRestore();
   });
 
   it('passes correct props to ErrorBoundary', () => {
     const { container } = render(
       <TestWrapper>
-        <DealWizardStepWrapper 
-          stepNumber={5} 
+        <DealWizardStepWrapper
+          stepNumber={5}
           stepName="Compliance Review"
           onError={jest.fn()}
         >
@@ -118,7 +118,7 @@ describe('DealWizardStepWrapper', () => {
         </DealWizardStepWrapper>
       </TestWrapper>
     );
-    
+
     // Verify ErrorBoundary is rendered with correct context
     expect(container.innerHTML).toContain('Test content');
   });
@@ -164,7 +164,7 @@ describe('DealWizardStepWrapper', () => {
         <button>Test Button</button>
       </div>
     );
-    
+
     render(
       <TestWrapper>
         <DealWizardStepWrapper stepNumber={1} stepName="Test Step">
@@ -172,7 +172,7 @@ describe('DealWizardStepWrapper', () => {
         </DealWizardStepWrapper>
       </TestWrapper>
     );
-    
+
     expect(screen.getByText('Test Title')).toBeInTheDocument();
     expect(screen.getByText('Test Button')).toBeInTheDocument();
   });
@@ -184,7 +184,7 @@ describe('DealWizardStepWrapper', () => {
         <button>Nested button</button>
       </div>
     );
-    
+
     render(
       <TestWrapper>
         <DealWizardStepWrapper stepNumber={2} stepName="Nested Test">
@@ -192,7 +192,7 @@ describe('DealWizardStepWrapper', () => {
         </DealWizardStepWrapper>
       </TestWrapper>
     );
-    
+
     expect(screen.getByText('Nested content')).toBeInTheDocument();
     expect(screen.getByText('Nested button')).toBeInTheDocument();
   });
@@ -207,4 +207,4 @@ describe('DealWizardStepWrapper', () => {
     );
     expect(screen.getByText(/We encountered an issue while processing compensation details/)).toBeInTheDocument();
   });
-}); 
+});

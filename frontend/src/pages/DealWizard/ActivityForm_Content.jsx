@@ -43,8 +43,8 @@ const ActivityForm_Content = ({ onNext, currentActivity, totalActivities }) => {
   }, [deal]);
 
   const isFormValid = () => {
-    return quantityOfContent && 
-           Number.parseInt(quantityOfContent) > 0 && 
+    return quantityOfContent &&
+           Number.parseInt(quantityOfContent) > 0 &&
            contentDescription.trim();
   };
 

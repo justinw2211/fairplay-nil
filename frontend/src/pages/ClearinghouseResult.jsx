@@ -197,8 +197,8 @@ const ClearinghouseResult = () => {
         </Box>
 
         {/* Status Card */}
-        <Card 
-          variant="outline" 
+        <Card
+          variant="outline"
           borderColor={statusConfig.borderColor}
           bg={statusConfig.bgColor}
           shadow="lg"
@@ -231,8 +231,8 @@ const ClearinghouseResult = () => {
                     size="80px"
                     thickness="8px"
                   >
-                    <CircularProgressLabel 
-                      fontSize="lg" 
+                    <CircularProgressLabel
+                      fontSize="lg"
                       fontWeight="bold"
                       color="brand.textPrimary"
                     >
@@ -259,7 +259,7 @@ const ClearinghouseResult = () => {
                   {Math.round(prediction?.factors?.payor_association?.score || 0)}%
                 </StatNumber>
                 <StatHelpText>
-                  {prediction?.details?.payor_verification?.risk_level === 'low' ? 'Low Risk' : 
+                  {prediction?.details?.payor_verification?.risk_level === 'low' ? 'Low Risk' :
                    prediction?.details?.payor_verification?.risk_level === 'medium' ? 'Medium Risk' : 'High Risk'}
                 </StatHelpText>
               </Stat>
@@ -290,8 +290,8 @@ const ClearinghouseResult = () => {
                   {Math.round(prediction?.factors?.compensation_range?.score || 0)}%
                 </StatNumber>
                 <StatHelpText>
-                  {prediction?.details?.fmv_analysis?.estimated_fmv ? 
-                    `Est. FMV: ${formatCurrency(prediction.details.fmv_analysis.estimated_fmv)}` : 
+                  {prediction?.details?.fmv_analysis?.estimated_fmv ?
+                    `Est. FMV: ${formatCurrency(prediction.details.fmv_analysis.estimated_fmv)}` :
                     'Analysis Complete'}
                 </StatHelpText>
               </Stat>
@@ -389,7 +389,7 @@ const ClearinghouseResult = () => {
             <Text color="brand.textSecondary" mb={6}>
               Based on your prediction results, choose how you'd like to proceed:
             </Text>
-            
+
             <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={4}>
               <Button
                 leftIcon={<Icon as={RotateCcw} />}
@@ -501,4 +501,4 @@ const ClearinghouseResult = () => {
   );
 };
 
-export default ClearinghouseResult; 
+export default ClearinghouseResult;

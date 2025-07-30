@@ -19,16 +19,16 @@ export const DealProvider = ({ children }) => {
   // Centralized helper for all authenticated API calls with logging
   const authenticatedFetch = async (url, options = {}) => {
     dealLogger.debug(`Starting API call: ${options.method || 'GET'}`);
-    
+
     try {
       const sessionRes = await supabase.auth.getSession();
       const token = sessionRes.data.session?.access_token;
-      
+
       if (!token) {
         dealLogger.error("Auth fetch failed: No token available");
         throw new Error("Authentication error: Your session may have expired. Please log in again.");
       }
-      
+
       const response = await fetch(url, {
         ...options,
         headers: {
@@ -53,7 +53,7 @@ export const DealProvider = ({ children }) => {
         }
         throw new Error(errorMessage);
       }
-      
+
       const data = await response.json();
       return data;
     } catch (error) {
@@ -68,18 +68,18 @@ export const DealProvider = ({ children }) => {
     try {
       const { deal_type } = dealOptions;
       const requestBody = deal_type ? { deal_type } : {};
-      
-      const response = await authenticatedFetch(`${import.meta.env.VITE_API_URL}/api/deals`, { 
+
+      const response = await authenticatedFetch(`${import.meta.env.VITE_API_URL}/api/deals`, {
         method: 'POST',
         body: JSON.stringify(requestBody)
       });
       const newDraft = response;
       setDeal(newDraft);
-      
+
       // Navigate with deal type parameter if provided
       const typeParam = deal_type && deal_type !== 'standard' ? `?type=${deal_type}` : '';
       navigate(`/add/deal/social-media/${newDraft.id}${typeParam}`);
-      
+
       return newDraft;
     } catch (err) {
       setError(err.message);
@@ -107,22 +107,22 @@ export const DealProvider = ({ children }) => {
       setLoading(false);
     }
   }, []);
-  
+
   const fetchDealById = useCallback(async (dealId) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await authenticatedFetch(`${import.meta.env.VITE_API_URL}/api/deals`, { 
-        method: 'GET' 
+      const response = await authenticatedFetch(`${import.meta.env.VITE_API_URL}/api/deals`, {
+        method: 'GET'
       });
       // Handle the new response format which includes deals in a nested property
       const deals = response.deals || response;
       const specificDeal = deals.find(d => d.id.toString() === dealId.toString());
-      
+
       if (!specificDeal) {
         throw new Error("Deal not found.");
       }
-      
+
       setDeal(specificDeal);
       return specificDeal;
     } catch (err) {

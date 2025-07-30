@@ -1,25 +1,25 @@
 import React from 'react';
-import { 
-  Card, 
-  CardBody, 
-  CardHeader, 
-  Heading, 
-  Box, 
-  Spinner, 
-  Text, 
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  Heading,
+  Box,
+  Spinner,
+  Text,
   VStack,
-  useColorModeValue 
+  useColorModeValue
 } from '@chakra-ui/react';
 import { useTheme } from '@chakra-ui/react';
 
-const ChartContainer = ({ 
-  title, 
-  subtitle, 
-  children, 
-  isLoading = false, 
+const ChartContainer = ({
+  title,
+  subtitle,
+  children,
+  isLoading = false,
   error = null,
   height = "400px",
-  ...props 
+  ...props
 }) => {
   const theme = useTheme();
   const cardBg = useColorModeValue('white', 'gray.800');
@@ -27,10 +27,10 @@ const ChartContainer = ({
 
   if (isLoading) {
     return (
-      <Card 
-        bg={cardBg} 
-        borderWidth="1px" 
-        borderColor={borderColor} 
+      <Card
+        bg={cardBg}
+        borderWidth="1px"
+        borderColor={borderColor}
         borderRadius="lg"
         {...props}
       >
@@ -54,10 +54,10 @@ const ChartContainer = ({
 
   if (error) {
     return (
-      <Card 
-        bg={cardBg} 
-        borderWidth="1px" 
-        borderColor={borderColor} 
+      <Card
+        bg={cardBg}
+        borderWidth="1px"
+        borderColor={borderColor}
         borderRadius="lg"
         {...props}
       >
@@ -82,10 +82,10 @@ const ChartContainer = ({
   }
 
   return (
-    <Card 
-      bg={cardBg} 
-      borderWidth="1px" 
-      borderColor={borderColor} 
+    <Card
+      bg={cardBg}
+      borderWidth="1px"
+      borderColor={borderColor}
       borderRadius="lg"
       transition="all 0.3s ease"
       _hover={{
@@ -111,4 +111,4 @@ const ChartContainer = ({
   );
 };
 
-export default ChartContainer; 
+export default ChartContainer;

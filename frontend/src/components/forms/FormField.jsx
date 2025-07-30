@@ -52,10 +52,10 @@ export const FormField = ({
     }),
     option: (provided, state) => ({
       ...provided,
-      backgroundColor: state.isSelected 
-        ? 'var(--chakra-colors-brand-accentPrimary)' 
-        : state.isFocused 
-        ? 'var(--chakra-colors-brand-backgroundLight)' 
+      backgroundColor: state.isSelected
+        ? 'var(--chakra-colors-brand-accentPrimary)'
+        : state.isFocused
+        ? 'var(--chakra-colors-brand-backgroundLight)'
         : 'white',
       color: state.isSelected ? 'white' : 'var(--chakra-colors-brand-textPrimary)',
     }),
@@ -215,4 +215,4 @@ export const FormField = ({
   );
 };
 
-export default FormField; 
+export default FormField;

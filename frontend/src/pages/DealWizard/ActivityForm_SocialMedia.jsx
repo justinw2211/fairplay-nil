@@ -149,15 +149,15 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
   };
 
   const isFormValid = () => {
-    if (selectedPlatforms.length === 0) return false;
-    return selectedPlatforms.some(platformId => 
+    if (selectedPlatforms.length === 0) {return false;}
+    return selectedPlatforms.some(platformId =>
       platformContent[platformId]?.some(content => content.quantity > 0)
     );
   };
 
   const handleNext = async () => {
     console.log('📱 ActivityForm_SocialMedia handleNext called');
-    
+
     const formattedData = {
       platforms: selectedPlatforms.flatMap(platformId => {
         const platform = platforms.find(p => p.id === platformId);
@@ -183,7 +183,7 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
         },
       },
     });
-    
+
     console.log('📱 Calling onNext()');
     onNext();
   };

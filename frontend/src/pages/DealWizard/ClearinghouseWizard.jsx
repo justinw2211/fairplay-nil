@@ -122,23 +122,23 @@ const ClearinghouseWizard = () => {
 
   const getTotalCompensation = () => {
     let total = 0;
-    
+
     if (deal.compensation_cash) {
       total += parseFloat(deal.compensation_cash) || 0;
     }
-    
+
     if (deal.compensation_goods && Array.isArray(deal.compensation_goods)) {
       total += deal.compensation_goods.reduce((sum, item) => {
         return sum + (parseFloat(item.estimated_value) || 0);
       }, 0);
     }
-    
+
     if (deal.compensation_other && Array.isArray(deal.compensation_other)) {
       total += deal.compensation_other.reduce((sum, item) => {
         return sum + (parseFloat(item.estimated_value) || 0);
       }, 0);
     }
-    
+
     return total;
   };
 
@@ -147,38 +147,38 @@ const ClearinghouseWizard = () => {
     console.log('Deal data:', deal);
     console.log('Deal ID:', dealId);
     console.log('predictClearinghouse function:', typeof predictClearinghouse);
-    
+
     setIsCalculating(true);
     setShowPredictionProcess(true);
-    
+
     try {
       // Simulate prediction process with realistic delays
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       console.log('📊 Running clearinghouse prediction with data:', { deal });
-      
+
       // Run the clearinghouse prediction
       const prediction = predictClearinghouse(deal, deal);
-      
+
       console.log('✅ Prediction result:', prediction);
-      
+
       // Store prediction in deal record
       const updateData = {
         clearinghouse_prediction: prediction,
         prediction_calculated_at: new Date().toISOString()
       };
-      
+
       console.log('💾 Updating deal with prediction data...');
       await updateDeal(dealId, updateData);
-      
+
       console.log('💾 Saving prediction via hook...');
       // Store prediction via API for future reference
       await saveClearinghousePrediction(prediction);
-      
+
       console.log('🎯 Navigating to results page...');
       // Navigate to results page
       navigate(`/clearinghouse-result/${dealId}?type=${dealType}`);
-      
+
     } catch (error) {
       console.error('❌ Error running clearinghouse prediction:', error);
       console.error('Error stack:', error.stack);
@@ -256,7 +256,7 @@ const ClearinghouseWizard = () => {
                   <Box>
                     <AlertTitle>Processing Your Deal</AlertTitle>
                     <AlertDescription>
-                      This analysis typically takes 2-3 business days in the real NIL Go system. 
+                      This analysis typically takes 2-3 business days in the real NIL Go system.
                       Our prediction gives you an estimate of the likely outcome.
                     </AlertDescription>
                   </Box>
@@ -313,7 +313,7 @@ const ClearinghouseWizard = () => {
             <Box>
               <AlertTitle>About NIL Go Clearinghouse</AlertTitle>
               <AlertDescription>
-                This prediction simulates Deloitte's NIL Go clearinghouse process, which evaluates deals over $600 
+                This prediction simulates Deloitte's NIL Go clearinghouse process, which evaluates deals over $600
                 using a 3-step analysis: Payor Association, Business Purpose, and Fair Market Value assessment.
               </AlertDescription>
             </Box>
@@ -413,10 +413,10 @@ const ClearinghouseWizard = () => {
                 <List spacing={3}>
                   <ListItem>
                     <HStack align="start">
-                      <Icon 
-                        as={deal.uses_school_ip ? AlertCircle : CheckCircle} 
-                        color={deal.uses_school_ip ? "orange.500" : "green.500"} 
-                        mt={1} 
+                      <Icon
+                        as={deal.uses_school_ip ? AlertCircle : CheckCircle}
+                        color={deal.uses_school_ip ? "orange.500" : "green.500"}
+                        mt={1}
                       />
                       <Box>
                         <Text fontWeight="semibold" color="brand.textPrimary">School IP Usage</Text>
@@ -428,10 +428,10 @@ const ClearinghouseWizard = () => {
                   </ListItem>
                   <ListItem>
                     <HStack align="start">
-                      <Icon 
-                        as={deal.grant_exclusivity === 'yes' ? AlertCircle : CheckCircle} 
-                        color={deal.grant_exclusivity === 'yes' ? "orange.500" : "green.500"} 
-                        mt={1} 
+                      <Icon
+                        as={deal.grant_exclusivity === 'yes' ? AlertCircle : CheckCircle}
+                        color={deal.grant_exclusivity === 'yes' ? "orange.500" : "green.500"}
+                        mt={1}
                       />
                       <Box>
                         <Text fontWeight="semibold" color="brand.textPrimary">Exclusivity Terms</Text>
@@ -515,4 +515,4 @@ const ClearinghouseWizard = () => {
   );
 };
 
-export default ClearinghouseWizard; 
+export default ClearinghouseWizard;

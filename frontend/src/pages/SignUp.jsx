@@ -48,7 +48,6 @@ const SignUp = () => {
   const [schools, setSchools] = useState([]);
   const [filteredSchools, setFilteredSchools] = useState([]);
   const [isLoadingSchools, setIsLoadingSchools] = useState(false);
-  
 
 
   // Step 1 form
@@ -139,7 +138,7 @@ const SignUp = () => {
 
   const onSubmitStep1 = async (data) => {
     setInitialData(data);
-    
+
     if (data.role === 'student-athlete') {
       setStep(2);
     } else {
@@ -222,7 +221,6 @@ const SignUp = () => {
       }
 
 
-
       // Save profile data directly to profiles table since trigger isn't working
       if (signUpData?.user) {
         try {
@@ -269,7 +267,7 @@ const SignUp = () => {
       }
 
       console.log('Signup successful, navigating to dashboard');
-      
+
       toast({
         title: 'Account Created!',
         description: 'Welcome to FairPlay NIL',
@@ -294,7 +292,6 @@ const SignUp = () => {
   };
 
 
-
   return (
     <>
       <Flex minH="100vh" align="center" justify="center" bg="brand.backgroundLight">
@@ -302,7 +299,7 @@ const SignUp = () => {
         <VStack spacing={6}>
           <Heading color="brand.textPrimary">Create an Account</Heading>
           <Text color="brand.textSecondary" textAlign="center">
-            {step === 1 
+            {step === 1
               ? "Join FairPlay NIL to manage your deals with confidence."
               : "Tell us more about yourself to complete your profile."}
           </Text>
@@ -503,8 +500,8 @@ const SignUp = () => {
                         isClearable
                         isSearchable
                         isLoading={isLoadingSchools}
-                        noOptionsMessage={() => 
-                          !selectedDivision 
+                        noOptionsMessage={() =>
+                          !selectedDivision
                             ? 'Please select a division first'
                             : 'No universities found'
                         }
@@ -593,8 +590,8 @@ const SignUp = () => {
                         }}
                         value={field.value?.map(sport => ({ value: sport, label: sport })) || []}
                         isDisabled={!selectedGender}
-                        noOptionsMessage={() => 
-                          !selectedGender 
+                        noOptionsMessage={() =>
+                          !selectedGender
                             ? 'Please select your gender first'
                             : 'No sports found'
                         }

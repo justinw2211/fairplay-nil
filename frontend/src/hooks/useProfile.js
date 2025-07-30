@@ -24,7 +24,7 @@ const useProfile = () => {
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
   const { user } = useAuth();
-  
+
   // Cache with 5-minute TTL
   const cacheRef = useRef({
     data: null,
@@ -34,8 +34,8 @@ const useProfile = () => {
 
   // localStorage cache functions
   const getCachedProfile = useCallback((userId) => {
-    if (!userId) return null;
-    
+    if (!userId) {return null;}
+
     try {
       const cached = localStorage.getItem(`${CACHE_KEY}_${userId}`);
       if (cached) {
@@ -57,13 +57,13 @@ const useProfile = () => {
         logger.error('Failed to cleanup corrupted cache', { error: cleanupError.message });
       }
     }
-    
+
     return null;
   }, []);
 
   const setCachedProfile = useCallback((userId, profileData) => {
-    if (!userId || !profileData) return;
-    
+    if (!userId || !profileData) {return;}
+
     try {
       const cacheData = {
         data: profileData,
@@ -77,8 +77,8 @@ const useProfile = () => {
   }, []);
 
   const invalidateCache = useCallback((userId) => {
-    if (!userId) return;
-    
+    if (!userId) {return;}
+
     try {
       localStorage.removeItem(`${CACHE_KEY}_${userId}`);
       cacheRef.current = { data: null, timestamp: null, TTL: CACHE_TTL };
@@ -91,8 +91,8 @@ const useProfile = () => {
   // Helper function to check if cache is valid
   const isCacheValid = useCallback(() => {
     const cache = cacheRef.current;
-    if (!cache.data || !cache.timestamp) return false;
-    
+    if (!cache.data || !cache.timestamp) {return false;}
+
     const now = Date.now();
     return (now - cache.timestamp) < cache.TTL;
   }, []);
@@ -101,7 +101,7 @@ const useProfile = () => {
   const mapEnumToDivision = useCallback((division) => {
     const enumMap = {
       'I': 'Division I',
-      'II': 'Division II', 
+      'II': 'Division II',
       'III': 'Division III',
       'NAIA': 'NAIA',
       'JUCO': 'JUCO'
@@ -111,8 +111,8 @@ const useProfile = () => {
 
   // Legacy division format conversion
   const convertLegacyDivision = useCallback((division) => {
-    if (!division?.startsWith('D')) return division;
-    
+    if (!division?.startsWith('D')) {return division;}
+
     const divisionMap = {
       'D1': 'Division I',
       'D2': 'Division II',
@@ -123,7 +123,7 @@ const useProfile = () => {
 
   // Format sports array for display
   const formatSportsArray = useCallback((sports) => {
-    if (!sports) return [];
+    if (!sports) {return [];}
     return Array.isArray(sports) ? sports : [sports];
   }, []);
 
@@ -135,13 +135,13 @@ const useProfile = () => {
       if (attempt >= MAX_RETRY_ATTEMPTS) {
         throw error;
       }
-      
-      logger.warn(`Profile fetch attempt ${attempt} failed, retrying...`, { 
-        error: error.message, 
+
+      logger.warn(`Profile fetch attempt ${attempt} failed, retrying...`, {
+        error: error.message,
         attempt,
-        maxAttempts: MAX_RETRY_ATTEMPTS 
+        maxAttempts: MAX_RETRY_ATTEMPTS
       });
-      
+
       await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * attempt));
       return retryWithDelay(operation, attempt + 1);
     }
@@ -191,7 +191,7 @@ const useProfile = () => {
     try {
       const profileData = await retryWithDelay(async () => {
         logger.debug('Fetching profile from database', { userId: user.id, forceRefresh });
-        
+
         const { data, error: fetchError } = await supabase
           .from('profiles')
           .select('*')
@@ -226,7 +226,7 @@ const useProfile = () => {
         const formattedData = {
           ...profileData,
           // Handle division enum mapping
-          division: profileData.division?.startsWith('D') 
+          division: profileData.division?.startsWith('D')
             ? convertLegacyDivision(profileData.division)
             : mapEnumToDivision(profileData.division),
           // Format sports array
@@ -236,10 +236,10 @@ const useProfile = () => {
           // Ensure email from auth data
           email: user.email || profileData.email || '',
           // Add computed fields
-          displayName: profileData.first_name && profileData.last_name 
+          displayName: profileData.first_name && profileData.last_name
             ? `${profileData.first_name} ${profileData.last_name}`
             : profileData.first_name || profileData.last_name || 'Student-Athlete',
-          initials: profileData.first_name && profileData.last_name 
+          initials: profileData.first_name && profileData.last_name
             ? `${profileData.first_name[0]}${profileData.last_name[0]}`
             : profileData.first_name?.[0] || profileData.last_name?.[0] || 'SA',
           // Profile completion percentage
@@ -253,7 +253,7 @@ const useProfile = () => {
           TTL: CACHE_TTL
         };
         setCachedProfile(user.id, formattedData);
-        
+
         // Clear cache if expected_graduation_year is missing from cached data
         // This ensures users get the updated field even if they had cached data
         if (!formattedData.expected_graduation_year && cacheRef.current.data?.expected_graduation_year === undefined) {
@@ -263,9 +263,8 @@ const useProfile = () => {
 
         setProfile(formattedData);
         logger.info('Profile fetched and cached successfully', { userId: user.id });
-        
 
-        
+
         return formattedData;
       }
 
@@ -274,13 +273,13 @@ const useProfile = () => {
     } catch (err) {
       const errorMessage = err.message || 'Failed to fetch profile data';
       setError(errorMessage);
-      logger.error('Error fetching profile', { 
-        error: errorMessage, 
+      logger.error('Error fetching profile', {
+        error: errorMessage,
         userId: user.id,
         code: err.code,
-        details: err.details 
+        details: err.details
       });
-      
+
       // Try to return cached data as fallback
       const fallbackProfile = getCachedProfile(user.id);
       if (fallbackProfile) {
@@ -288,7 +287,7 @@ const useProfile = () => {
         setProfile(fallbackProfile);
         return fallbackProfile;
       }
-      
+
       throw new Error(errorMessage);
     } finally {
       setLoading(false);
@@ -297,34 +296,34 @@ const useProfile = () => {
 
   // Calculate profile completion percentage
   const calculateCompletionPercentage = useCallback((data) => {
-    if (!data) return 0;
-    
+    if (!data) {return 0;}
+
     const requiredFields = [
-      'first_name', 'last_name', 'university', 'sports', 
+      'first_name', 'last_name', 'university', 'sports',
       'division', 'gender', 'expected_graduation_year'
     ];
-    
+
     const optionalFields = [
       'phone', 'hometown', 'instagram', 'twitter', 'tiktok'
     ];
-    
+
     let completed = 0;
     const total = requiredFields.length + optionalFields.length;
-    
+
     // Check required fields (weighted more heavily)
     requiredFields.forEach(field => {
       if (data[field] && (Array.isArray(data[field]) ? data[field].length > 0 : true)) {
         completed += 1.5; // Required fields worth 1.5 points
       }
     });
-    
+
     // Check optional fields
     optionalFields.forEach(field => {
       if (data[field] && data[field] !== '') {
         completed += 1;
       }
     });
-    
+
     return Math.round((completed / (requiredFields.length * 1.5 + optionalFields.length)) * 100);
   }, []);
 
@@ -349,18 +348,18 @@ const useProfile = () => {
 
   // Check if profile is complete enough for dashboard display
   const isProfileComplete = useCallback((profileData = profile) => {
-    if (!profileData) return false;
-    
+    if (!profileData) {return false;}
+
     const requiredFields = ['first_name', 'last_name', 'university', 'sports'];
-    return requiredFields.every(field => 
+    return requiredFields.every(field =>
       profileData[field] && (Array.isArray(profileData[field]) ? profileData[field].length > 0 : true)
     );
   }, [profile]);
 
   // Get profile summary for banner display
   const getProfileSummary = useCallback((profileData = profile) => {
-    if (!profileData) return null;
-    
+    if (!profileData) {return null;}
+
     return {
       name: profileData.displayName,
       initials: profileData.initials,
@@ -388,4 +387,4 @@ const useProfile = () => {
   };
 };
 
-export default useProfile; 
+export default useProfile;

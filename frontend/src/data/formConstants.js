@@ -13,8 +13,8 @@ export const USER_ROLES = [
 export const GENDERS = ["Male", "Female", "Other", "Prefer not to say"];
 
 export const NCAA_DIVISIONS = [
-  "Division I", 
-  "Division II", 
+  "Division I",
+  "Division II",
   "Division III",
   "NAIA",
   "JUCO"
@@ -42,10 +42,10 @@ export const COMBINED_SPORTS = [
 
 // [FP-REFACTOR-018] Added Industry Options
 export const industryOptions = [
-    "Apparel & Fashion", "Automotive", "Beverages (Non-Alcoholic)", "Camps & Clinics", 
-    "Collectibles & Memorabilia", "Consumer Packaged Goods (CPG)", "Electronics", 
-    "Events & Appearances", "Financial Services", "Food & Restaurants", 
-    "Gaming & eSports", "Health & Wellness", "Home Goods", "Media & Content Creation", 
-    "Sports Equipment", "Supplements & Nutrition", "Technology & Apps", 
+    "Apparel & Fashion", "Automotive", "Beverages (Non-Alcoholic)", "Camps & Clinics",
+    "Collectibles & Memorabilia", "Consumer Packaged Goods (CPG)", "Electronics",
+    "Events & Appearances", "Financial Services", "Food & Restaurants",
+    "Gaming & eSports", "Health & Wellness", "Home Goods", "Media & Content Creation",
+    "Sports Equipment", "Supplements & Nutrition", "Technology & Apps",
     "Travel & Hospitality", "Other"
 ];

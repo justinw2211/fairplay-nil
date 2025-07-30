@@ -12,7 +12,7 @@ const useSocialMedia = () => {
   const [error, setError] = useState(null);
   const { user } = useAuth();
 
-  // API base URL - use environment variable like other API calls  
+  // API base URL - use environment variable like other API calls
   const API_BASE = `${import.meta.env.VITE_API_URL}/api`;
 
   // Helper function to get auth headers
@@ -20,11 +20,11 @@ const useSocialMedia = () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
-      
+
       if (!token) {
         throw new Error('No authentication token available');
       }
-      
+
       return {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
@@ -38,7 +38,7 @@ const useSocialMedia = () => {
   const fetchSocialMedia = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const headers = await getAuthHeaders();
       const response = await fetch(`${API_BASE}/social-media`, {
@@ -130,7 +130,7 @@ const useSocialMedia = () => {
   // Retry functionality for failed requests
   const retryLastOperation = useCallback(async (operation, ...args) => {
     clearError();
-    
+
     try {
       switch (operation) {
         case 'fetch':
@@ -232,12 +232,12 @@ const useSocialMedia = () => {
     // State
     loading,
     error,
-    
+
     // CRUD Operations
     fetchSocialMedia,
     updateSocialMedia,
     deleteSocialMediaPlatform,
-    
+
     // Utility Functions
     clearError,
     retryLastOperation,
@@ -248,4 +248,4 @@ const useSocialMedia = () => {
   };
 };
 
-export default useSocialMedia; 
+export default useSocialMedia;

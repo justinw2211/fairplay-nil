@@ -66,7 +66,7 @@ const Step3_SelectActivities = () => {
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
   const { deal, updateDeal } = useDeal();
-  
+
   const [selectedActivities, setSelectedActivities] = useState([]);
   const [otherActivity, setOtherActivity] = useState("");
 
@@ -102,7 +102,7 @@ const Step3_SelectActivities = () => {
     const newObligations = {};
     selectedActivities.forEach((activity, index) => {
       if (activity === "other") {
-        newObligations[activity] = { 
+        newObligations[activity] = {
           description: otherActivity,
           sequence: index,
           completed: false // Track completion status
@@ -120,22 +120,22 @@ const Step3_SelectActivities = () => {
     console.log('newObligations:', newObligations);
     console.log('otherActivity:', otherActivity);
 
-    await updateDeal(dealId, { 
+    await updateDeal(dealId, {
       obligations: newObligations,
       currentActivityIndex: 0,
       totalActivities: selectedActivities.length,
       lastCompletedActivity: null // Track the last completed activity
     });
-    
+
     const firstActivity = selectedActivities[0];
     const encodedActivity = encodeURIComponent(firstActivity);
     const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-    
+
     console.log('🎯 Navigating to first activity:');
     console.log('firstActivity:', firstActivity);
     console.log('encodedActivity:', encodedActivity);
     console.log('Full URL:', `/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`);
-    
+
     navigate(`/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`);
   };
 

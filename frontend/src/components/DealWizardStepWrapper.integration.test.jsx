@@ -63,9 +63,9 @@ describe('DealWizardStepWrapper Integration', () => {
     it('renders children normally when no error occurs', () => {
       render(
         <TestWrapper>
-          <DealWizardStepWrapper 
-            stepNumber={1} 
-            stepName="Test Step" 
+          <DealWizardStepWrapper
+            stepNumber={1}
+            stepName="Test Step"
             dealId="test-deal-123"
           >
             <ErrorComponent shouldThrow={false} />
@@ -83,9 +83,9 @@ describe('DealWizardStepWrapper Integration', () => {
 
       render(
         <TestWrapper>
-          <DealWizardStepWrapper 
-            stepNumber={1} 
-            stepName="Test Step" 
+          <DealWizardStepWrapper
+            stepNumber={1}
+            stepName="Test Step"
             dealId="test-deal-123"
           >
             <ErrorComponent shouldThrow={true} />
@@ -110,9 +110,9 @@ describe('DealWizardStepWrapper Integration', () => {
 
       render(
         <TestWrapper>
-          <DealWizardStepWrapper 
-            stepNumber={2} 
-            stepName="Error Test Step" 
+          <DealWizardStepWrapper
+            stepNumber={2}
+            stepName="Error Test Step"
             dealId="test-deal-456"
             onError={mockOnError}
           >
@@ -155,9 +155,9 @@ describe('DealWizardStepWrapper Integration', () => {
 
       render(
         <TestWrapper>
-          <DealWizardStepWrapper 
-            stepNumber={1} 
-            stepName="Test Step" 
+          <DealWizardStepWrapper
+            stepNumber={1}
+            stepName="Test Step"
             dealId="test-deal-123"
           >
             <ErrorComponent shouldThrow={true} />
@@ -186,9 +186,9 @@ describe('DealWizardStepWrapper Integration', () => {
 
       render(
         <TestWrapper>
-          <DealWizardStepWrapper 
-            stepNumber={1} 
-            stepName="Test Step" 
+          <DealWizardStepWrapper
+            stepNumber={1}
+            stepName="Test Step"
             dealId="test-deal-123"
           >
             <ErrorComponent shouldThrow={true} />
@@ -218,9 +218,9 @@ describe('DealWizardStepWrapper Integration', () => {
 
       render(
         <TestWrapper>
-          <DealWizardStepWrapper 
-            stepNumber={1} 
-            stepName="Test Step" 
+          <DealWizardStepWrapper
+            stepNumber={1}
+            stepName="Test Step"
             dealId="test-deal-123"
           >
             <ErrorComponent shouldThrow={true} />
@@ -247,9 +247,9 @@ describe('DealWizardStepWrapper Integration', () => {
 
       render(
         <TestWrapper>
-          <DealWizardStepWrapper 
-            stepNumber={3} 
-            stepName="Reporting Test Step" 
+          <DealWizardStepWrapper
+            stepNumber={3}
+            stepName="Reporting Test Step"
             dealId="test-deal-789"
           >
             <ErrorComponent shouldThrow={true} />
@@ -282,9 +282,9 @@ describe('DealWizardStepWrapper Integration', () => {
 
       render(
         <TestWrapper>
-          <DealWizardStepWrapper 
-            stepNumber={1} 
-            stepName="Test Step" 
+          <DealWizardStepWrapper
+            stepNumber={1}
+            stepName="Test Step"
             dealId="test-deal-123"
           >
             <ErrorComponent shouldThrow={true} />
@@ -311,9 +311,9 @@ describe('DealWizardStepWrapper Integration', () => {
 
       render(
         <TestWrapper>
-          <DealWizardStepWrapper 
-            stepNumber={1} 
-            stepName="Test Step" 
+          <DealWizardStepWrapper
+            stepNumber={1}
+            stepName="Test Step"
             dealId="test-deal-123"
           >
             <ErrorComponent shouldThrow={true} />
@@ -335,9 +335,9 @@ describe('DealWizardStepWrapper Integration', () => {
 
       render(
         <TestWrapper>
-          <DealWizardStepWrapper 
-            stepNumber={5} 
-            stepName="Context Test Step" 
+          <DealWizardStepWrapper
+            stepNumber={5}
+            stepName="Context Test Step"
             dealId="test-deal-context"
           >
             <ErrorComponent shouldThrow={false} />
@@ -354,9 +354,9 @@ describe('DealWizardStepWrapper Integration', () => {
 
       const { rerender } = render(
         <TestWrapper>
-          <DealWizardStepWrapper 
-            stepNumber={1} 
-            stepName="Initial Step" 
+          <DealWizardStepWrapper
+            stepNumber={1}
+            stepName="Initial Step"
             dealId="initial-deal"
           >
             <ErrorComponent shouldThrow={false} />
@@ -370,9 +370,9 @@ describe('DealWizardStepWrapper Integration', () => {
       // Update props
       rerender(
         <TestWrapper>
-          <DealWizardStepWrapper 
-            stepNumber={2} 
-            stepName="Updated Step" 
+          <DealWizardStepWrapper
+            stepNumber={2}
+            stepName="Updated Step"
             dealId="updated-deal"
           >
             <ErrorComponent shouldThrow={false} />
@@ -390,7 +390,7 @@ describe('DealWizardStepWrapper Integration', () => {
       const mockRecovery = require('../hooks/useDealWizardRecovery')();
       const networkError = new Error('fetch failed');
       networkError.name = 'NetworkError';
-      
+
       mockRecovery.getRecoverySuggestions.mockReturnValue([
         { type: 'info', message: 'Check your internet connection', action: 'retry' },
         { type: 'info', message: 'Try refreshing the page', action: 'refresh' }
@@ -402,9 +402,9 @@ describe('DealWizardStepWrapper Integration', () => {
 
       render(
         <TestWrapper>
-          <DealWizardStepWrapper 
-            stepNumber={1} 
-            stepName="Network Test Step" 
+          <DealWizardStepWrapper
+            stepNumber={1}
+            stepName="Network Test Step"
             dealId="test-deal-network"
           >
             <ErrorComponent shouldThrow={true} />
@@ -431,9 +431,9 @@ describe('DealWizardStepWrapper Integration', () => {
 
       render(
         <TestWrapper>
-          <DealWizardStepWrapper 
-            stepNumber={1} 
-            stepName="Validation Test Step" 
+          <DealWizardStepWrapper
+            stepNumber={1}
+            stepName="Validation Test Step"
             dealId="test-deal-validation"
           >
             <ErrorComponent shouldThrow={true} />
@@ -447,4 +447,4 @@ describe('DealWizardStepWrapper Integration', () => {
       console.error = originalError;
     });
   });
-}); 
+});

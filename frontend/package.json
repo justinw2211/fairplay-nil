@@ -21,6 +21,8 @@
     "@nivo/core": "^0.99.0",
     "@nivo/line": "^0.99.0",
     "@nivo/pie": "^0.99.0",
+    "@sentry/react": "^9.43.0",
+    "@sentry/tracing": "^7.120.4",
     "@supabase/supabase-js": "^2.21.0",
     "axios": "^1.7.2",
     "formik": "^2.4.6",

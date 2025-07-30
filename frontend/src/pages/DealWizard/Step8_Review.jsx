@@ -129,12 +129,12 @@ const Step8_Review = () => {
       };
 
       console.log('Submitting deal with data:', updateData);
-      
+
       await updateDeal(dealId, updateData);
-      
+
       // Navigate based on deal type to appropriate prediction wizard
       const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-      
+
       if (dealType === 'clearinghouse') {
         navigate(`/clearinghouse-wizard/${dealId}${typeParam}`);
       } else if (dealType === 'valuation') {

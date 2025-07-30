@@ -22,6 +22,9 @@ import { ChevronRight, Clock, Users } from 'lucide-react';
 import SocialMediaForm from '../../components/forms/social-media-form';
 import useSocialMedia from '../../hooks/use-social-media';
 import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
+import { createLogger } from '../../utils/logger';
+
+const logger = createLogger('Step0_SocialMedia');
 
 const Step0_SocialMedia = () => {
   // PATTERN: Follow Step1_DealTerms.jsx structure exactly (cursor rule)
@@ -32,15 +35,15 @@ const Step0_SocialMedia = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
-  
+
   const [socialMediaData, setSocialMediaData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [formValid, setFormValid] = useState(false);
-  
+
   // Reference to trigger form submission
   const formRef = useRef(null);
-  
+
   const { fetchSocialMedia, updateSocialMedia } = useSocialMedia();
 
   // CRITICAL: Load existing social media data on mount
@@ -49,7 +52,22 @@ const Step0_SocialMedia = () => {
       try {
         const data = await fetchSocialMedia();
         setSocialMediaData(data || []);
+        logger.info('Social media data loaded successfully', {
+          dealId,
+          dealType,
+          dataCount: data?.length || 0
+        });
       } catch (error) {
+        // Log error with context for debugging
+        logger.error('Failed to load social media data', {
+          error: error.message,
+          dealId,
+          dealType,
+          userId: user?.id,
+          step: 'Step0_SocialMedia',
+          operation: 'loadSocialMedia'
+        });
+
         // Log error without sensitive data
         toast({
           title: 'Notice',
@@ -62,7 +80,7 @@ const Step0_SocialMedia = () => {
         setInitialLoading(false);
       }
     };
-    
+
     if (user) {
       loadSocialMedia();
     } else {
@@ -75,15 +93,23 @@ const Step0_SocialMedia = () => {
     try {
       // Update social media data first
       await updateSocialMedia(formData);
-      
+
       // CRITICAL: Update deal with current social media data and deal type (cursor rule)
-      await updateDeal(dealId, { 
+      await updateDeal(dealId, {
         athlete_social_media: formData.platforms,
         social_media_confirmed: true,
         deal_type: dealType
         // Note: social_media_confirmed_at will be set by database trigger or default
       });
-      
+
+      logger.info('Social media data updated successfully', {
+        dealId,
+        dealType,
+        platformsCount: formData.platforms?.length || 0,
+        step: 'Step0_SocialMedia',
+        operation: 'handleNext'
+      });
+
       toast({
         title: 'Social media confirmed',
         description: 'Your social media information has been updated and confirmed for this deal.',
@@ -91,11 +117,22 @@ const Step0_SocialMedia = () => {
         duration: 3000,
         isClosable: true,
       });
-      
+
       // PATTERN: Navigate to next step based on deal type (maintain existing URLs with type parameter)
       const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
       navigate(`/add/deal/terms/${dealId}${typeParam}`);
     } catch (error) {
+      // Log error with context for debugging
+      logger.error('Failed to update social media data', {
+        error: error.message,
+        dealId,
+        dealType,
+        userId: user?.id,
+        step: 'Step0_SocialMedia',
+        operation: 'handleNext',
+        formDataKeys: Object.keys(formData || {})
+      });
+
       // Log error without sensitive data
       toast({
         title: 'Error updating deal',
@@ -110,24 +147,48 @@ const Step0_SocialMedia = () => {
   };
 
   const handleFinishLater = () => {
+    logger.info('User chose to finish later', {
+      dealId,
+      dealType,
+      userId: user?.id,
+      step: 'Step0_SocialMedia',
+      operation: 'handleFinishLater'
+    });
     navigate('/dashboard');
   };
 
   const handleContinueClick = () => {
-    // Try multiple approaches to trigger form submission
-    if (formRef.current) {
-      // First try: dispatch submit event
-      const form = formRef.current.querySelector('#social-media-form');
-      if (form) {
-        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-        return;
+    try {
+      // Try multiple approaches to trigger form submission
+      if (formRef.current) {
+        // First try: dispatch submit event
+        const form = formRef.current.querySelector('#social-media-form');
+        if (form) {
+          form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+          return;
+        }
       }
-    }
-    
-    // Fallback: click the hidden submit button
-    const submitButton = document.querySelector('[data-testid="social-media-submit"]');
-    if (submitButton) {
-      submitButton.click();
+
+      // Fallback: click the hidden submit button
+      const submitButton = document.querySelector('[data-testid="social-media-submit"]');
+      if (submitButton) {
+        submitButton.click();
+      }
+
+      logger.info('Form submission triggered', {
+        dealId,
+        dealType,
+        step: 'Step0_SocialMedia',
+        operation: 'handleContinueClick'
+      });
+    } catch (error) {
+      logger.error('Failed to trigger form submission', {
+        error: error.message,
+        dealId,
+        dealType,
+        step: 'Step0_SocialMedia',
+        operation: 'handleContinueClick'
+      });
     }
   };
 
@@ -239,7 +300,7 @@ const Step0_SocialMedia = () => {
                     Why we need this information
                   </Text>
                   <Text fontSize="sm" color="brand.textSecondary">
-                    Your social media follower counts are required for NCAA compliance reporting and help determine deal value. 
+                    Your social media follower counts are required for NCAA compliance reporting and help determine deal value.
                     This information will be attached to your NIL deal for transparency and regulatory purposes.
                   </Text>
                 </VStack>
@@ -300,4 +361,4 @@ const Step0_SocialMedia = () => {
   );
 };
 
-export default Step0_SocialMedia; 
+export default Step0_SocialMedia;

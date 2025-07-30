@@ -65,9 +65,9 @@ export default function Athletes() {
       <Container maxW="7xl">
         {/* Hero Section */}
         <VStack spacing={6} align="start" mb={16}>
-          <Heading 
-            as="h1" 
-            size="2xl" 
+          <Heading
+            as="h1"
+            size="2xl"
             color="brand.textPrimary"
             lineHeight="1.2"
           >

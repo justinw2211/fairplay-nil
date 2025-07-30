@@ -15,6 +15,115 @@
 - **Known Issue:** Versions 1.0.3 and earlier have critical initialization bugs causing `AttributeError: 'dict' object has no attribute 'headers'`
 - **Dependencies:** When upgrading supabase library, also update httpx, typing-extensions, pydantic, anyio, aioredis (see cursor-rules.mdc for specific versions)
 
+## 🔧 **Database Management with MCP Tools**
+
+### **Using Supabase MCP for Database Checks**
+
+Before making any database changes, always check the current state using the Supabase MCP tools:
+
+#### **1. Check Current Table Structure**
+```bash
+# Use the MCP tool to list all tables and their structure
+mcp_supabase_list_tables --schemas public
+```
+
+#### **2. Check Existing Indexes**
+```sql
+-- Query to check current indexes
+SELECT 
+    indexname,
+    tablename,
+    indexdef
+FROM pg_indexes 
+WHERE schemaname = 'public' 
+AND indexname LIKE 'idx_%'
+ORDER BY indexname;
+```
+
+#### **3. Check Applied Migrations**
+```bash
+# Use the MCP tool to list all migrations
+mcp_supabase_list_migrations
+```
+
+#### **4. Execute Test Queries**
+```bash
+# Use the MCP tool to run test queries
+mcp_supabase_execute_sql --query "SELECT COUNT(*) FROM deals WHERE status = 'draft';"
+```
+
+### **Pre-Update Checklist**
+
+Before applying any database changes:
+
+1. **✅ Check current schema** - Use `mcp_supabase_list_tables`
+2. **✅ Verify existing indexes** - Query `pg_indexes` table
+3. **✅ Test current queries** - Run performance tests
+4. **✅ Backup if needed** - For major schema changes
+5. **✅ Apply changes** - Execute migration
+6. **✅ Verify changes** - Check new indexes/structure
+7. **✅ Test performance** - Run before/after comparisons
+
+### **Post-Update Verification**
+
+After applying database changes:
+
+1. **✅ Verify indexes created** - Check `pg_indexes` table
+2. **✅ Test query performance** - Run EXPLAIN ANALYZE
+3. **✅ Check application functionality** - Test all features
+4. **✅ Monitor for errors** - Watch application logs
+5. **✅ Update documentation** - Keep this file current
+
+### **Common MCP Commands for Database Management**
+
+```bash
+# Check table structure
+mcp_supabase_list_tables
+
+# Execute SQL queries
+mcp_supabase_execute_sql --query "SELECT * FROM deals LIMIT 5;"
+
+# Check for performance issues
+mcp_supabase_get_advisors --type performance
+
+# Check for security issues
+mcp_supabase_get_advisors --type security
+
+# Get project information
+mcp_supabase_get_project_url
+mcp_supabase_get_anon_key
+
+# Generate TypeScript types
+mcp_supabase_generate_typescript_types
+```
+
+### **Performance Monitoring**
+
+Use these queries to monitor database performance:
+
+```sql
+-- Check index usage
+SELECT 
+    schemaname, 
+    tablename, 
+    indexname, 
+    idx_tup_read, 
+    idx_tup_fetch 
+FROM pg_stat_user_indexes 
+WHERE schemaname = 'public' 
+ORDER BY idx_tup_read DESC;
+
+-- Check slow queries
+SELECT 
+    query, 
+    calls, 
+    total_time, 
+    mean_time 
+FROM pg_stat_statements 
+ORDER BY mean_time DESC 
+LIMIT 10;
+```
+
 ## Core Tables
 
 ### 1. `profiles` Table

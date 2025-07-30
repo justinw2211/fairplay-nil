@@ -70,13 +70,13 @@ const fadeInUpKeyframes = keyframes`
   100% { opacity: 1; transform: translateY(0); }
 `;
 
-const ProfileBanner = ({ 
-  profile, 
-  loading = false, 
-  onEditClick, 
-  showSocialMedia = false, 
+const ProfileBanner = ({
+  profile,
+  loading = false,
+  onEditClick,
+  showSocialMedia = false,
   socialMediaCount = 0,
-  ...props 
+  ...props
 }) => {
   // Component state for enhanced interactivity
   const [isHovered, setIsHovered] = useState(false);
@@ -84,16 +84,16 @@ const ProfileBanner = ({
   const [socialMediaData, setSocialMediaData] = useState([]);
   const [lastErrorShown, setLastErrorShown] = useState(null);
   const { isOpen: isStatsExpanded, onToggle: toggleStats } = useDisclosure({ defaultIsOpen: true });
-  
+
   // Motion preferences for accessibility
   const prefersReducedMotion = usePrefersReducedMotion();
-  
+
   // Toast for user notifications
   const toast = useToast();
-  
+
   // Social media hook integration
   const { fetchSocialMedia, loading: socialLoading, error: socialError } = useSocialMedia();
-  
+
   // Enhanced animation timing
   useEffect(() => {
     if (!loading) {
@@ -103,15 +103,15 @@ const ProfileBanner = ({
 
   // Memoized social media data fetching
   const fetchSocialMediaData = useCallback(async () => {
-    if (!showSocialMedia || loading) return;
-    
+    if (!showSocialMedia || loading) {return;}
+
     try {
       const data = await fetchSocialMedia();
       setSocialMediaData(data || []);
     } catch (error) {
       console.error('Error fetching social media:', error);
       setSocialMediaData([]);
-      
+
       // Show toast notification for social media errors (but not too frequently)
       const errorKey = `social_media_${error.message}`;
       if (lastErrorShown !== errorKey) {
@@ -135,15 +135,15 @@ const ProfileBanner = ({
 
   // Calculate profile completion percentage
   const calculateProfileCompletion = useCallback((profileData) => {
-    if (!profileData) return 0;
-    
+    if (!profileData) {return 0;}
+
     const requiredFields = [
       'full_name', 'displayName', 'first_name', 'last_name', // Name fields
       'university', 'school', // University fields
       'sports', 'sport', // Sport fields
       'division' // Division field
     ];
-    
+
     const optionalFields = [
       'phone', 'phone_number', // Phone fields
       'expected_graduation_year', // Graduation field
@@ -151,42 +151,42 @@ const ProfileBanner = ({
       'bio', 'description', // Bio fields
       'email' // Email field
     ];
-    
+
     // Check required fields (worth 60% of completion)
     const filledRequired = requiredFields.filter(field => {
       const value = profileData[field];
       return value && value !== '' && value !== null && value !== undefined;
     }).length;
-    
+
     // Check optional fields (worth 40% of completion)
     const filledOptional = optionalFields.filter(field => {
       const value = profileData[field];
       return value && value !== '' && value !== null && value !== undefined;
     }).length;
-    
+
     // Calculate completion percentage
     const requiredScore = (filledRequired / Math.min(requiredFields.length, 4)) * 60; // Cap at 4 required fields
     const optionalScore = (filledOptional / optionalFields.length) * 40;
-    
+
     return Math.min(Math.round(requiredScore + optionalScore), 100);
   }, []);
 
   // Calculate social media completion
   const calculateSocialMediaCompletion = useCallback((socialPlatforms) => {
-    if (!socialPlatforms || socialPlatforms.length === 0) return 0;
-    
+    if (!socialPlatforms || socialPlatforms.length === 0) {return 0;}
+
     const totalPlatforms = 3; // Instagram, Twitter, TikTok
-    const activePlatforms = socialPlatforms.filter(platform => 
+    const activePlatforms = socialPlatforms.filter(platform =>
       platform.handle && platform.followers >= 0
     ).length;
-    
+
     return Math.min((activePlatforms / totalPlatforms) * 100, 100);
   }, []);
 
   // Calculate total follower count
   const calculateTotalFollowers = useCallback((socialPlatforms) => {
-    if (!socialPlatforms || socialPlatforms.length === 0) return 0;
-    
+    if (!socialPlatforms || socialPlatforms.length === 0) {return 0;}
+
     return socialPlatforms.reduce((total, platform) => {
       return total + (platform.followers || 0);
     }, 0);
@@ -232,7 +232,7 @@ const ProfileBanner = ({
   const isMobile = useBreakpointValue({ base: true, md: false });
   const isTablet = useBreakpointValue({ base: false, md: true, lg: false });
   const isDesktop = useBreakpointValue({ base: false, lg: true });
-  
+
   const avatarSize = useBreakpointValue({ base: 'lg', sm: 'xl', md: '2xl' });
   const cardPadding = useBreakpointValue({ base: 3, sm: 4, md: 6 });
   const titleSize = useBreakpointValue({ base: 'lg', sm: 'xl', md: '2xl' });
@@ -259,7 +259,6 @@ const ProfileBanner = ({
     bio: profile?.bio || profile?.description || '',
     avatar_url: profile?.avatar_url || profile?.profile_image || ''
   };
-
 
 
   // Social media data with calculations
@@ -325,8 +324,8 @@ const ProfileBanner = ({
   }
 
   return (
-    <ScaleFade 
-      in={!loading} 
+    <ScaleFade
+      in={!loading}
       initialScale={prefersReducedMotion ? 1 : 0.9}
       transition={{ enter: { duration: 0.4, delay: animationDelay / 1000 } }}
     >
@@ -385,8 +384,8 @@ const ProfileBanner = ({
                 {/* Profile Info Section */}
                 <HStack spacing={spacing} flex={1} textAlign={textAlign}>
                   {/* Avatar with Status Indicator */}
-                  <SlideFade 
-                    in={!loading} 
+                  <SlideFade
+                    in={!loading}
                     offsetY="20px"
                     delay={prefersReducedMotion ? 0 : 0.1}
                   >
@@ -527,8 +526,8 @@ const ProfileBanner = ({
             )}
 
             <Collapse in={isStatsExpanded || isDesktop} animateOpacity>
-              <SimpleGrid 
-                columns={stackStats ? 1 : { base: 1, md: 3 }} 
+              <SimpleGrid
+                columns={stackStats ? 1 : { base: 1, md: 3 }}
                 spacing={compactView ? 4 : 6}
               >
               {/* Profile Completion */}
@@ -540,7 +539,7 @@ const ProfileBanner = ({
                       Profile Completion
                     </Text>
                   </HStack>
-                  <Tooltip 
+                  <Tooltip
                     label={`${profileData.completionPercentage}% Complete. Essential fields: Name, University, Sport, Division. Bonus: Phone, Bio, Avatar.`}
                     placement="top"
                   >
@@ -548,10 +547,10 @@ const ProfileBanner = ({
                       <Text fontSize="sm" fontWeight="bold" color={textOnCard}>
                         {profileData.completionPercentage}%
                       </Text>
-                      <Icon 
-                        as={profileData.isComplete ? FiCheck : FiTrendingUp} 
-                        color={profileData.isComplete ? "green.500" : "orange.500"} 
-                        boxSize="3" 
+                      <Icon
+                        as={profileData.isComplete ? FiCheck : FiTrendingUp}
+                        color={profileData.isComplete ? "green.500" : "orange.500"}
+                        boxSize="3"
                       />
                     </HStack>
                   </Tooltip>
@@ -652,11 +651,11 @@ const ProfileBanner = ({
                             borderRadius="full"
                           >
                             <HStack spacing={1}>
-                              <Icon 
-                                as={platform.platform === 'instagram' ? FiInstagram : 
-                                    platform.platform === 'twitter' ? FiTwitter : 
-                                    platform.platform === 'tiktok' ? FiYoutube : FiUsers} 
-                                boxSize="3" 
+                              <Icon
+                                as={platform.platform === 'instagram' ? FiInstagram :
+                                    platform.platform === 'twitter' ? FiTwitter :
+                                    platform.platform === 'tiktok' ? FiYoutube : FiUsers}
+                                boxSize="3"
                               />
                               <Text fontSize="xs">{platform.platform}</Text>
                             </HStack>
@@ -735,8 +734,8 @@ const ProfileBanner = ({
 
             {/* Call to Action for Profile Completion */}
             {profileData.completionPercentage < 80 && (
-              <SlideFade 
-                in={true} 
+              <SlideFade
+                in={true}
                 offsetY="10px"
                 delay={prefersReducedMotion ? 0 : 0.3}
               >
@@ -760,9 +759,9 @@ const ProfileBanner = ({
                   aria-label="Click to edit profile and complete missing information"
                 >
                   <HStack spacing={2}>
-                    <Icon 
-                      as={FiTrendingUp} 
-                      color="orange.600" 
+                    <Icon
+                      as={FiTrendingUp}
+                      color="orange.600"
                       boxSize="4"
                       animation={prefersReducedMotion ? "none" : `${pulseKeyframes} 3s infinite`}
                     />
@@ -777,8 +776,8 @@ const ProfileBanner = ({
 
             {/* Performance Badge for High Completion */}
             {profileData.completionPercentage >= 90 && (
-              <SlideFade 
-                in={true} 
+              <SlideFade
+                in={true}
                 offsetY="10px"
                 delay={prefersReducedMotion ? 0 : 0.4}
               >
@@ -819,4 +818,4 @@ const MemoizedProfileBanner = memo(ProfileBanner, (prevProps, nextProps) => {
 
 MemoizedProfileBanner.displayName = 'ProfileBanner';
 
-export default MemoizedProfileBanner; 
+export default MemoizedProfileBanner;

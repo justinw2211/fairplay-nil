@@ -91,8 +91,8 @@ const ActivityForm_Appearance = ({ onNext, currentActivity, totalActivities }) =
   };
 
   const isFormValid = () => {
-    if (selectedAppearances.length === 0) return false;
-    if (selectedAppearances.includes("other") && !otherAppearance.trim()) return false;
+    if (selectedAppearances.length === 0) {return false;}
+    if (selectedAppearances.includes("other") && !otherAppearance.trim()) {return false;}
     return true;
   };
 
@@ -170,7 +170,7 @@ const ActivityForm_Appearance = ({ onNext, currentActivity, totalActivities }) =
                 Activity Details: Appearance
               </Text>
               <Text fontSize="lg" color="brand.textSecondary" mt={2}>
-                Live in-person or virtual events like camps, meet and greets, or photoshoots. 
+                Live in-person or virtual events like camps, meet and greets, or photoshoots.
                 If your payor has asked you to do "up to" a certain number of events, please input the minimum number.
               </Text>
             </Box>
@@ -259,7 +259,7 @@ const ActivityForm_Appearance = ({ onNext, currentActivity, totalActivities }) =
                   {selectedAppearances.map((appearanceId) => {
                     const appearance = appearanceTypes.find(a => a.id === appearanceId);
                     const details = appearanceDetails[appearanceId];
-                    const displayName = appearanceId === "other" && otherAppearance ? 
+                    const displayName = appearanceId === "other" && otherAppearance ?
                       otherAppearance : appearance?.name || "";
 
                     return (

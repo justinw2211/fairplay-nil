@@ -28,7 +28,7 @@ const ContractUpload = ({ onUploadComplete }) => {
 
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
-    if (!file) return;
+    if (!file) {return;}
 
     if (file.type !== 'application/pdf') {
         toast({
@@ -40,7 +40,7 @@ const ContractUpload = ({ onUploadComplete }) => {
         });
         return;
     }
-    
+
     setFileName(file.name);
     await uploadContract(file);
   };
@@ -65,13 +65,13 @@ const ContractUpload = ({ onUploadComplete }) => {
       if (error) {
         throw error;
       }
-      
+
       const { data: publicUrlData } = supabase.storage
         .from('contracts')
         .getPublicUrl(filePath);
 
       onUploadComplete(publicUrlData.publicUrl);
-      
+
       toast({
         title: 'Upload Successful',
         description: `${file.name} has been uploaded.`,
@@ -120,7 +120,7 @@ const ContractUpload = ({ onUploadComplete }) => {
         </FormControl>
 
         {uploading && <Progress value={uploadProgress} mt={2} size="sm" />}
-        
+
         {fileName && !uploading && (
             <HStack mt={3} spacing={2} color="green.500">
                 <Icon as={CheckCircleIcon} />

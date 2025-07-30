@@ -55,9 +55,9 @@ const socialMediaSchema = yup.object().shape({
   ).min(1, 'At least one social media platform is required'),
 });
 
-const SocialMediaForm = ({ 
-  initialData = [], 
-  onSubmit, 
+const SocialMediaForm = ({
+  initialData = [],
+  onSubmit,
   isLoading = false
 }) => {
   const [error, setError] = useState(null);
@@ -135,8 +135,8 @@ const SocialMediaForm = ({
     const selectedPlatforms = watchedPlatforms
       .map((p, index) => index !== currentIndex ? p.platform : null)
       .filter(Boolean);
-    
-    return SOCIAL_PLATFORMS.filter(platform => 
+
+    return SOCIAL_PLATFORMS.filter(platform =>
       !selectedPlatforms.includes(platform.value)
     );
   };
@@ -321,7 +321,7 @@ const SocialMediaForm = ({
               </Button>
             )}
           </Box>
-          
+
           {/* Hidden submit button for external triggers */}
           <Button
             type="submit"
@@ -337,4 +337,4 @@ const SocialMediaForm = ({
   );
 };
 
-export default SocialMediaForm; 
+export default SocialMediaForm;

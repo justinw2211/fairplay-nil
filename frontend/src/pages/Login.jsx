@@ -28,7 +28,7 @@ export default function Login() {
     try {
       // The data object from react-hook-form is in the correct format.
       const { error } = await signIn(data);
-      if (error) throw error;
+      if (error) {throw error;}
       navigate('/dashboard'); // Redirect to dashboard after login
     } catch (error) {
       toast({

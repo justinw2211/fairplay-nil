@@ -1,7 +1,7 @@
 /**
  * NIL Go Clearinghouse Prediction Engine
  * Based on Deloitte's actual NIL Go clearinghouse process and criteria
- * 
+ *
  * Research Sources:
  * - Deloitte NIL Go 3-step process documentation
  * - Troutman Pepper Locke NIL Revolution analysis
@@ -58,16 +58,16 @@ export const predictClearinghouse = (dealData, athleteData) => {
   const payorAnalysis = analyzePayorAssociation(dealData);
   prediction.factors.payor_association.score = payorAnalysis.score;
   prediction.details.payor_verification = payorAnalysis;
-  
+
   if (payorAnalysis.issues.length > 0) {
     prediction.issues.push(...payorAnalysis.issues);
   }
 
-  // Step 2: Valid Business Purpose Verification  
+  // Step 2: Valid Business Purpose Verification
   const businessPurposeAnalysis = analyzeBusinessPurpose(dealData);
   prediction.factors.business_purpose.score = businessPurposeAnalysis.score;
   prediction.details.business_purpose_verification = businessPurposeAnalysis;
-  
+
   if (businessPurposeAnalysis.issues.length > 0) {
     prediction.issues.push(...businessPurposeAnalysis.issues);
   }
@@ -76,7 +76,7 @@ export const predictClearinghouse = (dealData, athleteData) => {
   const fmvAnalysis = analyzeFairMarketValue(dealData, athleteData, totalCompensation);
   prediction.factors.compensation_range.score = fmvAnalysis.score;
   prediction.details.fmv_analysis = fmvAnalysis;
-  
+
   if (fmvAnalysis.issues.length > 0) {
     prediction.issues.push(...fmvAnalysis.issues);
   }
@@ -105,23 +105,23 @@ export const predictClearinghouse = (dealData, athleteData) => {
  */
 function calculateTotalCompensation(dealData) {
   let total = 0;
-  
+
   if (dealData.compensation_cash) {
     total += parseFloat(dealData.compensation_cash) || 0;
   }
-  
+
   if (dealData.compensation_goods && Array.isArray(dealData.compensation_goods)) {
     total += dealData.compensation_goods.reduce((sum, item) => {
       return sum + (parseFloat(item.estimated_value) || 0);
     }, 0);
   }
-  
+
   if (dealData.compensation_other && Array.isArray(dealData.compensation_other)) {
     total += dealData.compensation_other.reduce((sum, item) => {
       return sum + (parseFloat(item.estimated_value) || 0);
     }, 0);
   }
-  
+
   return total;
 }
 
@@ -162,7 +162,7 @@ function analyzePayorAssociation(dealData) {
     analysis.is_associated_entity = true;
     analysis.association_type = matchedIndicator.type;
     analysis.risk_level = matchedIndicator.risk;
-    
+
     if (matchedIndicator.risk === 'high') {
       analysis.score = 30; // Low score for collective-type entities
       analysis.issues.push({
@@ -227,7 +227,7 @@ function analyzeBusinessPurpose(dealData) {
     const activityAnalysis = analyzeActivityLegitimacy(activity);
     analysis.activities_analysis.push(activityAnalysis);
     totalActivityScore += activityAnalysis.score;
-    
+
     if (activityAnalysis.issues.length > 0) {
       analysis.issues.push(...activityAnalysis.issues);
     }
@@ -380,7 +380,7 @@ function analyzeFairMarketValue(dealData, athleteData, totalCompensation) {
   const activityMultiplier = 1 + (activityScore.score / 100);
 
   analysis.estimated_fmv = Math.round(baseFMV * socialMultiplier * athleticMultiplier * marketMultiplier * activityMultiplier);
-  
+
   // Create FMV range (±25%)
   analysis.fmv_range = {
     min: Math.round(analysis.estimated_fmv * 0.75),
@@ -425,7 +425,7 @@ function analyzeFairMarketValue(dealData, athleteData, totalCompensation) {
  */
 function calculateSocialMediaScore(athleteData) {
   const score = { score: 50, followers: 0, breakdown: [] };
-  
+
   if (!athleteData || !athleteData.athlete_social_media) {
     return score;
   }
@@ -434,15 +434,15 @@ function calculateSocialMediaScore(athleteData) {
   athleteData.athlete_social_media.forEach(platform => {
     const followers = platform.followers || 0;
     totalFollowers += followers;
-    
+
     // Platform-specific scoring
     let platformScore = 0;
-    if (followers >= 100000) platformScore = 90;
-    else if (followers >= 50000) platformScore = 75;
-    else if (followers >= 25000) platformScore = 60;
-    else if (followers >= 10000) platformScore = 45;
-    else if (followers >= 5000) platformScore = 30;
-    else platformScore = 15;
+    if (followers >= 100000) {platformScore = 90;}
+    else if (followers >= 50000) {platformScore = 75;}
+    else if (followers >= 25000) {platformScore = 60;}
+    else if (followers >= 10000) {platformScore = 45;}
+    else if (followers >= 5000) {platformScore = 30;}
+    else {platformScore = 15;}
 
     score.breakdown.push({
       platform: platform.platform,
@@ -452,16 +452,16 @@ function calculateSocialMediaScore(athleteData) {
   });
 
   score.followers = totalFollowers;
-  
+
   // Calculate weighted average based on total followers
-  if (totalFollowers >= 500000) score.score = 95;
-  else if (totalFollowers >= 250000) score.score = 85;
-  else if (totalFollowers >= 100000) score.score = 75;
-  else if (totalFollowers >= 50000) score.score = 65;
-  else if (totalFollowers >= 25000) score.score = 55;
-  else if (totalFollowers >= 10000) score.score = 45;
-  else if (totalFollowers >= 5000) score.score = 35;
-  else score.score = 25;
+  if (totalFollowers >= 500000) {score.score = 95;}
+  else if (totalFollowers >= 250000) {score.score = 85;}
+  else if (totalFollowers >= 100000) {score.score = 75;}
+  else if (totalFollowers >= 50000) {score.score = 65;}
+  else if (totalFollowers >= 25000) {score.score = 55;}
+  else if (totalFollowers >= 10000) {score.score = 45;}
+  else if (totalFollowers >= 5000) {score.score = 35;}
+  else {score.score = 25;}
 
   return score;
 }
@@ -559,4 +559,4 @@ function formatCurrency(amount) {
   }).format(amount);
 }
 
-export default predictClearinghouse; 
+export default predictClearinghouse;

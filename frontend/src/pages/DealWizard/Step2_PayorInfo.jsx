@@ -25,6 +25,9 @@ import {
 import { ChevronRight, ChevronLeft, Clock } from 'lucide-react';
 import { formatPhoneNumber } from '../../utils/phoneUtils';
 import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
+import { createLogger } from '../../utils/logger';
+
+const logger = createLogger('Step2_PayorInfo');
 
 const Step2_PayorInfo = () => {
   const { dealId } = useParams();
@@ -45,6 +48,17 @@ const Step2_PayorInfo = () => {
       setPayorName(deal.payor_name || '');
       setPayorEmail(deal.payor_email || '');
       setPayorPhone(deal.payor_phone || '');
+
+      logger.info('Payor info loaded from deal', {
+        dealId,
+        dealType,
+        step: 'Step2_PayorInfo',
+        operation: 'useEffect',
+        hasPayorType: !!deal.payor_type,
+        hasPayorName: !!deal.payor_name,
+        hasPayorEmail: !!deal.payor_email,
+        hasPayorPhone: !!deal.payor_phone
+      });
     }
   }, [deal]);
 
@@ -56,15 +70,22 @@ const Step2_PayorInfo = () => {
   const handleEmailChange = (e) => {
     const email = e.target.value;
     setPayorEmail(email);
-    
+
     if (email && !validateEmail(email)) {
       setEmailError('Please enter a valid email address');
+      logger.warn('Invalid email format entered', {
+        dealId,
+        dealType,
+        step: 'Step2_PayorInfo',
+        operation: 'handleEmailChange',
+        email: email
+      });
     } else {
       setEmailError('');
     }
   };
 
-  const isFormValid = payorType && payorName.trim() && 
+  const isFormValid = payorType && payorName.trim() &&
                      (!payorEmail.trim() || validateEmail(payorEmail));
 
   const handlePhoneChange = (e) => {
@@ -73,6 +94,13 @@ const Step2_PayorInfo = () => {
   };
 
   const handleBack = () => {
+    logger.info('User navigated back', {
+      dealId,
+      dealType,
+      step: 'Step2_PayorInfo',
+      operation: 'handleBack'
+    });
+
     const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
     navigate(`/add/deal/terms/${dealId}${typeParam}`);
   };
@@ -80,29 +108,85 @@ const Step2_PayorInfo = () => {
   const handleNext = async () => {
     if (payorEmail && !validateEmail(payorEmail)) {
       setEmailError('Please enter a valid email address');
+      logger.error('Form validation failed - invalid email', {
+        dealId,
+        dealType,
+        step: 'Step2_PayorInfo',
+        operation: 'handleNext',
+        payorEmail: payorEmail,
+        payorType: payorType,
+        payorName: payorName
+      });
       return;
     }
 
-    await updateDeal(dealId, {
-      payor_type: payorType,
-      payor_name: payorName,
-      payor_email: payorEmail,
-      payor_phone: payorPhone,
-    });
-    
-    // ALL deal types now continue to activities selection (no more skipping)
-    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
+    if (!isFormValid) {
+      logger.error('Form validation failed - missing required fields', {
+        dealId,
+        dealType,
+        step: 'Step2_PayorInfo',
+        operation: 'handleNext',
+        hasPayorType: !!payorType,
+        hasPayorName: !!payorName.trim(),
+        hasValidEmail: !payorEmail.trim() || validateEmail(payorEmail)
+      });
+      return;
+    }
+
+    try {
+      await updateDeal(dealId, {
+        payor_type: payorType,
+        payor_name: payorName,
+        payor_email: payorEmail,
+        payor_phone: payorPhone,
+      });
+
+      logger.info('Payor info updated successfully', {
+        dealId,
+        dealType,
+        step: 'Step2_PayorInfo',
+        operation: 'handleNext',
+        payorType: payorType,
+        hasPayorName: !!payorName,
+        hasPayorEmail: !!payorEmail,
+        hasPayorPhone: !!payorPhone
+      });
+
+      // ALL deal types now continue to activities selection (no more skipping)
+      const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+      navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
+    } catch (error) {
+      logger.error('Failed to update payor info', {
+        error: error.message,
+        dealId,
+        dealType,
+        step: 'Step2_PayorInfo',
+        operation: 'handleNext',
+        payorType: payorType,
+        hasPayorName: !!payorName,
+        hasPayorEmail: !!payorEmail,
+        hasPayorPhone: !!payorPhone
+      });
+
+      // Re-throw the error to be handled by the ErrorBoundary
+      throw error;
+    }
   };
 
   const handleFinishLater = () => {
+    logger.info('User chose to finish later', {
+      dealId,
+      dealType,
+      step: 'Step2_PayorInfo',
+      operation: 'handleFinishLater'
+    });
     navigate('/dashboard');
   };
 
   // Get progress information - all deal types use same 9-step flow
   const getProgressInfo = () => {
     return {
-      stepNumber: '3 of 9', 
+      stepNumber: '3 of 9',
       percentage: 33.3
     };
   };
@@ -149,7 +233,7 @@ const Step2_PayorInfo = () => {
                 </FormLabel>
                 <RadioGroup value={payorType} onChange={setPayorType}>
                   <Stack spacing={3}>
-                    <Radio 
+                    <Radio
                       value="business"
                       borderColor="brand.accentSecondary"
                       _checked={{
@@ -159,7 +243,7 @@ const Step2_PayorInfo = () => {
                     >
                       <Text color="brand.textPrimary" fontWeight="medium">Business</Text>
                     </Radio>
-                    <Radio 
+                    <Radio
                       value="individual"
                       borderColor="brand.accentSecondary"
                       _checked={{

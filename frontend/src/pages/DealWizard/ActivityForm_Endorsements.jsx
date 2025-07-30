@@ -237,7 +237,7 @@ const ActivityForm_Endorsements = ({ onNext, currentActivity, totalActivities })
                 {selectedEndorsements.map((endorsementId) => {
                   const endorsement = endorsementTypes.find(e => e.id === endorsementId);
                   const details = endorsementDetails[endorsementId] || {};
-                  
+
                   return (
                     <Box
                       key={endorsementId}
@@ -251,7 +251,7 @@ const ActivityForm_Endorsements = ({ onNext, currentActivity, totalActivities })
                       <Text color="brand.textPrimary" fontWeight="semibold" mb={4}>
                         {endorsement?.name}
                       </Text>
-                      
+
                       <VStack spacing={4} align="stretch">
                         <FormControl>
                           <FormLabel fontSize="sm" color="brand.textSecondary">

@@ -7,18 +7,18 @@ import ChartContainer from './ChartContainer';
 const PredictionChart = ({ deals = [], height = "400px", onPredictionClick, showPieChart = false }) => {
   const theme = useTheme();
   const [viewMode, setViewMode] = React.useState(showPieChart ? 'pie' : 'bar');
-  
+
   // Process deal data for prediction chart
   const chartData = useMemo(() => {
-    if (!deals || deals.length === 0) return [];
-    
+    if (!deals || deals.length === 0) {return [];}
+
     // Filter deals with predictions
-    const dealsWithPredictions = deals.filter(deal => 
+    const dealsWithPredictions = deals.filter(deal =>
       deal.clearinghouse_prediction || deal.valuation_prediction
     );
-    
-    if (dealsWithPredictions.length === 0) return [];
-    
+
+    if (dealsWithPredictions.length === 0) {return [];}
+
     // Group by prediction results
     const predictionStats = {
       clearinghouse: {
@@ -35,7 +35,7 @@ const PredictionChart = ({ deals = [], height = "400px", onPredictionClick, show
         total: 0
       }
     };
-    
+
     dealsWithPredictions.forEach(deal => {
       // Clearinghouse predictions
       if (deal.clearinghouse_prediction) {
@@ -51,7 +51,7 @@ const PredictionChart = ({ deals = [], height = "400px", onPredictionClick, show
           predictionStats.clearinghouse.pending++;
         }
       }
-      
+
       // Valuation predictions
       if (deal.valuation_prediction) {
         predictionStats.valuation.total++;
@@ -65,10 +65,10 @@ const PredictionChart = ({ deals = [], height = "400px", onPredictionClick, show
         }
       }
     });
-    
+
     // Create chart data
     const barData = [];
-    
+
     if (predictionStats.clearinghouse.total > 0) {
       barData.push({
         category: 'Clearinghouse',
@@ -79,7 +79,7 @@ const PredictionChart = ({ deals = [], height = "400px", onPredictionClick, show
         total: predictionStats.clearinghouse.total
       });
     }
-    
+
     if (predictionStats.valuation.total > 0) {
       barData.push({
         category: 'Valuation',
@@ -89,7 +89,7 @@ const PredictionChart = ({ deals = [], height = "400px", onPredictionClick, show
         total: predictionStats.valuation.total
       });
     }
-    
+
     // Create pie data for clearinghouse
     const pieData = [];
     if (predictionStats.clearinghouse.total > 0) {
@@ -107,7 +107,7 @@ const PredictionChart = ({ deals = [], height = "400px", onPredictionClick, show
         }
       });
     }
-    
+
     return { barData, pieData, predictionStats };
   }, [deals]);
 
@@ -115,12 +115,12 @@ const PredictionChart = ({ deals = [], height = "400px", onPredictionClick, show
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <Box 
-          bg="white" 
-          p={3} 
-          borderRadius="md" 
-          boxShadow="lg" 
-          border="1px solid" 
+        <Box
+          bg="white"
+          p={3}
+          borderRadius="md"
+          boxShadow="lg"
+          border="1px solid"
           borderColor="gray.200"
         >
           <VStack align="start" spacing={1}>
@@ -129,7 +129,7 @@ const PredictionChart = ({ deals = [], height = "400px", onPredictionClick, show
             </Text>
             {payload.map((entry, index) => (
               <Text key={index} color={entry.color} fontSize="sm">
-                {entry.name}: {entry.value} 
+                {entry.name}: {entry.value}
                 {entry.payload.percentage && ` (${entry.payload.percentage}%)`}
               </Text>
             ))}
@@ -182,7 +182,7 @@ const PredictionChart = ({ deals = [], height = "400px", onPredictionClick, show
             {viewMode === 'pie' ? 'Pie Chart' : 'Bar Chart'}
           </Text>
         </HStack>
-        
+
         {/* Chart */}
         <Box w="full" h={height}>
           <ResponsiveContainer width="100%" height="100%">
@@ -191,16 +191,16 @@ const PredictionChart = ({ deals = [], height = "400px", onPredictionClick, show
                 data={chartData.barData}
                 margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
               >
-                <CartesianGrid 
-                  strokeDasharray="3 3" 
-                  stroke={theme.colors.charts?.grid || '#f4f4f4'} 
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke={theme.colors.charts?.grid || '#f4f4f4'}
                 />
-                <XAxis 
-                  dataKey="category" 
+                <XAxis
+                  dataKey="category"
                   tick={{ fill: theme.colors.charts?.text || '#282f3d', fontSize: 12 }}
                   axisLine={{ stroke: theme.colors.charts?.grid || '#f4f4f4' }}
                 />
-                <YAxis 
+                <YAxis
                   tick={{ fill: theme.colors.charts?.text || '#282f3d', fontSize: 12 }}
                   axisLine={{ stroke: theme.colors.charts?.grid || '#f4f4f4' }}
                 />
@@ -241,4 +241,4 @@ const PredictionChart = ({ deals = [], height = "400px", onPredictionClick, show
   );
 };
 
-export default PredictionChart; 
+export default PredictionChart;

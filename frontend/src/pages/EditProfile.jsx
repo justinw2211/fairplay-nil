@@ -52,12 +52,12 @@ import {
   Collapse,
   useColorModeValue,
 } from '@chakra-ui/react';
-import { 
-  FiSave, 
-  FiX, 
-  FiAlertTriangle, 
-  FiUser, 
-  FiMail, 
+import {
+  FiSave,
+  FiX,
+  FiAlertTriangle,
+  FiUser,
+  FiMail,
   FiPhone,
   FiPlus,
   FiTrash2,
@@ -173,8 +173,8 @@ const EditProfileContent = () => {
   // Fetch initial profile data
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!user) return;
-      
+      if (!user) {return;}
+
       setLoading(true);
       try {
         const { data, error } = await supabase
@@ -183,8 +183,8 @@ const EditProfileContent = () => {
           .eq('id', user.id)
           .single();
 
-        if (error) throw error;
-        
+        if (error) {throw error;}
+
         if (data) {
           // Map database enum values to display values
           const mapEnumToDivision = (division) => {
@@ -201,7 +201,7 @@ const EditProfileContent = () => {
           // Convert old division format to new format if needed
           const formattedData = {
             ...data,
-            division: data.division?.startsWith('D') 
+            division: data.division?.startsWith('D')
               ? data.division === 'D1' ? 'Division I'
                 : data.division === 'D2' ? 'Division II'
                 : data.division === 'D3' ? 'Division III'
@@ -214,17 +214,17 @@ const EditProfileContent = () => {
             // Set email from user auth data
             email: user.email || ''
           };
-          
+
           // Pre-populate form with existing data
           reset(formattedData);
-          
+
           // Set initial sports list based on gender
           if (data.gender === 'Male') {
             setAvailableSports(MEN_SPORTS);
           } else if (data.gender === 'Female') {
             setAvailableSports(WOMEN_SPORTS);
           }
-          
+
           // Set initial schools list based on division will be handled by the schools useEffect
         }
       } catch (error) {
@@ -275,13 +275,13 @@ const EditProfileContent = () => {
       const filtered = schools.filter(
         school => school.division === selectedDivision
       );
-      
+
       // If we're not in initial load and the university exists
       if (!isInitialLoad.current && formValues.university) {
         const universityExists = filtered.some(
           school => school.name === formValues.university
         );
-        
+
         if (!universityExists) {
           // Clear the university if it's not valid for the new division
           setValue('university', '', { shouldValidate: true });
@@ -294,7 +294,7 @@ const EditProfileContent = () => {
           });
         }
       }
-      
+
       setFilteredSchools(filtered);
     } else {
       setFilteredSchools([]);
@@ -306,7 +306,7 @@ const EditProfileContent = () => {
     const sports = selectedGender === 'Male' ? MEN_SPORTS :
                   selectedGender === 'Female' ? WOMEN_SPORTS : [];
     setAvailableSports(sports);
-    
+
     // Only reset sports if not initial load
     if (!isInitialLoad.current && formValues.sports?.length > 0) {
       const validSports = formValues.sports.filter(sport => sports.includes(sport));
@@ -333,8 +333,8 @@ const EditProfileContent = () => {
   // Load social media data
   useEffect(() => {
     const loadSocialMedia = async () => {
-      if (!user) return;
-      
+      if (!user) {return;}
+
       setSocialMediaLoading(true);
       try {
         const data = await fetchSocialMedia();
@@ -376,7 +376,7 @@ const EditProfileContent = () => {
   };
 
   const updateSocialMediaPlatform = (id, field, value) => {
-    setSocialMediaData(prev => prev.map(platform => 
+    setSocialMediaData(prev => prev.map(platform =>
       platform.id === id ? { ...platform, [field]: value } : platform
     ));
     setHasChanges(true);
@@ -390,7 +390,7 @@ const EditProfileContent = () => {
   const saveSocialMedia = async () => {
     try {
       // Validate social media data
-      const validPlatforms = socialMediaData.filter(platform => 
+      const validPlatforms = socialMediaData.filter(platform =>
         platform.platform && platform.handle
       );
 
@@ -401,7 +401,7 @@ const EditProfileContent = () => {
       }));
 
       await updateSocialMedia({ platforms: formattedPlatforms });
-      
+
       toast({
         title: 'Social media updated',
         description: 'Your social media information has been saved successfully.',
@@ -429,12 +429,12 @@ const EditProfileContent = () => {
           const formData = getValues();
           await onSubmit(formData);
         }
-        
+
         // Save social media data if changed
         if (hasChanges) {
           await saveSocialMedia();
         }
-        
+
         navigate('/dashboard');
       } catch (error) {
         // Error handling already done in individual save functions
@@ -480,14 +480,14 @@ const EditProfileContent = () => {
         })
         .eq('id', user.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {throw updateError;}
 
       // Then update email in auth if it changed
       if (data.email !== user.email) {
         const { error: updateEmailError } = await supabase.auth.updateUser({
           email: data.email
         });
-        if (updateEmailError) throw updateEmailError;
+        if (updateEmailError) {throw updateEmailError;}
 
         toast({
           title: 'Email verification required',
@@ -793,7 +793,7 @@ const EditProfileContent = () => {
                       </VStack>
                     </HStack>
                     <HStack spacing={2}>
-                      <Badge 
+                      <Badge
                         colorScheme={socialMediaData.length > 0 ? "green" : "gray"}
                         variant="subtle"
                       >
@@ -841,16 +841,16 @@ const EditProfileContent = () => {
                               {socialMediaData.map((platform) => {
                                 const platformInfo = socialMediaPlatforms.find(p => p.value === platform.platform);
                                 const IconComponent = platformInfo?.icon || FiUsers;
-                                
+
                                 return (
                                   <Card key={platform.id} size="sm" variant="outline" borderColor={borderColor}>
                                     <CardBody>
                                       <VStack spacing={3}>
                                         <Flex justify="space-between" align="center" w="full">
                                           <HStack spacing={2}>
-                                            <Icon 
-                                              as={IconComponent} 
-                                              color={platformInfo?.color || 'gray.500'} 
+                                            <Icon
+                                              as={IconComponent}
+                                              color={platformInfo?.color || 'gray.500'}
                                               boxSize={4}
                                             />
                                             <Text fontSize="sm" fontWeight="medium">
@@ -937,7 +937,7 @@ const EditProfileContent = () => {
                             >
                               Add Platform
                             </Button>
-                            
+
                             {socialMediaData.length > 0 && hasChanges && (
                               <Button
                                 size="sm"

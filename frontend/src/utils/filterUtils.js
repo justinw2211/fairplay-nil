@@ -5,8 +5,8 @@
  * @returns {Array} Filtered deals array
  */
 export const filterDeals = (deals, filters) => {
-  if (!deals || !Array.isArray(deals)) return [];
-  if (!filters) return deals;
+  if (!deals || !Array.isArray(deals)) {return [];}
+  if (!filters) {return deals;}
 
   return deals.filter(deal => {
     // Search filter
@@ -59,8 +59,8 @@ export const filterDeals = (deals, filters) => {
  * @returns {boolean} Whether deal matches search
  */
 const matchesSearch = (deal, searchTerm) => {
-  if (!searchTerm || !searchTerm.trim()) return true;
-  
+  if (!searchTerm || !searchTerm.trim()) {return true;}
+
   const term = searchTerm.toLowerCase().trim();
   const searchFields = [
     deal.brand_partner,
@@ -74,7 +74,7 @@ const matchesSearch = (deal, searchTerm) => {
     deal.valuation_prediction
   ];
 
-  return searchFields.some(field => 
+  return searchFields.some(field =>
     field && field.toString().toLowerCase().includes(term)
   );
 };
@@ -87,15 +87,15 @@ const matchesSearch = (deal, searchTerm) => {
  */
 const matchesDateRange = (deal, dateRange) => {
   const { startDate, endDate } = dateRange;
-  if (!startDate || !endDate) return true;
+  if (!startDate || !endDate) {return true;}
 
   const dealDate = new Date(deal.created_at || deal.updated_at);
   const start = new Date(startDate);
   const end = new Date(endDate);
-  
+
   // Set end date to end of day
   end.setHours(23, 59, 59, 999);
-  
+
   return dealDate >= start && dealDate <= end;
 };
 
@@ -106,11 +106,11 @@ const matchesDateRange = (deal, dateRange) => {
  * @returns {boolean} Whether deal FMV falls within range
  */
 const matchesFMVRange = (deal, fmvRange) => {
-  if (!fmvRange || fmvRange.length !== 2) return true;
-  
+  if (!fmvRange || fmvRange.length !== 2) {return true;}
+
   const dealFMV = deal.fmv || deal.compensation || 0;
   const [min, max] = fmvRange;
-  
+
   return dealFMV >= min && dealFMV <= max;
 };
 
@@ -121,15 +121,15 @@ const matchesFMVRange = (deal, fmvRange) => {
  * @returns {boolean} Whether deal has matching analysis results
  */
 const matchesAnalysisResults = (deal, analysisResults) => {
-  if (!analysisResults || analysisResults.length === 0) return true;
-  
+  if (!analysisResults || analysisResults.length === 0) {return true;}
+
   const dealResults = [
     deal.clearinghouse_prediction,
     deal.valuation_prediction
   ].filter(Boolean);
-  
-  return analysisResults.some(result => 
-    dealResults.some(dealResult => 
+
+  return analysisResults.some(result =>
+    dealResults.some(dealResult =>
       dealResult.toLowerCase().includes(result.toLowerCase())
     )
   );
@@ -147,40 +147,40 @@ export const sortDeals = (deals, sortConfig) => {
   }
 
   const { key, direction } = sortConfig;
-  
+
   return [...deals].sort((a, b) => {
     let aValue = getNestedValue(a, key);
     let bValue = getNestedValue(b, key);
-    
+
     // Handle null/undefined values
-    if (aValue === null || aValue === undefined) aValue = '';
-    if (bValue === null || bValue === undefined) bValue = '';
-    
+    if (aValue === null || aValue === undefined) {aValue = '';}
+    if (bValue === null || bValue === undefined) {bValue = '';}
+
     // Handle different data types
     if (typeof aValue === 'string' && typeof bValue === 'string') {
       aValue = aValue.toLowerCase();
       bValue = bValue.toLowerCase();
     }
-    
+
     // Handle dates
     if (key.includes('date') || key.includes('created') || key.includes('updated')) {
       aValue = new Date(aValue);
       bValue = new Date(bValue);
     }
-    
+
     // Handle numbers
     if (key === 'fmv' || key === 'compensation') {
       aValue = parseFloat(aValue) || 0;
       bValue = parseFloat(bValue) || 0;
     }
-    
+
     let comparison = 0;
     if (aValue < bValue) {
       comparison = -1;
     } else if (aValue > bValue) {
       comparison = 1;
     }
-    
+
     return direction === 'ascending' ? comparison : -comparison;
   });
 };
@@ -204,12 +204,12 @@ const getNestedValue = (obj, path) => {
  * @returns {Array} Array of unique values
  */
 export const getUniqueValues = (deals, field) => {
-  if (!deals || !Array.isArray(deals)) return [];
-  
+  if (!deals || !Array.isArray(deals)) {return [];}
+
   const values = deals
     .map(deal => getNestedValue(deal, field))
     .filter(value => value !== null && value !== undefined && value !== '');
-  
+
   return [...new Set(values)].sort();
 };
 
@@ -225,14 +225,14 @@ export const getFilterStats = (originalDeals, filteredDeals, filters) => {
   const filteredCount = filteredDeals ? filteredDeals.length : 0;
   const hiddenCount = totalDeals - filteredCount;
   const percentageVisible = totalDeals > 0 ? ((filteredCount / totalDeals) * 100).toFixed(1) : 0;
-  
+
   return {
     total: totalDeals,
     visible: filteredCount,
     hidden: hiddenCount,
     percentageVisible: parseFloat(percentageVisible),
     hasFilters: filters && Object.values(filters).some(value => {
-      if (Array.isArray(value)) return value.length > 0;
+      if (Array.isArray(value)) {return value.length > 0;}
       if (typeof value === 'object' && value !== null) {
         return Object.values(value).some(v => v !== null && v !== undefined);
       }
@@ -247,28 +247,28 @@ export const getFilterStats = (originalDeals, filteredDeals, filters) => {
  * @returns {string} Summary string
  */
 export const createFilterSummary = (filters) => {
-  if (!filters) return '';
-  
+  if (!filters) {return '';}
+
   const parts = [];
-  
+
   if (filters.search && filters.search.trim()) {
     parts.push(`"${filters.search}"`);
   }
-  
+
   if (filters.dealTypes && filters.dealTypes.length > 0) {
     parts.push(`${filters.dealTypes.join(', ')}`);
   }
-  
+
   if (filters.statuses && filters.statuses.length > 0) {
     parts.push(`Status: ${filters.statuses.join(', ')}`);
   }
-  
+
   if (filters.dateRange && filters.dateRange.startDate && filters.dateRange.endDate) {
     const start = new Date(filters.dateRange.startDate).toLocaleDateString();
     const end = new Date(filters.dateRange.endDate).toLocaleDateString();
     parts.push(`${start} - ${end}`);
   }
-  
+
   return parts.join(' • ');
 };
 
@@ -279,8 +279,8 @@ export const createFilterSummary = (filters) => {
  * @returns {string} CSV string
  */
 export const exportToCSV = (deals, columns = []) => {
-  if (!deals || deals.length === 0) return '';
-  
+  if (!deals || deals.length === 0) {return '';}
+
   const defaultColumns = [
     { key: 'brand_partner', label: 'Brand Partner' },
     { key: 'deal_type', label: 'Deal Type' },
@@ -289,42 +289,42 @@ export const exportToCSV = (deals, columns = []) => {
     { key: 'school', label: 'School' },
     { key: 'created_at', label: 'Created Date' }
   ];
-  
+
   const columnsToUse = columns.length > 0 ? columns : defaultColumns;
-  
+
   // Create header row
   const headers = columnsToUse.map(col => col.label);
-  
+
   // Create data rows
-  const rows = deals.map(deal => 
+  const rows = deals.map(deal =>
     columnsToUse.map(col => {
       const value = getNestedValue(deal, col.key);
-      if (value === null || value === undefined) return '';
-      
+      if (value === null || value === undefined) {return '';}
+
       // Handle dates
       if (col.key.includes('date') || col.key.includes('created') || col.key.includes('updated')) {
         return new Date(value).toLocaleDateString();
       }
-      
+
       // Handle numbers
       if (col.key === 'fmv' || col.key === 'compensation') {
         return typeof value === 'number' ? value.toFixed(2) : value;
       }
-      
+
       // Escape commas and quotes for CSV
       const stringValue = value.toString();
       if (stringValue.includes(',') || stringValue.includes('"')) {
         return `"${stringValue.replace(/"/g, '""')}"`;
       }
-      
+
       return stringValue;
     })
   );
-  
+
   // Combine headers and rows
   const csvContent = [headers, ...rows]
     .map(row => row.join(','))
     .join('\n');
-  
+
   return csvContent;
-}; 
+};

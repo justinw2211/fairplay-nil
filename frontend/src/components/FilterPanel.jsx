@@ -50,12 +50,12 @@ import { DateRange } from 'react-date-range';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 
-const FilterPanel = ({ 
-  onFiltersChange, 
-  deals = [], 
+const FilterPanel = ({
+  onFiltersChange,
+  deals = [],
   initialFilters = {},
   isCollapsed = false,
-  onToggleCollapse 
+  onToggleCollapse
 }) => {
   const [filters, setFilters] = useState({
     search: '',
@@ -81,7 +81,7 @@ const FilterPanel = ({
   }]);
 
   const { isOpen: isAdvancedOpen, onToggle: onAdvancedToggle } = useDisclosure({ defaultIsOpen: !isCollapsed });
-  
+
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
 
@@ -119,7 +119,7 @@ const FilterPanel = ({
       deal.clearinghouse_prediction,
       deal.valuation_prediction
     ]).filter(Boolean))];
-    
+
     return { dealTypes, statuses, schools, analysisResults };
   }, [deals]);
 
@@ -224,13 +224,13 @@ const FilterPanel = ({
 
   const getActiveFilterCount = useCallback(() => {
     let count = 0;
-    if (filters.search) count++;
-    if (filters.dealTypes.length > 0) count++;
-    if (filters.statuses.length > 0) count++;
-    if (filters.schools.length > 0) count++;
-    if (filters.dateRange.startDate && filters.dateRange.endDate) count++;
-    if (filters.fmvRange[0] > 0 || filters.fmvRange[1] < 100000) count++;
-    if (filters.analysisResults.length > 0) count++;
+    if (filters.search) {count++;}
+    if (filters.dealTypes.length > 0) {count++;}
+    if (filters.statuses.length > 0) {count++;}
+    if (filters.schools.length > 0) {count++;}
+    if (filters.dateRange.startDate && filters.dateRange.endDate) {count++;}
+    if (filters.fmvRange[0] > 0 || filters.fmvRange[1] < 100000) {count++;}
+    if (filters.analysisResults.length > 0) {count++;}
     return count;
   }, [filters]);
 
@@ -461,7 +461,7 @@ const FilterPanel = ({
                     Save Current
                   </Button>
                 </HStack>
-                
+
                 {savedPresets.length > 0 && (
                   <Wrap spacing={2}>
                     {savedPresets.map(preset => (
@@ -493,4 +493,4 @@ const FilterPanel = ({
   );
 };
 
-export default FilterPanel; 
+export default FilterPanel;

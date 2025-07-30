@@ -14,7 +14,7 @@ export const useDealPredictions = (dealId) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       if (!dealId) {
         throw new Error('Deal ID is required');
       }
@@ -22,7 +22,7 @@ export const useDealPredictions = (dealId) => {
       // For now, store in localStorage until backend API is ready
       const key = `clearinghouse_prediction_${dealId}`;
       localStorage.setItem(key, JSON.stringify(prediction));
-      
+
       setClearinghousePrediction(prediction);
       return prediction;
     } catch (err) {
@@ -37,7 +37,7 @@ export const useDealPredictions = (dealId) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       if (!dealId) {
         throw new Error('Deal ID is required');
       }
@@ -45,7 +45,7 @@ export const useDealPredictions = (dealId) => {
       // For now, store in localStorage until backend API is ready
       const key = `valuation_prediction_${dealId}`;
       localStorage.setItem(key, JSON.stringify(prediction));
-      
+
       setValuationPrediction(prediction);
       return prediction;
     } catch (err) {
@@ -60,7 +60,7 @@ export const useDealPredictions = (dealId) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       if (!dealId) {
         throw new Error('Deal ID is required');
       }
@@ -68,19 +68,19 @@ export const useDealPredictions = (dealId) => {
       // For now, fetch from localStorage until backend API is ready
       const key = `${predictionType}_prediction_${dealId}`;
       const stored = localStorage.getItem(key);
-      
+
       if (!stored) {
         return null; // No prediction found
       }
 
       const result = JSON.parse(stored);
-      
+
       if (predictionType === 'clearinghouse') {
         setClearinghousePrediction(result);
       } else if (predictionType === 'valuation') {
         setValuationPrediction(result);
       }
-      
+
       return result;
     } catch (err) {
       setError(err.message);
@@ -114,4 +114,4 @@ export const useDealPredictions = (dealId) => {
 };
 
 // Also export as default for compatibility
-export default useDealPredictions; 
+export default useDealPredictions;

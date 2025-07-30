@@ -3,7 +3,7 @@ export const exportToCsv = (data, filename) => {
   const csvContent = convertToCSV(data);
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
-  
+
   if (link.download !== undefined) {
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
@@ -16,11 +16,11 @@ export const exportToCsv = (data, filename) => {
 };
 
 export const convertToCSV = (data) => {
-  if (!data || data.length === 0) return '';
-  
+  if (!data || data.length === 0) {return '';}
+
   const headers = Object.keys(data[0]);
   const csvRows = [headers.join(',')];
-  
+
   for (const row of data) {
     const values = headers.map(header => {
       const value = row[header];
@@ -32,7 +32,7 @@ export const convertToCSV = (data) => {
     });
     csvRows.push(values.join(','));
   }
-  
+
   return csvRows.join('\n');
 };
 
@@ -50,7 +50,7 @@ export const exportDealsReport = (deals, dateRange) => {
     'Clearinghouse Result': deal.clearinghouse_result || 'N/A',
     'Valuation Range': deal.valuation_range || 'N/A'
   }));
-  
+
   const filename = `deals_report_${dateRange}_${new Date().toISOString().split('T')[0]}`;
   exportToCsv(reportData, filename);
 };
@@ -94,7 +94,7 @@ export const exportKpiReport = (kpis, dateRange) => {
       'Trend': `${kpis.trends.completionRate.toFixed(1)}%`
     }
   ];
-  
+
   const filename = `kpi_report_${dateRange}_${new Date().toISOString().split('T')[0]}`;
   exportToCsv(reportData, filename);
 };
@@ -108,7 +108,7 @@ export const exportMonthlyTrendsReport = (monthlyTrends) => {
     'Completed Deals': month.completed,
     'Average Deal Value': month.deals > 0 ? `$${(month.value / month.deals).toLocaleString()}` : '$0'
   }));
-  
+
   const filename = `monthly_trends_${new Date().toISOString().split('T')[0]}`;
   exportToCsv(reportData, filename);
 };
@@ -120,7 +120,7 @@ export const exportDealTypeBreakdownReport = (dealTypeBreakdown, dateRange) => {
     'Total Value': `$${type.value.toLocaleString()}`,
     'Average Value': type.count > 0 ? `$${(type.value / type.count).toLocaleString()}` : '$0'
   }));
-  
+
   const filename = `deal_type_breakdown_${dateRange}_${new Date().toISOString().split('T')[0]}`;
   exportToCsv(reportData, filename);
 };
@@ -129,10 +129,10 @@ export const exportCompensationRangesReport = (compensationRanges, dateRange) =>
   const reportData = compensationRanges.map(range => ({
     'Compensation Range': range.range,
     'Deal Count': range.count,
-    'Percentage': compensationRanges.length > 0 ? 
+    'Percentage': compensationRanges.length > 0 ?
       `${((range.count / compensationRanges.reduce((sum, r) => sum + r.count, 0)) * 100).toFixed(1)}%` : '0%'
   }));
-  
+
   const filename = `compensation_ranges_${dateRange}_${new Date().toISOString().split('T')[0]}`;
   exportToCsv(reportData, filename);
 };
@@ -148,14 +148,14 @@ export const exportPredictionAccuracyReport = (predictionAccuracy, dateRange) =>
       'Accuracy': `${predictionAccuracy.valuation.toFixed(1)}%`
     }
   ];
-  
+
   const filename = `prediction_accuracy_${dateRange}_${new Date().toISOString().split('T')[0]}`;
   exportToCsv(reportData, filename);
 };
 
 export const exportComprehensiveReport = (analyticsData, deals, dateRange) => {
   const { kpis, monthlyTrends, dealTypeBreakdown, compensationRanges, predictionAccuracy } = analyticsData;
-  
+
   // Create a comprehensive report with multiple sheets worth of data
   const report = {
     summary: {
@@ -175,12 +175,12 @@ export const exportComprehensiveReport = (analyticsData, deals, dateRange) => {
     compensationRanges: compensationRanges,
     predictionAccuracy: predictionAccuracy
   };
-  
+
   // Export as JSON for comprehensive data
   const jsonContent = JSON.stringify(report, null, 2);
   const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
   const link = document.createElement('a');
-  
+
   if (link.download !== undefined) {
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
@@ -219,6 +219,6 @@ export const generateSummaryStats = (deals) => {
     avgDealValue: deals.length > 0 ? deals.reduce((sum, deal) => sum + (deal.fmv || 0), 0) / deals.length : 0,
     completionRate: deals.length > 0 ? (deals.filter(deal => deal.status === 'completed').length / deals.length) * 100 : 0
   };
-  
+
   return stats;
-}; 
+};

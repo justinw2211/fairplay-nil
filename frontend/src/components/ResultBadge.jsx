@@ -4,16 +4,16 @@ import { useNavigate } from 'react-router-dom';
 
 const ResultBadge = ({ deal, type = 'auto' }) => {
   const navigate = useNavigate();
-  
+
   // Auto-detect result type if not specified
   const detectResultType = (deal) => {
-    if (deal.clearinghouse_prediction) return 'clearinghouse';
-    if (deal.valuation_prediction) return 'valuation';
+    if (deal.clearinghouse_prediction) {return 'clearinghouse';}
+    if (deal.valuation_prediction) {return 'valuation';}
     return null;
   };
 
   const resultType = type === 'auto' ? detectResultType(deal) : type;
-  
+
   if (!resultType) {
     return null; // No prediction results to show
   }
@@ -29,7 +29,7 @@ const ResultBadge = ({ deal, type = 'auto' }) => {
 
   const getClearinghouseConfig = (prediction) => {
     const status = prediction?.status;
-    
+
     switch (status) {
       case 'cleared':
         return {
@@ -72,9 +72,9 @@ const ResultBadge = ({ deal, type = 'auto' }) => {
     const lowRange = prediction?.low_range || 0;
     const highRange = prediction?.high_range || 0;
     const confidence = prediction?.confidence || 0;
-    
+
     const difference = fmv > 0 ? ((currentCompensation - fmv) / fmv) * 100 : 0;
-    
+
     if (Math.abs(difference) <= 15) {
       return {
         colorScheme: 'green',
@@ -104,7 +104,7 @@ const ResultBadge = ({ deal, type = 'auto' }) => {
 
   const handleClick = () => {
     const dealTypeParam = deal.deal_type || 'standard';
-    
+
     if (resultType === 'clearinghouse') {
       navigate(`/clearinghouse-result/${deal.id}?type=${dealTypeParam}`);
     } else if (resultType === 'valuation') {
@@ -154,11 +154,11 @@ const ResultBadge = ({ deal, type = 'auto' }) => {
 export const ResultBadges = ({ deal }) => {
   const hasClearinghouse = deal.clearinghouse_prediction;
   const hasValuation = deal.valuation_prediction;
-  
+
   if (!hasClearinghouse && !hasValuation) {
     return <Text fontSize="sm" color="gray.500">No analysis</Text>;
   }
-  
+
   return (
     <HStack spacing={2}>
       {hasClearinghouse && <ResultBadge deal={deal} type="clearinghouse" />}
@@ -167,4 +167,4 @@ export const ResultBadges = ({ deal }) => {
   );
 };
 
-export default ResultBadge; 
+export default ResultBadge;

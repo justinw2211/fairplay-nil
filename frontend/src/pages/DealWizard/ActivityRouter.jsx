@@ -41,7 +41,7 @@ const ActivityRouter = () => {
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
   const { deal, loading, fetchDealById, updateDeal } = useDeal();
-  
+
   // Store the activity sequence in component state for stability
   const [activitySequence, setActivitySequence] = useState([]);
 
@@ -59,7 +59,7 @@ const ActivityRouter = () => {
         .filter(([_, value]) => typeof value === 'object' && value !== null && 'sequence' in value)
         .sort((a, b) => a[1].sequence - b[1].sequence)
         .map(([activity]) => activity);
-      
+
       console.log('🔄 Initializing activity sequence:', sequence);
       setActivitySequence(sequence);
     }
@@ -105,7 +105,7 @@ const ActivityRouter = () => {
     console.log('Current index:', currentActivityIndex);
     console.log('Total activities:', totalActivities);
     console.log('Is last activity?', currentActivityIndex >= totalActivities - 1);
-    
+
     // Mark the current activity as completed in obligations
     const updatedObligations = { ...deal.obligations };
     if (updatedObligations[decodedActivityType]) {
@@ -133,17 +133,17 @@ const ActivityRouter = () => {
     const nextIndex = currentActivityIndex + 1;
     const nextActivity = activitySequence[nextIndex];
     const encodedNextActivity = encodeURIComponent(nextActivity);
-    
+
     console.log('➡️ Moving to next activity:', nextActivity);
     console.log('Next index:', nextIndex);
     console.log('Full next URL:', `/add/deal/activity/${encodedNextActivity}/${dealId}${typeParam}`);
-    
+
     navigate(`/add/deal/activity/${encodedNextActivity}/${dealId}${typeParam}`);
   };
 
   return (
     <DealWizardStepWrapper stepNumber={4} stepName="Activity Forms">
-      <ActivityComponent 
+      <ActivityComponent
         onNext={handleNext}
         currentActivity={currentActivityNumber}
         totalActivities={totalActivities}

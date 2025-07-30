@@ -63,7 +63,7 @@ describe('SocialMediaForm', () => {
     );
 
     const addButton = screen.getByText('Add Another Platform');
-    
+
     // Add 4 more platforms (total 5)
     for (let i = 0; i < 4; i++) {
       await user.click(addButton);
@@ -84,8 +84,8 @@ describe('SocialMediaForm', () => {
     // Since the form no longer has a submit button, we simulate form submission
     const form = screen.getByRole('form');
     await user.click(form);
-    
-    // We can't directly test validation without a submit button, 
+
+    // We can't directly test validation without a submit button,
     // but the validation logic is still there in the form
     expect(screen.getByText('Social Media Platforms')).toBeInTheDocument();
   });
@@ -173,7 +173,6 @@ describe('SocialMediaForm', () => {
       });
     });
   });
-
 
 
   it('shows loading state', () => {
@@ -288,4 +287,4 @@ describe('SocialMediaForm', () => {
     // No delete button should be visible with only one platform
     expect(screen.queryByLabelText('Remove platform')).not.toBeInTheDocument();
   });
-}); 
+});

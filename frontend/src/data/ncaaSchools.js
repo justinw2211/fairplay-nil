@@ -67,9 +67,9 @@ export const fetchSchools = async (division = null) => {
       .from('schools')
       .select('id,name,division')
       .order('name');
-    
-    if (error) throw error;
-    
+
+    if (error) {throw error;}
+
     // Map database division format to frontend format
     const mappedData = (data || []).map(school => {
       let frontendDivision;
@@ -92,17 +92,17 @@ export const fetchSchools = async (division = null) => {
         default:
           frontendDivision = `Division ${school.division}`;
       }
-      
+
       return {
         ...school,
         division: frontendDivision
       };
     });
-    
+
     if (division) {
       return mappedData.filter(school => school.division === division);
     }
-    
+
     return mappedData;
   } catch (error) {
     console.error('Error fetching schools:', error);

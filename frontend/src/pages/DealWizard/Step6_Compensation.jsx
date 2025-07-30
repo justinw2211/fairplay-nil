@@ -72,13 +72,13 @@ const Step6_Compensation = () => {
   const toast = useToast();
 
   const [compensationItems, setCompensationItems] = useState([
-    { 
-      id: 1, 
-      type: "cash", 
-      amount: "", 
-      schedule: "", 
-      description: "", 
-      expanded: true 
+    {
+      id: 1,
+      type: "cash",
+      amount: "",
+      schedule: "",
+      description: "",
+      expanded: true
     }
   ]);
 
@@ -173,7 +173,7 @@ const Step6_Compensation = () => {
 
     try {
       await updateDeal(dealId, formattedData);
-      
+
       // ALL deal types now continue to review step (no more conditional navigation)
       const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
       navigate(`/add/deal/review/${dealId}${typeParam}`);
@@ -189,7 +189,7 @@ const Step6_Compensation = () => {
   // Get progress information - all deal types use same 9-step flow
   const getProgressInfo = () => {
     return {
-      stepNumber: '7 of 9', 
+      stepNumber: '7 of 9',
       percentage: 77.8,
       isLastStep: false
     };

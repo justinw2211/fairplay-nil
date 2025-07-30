@@ -6,7 +6,7 @@ import { TOAST_MESSAGES, FORM_STATES } from '../utils/validation/validationMessa
 
 /**
  * Standardized form hook that provides consistent validation, error handling, and submission states
- * 
+ *
  * @param {Object} options - Configuration options
  * @param {Object} options.schema - Yup validation schema
  * @param {Object} options.defaultValues - Default form values
@@ -59,16 +59,16 @@ export const useStandardForm = ({
 
   // Standardized submit handler
   const onSubmitHandler = useCallback(async (data) => {
-    if (!onSubmit) return;
+    if (!onSubmit) {return;}
 
     setSubmitState(FORM_STATES.loading);
     setSubmitError(null);
 
     try {
       const result = await onSubmit(data);
-      
+
       setSubmitState(FORM_STATES.success);
-      
+
       // Show success toast
       toast({
         title: 'Success',
@@ -88,7 +88,7 @@ export const useStandardForm = ({
         Object.entries(error.validationErrors).forEach(([field, message]) => {
           setError(field, { type: 'server', message });
         });
-        
+
         toast({
           title: 'Validation Error',
           description: messages.validation,
@@ -189,7 +189,7 @@ export const useStandardForm = ({
     handleSubmit: handleSubmit(onSubmitHandler),
     reset: resetForm,
     control,
-    
+
     // Form state
     errors,
     isDirty,
@@ -200,7 +200,7 @@ export const useStandardForm = ({
     submitError,
     hasErrors,
     isValid,
-    
+
     // Utility methods
     validateField,
     validateForm,
@@ -214,7 +214,7 @@ export const useStandardForm = ({
     watchFields,
     clearFieldError,
     setFieldError,
-    
+
     // Direct form methods (for advanced usage)
     formMethods: form,
   };
@@ -222,7 +222,7 @@ export const useStandardForm = ({
 
 /**
  * Hook for handling async operations with loading states
- * 
+ *
  * @param {Function} asyncFunction - The async function to execute
  * @param {Object} options - Configuration options
  * @returns {Object} Async operation state and execute function
@@ -284,4 +284,4 @@ export const useAsyncOperation = (asyncFunction, options = {}) => {
     data,
     execute,
   };
-}; 
+};

@@ -27,6 +27,9 @@ import { Upload, ChevronRight, Clock } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
+import { createLogger } from '../../utils/logger';
+
+const logger = createLogger('Step1_DealTerms');
 
 const Step1_DealTerms = () => {
   const { dealId } = useParams();
@@ -69,6 +72,16 @@ const Step1_DealTerms = () => {
 
   const handleFileUpload = async (file) => {
     if (!user) {
+      logger.error('File upload attempted without authentication', {
+        dealId,
+        dealType,
+        step: 'Step1_DealTerms',
+        operation: 'handleFileUpload',
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type
+      });
+
       toast({
         title: 'Authentication Required',
         description: 'Please log in to upload files.',
@@ -91,8 +104,20 @@ const Step1_DealTerms = () => {
     const maxSize = 10 * 1024 * 1024; // 10MB
 
     const fileExtension = getFileExtension(file.name);
-    
+
     if (!validExtensions.includes(fileExtension) || !validTypes.includes(file.type)) {
+      logger.error('Invalid file type uploaded', {
+        dealId,
+        dealType,
+        step: 'Step1_DealTerms',
+        operation: 'handleFileUpload',
+        fileName: file.name,
+        fileExtension,
+        fileType: file.type,
+        validExtensions,
+        validTypes
+      });
+
       toast({
         title: 'Invalid file type',
         description: 'Please upload a PDF, DOCX, PNG, or JPG file.',
@@ -104,9 +129,19 @@ const Step1_DealTerms = () => {
     }
 
     if (file.size > maxSize) {
+      logger.error('File size exceeds limit', {
+        dealId,
+        dealType,
+        step: 'Step1_DealTerms',
+        operation: 'handleFileUpload',
+        fileName: file.name,
+        fileSize: file.size,
+        maxSize
+      });
+
       toast({
         title: 'File too large',
-        description: 'File size must be less than 10MB.',
+        description: 'Please upload a file smaller than 10MB.',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -116,53 +151,71 @@ const Step1_DealTerms = () => {
 
     setUploading(true);
     try {
-      // Generate a unique filename with original extension
-      const timestamp = new Date().getTime();
-      const uniqueFileName = `${timestamp}-${uuidv4()}.${fileExtension}`;
-      const filePath = `public/deal-terms/${user.id}/${uniqueFileName}`;
+      const fileId = uuidv4();
+      const fileName = `${fileId}_${file.name}`;
+      const filePath = `deals/${dealId}/contracts/${fileName}`;
 
-      // Set content type based on file extension
-      const contentType = file.type;
-      
-      const { error: uploadError } = await supabase.storage
+      const { data, error } = await supabase.storage
         .from('contracts')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false,
-          contentType: contentType
+        .upload(filePath, file);
+
+      if (error) {
+        logger.error('Failed to upload file to storage', {
+          error: error.message,
+          dealId,
+          dealType,
+          step: 'Step1_DealTerms',
+          operation: 'handleFileUpload',
+          fileName: file.name,
+          fileSize: file.size,
+          filePath
         });
 
-      if (uploadError) throw uploadError;
+        throw error;
+      }
 
-      const { data: urlData } = supabase.storage
-        .from('contracts')
-        .getPublicUrl(filePath);
-
-      // Store additional file metadata
-      await updateDeal(dealId, {
-        deal_terms_url: urlData.publicUrl,
-        deal_terms_file_name: file.name,
-        deal_terms_file_type: fileExtension,
-        deal_terms_file_size: file.size,
-        user_id: user.id // Also store the user_id in the deal record
+      logger.info('File uploaded successfully', {
+        dealId,
+        dealType,
+        step: 'Step1_DealTerms',
+        operation: 'handleFileUpload',
+        fileName: file.name,
+        fileSize: file.size,
+        filePath,
+        fileId
       });
 
-      setUploadedFile(file);
+      setUploadedFile({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        path: filePath,
+        id: fileId
+      });
 
       toast({
-        title: 'File Uploaded',
-        description: 'Your deal terms have been successfully attached.',
+        title: 'File uploaded successfully',
+        description: 'Your contract has been uploaded and saved.',
         status: 'success',
-        duration: 5000,
+        duration: 3000,
         isClosable: true,
       });
     } catch (error) {
-      console.error('Upload error:', error);
+      logger.error('File upload failed', {
+        error: error.message,
+        dealId,
+        dealType,
+        step: 'Step1_DealTerms',
+        operation: 'handleFileUpload',
+        fileName: file.name,
+        fileSize: file.size
+      });
+
       toast({
-        title: 'Upload Failed',
-        description: error.message || 'There was an error uploading your file. Please try again.',
+        title: 'Upload failed',
+        description: error.message || 'Failed to upload file. Please try again.',
         status: 'error',
-        duration: 9000,
+        duration: 5000,
         isClosable: true,
       });
     } finally {
@@ -178,6 +231,14 @@ const Step1_DealTerms = () => {
 
   const onContinue = async () => {
     if (!dealNickname.trim()) {
+      logger.warn('Deal nickname validation failed', {
+        dealId,
+        dealType,
+        step: 'Step1_DealTerms',
+        operation: 'onContinue',
+        dealNickname: dealNickname
+      });
+
       toast({
         title: 'Deal nickname required',
         description: 'Please provide a nickname for this deal.',
@@ -188,21 +249,54 @@ const Step1_DealTerms = () => {
       return;
     }
 
-    await updateDeal(dealId, { deal_nickname: dealNickname });
-    
-    // Conditional navigation based on deal type
-    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-    navigate(`/add/deal/payor/${dealId}${typeParam}`);
+    try {
+      await updateDeal(dealId, { deal_nickname: dealNickname });
+
+      logger.info('Deal nickname updated successfully', {
+        dealId,
+        dealType,
+        step: 'Step1_DealTerms',
+        operation: 'onContinue',
+        dealNickname: dealNickname
+      });
+
+      // Conditional navigation based on deal type
+      const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+      navigate(`/add/deal/payor/${dealId}${typeParam}`);
+    } catch (error) {
+      logger.error('Failed to update deal nickname', {
+        error: error.message,
+        dealId,
+        dealType,
+        step: 'Step1_DealTerms',
+        operation: 'onContinue',
+        dealNickname: dealNickname
+      });
+
+      toast({
+        title: 'Error updating deal',
+        description: error.message || 'Failed to update deal nickname. Please try again.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
   };
 
   const handleFinishLater = () => {
+    logger.info('User chose to finish later', {
+      dealId,
+      dealType,
+      step: 'Step1_DealTerms',
+      operation: 'handleFinishLater'
+    });
     navigate('/dashboard');
   };
 
   // Get progress information - all deal types use same 9-step flow
   const getProgressInfo = () => {
     return {
-      stepNumber: '2 of 9', 
+      stepNumber: '2 of 9',
       percentage: 22.2
     };
   };

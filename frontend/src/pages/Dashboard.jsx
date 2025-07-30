@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   Box, Flex, Heading, Button, Spinner, Text, VStack, useToast,
   HStack, Avatar, Badge, Divider, useColorModeValue, Icon,
-  Tooltip, Card, CardBody, SimpleGrid, Tabs, TabList, TabPanels, 
+  Tooltip, Card, CardBody, SimpleGrid, Tabs, TabList, TabPanels,
   Tab, TabPanel, Container, useBreakpointValue
 } from '@chakra-ui/react';
 import { useAuth } from '../context/AuthContext';
@@ -53,7 +53,7 @@ const CreateDealSection = ({ onDealTypeSelect, isCreatingDeal }) => {
         <Heading as="h2" size="lg" textAlign="center" color="brand.textPrimary">Create New Deal</Heading>
         <Text color="brand.textSecondary" textAlign="center">Choose the type of deal analysis you'd like to perform</Text>
       </VStack>
-      
+
       <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} w="full" justifyItems="center">
         {dealTypes.map((dealType) => (
           <DealTypeCard
@@ -77,17 +77,17 @@ const ActiveDealsTab = ({ deals, setDeals, onDealDeleted, onDealTypeSelect, isCr
   return (
     <VStack spacing={6} align="stretch">
       <SummaryCards deals={activeDeals} />
-      
-      <CreateDealSection 
-        onDealTypeSelect={onDealTypeSelect} 
-        isCreatingDeal={isCreatingDeal} 
+
+      <CreateDealSection
+        onDealTypeSelect={onDealTypeSelect}
+        isCreatingDeal={isCreatingDeal}
       />
-      
+
       <Box>
         <Heading as="h3" size="md" mb={4} color="brand.textPrimary">Active Deals</Heading>
         {activeDeals.length > 0 ? (
-          <DealsTable 
-            deals={activeDeals} 
+          <DealsTable
+            deals={activeDeals}
             setDeals={setDeals}
             onDealDeleted={onDealDeleted}
           />
@@ -115,9 +115,9 @@ const DraftsTab = ({ deals, setDeals, onDealDeleted }) => {
           Complete your draft deals to activate them and start tracking progress.
         </Text>
         {draftDeals.length > 0 ? (
-          <DealsTable 
-            deals={draftDeals} 
-            setDeals={setDeals} 
+          <DealsTable
+            deals={draftDeals}
+            setDeals={setDeals}
             onDealDeleted={onDealDeleted}
           />
         ) : (
@@ -145,7 +145,7 @@ const Dashboard = () => {
   const [socialMediaCount, setSocialMediaCount] = useState(0);
   const toast = useToast();
   const navigate = useNavigate();
-  
+
   // Social media modal state
   const [showSocialMediaModal, setShowSocialMediaModal] = useState(false);
   const [socialMediaCheckComplete, setSocialMediaCheckComplete] = useState(false);
@@ -158,13 +158,13 @@ const Dashboard = () => {
   // Check if user needs to complete social media profile
   useEffect(() => {
     const checkSocialMediaCompletion = async () => {
-      if (!user || socialMediaCheckComplete) return;
-      
+      if (!user || socialMediaCheckComplete) {return;}
+
       try {
         const data = await loadSocialMediaData();
         setSocialMediaData(data);
         setSocialMediaCheckComplete(true);
-        
+
         // Show modal if user has no social media platforms configured
         if (!data || data.length === 0) {
           setShowSocialMediaModal(true);
@@ -200,10 +200,10 @@ const Dashboard = () => {
     const token = sessionRes.data.session?.access_token;
 
     if (!token) {
-      toast({ 
-        title: "Authentication Error", 
-        description: "Could not get user session. Please log in again.", 
-        status: "error" 
+      toast({
+        title: "Authentication Error",
+        description: "Could not get user session. Please log in again.",
+        status: "error"
       });
       setLoading(false);
       return;
@@ -222,7 +222,7 @@ const Dashboard = () => {
         }
         throw new Error("Failed to fetch deals from the server.");
       }
-      
+
       const data = await response.json();
       setDeals(data.deals || []); // Handle the new response format
     } catch (error) {
@@ -246,7 +246,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDeals();
-    
+
     // Fetch profile data on mount with force refresh to ensure latest data
     if (user) {
       fetchProfile(true).catch(error => {
@@ -271,14 +271,14 @@ const Dashboard = () => {
       fetchSocialMediaCount();
     }
   }, [user, loadSocialMediaData]);
-  
+
   const handleDealTypeSelect = async (dealType) => {
     try {
       const newDeal = await createDraftDeal({ deal_type: dealType });
       if (!newDeal) {
         throw new Error('Failed to create new deal');
       }
-      
+
       // Navigate to the appropriate workflow based on deal type
       switch (dealType) {
         case 'simple':
@@ -293,7 +293,7 @@ const Dashboard = () => {
         default:
           navigate(`/add/deal/social-media/${newDeal.id}`);
       }
-      
+
       // Refresh the deals list after creating a new deal
       await fetchDeals();
     } catch (error) {
@@ -338,8 +338,8 @@ const Dashboard = () => {
   return (
     <Container maxW={containerMaxW} p={{ base: 4, md: 8 }}>
       <ErrorBoundary context="Profile">
-        <ProfileBanner 
-          profile={profile || user} 
+        <ProfileBanner
+          profile={profile || user}
           loading={profileLoading}
           error={profileError}
           onEditClick={handleEditProfile}
@@ -348,40 +348,40 @@ const Dashboard = () => {
           socialMediaCount={socialMediaCount}
         />
       </ErrorBoundary>
-      
-      <Tabs 
-        index={activeTab} 
+
+      <Tabs
+        index={activeTab}
         onChange={setActiveTab}
         variant="enclosed"
         colorScheme="brand"
         size={tabSize}
       >
         <TabList mb={6} borderColor="brand.accentSecondary">
-          <Tab 
-            _selected={{ 
-              bg: 'brand.accentPrimary', 
+          <Tab
+            _selected={{
+              bg: 'brand.accentPrimary',
               color: 'white',
-              borderColor: 'brand.accentPrimary' 
+              borderColor: 'brand.accentPrimary'
             }}
             color="brand.textSecondary"
           >
             Active Deals
           </Tab>
-          <Tab 
-            _selected={{ 
-              bg: 'brand.accentPrimary', 
+          <Tab
+            _selected={{
+              bg: 'brand.accentPrimary',
               color: 'white',
-              borderColor: 'brand.accentPrimary' 
+              borderColor: 'brand.accentPrimary'
             }}
             color="brand.textSecondary"
           >
             Drafts
           </Tab>
-          <Tab 
-            _selected={{ 
-              bg: 'brand.accentPrimary', 
+          <Tab
+            _selected={{
+              bg: 'brand.accentPrimary',
               color: 'white',
-              borderColor: 'brand.accentPrimary' 
+              borderColor: 'brand.accentPrimary'
             }}
             color="brand.textSecondary"
           >
@@ -391,7 +391,7 @@ const Dashboard = () => {
 
         <TabPanels>
           <TabPanel p={0}>
-            <ActiveDealsTab 
+            <ActiveDealsTab
               deals={deals}
               setDeals={setDeals}
               onDealDeleted={handleDealDeleted}
@@ -399,15 +399,15 @@ const Dashboard = () => {
               isCreatingDeal={isCreatingDeal}
             />
           </TabPanel>
-          
+
           <TabPanel p={0}>
-            <DraftsTab 
+            <DraftsTab
               deals={deals}
               setDeals={setDeals}
               onDealDeleted={handleDealDeleted}
             />
           </TabPanel>
-          
+
           <TabPanel p={0}>
             <AnalyticsTab deals={deals} />
           </TabPanel>

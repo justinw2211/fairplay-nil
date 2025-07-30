@@ -148,13 +148,13 @@ const Step5_Compliance = () => {
 
     return complianceQuestions.every(q => {
       // Base validation - must have a value selected
-      if (!q.value) return false;
-      
+      if (!q.value) {return false;}
+
       // If additional info is required (showing) and the value is "not-sure"
       if (q.additionalInfo?.show && q.value === "not-sure") {
         return !!q.additionalInfo.value?.trim();
       }
-      
+
       // If no additional info is needed or value isn't "not-sure", just need the main value
       return true;
     });
@@ -170,13 +170,13 @@ const Step5_Compliance = () => {
     const formattedData = {
       // Map licensingRights to licenses_nil
       licenses_nil: licensingRights,
-      
+
       // Map schoolBrandVisible to uses_school_ip
       uses_school_ip: schoolBrandVisible === 'yes',
-      
+
       // Map exclusiveRights to grant_exclusivity
       grant_exclusivity: exclusiveRights,
-      
+
       // Store the rest in obligations
       obligations: {
         licensingInfo,
@@ -205,10 +205,10 @@ const Step5_Compliance = () => {
       const selectedActivities = Object.entries(deal.obligations)
         .sort((a, b) => a[1].sequence - b[1].sequence)
         .map(([activity]) => activity);
-      
+
       // Find the last activity (either the last completed one or the last in sequence)
       const lastActivity = deal.lastCompletedActivity || selectedActivities[selectedActivities.length - 1];
-      
+
       if (lastActivity) {
         const encodedActivity = encodeURIComponent(lastActivity);
         const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
@@ -216,7 +216,7 @@ const Step5_Compliance = () => {
         return;
       }
     }
-    
+
     // Fallback to activities selection if we can't determine the last activity
     const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
     navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
@@ -298,7 +298,7 @@ const Step5_Compliance = () => {
                         {question.description}
                       </Text>
                     )}
-                    
+
                     <RadioGroup
                       value={question.value}
                       onChange={question.setValue}

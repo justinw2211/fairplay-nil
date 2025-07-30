@@ -35,11 +35,11 @@ import {
   Spacer,
   Divider
 } from '@chakra-ui/react';
-import { 
-  TriangleDownIcon, 
-  TriangleUpIcon, 
-  DeleteIcon, 
-  HamburgerIcon, 
+import {
+  TriangleDownIcon,
+  TriangleUpIcon,
+  DeleteIcon,
+  HamburgerIcon,
   EditIcon,
   ViewIcon,
   CheckIcon,
@@ -58,15 +58,15 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
   const [editingDeal, setEditingDeal] = useState(null);
   const [editValues, setEditValues] = useState({});
   const [dealToDelete, setDealToDelete] = useState(null);
-  
+
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const { isOpen: isBulkDeleteOpen, onOpen: onBulkDeleteOpen, onClose: onBulkDeleteClose } = useDisclosure();
-  
+
   const cancelRef = React.useRef();
   const toast = useToast();
 
   const sortedDeals = useMemo(() => {
-    let sortableDeals = [...deals];
+    const sortableDeals = [...deals];
     if (sortConfig.key !== null) {
       sortableDeals.sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {
@@ -93,7 +93,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
   };
 
   const getSortIcon = (key) => {
-    if (sortConfig.key !== key) return null;
+    if (sortConfig.key !== key) {return null;}
     return sortConfig.direction === 'ascending' ? <TriangleUpIcon aria-label="sorted ascending" /> : <TriangleDownIcon aria-label="sorted descending" />;
   };
 
@@ -135,12 +135,12 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
     setIsDeleting(true);
     try {
       const token = (await supabase.auth.getSession()).data.session?.access_token;
-      
+
       // Optimistic update
       const originalDeal = deals.find(d => d.id === dealId);
       const updatedDeal = { ...originalDeal, ...editValues };
       setDeals(deals.map(deal => deal.id === dealId ? updatedDeal : deal));
-      
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
         method: 'PATCH',
         headers: {
@@ -159,7 +159,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
 
       const responseData = await response.json();
       setDeals(deals.map(deal => deal.id === dealId ? responseData : deal));
-      
+
       toast({
         title: "Deal Updated",
         description: "Deal has been successfully updated.",
@@ -190,10 +190,10 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
   const handleStatusChange = async (dealId, newStatus) => {
     const originalDeal = deals.find(d => d.id === dealId);
     const updatedDeal = { ...originalDeal, status: newStatus };
-    
+
     // Optimistic update
     setDeals(deals.map(deal => deal.id === dealId ? updatedDeal : deal));
-    
+
     try {
       const token = (await supabase.auth.getSession()).data.session?.access_token;
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
@@ -238,7 +238,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
   };
 
   const handleDeleteDeal = async () => {
-    if (!dealToDelete) return;
+    if (!dealToDelete) {return;}
 
     setIsDeleting(true);
     try {
@@ -261,7 +261,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
         newSet.delete(dealToDelete.id);
         return newSet;
       });
-      
+
       toast({
         title: "Deal Deleted",
         description: `Deal with ${dealToDelete.brand_partner || dealToDelete.payor_name || 'N/A'} has been deleted.`,
@@ -293,10 +293,10 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
   const handleBulkDelete = async () => {
     setIsBulkOperating(true);
     const dealIds = Array.from(selectedDeals);
-    
+
     try {
       const token = (await supabase.auth.getSession()).data.session?.access_token;
-      
+
       // Delete deals in parallel
       const deletePromises = dealIds.map(dealId =>
         fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
@@ -307,14 +307,14 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
 
       const responses = await Promise.all(deletePromises);
       const failedDeletes = responses.filter(response => !response.ok);
-      
+
       if (failedDeletes.length > 0) {
         throw new Error(`Failed to delete ${failedDeletes.length} deals`);
       }
 
       setDeals(deals.filter(deal => !selectedDeals.has(deal.id)));
       setSelectedDeals(new Set());
-      
+
       toast({
         title: "Bulk Delete Successful",
         description: `Successfully deleted ${dealIds.length} deals.`,
@@ -344,10 +344,10 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
   const handleBulkStatusChange = async (newStatus) => {
     setIsBulkOperating(true);
     const dealIds = Array.from(selectedDeals);
-    
+
     try {
       const token = (await supabase.auth.getSession()).data.session?.access_token;
-      
+
       // Update deals in parallel
       const updatePromises = dealIds.map(dealId =>
         fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
@@ -362,15 +362,15 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
 
       const responses = await Promise.all(updatePromises);
       const failedUpdates = responses.filter(response => !response.ok);
-      
+
       if (failedUpdates.length > 0) {
         throw new Error(`Failed to update ${failedUpdates.length} deals`);
       }
 
-      setDeals(deals.map(deal => 
+      setDeals(deals.map(deal =>
         selectedDeals.has(deal.id) ? { ...deal, status: newStatus } : deal
       ));
-      
+
       toast({
         title: "Bulk Update Successful",
         description: `Successfully updated ${dealIds.length} deals to ${newStatus}.`,
@@ -394,16 +394,16 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
 
   // Utility functions
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) {return 'N/A';}
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return 'Invalid Date';
+    if (isNaN(date.getTime())) {return 'Invalid Date';}
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return date.toLocaleDateString(undefined, options);
   };
 
   const renderEditableCell = (deal, field, value, type = 'text') => {
     const isEditing = editingDeal === deal.id;
-    
+
     if (!isEditing) {
       return (
         <Text onClick={() => startEditing(deal)} cursor="pointer" _hover={{ bg: 'gray.50' }}>
@@ -432,13 +432,13 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
         size="sm"
         type={type}
         value={editValues[field] || ''}
-        onChange={(e) => setEditValues(prev => ({ 
-          ...prev, 
-          [field]: type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value 
+        onChange={(e) => setEditValues(prev => ({
+          ...prev,
+          [field]: type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value
         }))}
         onKeyPress={(e) => {
-          if (e.key === 'Enter') saveEdit(deal.id);
-          if (e.key === 'Escape') cancelEditing();
+          if (e.key === 'Enter') {saveEdit(deal.id);}
+          if (e.key === 'Escape') {cancelEditing();}
         }}
       />
     );
@@ -575,20 +575,20 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
                           size="sm"
                         />
                         <MenuList>
-                          <MenuItem 
+                          <MenuItem
                             icon={<EditIcon />}
                             onClick={() => startEditing(deal)}
                           >
                             Edit Deal
                           </MenuItem>
-                          <MenuItem 
+                          <MenuItem
                             icon={<ViewIcon />}
                             onClick={() => {/* TODO: Implement view modal */}}
                           >
                             View Details
                           </MenuItem>
                           <Divider />
-                          <MenuItem 
+                          <MenuItem
                             icon={<DeleteIcon />}
                             color="red.500"
                             onClick={() => openDeleteConfirm(deal)}
@@ -629,9 +629,9 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
               <Button ref={cancelRef} onClick={onDeleteClose}>
                 Cancel
               </Button>
-              <Button 
-                colorScheme='red' 
-                onClick={handleDeleteDeal} 
+              <Button
+                colorScheme='red'
+                onClick={handleDeleteDeal}
                 ml={3}
                 isLoading={isDeleting}
                 loadingText="Deleting..."
@@ -666,9 +666,9 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
               <Button ref={cancelRef} onClick={onBulkDeleteClose}>
                 Cancel
               </Button>
-              <Button 
-                colorScheme='red' 
-                onClick={handleBulkDelete} 
+              <Button
+                colorScheme='red'
+                onClick={handleBulkDelete}
                 ml={3}
                 isLoading={isBulkOperating}
                 loadingText="Deleting..."

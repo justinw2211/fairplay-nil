@@ -1,7 +1,7 @@
 /**
  * NIL Deal Valuation Prediction Engine
  * Based on industry research from On3, Opendorse, and NIL market analysis
- * 
+ *
  * Research Sources:
  * - On3 NIL Valuation methodology (performance + influence + exposure)
  * - Opendorse NIL compensation guides by sport
@@ -18,22 +18,22 @@
 export const predictValuation = (dealData, athleteData) => {
   // Base calculation using social media following as foundation
   const baseValue = calculateSocialMediaValue(athleteData);
-  
+
   // Apply institutional and market multipliers
   const schoolMultiplier = getSchoolTierMultiplier(athleteData.university);
   const sportMultiplier = getSportPopularityMultiplier(athleteData.sports);
   const activityMultiplier = getActivityTypeMultiplier(dealData.activities);
   const genderMultiplier = getGenderMultiplier(athleteData.gender);
   const conferenceBonus = getConferenceBonus(athleteData.university);
-  
+
   // Calculate adjusted value
   const adjustedValue = Math.round(baseValue * schoolMultiplier * sportMultiplier * activityMultiplier * genderMultiplier + conferenceBonus);
-  
+
   // Create compensation range (industry standard ±25-40%)
   const rangeFactor = 0.35; // 35% variance is realistic per research
   const lowRange = Math.round(adjustedValue * (1 - rangeFactor));
   const highRange = Math.round(adjustedValue * (1 + rangeFactor));
-  
+
   // Calculate confidence score based on data quality
   const confidence = calculateConfidenceScore({
     hasFollowers: !!(athleteData.instagram_followers || athleteData.tiktok_followers),
@@ -42,7 +42,7 @@ export const predictValuation = (dealData, athleteData) => {
     hasActivities: !!dealData.activities?.length,
     hasPerformanceData: !!(athleteData.athletic_performance || athleteData.achievements)
   });
-  
+
   // Build detailed factors breakdown
   const factors = {
     social_media_base: {
@@ -70,7 +70,7 @@ export const predictValuation = (dealData, athleteData) => {
       description: getConferenceDescription(athleteData.university, conferenceBonus)
     }
   };
-  
+
   // Generate detailed rationale
   const rationale = generateValuationRationale({
     baseValue,
@@ -81,7 +81,7 @@ export const predictValuation = (dealData, athleteData) => {
     athleteData,
     dealData
   });
-  
+
   return {
     estimated_fmv: adjustedValue,
     low_range: Math.max(lowRange, 100), // Minimum $100 floor
@@ -101,14 +101,14 @@ const calculateSocialMediaValue = (athleteData) => {
   const instagram = parseInt(athleteData.instagram_followers || 0);
   const tiktok = parseInt(athleteData.tiktok_followers || 0);
   const twitter = parseInt(athleteData.twitter_followers || 0);
-  
+
   // Industry rates: Instagram $0.01-0.05/follower, TikTok $0.02-0.08/follower, Twitter $0.005-0.02/follower
   const instagramValue = instagram * 0.025; // $0.025 per follower (mid-range)
   const tiktokValue = tiktok * 0.04; // $0.04 per follower (higher engagement)
   const twitterValue = twitter * 0.01; // $0.01 per follower (lower value)
-  
+
   const totalValue = instagramValue + tiktokValue + twitterValue;
-  
+
   // Apply follower tier bonuses (diminishing returns for mega-influencers)
   if (getTotalFollowers(athleteData) > 1000000) {
     return Math.round(totalValue * 0.8); // Diminishing returns above 1M
@@ -125,40 +125,40 @@ const calculateSocialMediaValue = (athleteData) => {
  * Get school tier multiplier based on Division and athletic success
  */
 const getSchoolTierMultiplier = (university) => {
-  if (!university) return 1.0;
-  
+  if (!university) {return 1.0;}
+
   const universityLower = university.toLowerCase();
-  
+
   // Power 5 (SEC, Big Ten, Big 12, ACC, Pac-12) - Research shows SEC avg $52K
   const power5Schools = {
     // SEC - Highest values per research
     'alabama': 1.8, 'georgia': 1.7, 'lsu': 1.7, 'florida': 1.6, 'texas a&m': 1.6,
     'tennessee': 1.5, 'auburn': 1.5, 'south carolina': 1.4, 'kentucky': 1.4,
     'mississippi': 1.4, 'ole miss': 1.4, 'arkansas': 1.3, 'missouri': 1.3, 'vanderbilt': 1.2,
-    
-    // Big Ten 
+
+    // Big Ten
     'ohio state': 1.7, 'michigan': 1.6, 'penn state': 1.5, 'wisconsin': 1.4,
     'iowa': 1.3, 'michigan state': 1.3, 'minnesota': 1.2, 'nebraska': 1.2,
     'indiana': 1.1, 'illinois': 1.1, 'purdue': 1.1, 'northwestern': 1.1,
-    
+
     // Big 12
     'texas': 1.6, 'oklahoma': 1.5, 'oklahoma state': 1.3, 'texas tech': 1.2,
     'baylor': 1.2, 'tcu': 1.2, 'kansas': 1.1, 'kansas state': 1.1,
-    
+
     // ACC
     'clemson': 1.5, 'florida state': 1.4, 'miami': 1.4, 'north carolina': 1.3,
     'virginia tech': 1.2, 'nc state': 1.2, 'virginia': 1.1, 'duke': 1.2,
-    
+
     // Pac-12 - Research shows avg $37K
     'usc': 1.4, 'ucla': 1.4, 'oregon': 1.3, 'washington': 1.2,
     'stanford': 1.2, 'california': 1.1, 'arizona state': 1.1, 'arizona': 1.1
   };
-  
+
   // Group of 5 conferences - Research shows avg ~$20K
   if (universityLower.includes('state') && !power5Schools[universityLower]) {
     return 1.1; // Most state schools in G5
   }
-  
+
   return power5Schools[universityLower] || 1.0; // Default for smaller schools
 };
 
@@ -166,16 +166,16 @@ const getSchoolTierMultiplier = (university) => {
  * Get sport popularity multiplier
  */
 const getSportPopularityMultiplier = (sports) => {
-  if (!sports || !sports.length) return 1.0;
-  
+  if (!sports || !sports.length) {return 1.0;}
+
   const sportLower = sports[0].toLowerCase();
-  
+
   // Based on TV revenue and fan engagement data
   const sportMultipliers = {
     'football': 1.5, // Highest revenue sport
     'basketball': 1.4, // March Madness drives high value
     'baseball': 1.2, // Strong collegiate following
-    'softball': 1.1, // Growing popularity 
+    'softball': 1.1, // Growing popularity
     'soccer': 1.1, // Increasing NIL opportunities
     'gymnastics': 1.3, // High social media engagement (LSU effect)
     'tennis': 1.0, // Individual sport moderate value
@@ -186,7 +186,7 @@ const getSportPopularityMultiplier = (sports) => {
     'wrestling': 0.8, // Niche audience
     'cross country': 0.8, // Niche audience
   };
-  
+
   return sportMultipliers[sportLower] || 0.9;
 };
 
@@ -194,13 +194,13 @@ const getSportPopularityMultiplier = (sports) => {
  * Get activity type multiplier based on value and complexity
  */
 const getActivityTypeMultiplier = (activities) => {
-  if (!activities || !activities.length) return 1.0;
-  
+  if (!activities || !activities.length) {return 1.0;}
+
   let maxMultiplier = 1.0;
-  
+
   activities.forEach(activity => {
     const activityType = activity.activity_type?.toLowerCase() || '';
-    
+
     const activityMultipliers = {
       'social_media_post': 1.0, // Base standard
       'product_endorsement': 1.5, // High value brand partnership
@@ -213,13 +213,13 @@ const getActivityTypeMultiplier = (activities) => {
       'event_hosting': 1.3, // Personal brand showcase
       'content_creation': 1.1, // Growing market segment
     };
-    
+
     const multiplier = activityMultipliers[activityType] || 1.0;
     if (multiplier > maxMultiplier) {
       maxMultiplier = multiplier;
     }
   });
-  
+
   return maxMultiplier;
 };
 
@@ -239,28 +239,28 @@ const getGenderMultiplier = (gender) => {
  * Get conference bonus based on TV revenue and exposure
  */
 const getConferenceBonus = (university) => {
-  if (!university) return 0;
-  
+  if (!university) {return 0;}
+
   const universityLower = university.toLowerCase();
-  
+
   // SEC schools get exposure bonus due to highest TV revenues
-  const secSchools = ['alabama', 'georgia', 'lsu', 'florida', 'texas a&m', 'tennessee', 
-                     'auburn', 'south carolina', 'kentucky', 'mississippi', 'ole miss', 
+  const secSchools = ['alabama', 'georgia', 'lsu', 'florida', 'texas a&m', 'tennessee',
+                     'auburn', 'south carolina', 'kentucky', 'mississippi', 'ole miss',
                      'arkansas', 'missouri', 'vanderbilt'];
-  
+
   if (secSchools.includes(universityLower)) {
     return 2000; // $2K SEC exposure bonus
   }
-  
+
   // Big Ten gets moderate bonus
   const bigTenSchools = ['ohio state', 'michigan', 'penn state', 'wisconsin', 'iowa',
                         'michigan state', 'minnesota', 'nebraska', 'indiana', 'illinois',
                         'purdue', 'northwestern'];
-  
+
   if (bigTenSchools.includes(universityLower)) {
     return 1000; // $1K Big Ten bonus
   }
-  
+
   return 0;
 };
 
@@ -270,7 +270,7 @@ const getConferenceBonus = (university) => {
 const calculateConfidenceScore = (dataQuality) => {
   let score = 0;
   let maxScore = 0;
-  
+
   // Weight factors by importance to valuation accuracy
   const weights = {
     hasFollowers: 30, // Most critical for NIL value
@@ -279,14 +279,14 @@ const calculateConfidenceScore = (dataQuality) => {
     hasActivities: 15, // Important for activity multipliers
     hasPerformanceData: 10 // Nice to have for credibility
   };
-  
+
   Object.keys(weights).forEach(factor => {
     maxScore += weights[factor];
     if (dataQuality[factor]) {
       score += weights[factor];
     }
   });
-  
+
   return Math.round((score / maxScore) * 100);
 };
 
@@ -300,35 +300,35 @@ const getTotalFollowers = (athleteData) => {
 };
 
 const getSchoolTierDescription = (university, multiplier) => {
-  if (multiplier >= 1.5) return `${university} - Elite Power 5 program with premium market value`;
-  if (multiplier >= 1.2) return `${university} - Strong Power 5 program with above-average value`;
-  if (multiplier >= 1.1) return `${university} - Solid program with moderate market premium`;
+  if (multiplier >= 1.5) {return `${university} - Elite Power 5 program with premium market value`;}
+  if (multiplier >= 1.2) {return `${university} - Strong Power 5 program with above-average value`;}
+  if (multiplier >= 1.1) {return `${university} - Solid program with moderate market premium`;}
   return `${university} - Standard market value positioning`;
 };
 
 const getSportDescription = (sports, multiplier) => {
-  if (!sports?.length) return 'Sport not specified';
+  if (!sports?.length) {return 'Sport not specified';}
   const sport = sports[0];
-  if (multiplier >= 1.4) return `${sport} - Premium revenue sport with highest NIL potential`;
-  if (multiplier >= 1.1) return `${sport} - Popular sport with above-average NIL opportunities`;
+  if (multiplier >= 1.4) {return `${sport} - Premium revenue sport with highest NIL potential`;}
+  if (multiplier >= 1.1) {return `${sport} - Popular sport with above-average NIL opportunities`;}
   return `${sport} - Standard NIL market positioning`;
 };
 
 const getActivityDescription = (activities, multiplier) => {
-  if (!activities?.length) return 'Activities not specified';
-  if (multiplier >= 1.4) return 'High-value brand partnership activities commanding premium rates';
-  if (multiplier >= 1.2) return 'Valuable promotional activities with strong market demand';
+  if (!activities?.length) {return 'Activities not specified';}
+  if (multiplier >= 1.4) {return 'High-value brand partnership activities commanding premium rates';}
+  if (multiplier >= 1.2) {return 'Valuable promotional activities with strong market demand';}
   return 'Standard promotional activities with baseline market value';
 };
 
 const getGenderDescription = (gender, multiplier) => {
-  if (multiplier > 1.0) return 'Female athlete market premium reflecting strong brand appeal and engagement';
+  if (multiplier > 1.0) {return 'Female athlete market premium reflecting strong brand appeal and engagement';}
   return 'Standard market positioning';
 };
 
 const getConferenceDescription = (university, bonus) => {
-  if (bonus >= 2000) return `SEC Conference exposure bonus (+$${bonus.toLocaleString()})`;
-  if (bonus >= 1000) return `Power 5 Conference exposure bonus (+$${bonus.toLocaleString()})`;
+  if (bonus >= 2000) {return `SEC Conference exposure bonus (+$${bonus.toLocaleString()})`;}
+  if (bonus >= 1000) {return `Power 5 Conference exposure bonus (+$${bonus.toLocaleString()})`;}
   return 'No conference bonus applied';
 };
 
@@ -337,12 +337,12 @@ const getConferenceDescription = (university, bonus) => {
  */
 const generateValuationRationale = ({ baseValue, adjustedValue, lowRange, highRange, factors, athleteData, dealData }) => {
   const totalFollowers = getTotalFollowers(athleteData);
-  
+
   return {
     methodology: "Fair market value calculated using industry-standard NIL valuation methodology based on social media influence, institutional prestige, sport popularity, and activity type analysis.",
-    
+
     base_calculation: `Starting with $${baseValue.toLocaleString()} base value derived from ${totalFollowers.toLocaleString()} total social media followers across platforms using industry engagement rates.`,
-    
+
     key_adjustments: [
       `School tier adjustment: ${factors.school_tier.description}`,
       `Sport popularity factor: ${factors.sport_popularity.description}`,
@@ -350,11 +350,11 @@ const generateValuationRationale = ({ baseValue, adjustedValue, lowRange, highRa
       factors.gender_adjustment.multiplier > 1.0 ? factors.gender_adjustment.description : null,
       factors.conference_bonus.value > 0 ? factors.conference_bonus.description : null
     ].filter(Boolean),
-    
+
     final_calculation: `Adjusted value: $${adjustedValue.toLocaleString()} • Range: $${lowRange.toLocaleString()} - $${highRange.toLocaleString()} (±35% industry standard variance)`,
-    
+
     market_context: generateMarketContext(adjustedValue, athleteData),
-    
+
     recommendations: generateRecommendations(adjustedValue, factors, athleteData)
   };
 };
@@ -364,7 +364,7 @@ const generateValuationRationale = ({ baseValue, adjustedValue, lowRange, highRa
  */
 const generateMarketComparison = (adjustedValue, athleteData) => {
   const comparisons = [];
-  
+
   // National averages from research
   if (adjustedValue > 50000) {
     comparisons.push("Above SEC conference average ($52K) - elite market positioning");
@@ -375,7 +375,7 @@ const generateMarketComparison = (adjustedValue, athleteData) => {
   } else {
     comparisons.push("Entry-level NIL market positioning with growth potential");
   }
-  
+
   // Follower-based comparisons
   const totalFollowers = getTotalFollowers(athleteData);
   if (totalFollowers > 100000) {
@@ -385,7 +385,7 @@ const generateMarketComparison = (adjustedValue, athleteData) => {
   } else {
     comparisons.push("Building social media presence (<10K followers)");
   }
-  
+
   return comparisons;
 };
 
@@ -395,7 +395,7 @@ const generateMarketComparison = (adjustedValue, athleteData) => {
 const generateMarketContext = (adjustedValue, athleteData) => {
   const sport = athleteData.sports?.[0] || 'athletics';
   const school = athleteData.university || 'college';
-  
+
   if (adjustedValue > 100000) {
     return `This valuation places the athlete in the top tier of college NIL earners. For context, only star quarterbacks and social media phenoms typically command six-figure valuations.`;
   } else if (adjustedValue > 50000) {
@@ -412,31 +412,31 @@ const generateMarketContext = (adjustedValue, athleteData) => {
  */
 const generateRecommendations = (adjustedValue, factors, athleteData) => {
   const recommendations = [];
-  
+
   // Social media growth opportunities
   const totalFollowers = getTotalFollowers(athleteData);
   if (totalFollowers < 10000) {
     recommendations.push("Focus on growing social media presence to 10K+ followers for improved valuation");
   }
-  
+
   // Performance-based recommendations
   if (factors.sport_popularity.multiplier < 1.2) {
     recommendations.push("Consider cross-sport content or trending activities to increase market appeal");
   }
-  
+
   // Activity optimization
   if (factors.activity_type.multiplier < 1.3) {
     recommendations.push("Pursue higher-value activities like brand ambassadorships or product endorsements");
   }
-  
+
   // Market positioning
   if (adjustedValue < 35000) {
     recommendations.push("Target local and regional partnerships to build market credibility");
   } else {
     recommendations.push("Qualified for national brand partnerships and premium NIL opportunities");
   }
-  
+
   return recommendations;
 };
 
-export default predictValuation; 
+export default predictValuation;

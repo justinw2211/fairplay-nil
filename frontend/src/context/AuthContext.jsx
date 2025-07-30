@@ -29,18 +29,18 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     let mounted = true;
-    
+
     const getSession = async () => {
       try {
         setLoading(true);
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+
         if (error) {
           authLogger.error("Session error", { error: error.message });
           throw error;
         }
 
-        if (!mounted) return;
+        if (!mounted) {return;}
 
         if (session?.user) {
           authLogger.info("Valid session found");
@@ -61,13 +61,13 @@ export const AuthProvider = ({ children }) => {
         }
       }
     };
-    
+
     getSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       authLogger.info(`Auth event: ${event}`);
-      
-      if (!mounted) return;
+
+      if (!mounted) {return;}
 
       if (event === 'SIGNED_IN') {
         setUser(session.user);
@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }) => {
         setUser(session?.user ?? null);
         setError(null);
       }
-      
+
       setLoading(false);
     });
 
@@ -94,11 +94,11 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       setError(null);
       authLogger.info("Attempting to sign in user");
-      
+
       const { data: authData, error } = await supabase.auth.signInWithPassword(data);
-      
-      if (error) throw error;
-      
+
+      if (error) {throw error;}
+
       authLogger.info("Sign-in successful");
       return { data: authData, error: null };
     } catch (err) {
@@ -115,7 +115,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       setError(null);
       authLogger.info("Attempting to sign up new user");
-      
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -124,9 +124,9 @@ export const AuthProvider = ({ children }) => {
           emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       });
-      
-      if (error) throw error;
-      
+
+      if (error) {throw error;}
+
       authLogger.info("Sign-up successful");
       return { data, error: null };
     } catch (err) {

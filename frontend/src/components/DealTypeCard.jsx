@@ -10,12 +10,12 @@ import {
   Button
 } from '@chakra-ui/react';
 
-const DealTypeCard = ({ 
-  title, 
-  description, 
-  icon, 
+const DealTypeCard = ({
+  title,
+  description,
+  icon,
   onClick,
-  isLoading = false 
+  isLoading = false
 }) => {
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
@@ -73,4 +73,4 @@ const DealTypeCard = ({
   );
 };
 
-export default DealTypeCard; 
+export default DealTypeCard;

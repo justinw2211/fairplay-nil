@@ -62,9 +62,9 @@ describe('DealWizardErrorReporter', () => {
     it('categorizes network errors correctly', () => {
       const error = new Error('fetch failed');
       error.name = 'NetworkError';
-      
+
       const categorization = reporter.categorizeError(error, {});
-      
+
       expect(categorization.type).toBe('network');
       expect(categorization.severity).toBe('high');
       expect(categorization.userAction).toBe('retry');
@@ -74,9 +74,9 @@ describe('DealWizardErrorReporter', () => {
     it('categorizes validation errors correctly', () => {
       const error = new Error('validation failed');
       error.name = 'ValidationError';
-      
+
       const categorization = reporter.categorizeError(error, {});
-      
+
       expect(categorization.type).toBe('validation');
       expect(categorization.severity).toBe('low');
       expect(categorization.userAction).toBe('fix_input');
@@ -86,9 +86,9 @@ describe('DealWizardErrorReporter', () => {
     it('categorizes runtime errors correctly', () => {
       const error = new Error('undefined is not a function');
       error.name = 'TypeError';
-      
+
       const categorization = reporter.categorizeError(error, {});
-      
+
       expect(categorization.type).toBe('runtime');
       expect(categorization.severity).toBe('medium');
       expect(categorization.userAction).toBe('refresh');
@@ -97,9 +97,9 @@ describe('DealWizardErrorReporter', () => {
 
     it('categorizes authorization errors correctly', () => {
       const error = new Error('unauthorized access');
-      
+
       const categorization = reporter.categorizeError(error, {});
-      
+
       expect(categorization.type).toBe('authorization');
       expect(categorization.severity).toBe('high');
       expect(categorization.userAction).toBe('login');
@@ -108,9 +108,9 @@ describe('DealWizardErrorReporter', () => {
 
     it('categorizes unknown errors as default', () => {
       const error = new Error('unknown error');
-      
+
       const categorization = reporter.categorizeError(error, {});
-      
+
       expect(categorization.type).toBe('unknown');
       expect(categorization.severity).toBe('medium');
       expect(categorization.userAction).toBe('none');
@@ -199,14 +199,14 @@ describe('DealWizardErrorReporter', () => {
       reporter.setReportingEndpoint('http://localhost:3000/api/errors');
 
       const error = new Error('Test error');
-      
+
       // Should not throw
       await expect(reporter.reportError(error, {})).resolves.toBeUndefined();
     });
 
     it('adds error to queue and maintains size limit', () => {
       const error = new Error('Test error');
-      
+
       // Add more errors than the queue limit
       for (let i = 0; i < 60; i++) {
         reporter.reportError(new Error(`Error ${i}`), {});
@@ -367,4 +367,4 @@ describe('DealWizardErrorReporter', () => {
       expect(reporter.reportingEndpoint).toBe(endpoint);
     });
   });
-}); 
+});

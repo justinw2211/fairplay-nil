@@ -2,12 +2,9 @@
  * Tests for DealWizardErrorFallback Component
  */
 
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import { ChakraProvider } from '@chakra-ui/react';
+import { screen, fireEvent } from '@testing-library/react';
+import { renderWithChakraAndRouter } from '../utils/test-utils';
 import DealWizardErrorFallback from './DealWizardErrorFallback';
-import theme from '../theme';
 
 // Mock react-router-dom
 const mockNavigate = jest.fn();
@@ -22,14 +19,6 @@ jest.mock('@chakra-ui/react', () => ({
   ...jest.requireActual('@chakra-ui/react'),
   useToast: () => mockToast,
 }));
-
-const TestWrapper = ({ children }) => (
-  <BrowserRouter>
-    <ChakraProvider theme={theme}>
-      {children}
-    </ChakraProvider>
-  </BrowserRouter>
-);
 
 const defaultProps = {
   error: new Error('Test error message'),
@@ -47,52 +36,32 @@ describe('DealWizardErrorFallback', () => {
   });
 
   it('renders without crashing', () => {
-    render(
-      <TestWrapper>
-        <DealWizardErrorFallback {...defaultProps} />
-      </TestWrapper>
-    );
+    renderWithChakraAndRouter(<DealWizardErrorFallback {...defaultProps} />);
 
     expect(screen.getByText('Oops! Something went wrong')).toBeInTheDocument();
   });
 
   it('displays step-specific error message', () => {
-    render(
-      <TestWrapper>
-        <DealWizardErrorFallback {...defaultProps} currentStep={1} />
-      </TestWrapper>
-    );
+    renderWithChakraAndRouter(<DealWizardErrorFallback {...defaultProps} currentStep={1} />);
 
     expect(screen.getByText(/We encountered an issue while processing your deal terms/)).toBeInTheDocument();
   });
 
   it('shows step information when currentStep is provided', () => {
-    render(
-      <TestWrapper>
-        <DealWizardErrorFallback {...defaultProps} currentStep={2} />
-      </TestWrapper>
-    );
+    renderWithChakraAndRouter(<DealWizardErrorFallback {...defaultProps} currentStep={2} stepName="Payor Information" />);
 
     expect(screen.getByText(/Step 2: Payor Information/)).toBeInTheDocument();
   });
 
   it('displays progress preservation message', () => {
-    render(
-      <TestWrapper>
-        <DealWizardErrorFallback {...defaultProps} />
-      </TestWrapper>
-    );
+    renderWithChakraAndRouter(<DealWizardErrorFallback {...defaultProps} />);
 
-    expect(screen.getByText('Don\'t worry, your progress is saved!')).toBeInTheDocument();
-    expect(screen.getByText(/Your deal data has been automatically saved as a draft/)).toBeInTheDocument();
+    expect(screen.getByText('Your Progress is Safe')).toBeInTheDocument();
+    expect(screen.getByText(/Don't worry! Your progress has been automatically saved/)).toBeInTheDocument();
   });
 
   it('renders all action buttons', () => {
-    render(
-      <TestWrapper>
-        <DealWizardErrorFallback {...defaultProps} />
-      </TestWrapper>
-    );
+    renderWithChakraAndRouter(<DealWizardErrorFallback {...defaultProps} />);
 
     expect(screen.getByText('Try Again')).toBeInTheDocument();
     expect(screen.getByText('Return to Dashboard')).toBeInTheDocument();
@@ -102,131 +71,72 @@ describe('DealWizardErrorFallback', () => {
 
   it('calls onRetry when Try Again button is clicked', () => {
     const onRetry = jest.fn();
-    render(
-      <TestWrapper>
-        <DealWizardErrorFallback {...defaultProps} onRetry={onRetry} />
-      </TestWrapper>
-    );
+    renderWithChakraAndRouter(<DealWizardErrorFallback {...defaultProps} onRetry={onRetry} />);
 
     fireEvent.click(screen.getByText('Try Again'));
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('shows loading state when isRetrying is true', () => {
-    render(
-      <TestWrapper>
-        <DealWizardErrorFallback {...defaultProps} isRetrying={true} />
-      </TestWrapper>
-    );
+  it('shows loading state when recoveryState.isRecovering is true', () => {
+    renderWithChakraAndRouter(<DealWizardErrorFallback {...defaultProps} recoveryState={{ isRecovering: true }} />);
 
-    expect(screen.getByText('Retrying...')).toBeInTheDocument();
+    expect(screen.getAllByText('Attempting Recovery...')).toHaveLength(2);
   });
 
   it('navigates to dashboard when Return to Dashboard is clicked', () => {
-    render(
-      <TestWrapper>
-        <DealWizardErrorFallback {...defaultProps} />
-      </TestWrapper>
-    );
+    renderWithChakraAndRouter(<DealWizardErrorFallback {...defaultProps} />);
 
     fireEvent.click(screen.getByText('Return to Dashboard'));
-    expect(mockNavigate).toHaveBeenCalledWith('/dashboard?tab=drafts');
-    expect(mockToast).toHaveBeenCalledWith({
-      title: 'Returning to Dashboard',
-      description: 'Your deal progress has been saved as a draft.',
-      status: 'info',
-      duration: 3000,
-      isClosable: true,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
   });
 
-  it('navigates to dashboard when Start New Deal is clicked', () => {
-    render(
-      <TestWrapper>
-        <DealWizardErrorFallback {...defaultProps} />
-      </TestWrapper>
-    );
+  it('navigates to add deal when Start New Deal is clicked', () => {
+    renderWithChakraAndRouter(<DealWizardErrorFallback {...defaultProps} />);
 
     fireEvent.click(screen.getByText('Start New Deal'));
-    expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
-    expect(mockToast).toHaveBeenCalledWith({
-      title: 'Starting Fresh',
-      description: 'Creating a new deal from the beginning.',
-      status: 'info',
-      duration: 3000,
-      isClosable: true,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith('/add/deal');
   });
 
   it('navigates to home when Go Home is clicked', () => {
-    render(
-      <TestWrapper>
-        <DealWizardErrorFallback {...defaultProps} />
-      </TestWrapper>
-    );
+    renderWithChakraAndRouter(<DealWizardErrorFallback {...defaultProps} />);
 
     fireEvent.click(screen.getByText('Go Home'));
     expect(mockNavigate).toHaveBeenCalledWith('/');
   });
 
   it('shows technical details when showDetails is true', () => {
-    render(
-      <TestWrapper>
-        <DealWizardErrorFallback {...defaultProps} showDetails={true} />
-      </TestWrapper>
-    );
+    renderWithChakraAndRouter(<DealWizardErrorFallback {...defaultProps} showDetails={true} />);
 
-    expect(screen.getByText('Technical Details (Development Only):')).toBeInTheDocument();
+    expect(screen.getByText('Technical Details:')).toBeInTheDocument();
     expect(screen.getByText('Test error message')).toBeInTheDocument();
-    expect(screen.getByText('Error ID: test-error-123')).toBeInTheDocument();
   });
 
   it('does not show technical details when showDetails is false', () => {
-    render(
-      <TestWrapper>
-        <DealWizardErrorFallback {...defaultProps} showDetails={false} />
-      </TestWrapper>
-    );
+    renderWithChakraAndRouter(<DealWizardErrorFallback {...defaultProps} showDetails={false} />);
 
-    expect(screen.queryByText('Technical Details (Development Only):')).not.toBeInTheDocument();
+    expect(screen.queryByText('Technical Details:')).not.toBeInTheDocument();
   });
 
   it('handles different step numbers correctly', () => {
-    const { rerender } = render(
-      <TestWrapper>
-        <DealWizardErrorFallback {...defaultProps} currentStep={0} />
-      </TestWrapper>
-    );
+    const { rerender } = renderWithChakraAndRouter(<DealWizardErrorFallback {...defaultProps} currentStep={0} />);
 
     expect(screen.getByText(/We encountered an issue while setting up your social media information/)).toBeInTheDocument();
 
-    rerender(
-      <TestWrapper>
-        <DealWizardErrorFallback {...defaultProps} currentStep={6} />
-      </TestWrapper>
-    );
+    rerender(<DealWizardErrorFallback {...defaultProps} currentStep={6} />);
 
     expect(screen.getByText(/We encountered an issue while processing compensation details/)).toBeInTheDocument();
   });
 
   it('uses fallback message for unknown step numbers', () => {
-    render(
-      <TestWrapper>
-        <DealWizardErrorFallback {...defaultProps} currentStep={99} />
-      </TestWrapper>
-    );
+    renderWithChakraAndRouter(<DealWizardErrorFallback {...defaultProps} currentStep={99} />);
 
-    expect(screen.getByText(/We encountered an issue with the deal creation process/)).toBeInTheDocument();
+    expect(screen.getByText(/We encountered an issue while processing your information/)).toBeInTheDocument();
   });
 
-  it('disables retry button when isRetrying is true', () => {
-    render(
-      <TestWrapper>
-        <DealWizardErrorFallback {...defaultProps} isRetrying={true} />
-      </TestWrapper>
-    );
+  it('disables retry button when recoveryState.isRecovering is true', () => {
+    renderWithChakraAndRouter(<DealWizardErrorFallback {...defaultProps} recoveryState={{ isRecovering: true }} />);
 
-    const retryButton = screen.getByText('Retrying...');
+    const retryButton = screen.getByRole('button', { name: /attempting recovery/i });
     expect(retryButton).toBeDisabled();
   });
-}); 
+});

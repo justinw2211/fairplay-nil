@@ -36,8 +36,8 @@ export const SchoolField = ({
   const selectStyles = {
     control: (provided, state) => ({
       ...provided,
-      borderColor: state.isFocused 
-        ? 'var(--chakra-colors-brand-accentPrimary)' 
+      borderColor: state.isFocused
+        ? 'var(--chakra-colors-brand-accentPrimary)'
         : 'var(--chakra-colors-brand-accentSecondary)',
       boxShadow: state.isFocused ? '0 0 0 1px var(--chakra-colors-brand-accentPrimary)' : 'none',
       '&:hover': {
@@ -48,10 +48,10 @@ export const SchoolField = ({
     }),
     option: (provided, state) => ({
       ...provided,
-      backgroundColor: state.isSelected 
-        ? 'var(--chakra-colors-brand-accentPrimary)' 
-        : state.isFocused 
-        ? 'var(--chakra-colors-brand-backgroundLight)' 
+      backgroundColor: state.isSelected
+        ? 'var(--chakra-colors-brand-accentPrimary)'
+        : state.isFocused
+        ? 'var(--chakra-colors-brand-backgroundLight)'
         : 'white',
       color: state.isSelected ? 'white' : 'var(--chakra-colors-brand-textPrimary)',
     }),
@@ -62,12 +62,12 @@ export const SchoolField = ({
     const loadSchools = async () => {
       setIsLoadingSchools(true);
       setLoadError(null);
-      
+
       try {
         const schoolsData = await fetchSchools();
         const finalSchools = schoolsData.length > 0 ? schoolsData : FALLBACK_SCHOOLS;
         setSchools(finalSchools);
-        
+
         if (onSchoolsLoad) {
           onSchoolsLoad(finalSchools);
         }
@@ -75,7 +75,7 @@ export const SchoolField = ({
         console.error('Error loading schools:', error);
         setLoadError(error.message);
         setSchools(FALLBACK_SCHOOLS);
-        
+
         if (onSchoolsLoad) {
           onSchoolsLoad(FALLBACK_SCHOOLS, error);
         }
@@ -91,7 +91,7 @@ export const SchoolField = ({
   useEffect(() => {
     if (watchDivision && schools.length > 0) {
       const selectedDivision = watchDivision();
-      
+
       if (selectedDivision) {
         const filtered = schools.filter(
           school => school.division === selectedDivision
@@ -132,8 +132,8 @@ export const SchoolField = ({
               isDisabled={watchDivision && !watchDivision()} // Disable if division required but not selected
               isClearable
               isSearchable
-              noOptionsMessage={() => 
-                watchDivision && !watchDivision() 
+              noOptionsMessage={() =>
+                watchDivision && !watchDivision()
                   ? 'Please select a division first'
                   : 'No universities found'
               }
@@ -157,4 +157,4 @@ export const SchoolField = ({
   );
 };
 
-export default SchoolField; 
+export default SchoolField;

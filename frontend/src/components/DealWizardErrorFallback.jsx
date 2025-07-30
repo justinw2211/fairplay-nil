@@ -136,7 +136,7 @@ const DealWizardErrorFallback = ({
             >
               <Icon as={AlertTriangle} w={8} h={8} color="red.500" />
             </Box>
-            
+
             <VStack spacing={2}>
               <Heading size="lg" color="red.600">
                 Oops! Something went wrong
@@ -182,9 +182,9 @@ const DealWizardErrorFallback = ({
                 {recoverySuggestions.map((suggestion, index) => (
                   <ListItem key={index}>
                     <HStack align="start" spacing={2}>
-                      <ListIcon 
-                        as={suggestion.type === 'warning' ? AlertCircle : Info} 
-                        color={suggestion.type === 'warning' ? 'orange.500' : 'blue.500'} 
+                      <ListIcon
+                        as={suggestion.type === 'warning' ? AlertCircle : Info}
+                        color={suggestion.type === 'warning' ? 'orange.500' : 'blue.500'}
                       />
                       <Text fontSize="sm" color="gray.600">
                         {suggestion.message}
@@ -198,8 +198,8 @@ const DealWizardErrorFallback = ({
 
           {/* Recovery State Information */}
           {recoveryState && (
-            <Alert 
-              status={recoveryState.isRecovering ? 'info' : 'warning'} 
+            <Alert
+              status={recoveryState.isRecovering ? 'info' : 'warning'}
               rounded="lg"
             >
               <AlertIcon />
@@ -208,7 +208,7 @@ const DealWizardErrorFallback = ({
                   {recoveryState.isRecovering ? 'Attempting Recovery...' : 'Recovery Available'}
                 </AlertTitle>
                 <AlertDescription>
-                  {recoveryState.isRecovering 
+                  {recoveryState.isRecovering
                     ? 'Please wait while we attempt to resolve the issue.'
                     : `Recovery attempts: ${errorState?.recoveryAttempts || 0}/${recoveryState.maxRetryAttempts}`
                   }
@@ -241,7 +241,7 @@ const DealWizardErrorFallback = ({
               >
                 Return to Dashboard
               </Button>
-              
+
               <Button
                 leftIcon={<Icon as={Plus} />}
                 variant="outline"
@@ -284,4 +284,4 @@ const DealWizardErrorFallback = ({
   );
 };
 
-export default DealWizardErrorFallback; 
+export default DealWizardErrorFallback;

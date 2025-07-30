@@ -1,6 +1,6 @@
 // src/components/SummaryCards.jsx
 import React from 'react';
-import { 
+import {
   SimpleGrid, Box, Text, Card, CardBody, Icon, VStack, HStack, useColorModeValue,
   Progress, Badge, Tooltip
 } from '@chakra-ui/react';
@@ -26,7 +26,7 @@ const SummaryCards = ({ deals }) => {
   const completedDeals = safeDeals.filter(deal => deal.status === 'completed').length;
   const draftDeals = safeDeals.filter(deal => deal.status === 'draft').length;
   const totalDeals = safeDeals.length;
-  
+
   // Deal type breakdown
   const dealTypes = {
     simple: safeDeals.filter(deal => deal.deal_type === 'simple').length,
@@ -41,8 +41,8 @@ const SummaryCards = ({ deals }) => {
   const avgDealValue = totalDeals > 0 ? totalValue / totalDeals : 0;
 
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat('en-US', { 
-      style: 'currency', 
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
@@ -55,10 +55,10 @@ const SummaryCards = ({ deals }) => {
 
   // Enhanced summary card component
   const SummaryCard = ({ title, value, icon, color, helpText, trend, onClick, children }) => (
-    <Card 
-      bg={cardBg} 
-      borderWidth="1px" 
-      borderColor={borderColor} 
+    <Card
+      bg={cardBg}
+      borderWidth="1px"
+      borderColor={borderColor}
       borderRadius="lg"
       cursor={onClick ? 'pointer' : 'default'}
       transition="all 0.3s ease"
@@ -111,7 +111,7 @@ const SummaryCards = ({ deals }) => {
         color="brand.accentPrimary"
         helpText={`Average: ${formatCurrency(avgDealValue)}`}
       />
-      
+
       <SummaryCard
         title="Active Deals"
         value={activeDeals}
@@ -119,14 +119,14 @@ const SummaryCards = ({ deals }) => {
         color="green.500"
         helpText={`${totalDeals} total deals`}
       >
-        <Progress 
-          value={totalDeals > 0 ? (activeDeals / totalDeals) * 100 : 0} 
-          colorScheme="green" 
-          size="sm" 
+        <Progress
+          value={totalDeals > 0 ? (activeDeals / totalDeals) * 100 : 0}
+          colorScheme="green"
+          size="sm"
           borderRadius="full"
         />
       </SummaryCard>
-      
+
       <SummaryCard
         title="Completion Rate"
         value={formatPercent(completionRate)}
@@ -134,14 +134,14 @@ const SummaryCards = ({ deals }) => {
         color="blue.500"
         helpText={`${completedDeals} completed`}
       >
-        <Progress 
-          value={completionRate} 
-          colorScheme="blue" 
-          size="sm" 
+        <Progress
+          value={completionRate}
+          colorScheme="blue"
+          size="sm"
           borderRadius="full"
         />
       </SummaryCard>
-      
+
       <SummaryCard
         title="Draft Deals"
         value={draftDeals}

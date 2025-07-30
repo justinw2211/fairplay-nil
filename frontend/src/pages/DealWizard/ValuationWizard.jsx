@@ -124,23 +124,23 @@ const ValuationWizard = () => {
 
   const getTotalCompensation = () => {
     let total = 0;
-    
+
     if (deal.compensation_cash) {
       total += parseFloat(deal.compensation_cash) || 0;
     }
-    
+
     if (deal.compensation_goods && Array.isArray(deal.compensation_goods)) {
       total += deal.compensation_goods.reduce((sum, item) => {
         return sum + (parseFloat(item.estimated_value) || 0);
       }, 0);
     }
-    
+
     if (deal.compensation_other && Array.isArray(deal.compensation_other)) {
       total += deal.compensation_other.reduce((sum, item) => {
         return sum + (parseFloat(item.estimated_value) || 0);
       }, 0);
     }
-    
+
     return total;
   };
 
@@ -149,14 +149,14 @@ const ValuationWizard = () => {
     console.log('Deal data:', deal);
     console.log('Deal ID:', dealId);
     console.log('predictValuation function:', typeof predictValuation);
-    
+
     setIsCalculating(true);
     setShowPredictionProcess(true);
-    
+
     try {
       // Simulate valuation analysis process with realistic delays
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       // Prepare athlete data for valuation (would come from user profile in real app)
       const athleteData = {
         instagram_followers: deal.athlete_instagram_followers || 0,
@@ -168,31 +168,31 @@ const ValuationWizard = () => {
         athletic_performance: deal.athlete_performance || null,
         achievements: deal.athlete_achievements || []
       };
-      
+
       console.log('📊 Running valuation prediction with data:', { deal, athleteData });
-      
+
       // Run the valuation prediction
       const prediction = predictValuation(deal, athleteData);
-      
+
       console.log('✅ Valuation result:', prediction);
-      
+
       // Store prediction in deal record
       const updateData = {
         valuation_prediction: prediction,
         prediction_calculated_at: new Date().toISOString()
       };
-      
+
       console.log('💾 Updating deal with valuation data...');
       await updateDeal(dealId, updateData);
-      
+
       console.log('💾 Saving valuation via hook...');
       // Store prediction via API for future reference
       await saveValuationPrediction(prediction);
-      
+
       console.log('🎯 Navigating to results page...');
       // Navigate to results page
       navigate(`/valuation-result/${dealId}?type=${dealType}`);
-      
+
     } catch (error) {
       console.error('❌ Error running valuation prediction:', error);
       console.error('Error stack:', error.stack);
@@ -229,10 +229,10 @@ const ValuationWizard = () => {
                   <Text mt={4} color="brand.textSecondary">Analyzing market factors...</Text>
                 </Box>
 
-                <Progress 
-                  value={85} 
-                  size="lg" 
-                  colorScheme="green" 
+                <Progress
+                  value={85}
+                  size="lg"
+                  colorScheme="green"
                   bg="brand.backgroundLight"
                   rounded="full"
                   w="full"
@@ -311,8 +311,8 @@ const ValuationWizard = () => {
                   <VStack align="start" spacing={2}>
                     <Text><strong>Type:</strong> {deal.deal_type || 'Standard Deal'}</Text>
                     <Text><strong>Activities:</strong> {deal.activities?.join(', ') || 'Not specified'}</Text>
-                    <Text><strong>Duration:</strong> {deal.start_date && deal.end_date ? 
-                      `${new Date(deal.start_date).toLocaleDateString()} - ${new Date(deal.end_date).toLocaleDateString()}` : 
+                    <Text><strong>Duration:</strong> {deal.start_date && deal.end_date ?
+                      `${new Date(deal.start_date).toLocaleDateString()} - ${new Date(deal.end_date).toLocaleDateString()}` :
                       'Not specified'}</Text>
                   </VStack>
                 </SectionCard>
@@ -347,8 +347,8 @@ const ValuationWizard = () => {
                   What is Fair Market Value Analysis?
                 </Heading>
                 <Text color="blue.600" fontSize="sm">
-                  Our valuation engine analyzes your deal using real NIL market data to determine if your compensation 
-                  is fair compared to similar deals. We consider social media following, school tier, sport popularity, 
+                  Our valuation engine analyzes your deal using real NIL market data to determine if your compensation
+                  is fair compared to similar deals. We consider social media following, school tier, sport popularity,
                   activity type, and current market trends to provide accurate compensation recommendations.
                 </Text>
               </Box>
@@ -406,7 +406,7 @@ const ValuationWizard = () => {
           >
             Back to Dashboard
           </Button>
-          
+
           <Button
             rightIcon={<BarChart3 />}
             bg="brand.accentPrimary"
@@ -425,4 +425,4 @@ const ValuationWizard = () => {
   );
 };
 
-export default ValuationWizard; 
+export default ValuationWizard;

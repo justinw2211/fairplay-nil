@@ -24,7 +24,7 @@ const DealTypeSelection = () => {
       if (!newDeal) {
         throw new Error('Failed to create new deal');
       }
-      
+
       // Navigate to the appropriate workflow based on deal type
       switch (dealType) {
         case 'simple':
@@ -104,4 +104,4 @@ const DealTypeSelection = () => {
   );
 };
 
-export default DealTypeSelection; 
+export default DealTypeSelection;

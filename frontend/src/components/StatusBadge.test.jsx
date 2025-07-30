@@ -1,13 +1,6 @@
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { ChakraProvider } from '@chakra-ui/react';
-import theme from '../theme';
+import { screen } from '@testing-library/react';
+import { renderWithChakra } from '../utils/test-utils';
 import StatusBadge from './StatusBadge';
-
-// We wrap the component in ChakraProvider because it uses Chakra UI features
-const renderWithChakra = (component) => {
-  return render(<ChakraProvider theme={theme}>{component}</ChakraProvider>);
-};
 
 describe('StatusBadge', () => {
   test('renders a "Signed" badge correctly', () => {

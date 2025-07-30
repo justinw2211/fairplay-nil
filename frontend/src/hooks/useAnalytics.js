@@ -33,13 +33,13 @@ const useAnalytics = (deals) => {
 
   // Filter deals by date range
   const getFilteredDeals = (deals, range) => {
-    if (!deals || !Array.isArray(deals)) return [];
-    if (range === 'all') return deals;
+    if (!deals || !Array.isArray(deals)) {return [];}
+    if (range === 'all') {return deals;}
     const boundary = getDateBoundary(range);
-    if (!boundary) return deals;
-    
+    if (!boundary) {return deals;}
+
     return deals.filter(deal => {
-      if (!deal || !deal.created_at) return false;
+      if (!deal || !deal.created_at) {return false;}
       try {
         const dealDate = new Date(deal.created_at);
         return dealDate >= boundary;
@@ -55,9 +55,9 @@ const useAnalytics = (deals) => {
     const currentDeals = getFilteredDeals(safeDeals, dateRange);
     const previousRange = dateRange === '7d' ? '7d' : dateRange === '30d' ? '30d' : '90d';
     const previousBoundary = getDateBoundary(previousRange);
-    const previousDeals = previousBoundary ? 
+    const previousDeals = previousBoundary ?
       safeDeals.filter(deal => {
-        if (!deal || !deal.created_at) return false;
+        if (!deal || !deal.created_at) {return false;}
         try {
           const dealDate = new Date(deal.created_at);
           const currentBoundary = getDateBoundary(dateRange);
@@ -95,7 +95,7 @@ const useAnalytics = (deals) => {
 
     // Calculate trends (percentage change)
     const getTrend = (current, previous) => {
-      if (previous === 0) return current > 0 ? 100 : 0;
+      if (previous === 0) {return current > 0 ? 100 : 0;}
       return ((current - previous) / previous) * 100;
     };
 
@@ -117,7 +117,7 @@ const useAnalytics = (deals) => {
   const monthlyTrends = useMemo(() => {
     const months = [];
     const now = new Date();
-    
+
     // Get last 12 months
     for (let i = 11; i >= 0; i--) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -130,9 +130,9 @@ const useAnalytics = (deals) => {
     return months.map(({ month, date }) => {
       const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
       const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-      
+
       const monthDeals = safeDeals.filter(deal => {
-        if (!deal || !deal.created_at) return false;
+        if (!deal || !deal.created_at) {return false;}
         try {
           const dealDate = new Date(deal.created_at);
           return dealDate >= monthStart && dealDate <= monthEnd;
@@ -172,7 +172,7 @@ const useAnalytics = (deals) => {
     };
 
     currentDeals.forEach(deal => {
-      if (!deal) return;
+      if (!deal) {return;}
       const type = deal.deal_type || 'simple';
       if (types[type]) {
         types[type].count++;
@@ -206,14 +206,14 @@ const useAnalytics = (deals) => {
     };
 
     currentDeals.forEach(deal => {
-      if (!deal) return;
+      if (!deal) {return;}
       const fmv = getSafeNumber(deal.fmv);
-      if (fmv <= 1000) ranges['0-1000']++;
-      else if (fmv <= 5000) ranges['1001-5000']++;
-      else if (fmv <= 10000) ranges['5001-10000']++;
-      else if (fmv <= 25000) ranges['10001-25000']++;
-      else if (fmv <= 50000) ranges['25001-50000']++;
-      else ranges['50001+']++;
+      if (fmv <= 1000) {ranges['0-1000']++;}
+      else if (fmv <= 5000) {ranges['1001-5000']++;}
+      else if (fmv <= 10000) {ranges['5001-10000']++;}
+      else if (fmv <= 25000) {ranges['10001-25000']++;}
+      else if (fmv <= 50000) {ranges['25001-50000']++;}
+      else {ranges['50001+']++;}
     });
 
     return Object.entries(ranges).map(([range, count]) => ({
@@ -237,8 +237,8 @@ const useAnalytics = (deals) => {
     };
 
     currentDeals.forEach(deal => {
-      if (!deal) return;
-      
+      if (!deal) {return;}
+
       if (deal.deal_type === 'clearinghouse' && deal.clearinghouse_prediction) {
         predictions.clearinghouse.total++;
         // Assuming we have actual results to compare against
@@ -246,7 +246,7 @@ const useAnalytics = (deals) => {
           predictions.clearinghouse.correct++;
         }
       }
-      
+
       if (deal.deal_type === 'valuation' && deal.valuation_range) {
         predictions.valuation.total++;
         // Assuming we have actual compensation to compare against
@@ -265,9 +265,9 @@ const useAnalytics = (deals) => {
     });
 
     return {
-      clearinghouse: predictions.clearinghouse.total > 0 ? 
+      clearinghouse: predictions.clearinghouse.total > 0 ?
         (predictions.clearinghouse.correct / predictions.clearinghouse.total) * 100 : 0,
-      valuation: predictions.valuation.total > 0 ? 
+      valuation: predictions.valuation.total > 0 ?
         (predictions.valuation.correct / predictions.valuation.total) * 100 : 0
     };
   }, [safeDeals, dateRange]);
@@ -283,8 +283,8 @@ const useAnalytics = (deals) => {
     isLoading,
     error,
     // Helper functions
-    formatCurrency: (value) => new Intl.NumberFormat('en-US', { 
-      style: 'currency', 
+    formatCurrency: (value) => new Intl.NumberFormat('en-US', {
+      style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
@@ -294,4 +294,4 @@ const useAnalytics = (deals) => {
   };
 };
 
-export default useAnalytics; 
+export default useAnalytics;

@@ -6,6 +6,7 @@
 import React from 'react';
 import { createLogger } from '../utils/logger';
 import FallbackUI from './FallbackUI';
+import * as Sentry from '@sentry/react';
 
 const logger = createLogger('ErrorBoundary');
 
@@ -47,13 +48,40 @@ class ErrorBoundary extends React.Component {
     // Log the error
     logger.error('Component Error Caught', errorDetails);
 
+    // Report to Sentry with enhanced context
+    try {
+      Sentry.captureException(error, {
+        contexts: {
+          errorBoundary: {
+            errorId: this.state.errorId,
+            context: this.props.context || 'Unknown',
+            componentStack: errorInfo.componentStack,
+            url: window.location.href,
+            userAgent: navigator.userAgent
+          }
+        },
+        tags: {
+          errorBoundary: 'true',
+          context: this.props.context || 'Unknown',
+          errorId: this.state.errorId
+        },
+        extra: {
+          errorDetails,
+          componentProps: this.props.context ? { context: this.props.context } : {}
+        }
+      });
+    } catch (sentryError) {
+      // Fallback if Sentry fails - don't break existing error handling
+      logger.warn('Sentry error reporting failed', { error: sentryError.message });
+    }
+
     // Update state with error info
     this.setState({
       errorInfo,
       error
     });
 
-    // Report to error tracking service in production
+    // Report to error tracking service in production (existing functionality)
     if (import.meta.env.MODE === 'production' && import.meta.env.VITE_API_URL) {
       fetch(`${import.meta.env.VITE_API_URL}/api/errors`, {
         method: 'POST',
@@ -79,6 +107,30 @@ class ErrorBoundary extends React.Component {
 
   reportError = async (errorDetails) => {
     try {
+      // Report to Sentry first
+      try {
+        Sentry.captureException(new Error(errorDetails.message), {
+          contexts: {
+            manualError: {
+              errorId: errorDetails.errorId,
+              context: errorDetails.context || 'Manual',
+              url: errorDetails.url,
+              userAgent: errorDetails.userAgent
+            }
+          },
+          tags: {
+            manualError: 'true',
+            context: errorDetails.context || 'Manual',
+            errorId: errorDetails.errorId
+          },
+          extra: {
+            errorDetails
+          }
+        });
+      } catch (sentryError) {
+        logger.warn('Sentry error reporting failed', { error: sentryError.message });
+      }
+
       // Only attempt error reporting if we're in production AND have an API URL configured
       if (import.meta.env.MODE !== 'production' || !import.meta.env.VITE_API_URL) {
         logger.debug('Error reporting skipped - not in production or API URL not configured');
@@ -111,7 +163,7 @@ class ErrorBoundary extends React.Component {
 
   handleRetry = () => {
     this.setState({ isRetrying: true });
-    
+
     // Give a brief moment for state update, then reset
     setTimeout(() => {
       this.setState({
@@ -181,7 +233,32 @@ export const useErrorHandler = () => {
 
     logger.error('Manual Error Report', errorDetails);
 
-    // Report to error tracking service in production
+    // Report to Sentry
+    try {
+      Sentry.captureException(error, {
+        contexts: {
+          manualError: {
+            errorId: errorDetails.errorId,
+            context: errorInfo.context || 'Manual',
+            url: errorDetails.url,
+            userAgent: errorDetails.userAgent
+          }
+        },
+        tags: {
+          manualError: 'true',
+          context: errorInfo.context || 'Manual',
+          errorId: errorDetails.errorId
+        },
+        extra: {
+          errorDetails,
+          errorInfo
+        }
+      });
+    } catch (sentryError) {
+      logger.warn('Sentry error reporting failed', { error: sentryError.message });
+    }
+
+    // Report to error tracking service in production (existing functionality)
     if (import.meta.env.MODE === 'production' && import.meta.env.VITE_API_URL) {
       fetch(`${import.meta.env.VITE_API_URL}/api/errors`, {
         method: 'POST',
@@ -208,4 +285,4 @@ export const useErrorHandler = () => {
   return handleError;
 };
 
-export default ErrorBoundary; 
+export default ErrorBoundary;

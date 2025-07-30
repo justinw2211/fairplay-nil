@@ -6,13 +6,13 @@
 import React from 'react';
 import { RefreshCw, AlertTriangle, Home, ArrowLeft, Bug } from 'lucide-react';
 
-const FallbackUI = ({ 
-  error, 
-  errorId, 
-  onRetry, 
-  isRetrying = false, 
-  context = 'Application', 
-  showDetails = false 
+const FallbackUI = ({
+  error,
+  errorId,
+  onRetry,
+  isRetrying = false,
+  context = 'Application',
+  showDetails = false
 }) => {
   const getErrorMessage = () => {
     switch (context) {
@@ -29,7 +29,7 @@ const FallbackUI = ({
 
   const getActionButtons = () => {
     const buttons = [];
-    
+
     // Always show retry button
     buttons.push(
       <button
@@ -90,11 +90,11 @@ const FallbackUI = ({
             <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
               <AlertTriangle className="h-6 w-6 text-red-600" />
             </div>
-            
+
             <h2 className="mt-4 text-lg font-medium text-gray-900">
               Oops! Something went wrong
             </h2>
-            
+
             <p className="mt-2 text-sm text-gray-600">
               {getErrorMessage()}
             </p>
@@ -139,12 +139,12 @@ const FallbackUI = ({
 };
 
 // Compact fallback for smaller components
-export const CompactFallbackUI = ({ 
-  error, 
-  errorId, 
-  onRetry, 
-  isRetrying = false, 
-  context = 'Component' 
+export const CompactFallbackUI = ({
+  error,
+  errorId,
+  onRetry,
+  isRetrying = false,
+  context = 'Component'
 }) => (
   <div className="p-4 border border-red-200 rounded-md bg-red-50">
     <div className="flex items-center">
@@ -173,11 +173,11 @@ export const CompactFallbackUI = ({
 );
 
 // Inline fallback for form fields
-export const InlineFallbackUI = ({ 
-  error, 
-  onRetry, 
-  isRetrying = false, 
-  context = 'Field' 
+export const InlineFallbackUI = ({
+  error,
+  onRetry,
+  isRetrying = false,
+  context = 'Field'
 }) => (
   <div className="inline-flex items-center space-x-2 p-2 text-sm text-red-600 bg-red-50 rounded-md">
     <AlertTriangle className="h-4 w-4" />
@@ -193,4 +193,4 @@ export const InlineFallbackUI = ({
   </div>
 );
 
-export default FallbackUI; 
+export default FallbackUI;

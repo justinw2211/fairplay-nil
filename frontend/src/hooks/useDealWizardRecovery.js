@@ -13,7 +13,7 @@ const useDealWizardRecovery = (dealId, currentStep, stepName) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const toast = useToast();
-  
+
   // Error state management
   const [errorState, setErrorState] = useState({
     hasError: false,
@@ -67,7 +67,7 @@ const useDealWizardRecovery = (dealId, currentStep, stepName) => {
    */
   const handleError = useCallback((error, errorInfo = {}) => {
     const errorId = `dealwizard_error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const enhancedErrorInfo = {
       ...errorInfo,
       ...errorContextRef.current,
@@ -148,10 +148,10 @@ const useDealWizardRecovery = (dealId, currentStep, stepName) => {
       return false;
     }
 
-    setRecoveryState(prev => ({ 
-      ...prev, 
-      isRecovering: true, 
-      recoveryStrategy 
+    setRecoveryState(prev => ({
+      ...prev,
+      isRecovering: true,
+      recoveryStrategy
     }));
 
     try {
@@ -168,7 +168,7 @@ const useDealWizardRecovery = (dealId, currentStep, stepName) => {
       }));
 
       setRecoveryState(prev => ({ ...prev, isRecovering: false }));
-      
+
       toast({
         title: 'Recovery successful',
         description: 'The issue has been resolved and your progress is intact.',
@@ -283,26 +283,26 @@ const useDealWizardRecovery = (dealId, currentStep, stepName) => {
     // Error state
     errorState,
     recoveryState,
-    
+
     // Core functions
     handleError,
     attemptRecovery,
     resetErrorState,
     navigateToSafeLocation,
-    
+
     // Progress management
     preserveProgress,
     restoreProgress,
     getProgress: () => progressRef.current,
-    
+
     // Recovery utilities
     getRecoverySuggestions,
     setAutoRetry,
     setMaxRetryAttempts,
-    
+
     // Context
     errorContext: errorContextRef.current
   };
 };
 
-export default useDealWizardRecovery; 
+export default useDealWizardRecovery;

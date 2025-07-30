@@ -62,7 +62,7 @@ function AppContent() {
     { path: "/security", label: "Security" },
     { path: "/careers", label: "Careers" },
   ];
-  
+
   const isCompanyActive = companyMenu.some(item => location.pathname === item.path);
 
   return (
@@ -162,7 +162,7 @@ function AppContent() {
         <Route path="/add/deal/compensation/:dealId" element={<DealWizardRoute><Step6_Compensation /></DealWizardRoute>} />
         <Route path="/add/deal/review/:dealId" element={<DealWizardRoute><Step8_Review /></DealWizardRoute>} />
         <Route path="/add/deal/submission-success/:dealId" element={<DealWizardRoute><SubmissionSuccess /></DealWizardRoute>} />
-        
+
         {/* --- CLEARINGHOUSE WORKFLOW ROUTES --- */}
         <Route path="/clearinghouse-wizard/:dealId" element={<DealWizardRoute><ClearinghouseWizard /></DealWizardRoute>} />
         <Route path="/clearinghouse-result/:dealId" element={<DealWizardRoute><ClearinghouseResult /></DealWizardRoute>} />

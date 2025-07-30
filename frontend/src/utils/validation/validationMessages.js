@@ -25,70 +25,70 @@ export const SPECIFIC_MESSAGES = {
     required: 'Password is required',
     mismatch: 'Passwords must match',
   },
-  
+
   // Profile fields
   fullName: {
     required: 'Full name is required',
     minLength: 'Name must be at least 2 characters',
     maxLength: 'Name must be less than 100 characters',
   },
-  
+
   phone: {
     required: 'Phone number is required',
     invalid: 'Phone number must be 10 digits',
     format: 'Please use format: (XXX) XXX-XXXX',
   },
-  
+
   // Deal fields
   payorName: {
     required: 'Payor name is required',
     maxLength: 'Payor name must be less than 100 characters',
   },
-  
+
   dealDescription: {
     required: 'Deal description is required',
     maxLength: 'Description must be 200 characters or less',
   },
-  
+
   compensation: {
     required: 'Compensation amount is required',
     positive: 'Amount must be greater than 0',
     format: 'Please enter a valid amount',
   },
-  
+
   // Activity fields
   quantity: {
     required: 'Quantity is required',
     positive: 'Quantity must be greater than 0',
     integer: 'Quantity must be a whole number',
   },
-  
+
   percentage: {
     required: 'Percentage is required',
     range: 'Percentage must be between 0 and 100',
   },
-  
+
   // Selection fields
   division: {
     required: 'NCAA Division is required',
     invalid: 'Please select a valid NCAA Division',
   },
-  
+
   university: {
     required: 'University is required',
     invalid: 'Please select a valid university',
   },
-  
+
   gender: {
     required: 'Gender is required',
     invalid: 'Please select a valid gender',
   },
-  
+
   sports: {
     required: 'At least one sport is required',
     minSelection: 'Please select at least one sport',
   },
-  
+
   role: {
     required: 'Please select what best describes you',
   },
@@ -104,7 +104,7 @@ export const TOAST_MESSAGES = {
     dealSubmitted: 'Deal submitted for review',
     accountCreated: 'Account created successfully! Welcome to FairPlay NIL!',
   },
-  
+
   // Error messages
   error: {
     profileUpdate: 'Error updating profile. Please try again.',
@@ -120,7 +120,7 @@ export const TOAST_MESSAGES = {
     notFound: 'The requested resource was not found.',
     validation: 'Please correct the highlighted errors and try again.',
   },
-  
+
   // Warning messages
   warning: {
     unsavedChanges: 'You have unsaved changes. Are you sure you want to leave?',
@@ -128,7 +128,7 @@ export const TOAST_MESSAGES = {
     schoolsLoading: 'Could not load schools list. Using fallback data.',
     emailVerification: 'Please check your email for a verification link.',
   },
-  
+
   // Info messages
   info: {
     universityReset: 'Selected university is not available in the new division.',
@@ -153,4 +153,4 @@ export const VALIDATION_PATTERNS = {
   positiveNumber: /^\d*\.?\d+$/,
   integer: /^\d+$/,
   percentage: /^(100(\.0{1,2})?|[1-9]?\d(\.\d{1,2})?)$/,
-}; 
+};

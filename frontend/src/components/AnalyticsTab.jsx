@@ -25,11 +25,11 @@ import {
   TabPanels,
   TabPanel
 } from '@chakra-ui/react';
-import { 
-  FiDownload, 
-  FiCalendar, 
-  FiBarChart, 
-  FiTrendingUp, 
+import {
+  FiDownload,
+  FiCalendar,
+  FiBarChart,
+  FiTrendingUp,
   FiPieChart,
   FiTarget,
   FiDollarSign,
@@ -38,10 +38,10 @@ import {
   FiCheck
 } from 'react-icons/fi';
 import useAnalytics from '../hooks/useAnalytics';
-import KPICard, { 
-  CurrencyKPICard, 
-  PercentageKPICard, 
-  CountKPICard, 
+import KPICard, {
+  CurrencyKPICard,
+  PercentageKPICard,
+  CountKPICard,
   ActivityKPICard,
   CompletionKPICard,
   PendingKPICard
@@ -150,8 +150,8 @@ const AnalyticsTab = ({ deals }) => {
           </Text>
         </Box>
         <HStack>
-          <Select 
-            value={dateRange} 
+          <Select
+            value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
             size="sm"
             minW="150px"
@@ -182,7 +182,7 @@ const AnalyticsTab = ({ deals }) => {
           trend={kpis.trends.totalValue}
           helpText="Total value of all deals in selected period"
         />
-        
+
         <CountKPICard
           title="Total Deals"
           value={kpis.current.totalDeals}
@@ -190,7 +190,7 @@ const AnalyticsTab = ({ deals }) => {
           trend={kpis.trends.totalDeals}
           helpText="Number of deals created in selected period"
         />
-        
+
         <ActivityKPICard
           title="Active Deals"
           value={kpis.current.activeDeals}
@@ -198,7 +198,7 @@ const AnalyticsTab = ({ deals }) => {
           trend={kpis.trends.activeDeals}
           helpText="Currently active deals"
         />
-        
+
         <CompletionKPICard
           title="Completed"
           value={kpis.current.completedDeals}
@@ -207,7 +207,7 @@ const AnalyticsTab = ({ deals }) => {
           trend={kpis.trends.completedDeals}
           helpText="Successfully completed deals"
         />
-        
+
         <CurrencyKPICard
           title="Average Value"
           value={kpis.current.avgDealValue}
@@ -215,7 +215,7 @@ const AnalyticsTab = ({ deals }) => {
           trend={kpis.trends.avgDealValue}
           helpText="Average deal value in selected period"
         />
-        
+
         <PendingKPICard
           title="Draft Deals"
           value={kpis.current.draftDeals}
@@ -253,9 +253,9 @@ const AnalyticsTab = ({ deals }) => {
           subtitle="Number of deals created each month"
           height="350px"
         >
-          <TrendChart 
-            data={monthlyTrends} 
-            xKey="month" 
+          <TrendChart
+            data={monthlyTrends}
+            xKey="month"
             yKeys={['deals', 'active', 'completed']}
             colors={['#3182CE', '#38A169', '#D69E2E']}
           />
@@ -266,9 +266,9 @@ const AnalyticsTab = ({ deals }) => {
           subtitle="Total deal value created each month"
           height="350px"
         >
-          <TrendChart 
-            data={monthlyTrends} 
-            xKey="month" 
+          <TrendChart
+            data={monthlyTrends}
+            xKey="month"
             yKeys={['value']}
             colors={['#38A169']}
             formatTooltip={(value) => formatCurrency(value)}
@@ -313,7 +313,7 @@ const AnalyticsTab = ({ deals }) => {
           subtitle="Breakdown of deals by type"
           height="350px"
         >
-          <DealDistributionChart 
+          <DealDistributionChart
             data={dealTypeBreakdown.map(item => ({
               name: item.type,
               value: item.count,
@@ -327,7 +327,7 @@ const AnalyticsTab = ({ deals }) => {
           subtitle="Distribution of deals by compensation amount"
           height="350px"
         >
-          <CompensationChart 
+          <CompensationChart
             data={compensationRanges.map(item => ({
               range: item.range,
               count: item.count,
@@ -369,7 +369,7 @@ const AnalyticsTab = ({ deals }) => {
           showProgress={true}
           progressValue={predictionAccuracy.clearinghouse}
         />
-        
+
         <KPICard
           title="Valuation Accuracy"
           value={`${predictionAccuracy.valuation.toFixed(1)}%`}
@@ -386,7 +386,7 @@ const AnalyticsTab = ({ deals }) => {
         subtitle="Accuracy comparison between prediction types"
         height="300px"
       >
-        <PredictionChart 
+        <PredictionChart
           data={[
             { name: 'Clearinghouse', value: predictionAccuracy.clearinghouse },
             { name: 'Valuation', value: predictionAccuracy.valuation }
@@ -490,7 +490,7 @@ const AnalyticsTab = ({ deals }) => {
           <Tab>Distribution</Tab>
           <Tab>Predictions</Tab>
         </TabList>
-        
+
         <TabPanels>
           <TabPanel px={0}>
             <KPISection />
@@ -510,4 +510,4 @@ const AnalyticsTab = ({ deals }) => {
   );
 };
 
-export default AnalyticsTab; 
+export default AnalyticsTab;

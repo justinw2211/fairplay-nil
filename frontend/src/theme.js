@@ -13,7 +13,7 @@ const colors = {
   // Chart-specific color palette derived from brand colors
   charts: {
     primary: "#d0bdb5",
-    secondary: "#d6dce4", 
+    secondary: "#d6dce4",
     tertiary: "#4e6a7b",
     background: "#ffffff",
     text: "#282f3d",

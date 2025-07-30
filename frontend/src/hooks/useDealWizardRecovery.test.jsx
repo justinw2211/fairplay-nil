@@ -223,7 +223,7 @@ describe('useDealWizardRecovery', () => {
   it('updates error context when props change', () => {
     const { result, rerender } = renderHook(
       ({ dealId, stepNumber, stepName }) => useDealWizardRecovery(dealId, stepNumber, stepName),
-      { 
+      {
         wrapper: TestWrapper,
         initialProps: { dealId: 'test-deal-123', stepNumber: 1, stepName: 'Test Step' }
       }
@@ -275,4 +275,4 @@ describe('useDealWizardRecovery', () => {
     expect(progress).toHaveProperty('navigationHistory');
     expect(progress).toHaveProperty('lastSavedState');
   });
-}); 
+});

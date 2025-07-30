@@ -3,4 +3,4 @@ export { default as ChartContainer } from './ChartContainer';
 export { default as DealDistributionChart } from './DealDistributionChart';
 export { default as TrendChart } from './TrendChart';
 export { default as CompensationChart } from './CompensationChart';
-export { default as PredictionChart } from './PredictionChart'; 
+export { default as PredictionChart } from './PredictionChart';

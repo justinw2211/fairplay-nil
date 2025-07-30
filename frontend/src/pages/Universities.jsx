@@ -139,7 +139,7 @@ const Universities = () => {
               NIL Management Solutions for Universities
             </Heading>
             <Text fontSize="xl" maxW="3xl" color="gray.200">
-              Comprehensive valuation tools and management software to help your athletic program 
+              Comprehensive valuation tools and management software to help your athletic program
               navigate the NIL landscape with confidence, compliance, and strategic insight.
             </Text>
             <HStack spacing={4} pt={4}>
@@ -175,7 +175,7 @@ const Universities = () => {
               Powerful Tools for Modern Athletic Programs
             </Heading>
             <Text fontSize="lg" color="gray.600" maxW="3xl">
-              Our comprehensive platform provides everything you need to manage NIL deals effectively, 
+              Our comprehensive platform provides everything you need to manage NIL deals effectively,
               ensure compliance, and maximize opportunities for your student-athletes.
             </Text>
           </VStack>
@@ -250,7 +250,7 @@ const Universities = () => {
                       {pkg.badge}
                     </Badge>
                   )}
-                  
+
                   <CardHeader pb={4}>
                     <VStack spacing={2} align="start">
                       <Heading as="h3" size="lg" color={primaryColor}>
@@ -311,10 +311,10 @@ const Universities = () => {
               Why Universities Choose FairPlay NIL
             </Heading>
             <Text fontSize="lg" color="gray.600" lineHeight="tall">
-              Our platform has been trusted by over 200+ athletic programs nationwide to manage 
+              Our platform has been trusted by over 200+ athletic programs nationwide to manage
               their NIL operations effectively while maintaining compliance and maximizing opportunities.
             </Text>
-            
+
             <VStack align="start" spacing={4} w="full">
               {[
                 "Reduce compliance risks by 95%",
@@ -383,7 +383,7 @@ const Universities = () => {
               Ready to Transform Your NIL Program?
             </Heading>
             <Text fontSize="lg" color="gray.200" maxW="3xl">
-              Join hundreds of athletic programs already using FairPlay NIL to manage their 
+              Join hundreds of athletic programs already using FairPlay NIL to manage their
               NIL operations with confidence and compliance.
             </Text>
             <HStack spacing={4}>

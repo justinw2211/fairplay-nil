@@ -76,11 +76,11 @@ const DealWizardLayout = (props) => {
   const currentStep = props.currentStep || 0;
 
   return (
-    <ErrorBoundary 
-      context="DealWizard" 
+    <ErrorBoundary
+      context="DealWizard"
       fallbackRender={(fallbackProps) => (
-        <DealWizardErrorFallback 
-          {...fallbackProps} 
+        <DealWizardErrorFallback
+          {...fallbackProps}
           currentStep={currentStep}
           onRetry={() => window.location.reload()}
         />

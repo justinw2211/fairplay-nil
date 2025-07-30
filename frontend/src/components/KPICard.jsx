@@ -1,11 +1,11 @@
 import React from 'react';
-import { 
-  Card, 
-  CardBody, 
-  Text, 
-  VStack, 
-  HStack, 
-  Icon, 
+import {
+  Card,
+  CardBody,
+  Text,
+  VStack,
+  HStack,
+  Icon,
   Badge,
   Tooltip,
   useColorModeValue,
@@ -14,8 +14,8 @@ import {
   Flex,
   Spacer
 } from '@chakra-ui/react';
-import { 
-  FiTrendingUp, 
+import {
+  FiTrendingUp,
   FiTrendingDown,
   FiInfo,
   FiDollarSign,
@@ -28,12 +28,12 @@ import {
   FiArrowDown
 } from 'react-icons/fi';
 
-const KPICard = ({ 
-  title, 
-  value, 
-  previousValue, 
-  trend, 
-  icon, 
+const KPICard = ({
+  title,
+  value,
+  previousValue,
+  trend,
+  icon,
   color = 'brand.accentPrimary',
   helpText,
   showProgress = false,
@@ -42,14 +42,14 @@ const KPICard = ({
   onClick,
   isLoading = false,
   variant = 'default',
-  ...props 
+  ...props
 }) => {
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const hoverBg = useColorModeValue('brand.backgroundLight', 'gray.700');
   const trendColor = trend >= 0 ? 'green.500' : 'red.500';
   const trendIcon = trend >= 0 ? FiTrendingUp : FiTrendingDown;
-  
+
   const formatValue = (val) => {
     if (typeof val === 'number') {
       if (val >= 1000000) {
@@ -88,10 +88,10 @@ const KPICard = ({
   const styles = getVariantStyles();
 
   return (
-    <Card 
-      bg={cardBg} 
-      borderWidth="1px" 
-      borderColor={borderColor} 
+    <Card
+      bg={cardBg}
+      borderWidth="1px"
+      borderColor={borderColor}
       borderRadius="lg"
       cursor={onClick ? 'pointer' : 'default'}
       transition="all 0.3s ease"
@@ -119,7 +119,7 @@ const KPICard = ({
                 </Tooltip>
               )}
             </HStack>
-            
+
             {trend !== undefined && (
               <Badge colorScheme={trend >= 0 ? 'green' : 'red'} variant="subtle">
                 <HStack spacing={1}>
@@ -135,15 +135,15 @@ const KPICard = ({
           {/* Main value */}
           <HStack justify="space-between" align="end">
             <VStack align="start" spacing={1}>
-              <Text 
-                fontSize={styles.fontSize} 
-                fontWeight="bold" 
+              <Text
+                fontSize={styles.fontSize}
+                fontWeight="bold"
                 color="brand.textPrimary"
                 lineHeight="none"
               >
                 {isLoading ? '...' : formatValue(value)}
               </Text>
-              
+
               {previousValue !== undefined && (
                 <HStack>
                   <Text fontSize="xs" color="brand.textSecondary">
@@ -153,14 +153,14 @@ const KPICard = ({
                 </HStack>
               )}
             </VStack>
-            
+
             {showProgress && (
               <Box minW="60px">
-                <Progress 
-                  value={progressValue} 
+                <Progress
+                  value={progressValue}
                   max={maxValue}
                   colorScheme={color.includes('red') ? 'red' : color.includes('green') ? 'green' : 'blue'}
-                  size="sm" 
+                  size="sm"
                   borderRadius="full"
                 />
                 <Text fontSize="xs" color="brand.textSecondary" textAlign="center" mt={1}>
@@ -249,4 +249,4 @@ export const PendingKPICard = ({ value, previousValue, trend, ...props }) => (
   />
 );
 
-export default KPICard; 
+export default KPICard;
