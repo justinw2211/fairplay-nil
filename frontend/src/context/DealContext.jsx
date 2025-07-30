@@ -27,7 +27,10 @@ export const DealProvider = ({ children }) => {
   const { user: _user } = useAuth(); // Prefix with underscore to indicate intentionally unused
 
   const createDraftDeal = useCallback(async (dealType) => {
+    console.log('[DealContext] createDraftDeal called with dealType:', dealType);
+    
     if (!_user) {
+      console.error('[DealContext] No user authenticated for deal creation');
       throw new Error('User must be authenticated to create a deal');
     }
 
@@ -35,15 +38,18 @@ export const DealProvider = ({ children }) => {
     setError(null);
 
     try {
+      console.log('[DealContext] Getting session for deal creation...');
       dealLogger.debug('Starting API call: POST');
 
       const sessionRes = await supabase.auth.getSession();
       const token = sessionRes.data.session?.access_token;
 
       if (!token) {
+        console.error('[DealContext] No authentication token available for deal creation');
         throw new Error('No authentication token available');
       }
 
+      console.log('[DealContext] Making API request to create deal...');
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals`, {
         method: 'POST',
         headers: {
@@ -56,12 +62,17 @@ export const DealProvider = ({ children }) => {
         })
       });
 
+      console.log('[DealContext] Create deal API response status:', response.status);
+      console.log('[DealContext] Create deal API response ok:', response.ok);
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('[DealContext] Create deal API error:', errorData);
         throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
+      console.log('[DealContext] Deal created successfully:', data);
       dealLogger.debug(`API call complete with status: ${response.status}`);
 
       // Add the new deal to the deals list
@@ -70,6 +81,7 @@ export const DealProvider = ({ children }) => {
       return data;
     } catch (err) {
       const errorMessage = err.message || 'Failed to create deal';
+      console.error('[DealContext] Error creating deal:', errorMessage);
       dealLogger.error('Error creating deal', { error: errorMessage });
       setError(errorMessage);
       throw err;
@@ -129,7 +141,10 @@ export const DealProvider = ({ children }) => {
   }, [_user]);
 
   const fetchDealById = useCallback(async (dealId) => {
+    console.log('[DealContext] fetchDealById called with dealId:', dealId);
+
     if (!_user) {
+      console.error('[DealContext] No user authenticated');
       throw new Error('User must be authenticated to fetch a deal');
     }
 
@@ -137,28 +152,37 @@ export const DealProvider = ({ children }) => {
     setError(null);
 
     try {
+      console.log('[DealContext] Getting session...');
       const sessionRes = await supabase.auth.getSession();
       const token = sessionRes.data.session?.access_token;
 
       if (!token) {
+        console.error('[DealContext] No authentication token available');
         throw new Error('No authentication token available');
       }
 
+      console.log('[DealContext] Making API request to fetch deal...');
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
+      console.log('[DealContext] API response status:', response.status);
+      console.log('[DealContext] API response ok:', response.ok);
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('[DealContext] API error:', errorData);
         throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
+      console.log('[DealContext] Deal data received:', data);
       return data;
     } catch (err) {
       const errorMessage = err.message || 'Failed to fetch deal';
+      console.error('[DealContext] Error fetching deal:', errorMessage);
       dealLogger.error('Error fetching deal', { error: errorMessage });
       setError(errorMessage);
       throw err;

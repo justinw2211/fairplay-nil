@@ -273,13 +273,21 @@ const Dashboard = () => {
   }, [user, loadSocialMediaData]);
 
   const handleDealTypeSelect = async (dealType) => {
+    console.log('[Dashboard] handleDealTypeSelect called with dealType:', dealType);
+    
     try {
+      console.log('[Dashboard] Creating draft deal...');
       const newDeal = await createDraftDeal(dealType);
+      console.log('[Dashboard] Draft deal created:', newDeal);
+      
       if (!newDeal) {
         throw new Error('Failed to create new deal');
       }
 
       // Navigate to the appropriate workflow based on deal type
+      const targetUrl = `/add/deal/social-media/${newDeal.id}?type=${dealType}`;
+      console.log('[Dashboard] Navigating to:', targetUrl);
+      
       switch (dealType) {
         case 'simple':
           navigate(`/add/deal/social-media/${newDeal.id}?type=simple`);
@@ -294,9 +302,13 @@ const Dashboard = () => {
           navigate(`/add/deal/social-media/${newDeal.id}`);
       }
 
+      console.log('[Dashboard] Navigation completed');
+      
       // Refresh the deals list after creating a new deal
       await fetchDeals();
     } catch (error) {
+      console.error('[Dashboard] Error in handleDealTypeSelect:', error);
+      
       // Handle backend not available for development
       if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
         toast({
