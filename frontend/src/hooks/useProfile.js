@@ -200,7 +200,7 @@ const useProfile = () => {
               sports: [],
               division: '',
               phone: '',
-              graduation_year: null
+              expected_graduation_year: null
             };
           }
           throw fetchError;
@@ -279,7 +279,7 @@ const useProfile = () => {
     
     const requiredFields = [
       'first_name', 'last_name', 'university', 'sports', 
-      'division', 'gender', 'graduation_year'
+      'division', 'gender', 'expected_graduation_year'
     ];
     
     const optionalFields = [
@@ -345,7 +345,7 @@ const useProfile = () => {
       university: profileData.university || 'University',
       sports: profileData.sports?.length > 0 ? profileData.sports.join(', ') : 'Sport',
       division: profileData.division || 'Division',
-      graduationYear: profileData.graduation_year || 'Class of TBD',
+      graduationYear: profileData.expected_graduation_year ? `Class of ${profileData.expected_graduation_year}` : 'Class of TBD',
       completionPercentage: profileData.completionPercentage || 0,
       isComplete: isProfileComplete(profileData)
     };

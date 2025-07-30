@@ -21,6 +21,7 @@ class ProfileUpdate(BaseModel):
     university: Optional[str] = None
     gender: Optional[str] = None
     sports: Optional[List[str]] = None
+    expected_graduation_year: Optional[int] = Field(None, ge=2025, le=2035, description="Expected graduation year for student-athletes")
 
 # --- Schemas for Social Media Functionality ---
 class SocialMediaPlatform(BaseModel):

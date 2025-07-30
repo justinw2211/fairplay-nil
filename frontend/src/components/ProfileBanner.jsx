@@ -251,7 +251,7 @@ const ProfileBanner = ({
     university: profile?.university || profile?.school || 'University',
     sports: profile?.sports?.join(', ') || profile?.sport || 'Sport',
     division: profile?.division || 'Division',
-    graduationYear: profile?.graduation_year || profile?.class_year || 'Class of TBD',
+    graduationYear: profile?.expected_graduation_year ? `Class of ${profile.expected_graduation_year}` : 'Class of TBD',
     completionPercentage: calculateProfileCompletion(profile),
     isComplete: calculateProfileCompletion(profile) >= 90,
     email: profile?.email || '',

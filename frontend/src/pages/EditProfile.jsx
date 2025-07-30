@@ -105,6 +105,12 @@ const schema = yup.object().shape({
     .of(yup.string())
     .min(1, 'At least one sport is required')
     .required('At least one sport is required'),
+  expected_graduation_year: yup
+    .number()
+    .nullable()
+    .min(2025, 'Must be 2025 or later')
+    .max(2035, 'Must be 2035 or earlier')
+    .integer('Must be whole number'),
 });
 
 const EditProfileContent = () => {
@@ -155,6 +161,7 @@ const EditProfileContent = () => {
       university: '',
       gender: '',
       sports: [],
+      expected_graduation_year: null,
     },
     mode: 'onChange',
   });
@@ -469,6 +476,7 @@ const EditProfileContent = () => {
           university: data.university,
           gender: data.gender,
           sports: data.sports,
+          expected_graduation_year: data.expected_graduation_year || null,
         })
         .eq('id', user.id);
 
@@ -746,6 +754,25 @@ const EditProfileContent = () => {
                     <FormHelperText>
                       You can select multiple sports (e.g., Cross Country, Track & Field Indoor, Track & Field Outdoor)
                     </FormHelperText>
+                  </FormControl>
+                )}
+              />
+
+              <Controller
+                name="expected_graduation_year"
+                control={control}
+                render={({ field, fieldState: { error } }) => (
+                  <FormControl isInvalid={!!error}>
+                    <FormLabel>Expected Graduation Year</FormLabel>
+                    <ChakraSelect {...field} placeholder="Select graduation year" value={field.value || ''}>
+                      <option value="">Not specified</option>
+                      {Array.from({length: 11}, (_, i) => 2025 + i).map(year => (
+                        <option key={year} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </ChakraSelect>
+                    <FormErrorMessage>{error?.message}</FormErrorMessage>
                   </FormControl>
                 )}
               />

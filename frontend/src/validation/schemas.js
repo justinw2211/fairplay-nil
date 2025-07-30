@@ -58,6 +58,12 @@ export const athleteProfileSchema = yup.object().shape({
   university: yup
     .string()
     .required(SPECIFIC_MESSAGES.university.required),
+  expected_graduation_year: yup
+    .number()
+    .required('Graduation year is required')
+    .min(2025, 'Graduation year must be 2025 or later')
+    .max(2035, 'Graduation year must be 2035 or earlier')
+    .integer('Graduation year must be a whole number'),
   gender: yup
     .string()
     .required(SPECIFIC_MESSAGES.gender.required),

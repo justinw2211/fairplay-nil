@@ -201,6 +201,7 @@ const SignUp = () => {
         phone: unformatPhoneNumber(data.phone), // Unformat phone for backend
         division: mapDivisionToEnum(data.division), // Map display to enum value
         university: data.university,
+        expected_graduation_year: data.expected_graduation_year,
         gender: data.gender,
         sports: data.sports,
       });
@@ -457,6 +458,30 @@ const SignUp = () => {
                           Please select your NCAA Division first
                         </FormHelperText>
                       )}
+                    </FormControl>
+                  )}
+                />
+
+                <Controller
+                  name="expected_graduation_year"
+                  control={control2}
+                  rules={{
+                    required: 'Graduation year is required',
+                  }}
+                  render={({ field, fieldState: { error } }) => (
+                    <FormControl isInvalid={!!error}>
+                      <FormLabel>Expected Graduation Year</FormLabel>
+                      <Select
+                        {...field}
+                        placeholder="Select graduation year"
+                      >
+                        {Array.from({length: 11}, (_, i) => 2025 + i).map(year => (
+                          <option key={year} value={year}>
+                            {year}
+                          </option>
+                        ))}
+                      </Select>
+                      <FormErrorMessage>{error?.message}</FormErrorMessage>
                     </FormControl>
                   )}
                 />
