@@ -25,17 +25,6 @@ const activityComponentMap = {
   "other": ActivityForm_Other,
 };
 
-// Map to convert between kebab-case IDs and display titles
-// const activityTitleMap = {
-//   "social-media": "Social Media",
-//   "appearance": "Appearance",
-//   "content-for-brand": "Content for Brand",
-//   "autographs": "Autographs",
-//   "merch-and-products": "Merch and Products",
-//   "endorsements": "Endorsements",
-//   "other": "Other",
-// };
-
 const ActivityRouter = () => {
   const { dealId, activityType } = useParams();
   const [searchParams] = useSearchParams();
@@ -46,14 +35,26 @@ const ActivityRouter = () => {
   // Store the activity sequence in component state for stability
   const [activitySequence, setActivitySequence] = useState([]);
 
+  console.log('🎯 ActivityRouter Debug Info:');
+  console.log('dealId:', dealId);
+  console.log('activityType:', activityType);
+  console.log('deal:', deal);
+  console.log('loading:', loading);
+  console.log('activitySequence:', activitySequence);
+
   useEffect(() => {
     if (!deal && dealId) {
+      console.log('🔄 Fetching deal by ID:', dealId);
       fetchDealById(dealId);
     }
   }, [deal, dealId, fetchDealById]);
 
   // Initialize activity sequence when deal loads
   useEffect(() => {
+    console.log('🔄 Checking deal obligations for sequence initialization');
+    console.log('deal?.obligations:', deal?.obligations);
+    console.log('activitySequence.length:', activitySequence.length);
+
     if (deal?.obligations && activitySequence.length === 0) {
       // Get the original activity sequence from obligations
       const sequence = Object.entries(deal.obligations)
@@ -78,9 +79,10 @@ const ActivityRouter = () => {
         }
       });
     }
-  }, [deal, activitySequence.length]);
+  }, [deal, activitySequence.length, dealId]);
 
   if (loading || !deal) {
+    console.log('⏳ Showing loading spinner - loading:', loading, 'deal:', !!deal);
     return (
       <Flex justify="center" align="center" minH="80vh">
         <Spinner size="xl" color="brand.accentPrimary" />
@@ -91,8 +93,12 @@ const ActivityRouter = () => {
   const decodedActivityType = decodeURIComponent(activityType);
   const ActivityComponent = activityComponentMap[decodedActivityType];
 
+  console.log('🎯 Component resolution:');
+  console.log('decodedActivityType:', decodedActivityType);
+  console.log('ActivityComponent:', ActivityComponent);
+
   if (!ActivityComponent) {
-    console.error(`No component found for activity type: ${decodedActivityType}`);
+    console.error(`❌ No component found for activity type: ${decodedActivityType}`);
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -100,7 +106,6 @@ const ActivityRouter = () => {
   const currentActivityIndex = activitySequence.length > 0 ? activitySequence.indexOf(decodedActivityType) : -1;
   const totalActivities = activitySequence.length;
   const currentActivityNumber = currentActivityIndex >= 0 ? currentActivityIndex + 1 : 1;
-  // const progressPercentage = totalActivities > 0 ? (currentActivityNumber / totalActivities) * 100 : 0;
 
   console.log('🎯 ActivityRouter State (Direct Calculation):');
   console.log('activitySequence:', activitySequence);
@@ -112,6 +117,7 @@ const ActivityRouter = () => {
   // Early return if we don't have a valid activity index
   if (currentActivityIndex < 0 && activitySequence.length > 0) {
     console.error('❌ Activity not found in sequence:', decodedActivityType);
+    console.error('Available activities:', activitySequence);
     return <Navigate to="/dashboard" replace />;
   }
 
