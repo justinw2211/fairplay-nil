@@ -20,6 +20,7 @@ import {
   Progress,
   FormHelperText,
 } from '@chakra-ui/react';
+import SocialMediaModal from '../components/social-media-modal';
 import { useForm, Controller } from 'react-hook-form';
 import ReactSelect from 'react-select';
 import { GENDERS, MEN_SPORTS, WOMEN_SPORTS, NCAA_DIVISIONS } from '../data/formConstants';
@@ -47,6 +48,10 @@ const SignUp = () => {
   const [schools, setSchools] = useState([]);
   const [filteredSchools, setFilteredSchools] = useState([]);
   const [isLoadingSchools, setIsLoadingSchools] = useState(false);
+  
+  // Social media modal state
+  const [showSocialMediaModal, setShowSocialMediaModal] = useState(false);
+  const [signUpComplete, setSignUpComplete] = useState(false);
 
   // Step 1 form
   const {
@@ -245,6 +250,9 @@ const SignUp = () => {
         }
       }
 
+      setSignUpComplete(true);
+      setShowSocialMediaModal(true);
+      
       toast({
         title: 'Account Created!',
         description: 'Welcome to FairPlay NIL',
@@ -252,8 +260,6 @@ const SignUp = () => {
         duration: 5000,
         isClosable: true,
       });
-
-      navigate('/dashboard');
     } catch (error) {
       toast({
         title: 'Error',
@@ -265,6 +271,16 @@ const SignUp = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSocialMediaComplete = () => {
+    setShowSocialMediaModal(false);
+    navigate('/dashboard');
+  };
+
+  const handleSocialMediaSkip = () => {
+    setShowSocialMediaModal(false);
+    navigate('/dashboard');
   };
 
   return (
@@ -611,6 +627,16 @@ const SignUp = () => {
           )}
         </VStack>
       </Box>
+      
+      {/* Social Media Modal */}
+      <SocialMediaModal
+        isOpen={showSocialMediaModal}
+        onClose={() => setShowSocialMediaModal(false)}
+        onComplete={handleSocialMediaComplete}
+        onSkip={handleSocialMediaSkip}
+        title="Complete Your Profile"
+        subtitle="Add your social media information to enhance your NIL profile"
+      />
     </Flex>
   );
 };
