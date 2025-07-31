@@ -14,6 +14,7 @@ import {
   Text,
   VStack,
   Textarea,
+  Badge,
 } from '@chakra-ui/react';
 import {
   Plus,
