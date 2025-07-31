@@ -1,8 +1,8 @@
 // frontend/src/App.jsx
-import { Routes, Route, Navigate, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { Box, Button, Flex, Heading, Text } from "@chakra-ui/react";
-import React, { useState } from "react";
+import { useState } from "react";
 import ErrorBoundary from './components/ErrorBoundary';
 import * as Sentry from "@sentry/react";
 
@@ -41,14 +41,18 @@ import DealWizardRoute from './components/DealWizardRoute';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function AppContent() {
+  const [hoveredIndex, setHoveredIndex] = useState(null);
   const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [hoveredIndex, setHoveredIndex] = useState(null);
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   const centerLinks = [
@@ -57,14 +61,6 @@ function AppContent() {
     { path: "/collectives", label: "Collectives" },
     { path: "/brands",label: "Brands" },
   ];
-
-  const companyMenu = [
-    { path: "/aboutus", label: "About Us" },
-    { path: "/security", label: "Security" },
-    { path: "/careers", label: "Careers" },
-  ];
-
-  const isCompanyActive = companyMenu.some(item => location.pathname === item.path);
 
   return (
     <Box fontFamily="body">
@@ -153,7 +149,50 @@ function AppContent() {
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
 
-        {/* --- NEW DEAL WIZARD ROUTES --- */}
+        {/*
+        ===== THREE DEAL FORM ROUTING ARCHITECTURE =====
+
+        The FairPlay NIL platform supports three distinct deal types, each with different workflows:
+
+        1. SIMPLE DEAL LOGGING (type=simple)
+           - Basic deal tracking without predictive analysis
+           - Uses standard wizard flow + submission success
+
+        2. NIL GO CLEARINGHOUSE CHECK (type=clearinghouse)
+           - Predicts clearinghouse approval likelihood
+           - Uses standard wizard flow + clearinghouse analysis + result
+
+        3. DEAL VALUATION ANALYSIS (type=valuation)
+           - Provides fair market value compensation ranges
+           - Uses standard wizard flow + valuation analysis + result
+
+        DEAL TYPE SELECTION:
+        - Happens on Dashboard page (/dashboard) via deal type cards
+        - NOT on a separate /deal-type-selection route
+        - Dashboard.jsx handles deal type selection and navigation
+
+        ROUTING PATTERN:
+        - All deal types start with: /add/deal/social-media/{dealId}?type={dealType}
+        - Deal type is passed via query parameter (?type=simple|clearinghouse|valuation)
+        - Same wizard steps are used for all deal types
+        - Different end workflows based on deal type
+
+        COMMON WIZARD STEPS (all deal types):
+        - Step 0: Social Media (/add/deal/social-media/{dealId})
+        - Step 1: Deal Terms (/add/deal/terms/{dealId})
+        - Step 2: Payor Info (/add/deal/payor/{dealId})
+        - Step 3: Activities (/add/deal/activities/select/{dealId})
+        - Step 5: Compliance (/add/deal/compliance/{dealId})
+        - Step 6: Compensation (/add/deal/compensation/{dealId})
+        - Step 8: Review (/add/deal/review/{dealId})
+
+        DEAL TYPE-SPECIFIC ENDINGS:
+        - Simple: /add/deal/submission-success/{dealId}
+        - Clearinghouse: /clearinghouse-wizard/{dealId} → /clearinghouse-result/{dealId}
+        - Valuation: /valuation-wizard/{dealId} → /valuation-result/{dealId}
+        */}
+
+        {/* --- STANDARD DEAL WIZARD ROUTES (Used by all three deal types) --- */}
         <Route path="/add/deal/social-media/:dealId" element={<DealWizardRoute><Step0_SocialMedia /></DealWizardRoute>} />
         <Route path="/add/deal/terms/:dealId" element={<DealWizardRoute><Step1_DealTerms /></DealWizardRoute>} />
         <Route path="/add/deal/payor/:dealId" element={<DealWizardRoute><Step2_PayorInfo /></DealWizardRoute>} />
@@ -164,11 +203,11 @@ function AppContent() {
         <Route path="/add/deal/review/:dealId" element={<DealWizardRoute><Step8_Review /></DealWizardRoute>} />
         <Route path="/add/deal/submission-success/:dealId" element={<DealWizardRoute><SubmissionSuccess /></DealWizardRoute>} />
 
-        {/* --- CLEARINGHOUSE WORKFLOW ROUTES --- */}
+        {/* --- CLEARINGHOUSE WORKFLOW ROUTES (type=clearinghouse only) --- */}
         <Route path="/clearinghouse-wizard/:dealId" element={<DealWizardRoute><ClearinghouseWizard /></DealWizardRoute>} />
         <Route path="/clearinghouse-result/:dealId" element={<DealWizardRoute><ClearinghouseResult /></DealWizardRoute>} />
 
-        {/* --- VALUATION WORKFLOW ROUTES --- */}
+        {/* --- VALUATION WORKFLOW ROUTES (type=valuation only) --- */}
         <Route path="/valuation-wizard/:dealId" element={<DealWizardRoute><ValuationWizard /></DealWizardRoute>} />
         <Route path="/valuation-result/:dealId" element={<DealWizardRoute><ValuationResult /></DealWizardRoute>} />
 

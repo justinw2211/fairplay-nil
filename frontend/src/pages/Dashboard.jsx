@@ -287,6 +287,28 @@ const Dashboard = () => {
   }, [user, loadSocialMediaData]);
 
   const handleDealTypeSelect = async (dealType) => {
+    /*
+    ===== DEAL TYPE SELECTION HANDLER =====
+
+    This function handles the selection of deal types from the Dashboard page.
+    It's the entry point for all three deal form workflows.
+
+    DEAL TYPES SUPPORTED:
+    - 'simple': Basic deal logging without predictive analysis
+    - 'clearinghouse': NIL Go Clearinghouse prediction workflow
+    - 'valuation': Deal valuation analysis workflow
+
+    WORKFLOW:
+    1. Create draft deal with selected type in backend
+    2. Navigate to standard wizard flow with deal type as query parameter
+    3. Wizard steps check deal type to customize behavior
+    4. Different end workflows based on deal type
+
+    ROUTING PATTERN:
+    All deal types start at: /add/deal/social-media/{dealId}?type={dealType}
+    The deal type is passed via query parameter for wizard step customization.
+    */
+
     console.log('[Dashboard] ===== STARTING DEAL CREATION FLOW =====');
     console.log('[Dashboard] handleDealTypeSelect called with dealType:', dealType);
     console.log('[Dashboard] createDraftDeal type:', typeof createDraftDeal);
