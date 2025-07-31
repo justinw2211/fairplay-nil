@@ -29,7 +29,7 @@ import {
   Smartphone,
   Globe,
 } from 'lucide-react';
-import { FaInstagram, FaTiktok, FaYoutube, FaTwitter, FaFacebook, FaLinkedin } from 'react-icons/fa';
+import { FaInstagram, FaTiktok, FaYoutube, FaTwitter, FaFacebook, FaLinkedin, FaTwitch } from 'react-icons/fa';
 import * as Sentry from '@sentry/react';
 
 const platforms = [
