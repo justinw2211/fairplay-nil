@@ -183,14 +183,21 @@ export const DealProvider = ({ children }) => {
       // Update the deal in the deals list
       setDeals(prevDeals =>
         prevDeals.map(deal =>
-          deal.id === dealId ? { ...deal, ...data } : deal
+          deal.id === parseInt(dealId) ? { ...deal, ...data } : deal
         )
       );
 
       // Also update the currentDeal if it matches the updated deal
-      setCurrentDeal(prevCurrentDeal =>
-        prevCurrentDeal && prevCurrentDeal.id === dealId ? { ...prevCurrentDeal, ...data } : prevCurrentDeal
-      );
+      setCurrentDeal(prevCurrentDeal => {
+        const shouldUpdate = prevCurrentDeal && prevCurrentDeal.id === parseInt(dealId);
+        console.log('[DealContext] Updating currentDeal:', {
+          prevCurrentDealId: prevCurrentDeal?.id,
+          dealId: parseInt(dealId),
+          shouldUpdate,
+          newData: data
+        });
+        return shouldUpdate ? { ...prevCurrentDeal, ...data } : prevCurrentDeal;
+      });
 
       // Track successful state updates
       Sentry.captureMessage('DealContext: State updated successfully', 'info', {
@@ -275,6 +282,7 @@ export const DealProvider = ({ children }) => {
 
       // Set the current deal in state
       setCurrentDeal(data);
+      console.log('[DealContext] Current deal state updated:', data);
 
       return data;
     } catch (err) {
@@ -296,7 +304,8 @@ export const DealProvider = ({ children }) => {
     createDraftDeal,
     updateDeal,
     fetchDealById,
-    currentDeal
+    currentDeal,
+    deal: currentDeal // Backward compatibility
   };
 
   return (

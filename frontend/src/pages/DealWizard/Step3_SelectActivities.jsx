@@ -67,20 +67,20 @@ const Step3_SelectActivities = () => {
   const [searchParams] = useSearchParams();
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
-  const { deal, updateDeal } = useDeal();
+  const { currentDeal, updateDeal } = useDeal();
   const toast = useToast();
 
   const [selectedActivities, setSelectedActivities] = useState([]);
   const [otherActivity, setOtherActivity] = useState("");
 
   useEffect(() => {
-    if (deal?.obligations) {
-      setSelectedActivities(Object.keys(deal.obligations));
-      if (deal.obligations.other?.description) {
-        setOtherActivity(deal.obligations.other.description);
+    if (currentDeal?.obligations) {
+      setSelectedActivities(Object.keys(currentDeal.obligations));
+      if (currentDeal.obligations.other?.description) {
+        setOtherActivity(currentDeal.obligations.other.description);
       }
     }
-  }, [deal]);
+  }, [currentDeal]);
 
   const handleActivityChange = (activityId, checked) => {
     if (checked) {

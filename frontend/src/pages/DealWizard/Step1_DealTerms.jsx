@@ -36,7 +36,7 @@ const Step1_DealTerms = () => {
   const [searchParams] = useSearchParams();
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
-  const { deal, updateDeal } = useDeal();
+  const { currentDeal, updateDeal } = useDeal();
   const { user } = useAuth();
   const toast = useToast();
 

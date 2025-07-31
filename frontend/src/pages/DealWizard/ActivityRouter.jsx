@@ -30,7 +30,7 @@ const ActivityRouter = () => {
   const [searchParams] = useSearchParams();
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
-  const { deal, loading, fetchDealById, updateDeal } = useDeal();
+  const { currentDeal, loading, fetchDealById, updateDeal } = useDeal();
 
   // Store the activity sequence in component state for stability
   const [activitySequence, setActivitySequence] = useState([]);
@@ -38,9 +38,12 @@ const ActivityRouter = () => {
   console.log('🎯 ActivityRouter Debug Info:');
   console.log('dealId:', dealId);
   console.log('activityType:', activityType);
-  console.log('deal:', deal);
+  console.log('currentDeal:', currentDeal);
   console.log('loading:', loading);
   console.log('activitySequence:', activitySequence);
+  console.log('currentDeal?.obligations:', currentDeal?.obligations);
+  console.log('currentDeal?.id:', currentDeal?.id);
+  console.log('dealId as number:', parseInt(dealId));
 
   // Track component initialization
   Sentry.captureMessage('ActivityRouter: Component initialized', 'info', {
@@ -53,13 +56,14 @@ const ActivityRouter = () => {
       dealId,
       activityType,
       loading,
-      hasDeal: !!deal,
+      hasDeal: !!currentDeal,
       activitySequenceLength: activitySequence.length
     }
   });
 
   useEffect(() => {
-    if (!deal && dealId) {
+    // Only fetch if we don't have a deal or if the deal ID doesn't match
+    if (!currentDeal || currentDeal.id !== parseInt(dealId)) {
       console.log('🔄 Fetching deal by ID:', dealId);
 
       // Track deal fetching attempt
@@ -71,18 +75,20 @@ const ActivityRouter = () => {
         },
         extra: {
           dealId,
-          activityType
+          activityType,
+          hasCurrentDeal: !!currentDeal,
+          currentDealId: currentDeal?.id
         }
       });
 
       fetchDealById(dealId);
     }
-  }, [deal, dealId, fetchDealById]);
+  }, [currentDeal, dealId, fetchDealById]);
 
   // Initialize activity sequence when deal loads
   useEffect(() => {
     console.log('🔄 Checking deal obligations for sequence initialization');
-    console.log('deal?.obligations:', deal?.obligations);
+    console.log('currentDeal?.obligations:', currentDeal?.obligations);
     console.log('activitySequence.length:', activitySequence.length);
 
     // Track sequence initialization attempt
@@ -94,15 +100,15 @@ const ActivityRouter = () => {
       },
       extra: {
         dealId,
-        hasObligations: !!deal?.obligations,
-        obligationsKeys: deal?.obligations ? Object.keys(deal.obligations) : [],
+        hasObligations: !!currentDeal?.obligations,
+        obligationsKeys: currentDeal?.obligations ? Object.keys(currentDeal.obligations) : [],
         activitySequenceLength: activitySequence.length
       }
     });
 
-    if (deal?.obligations && activitySequence.length === 0) {
+    if (currentDeal?.obligations && activitySequence.length === 0) {
       // Get the original activity sequence from obligations
-      const sequence = Object.entries(deal.obligations)
+      const sequence = Object.entries(currentDeal.obligations)
         .filter(([_, value]) => typeof value === 'object' && value !== null && 'sequence' in value)
         .sort((a, b) => a[1].sequence - b[1].sequence)
         .map(([activity]) => activity);
@@ -121,14 +127,14 @@ const ActivityRouter = () => {
           dealId,
           sequenceLength: sequence.length,
           activities: sequence,
-          obligations: deal.obligations
+          obligations: currentDeal.obligations
         }
       });
     }
-  }, [deal, activitySequence.length, dealId]);
+  }, [currentDeal, activitySequence.length, dealId]);
 
-  if (loading || !deal) {
-    console.log('⏳ Showing loading spinner - loading:', loading, 'deal:', !!deal);
+  if (loading || !currentDeal) {
+    console.log('⏳ Showing loading spinner - loading:', loading, 'currentDeal:', !!currentDeal);
 
     // Track loading state
     Sentry.captureMessage('ActivityRouter: Showing loading spinner', 'info', {
@@ -140,7 +146,7 @@ const ActivityRouter = () => {
       extra: {
         dealId,
         loading,
-        hasDeal: !!deal,
+        hasDeal: !!currentDeal,
         activityType
       }
     });
@@ -253,7 +259,7 @@ const ActivityRouter = () => {
     console.log('Is last activity?', currentActivityIndex >= totalActivities - 1);
 
     // Mark the current activity as completed in obligations
-    const updatedObligations = { ...deal.obligations };
+    const updatedObligations = { ...currentDeal.obligations };
     if (updatedObligations[decodedActivityType]) {
       updatedObligations[decodedActivityType].completed = true;
       console.log(`✅ Marked ${decodedActivityType} as completed`);

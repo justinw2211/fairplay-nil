@@ -14,7 +14,6 @@ import {
   Text,
   VStack,
   Textarea,
-  Badge,
 } from '@chakra-ui/react';
 import {
   Plus,
@@ -30,6 +29,8 @@ import {
   Smartphone,
   Globe,
 } from 'lucide-react';
+import { FaInstagram, FaTiktok, FaYoutube, FaTwitter, FaFacebook, FaLinkedin } from 'react-icons/fa';
+import * as Sentry from '@sentry/react';
 
 const platforms = [
   {
@@ -37,42 +38,42 @@ const platforms = [
     name: "Instagram",
     description: "Posts, reels, stories, or livestreams uploaded to or hosted on Instagram",
     contentTypes: ["Posts", "Reels", "Stories", "Livestreams"],
-    icon: Camera,
+    icon: FaInstagram,
   },
   {
     id: "tiktok",
     name: "TikTok",
     description: "Video posts or livestreams uploaded to or hosted on TikTok",
     contentTypes: ["Video Posts", "Livestreams"],
-    icon: Smartphone,
+    icon: FaTiktok,
   },
   {
     id: "snapchat",
     name: "Snapchat",
     description: "Stories or spotlights uploaded to Snapchat",
     contentTypes: ["Stories", "Spotlights"],
-    icon: MessageSquare,
+    icon: FaTwitter,
   },
   {
     id: "x",
     name: "X",
     description: "Text, image, or video posts uploaded to X",
     contentTypes: ["Text Posts", "Image Posts", "Video Posts"],
-    icon: Hash,
+    icon: FaTwitter,
   },
   {
     id: "youtube",
     name: "YouTube",
     description: "Videos or shorts uploaded to a user's channel on YouTube",
     contentTypes: ["Videos", "Shorts"],
-    icon: Monitor,
+    icon: FaYoutube,
   },
   {
     id: "twitch",
     name: "Twitch",
     description: "Livestreams hosted on Twitch",
     contentTypes: ["Livestreams"],
-    icon: Radio,
+    icon: FaTwitch,
   },
 ];
 
@@ -81,15 +82,15 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
   const [searchParams] = useSearchParams();
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
-  const { deal, updateDeal } = useDeal();
+  const { currentDeal, updateDeal } = useDeal();
 
   const [selectedPlatforms, setSelectedPlatforms] = useState([]);
   const [platformContent, setPlatformContent] = useState({});
   const [description, setDescription] = useState("");
 
   useEffect(() => {
-    if (deal?.obligations?.['social-media']) {
-      const socialMediaData = deal.obligations['social-media'];
+    if (currentDeal?.obligations?.['social-media']) {
+      const socialMediaData = currentDeal.obligations['social-media'];
       if (Array.isArray(socialMediaData)) {
         const converted = {};
         socialMediaData.forEach(item => {
@@ -107,9 +108,9 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
         setPlatformContent(converted);
         setSelectedPlatforms(Object.keys(converted));
       }
-      setDescription(deal.obligations['social-media'].description || "");
+      setDescription(currentDeal.obligations['social-media'].description || "");
     }
-  }, [deal]);
+  }, [currentDeal]);
 
   const handlePlatformToggle = (platformId) => {
     if (selectedPlatforms.includes(platformId)) {
@@ -176,9 +177,9 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
 
     await updateDeal(dealId, {
       obligations: {
-        ...deal.obligations,
+        ...currentDeal.obligations,
         'social-media': {
-          ...deal.obligations?.['social-media'],
+          ...currentDeal.obligations?.['social-media'],
           ...formattedData,
         },
       },

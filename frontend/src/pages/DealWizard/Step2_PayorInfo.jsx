@@ -34,7 +34,7 @@ const Step2_PayorInfo = () => {
   const [searchParams] = useSearchParams();
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
-  const { deal, updateDeal } = useDeal();
+  const { currentDeal, updateDeal } = useDeal();
 
   const [payorType, setPayorType] = useState('');
   const [payorName, setPayorName] = useState('');
@@ -43,24 +43,24 @@ const Step2_PayorInfo = () => {
   const [emailError, setEmailError] = useState('');
 
   useEffect(() => {
-    if (deal) {
-      setPayorType(deal.payor_type || '');
-      setPayorName(deal.payor_name || '');
-      setPayorEmail(deal.payor_email || '');
-      setPayorPhone(deal.payor_phone || '');
+    if (currentDeal) {
+      setPayorType(currentDeal.payor_type || '');
+      setPayorName(currentDeal.payor_name || '');
+      setPayorEmail(currentDeal.payor_email || '');
+      setPayorPhone(currentDeal.payor_phone || '');
 
       logger.info('Payor info loaded from deal', {
         dealId,
         dealType,
         step: 'Step2_PayorInfo',
         operation: 'useEffect',
-        hasPayorType: !!deal.payor_type,
-        hasPayorName: !!deal.payor_name,
-        hasPayorEmail: !!deal.payor_email,
-        hasPayorPhone: !!deal.payor_phone
+        hasPayorType: !!currentDeal.payor_type,
+        hasPayorName: !!currentDeal.payor_name,
+        hasPayorEmail: !!currentDeal.payor_email,
+        hasPayorPhone: !!currentDeal.payor_phone
       });
     }
-  }, [deal]);
+  }, [currentDeal]);
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
