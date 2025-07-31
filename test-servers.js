@@ -33,7 +33,7 @@ async function runTests() {
     console.log('🎉 Both servers are running! Ready to test the fix.');
     console.log('\n📝 Next Steps:');
     console.log('1. Open http://localhost:5173 in your browser');
-    console.log('2. Follow the manual test guide in test-deal-wizard-fix-manual.md');
+    console.log('2. Follow the manual test guide in docs/archive/old-docs/test-deal-wizard-fix-manual.md');
     console.log('3. Monitor console logs for the fix verification');
   } else {
     console.log('⚠️  Some servers are not running. Please start them first.');

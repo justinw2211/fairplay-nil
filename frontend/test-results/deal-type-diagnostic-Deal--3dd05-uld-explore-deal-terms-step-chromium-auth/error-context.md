@@ -1,0 +1,46 @@
+# Page snapshot
+
+```yaml
+- navigation:
+  - link "FAIR PLAY NIL":
+    - /url: /
+  - link "Athletes":
+    - /url: /athletes
+    - paragraph: Athletes
+  - link "Universities":
+    - /url: /universities
+    - paragraph: Universities
+  - link "Collectives":
+    - /url: /collectives
+    - paragraph: Collectives
+  - link "Brands":
+    - /url: /brands
+    - paragraph: Brands
+  - link "Dashboard":
+    - /url: /dashboard
+    - paragraph: Dashboard
+  - button "Sign Out"
+- paragraph: 2 of 9
+- paragraph: 22.2% Complete
+- heading "Deal Terms" [level=2]
+- paragraph: Let's start with the basics. Upload the agreement and tell us the essentials of your deal.
+- group:
+  - text: Contract Upload (optional)
+  - paragraph: Drag & drop your contract here, or click to upload
+  - paragraph: "Accepted file types: PDF, DOCX, PNG, JPG. Max size: 10MB"
+- group:
+  - text: Deal Nickname *
+  - textbox "Deal Nickname *": Test Social Media Deal
+- button "Finish Later"
+- button "Next"
+- region "Notifications-top"
+- region "Notifications-top-left"
+- region "Notifications-top-right"
+- region "Notifications-bottom-left"
+- region "Notifications-bottom":
+  - status:
+    - img
+    - text: Social media saved Your social media information has been updated successfully.
+    - button "Close"
+- region "Notifications-bottom-right"
+```

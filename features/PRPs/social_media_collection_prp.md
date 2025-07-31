@@ -58,7 +58,7 @@ Create a seamless social media collection system that:
 - file: TASK.md
   why: Check existing tasks before starting, add new task with date (cursor rule requirement)
   
-- file: supabase-info.md
+- file: docs/development/database/supabase-guide.md
   why: Complete database schema, relationships, and query patterns (cursor rule requirement)
   
 - file: .cursor/rules/cursor-rules.mdc
@@ -797,7 +797,7 @@ curl -X PUT http://localhost:8000/profile/social-media \
 ```
 
 ## Final validation Checklist (per cursor rules)
-- [ ] **Project Documentation**: Read PLANNING.md, TASK.md, and supabase-info.md
+- [ ] **Project Documentation**: Read PLANNING.md, TASK.md, and docs/development/database/supabase-guide.md
 - [ ] **Database**: Migration files created, never deleted existing ones
 - [ ] **Testing**: All tests pass: `npm test && pytest tests/`
 - [ ] **Code Quality**: No linting errors: `npm run lint && ruff check`

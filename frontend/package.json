@@ -24,6 +24,10 @@
     "test:e2e:report": "playwright show-report",
     "test:e2e:install": "playwright install",
     "debug:playwright": "node scripts/debug-with-playwright.js",
+    "test:e2e:auth": "playwright test --project=chromium-auth",
+    "test:e2e:auth:headed": "playwright test --project=chromium-auth --headed",
+    "test:e2e:auth:debug": "playwright test --project=chromium-auth --debug",
+    "test:e2e:setup-auth": "playwright test global-setup.js",
     "deploy:staging": "npm run build:staging && npx vercel --prod",
     "deploy:production": "npm run build:production && npx vercel --prod"
   },
@@ -36,7 +40,6 @@
     "@nivo/core": "^0.99.0",
     "@nivo/line": "^0.99.0",
     "@nivo/pie": "^0.99.0",
-    "@playwright/test": "^1.54.1",
     "@sentry/react": "^9.43.0",
     "@sentry/tracing": "^7.120.4",
     "@supabase/supabase-js": "^2.21.0",
