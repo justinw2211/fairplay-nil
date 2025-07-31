@@ -100,13 +100,8 @@ const SocialMediaForm = ({
     setError(null);
     try {
       await onSubmit(data);
-      toast({
-        title: 'Social media saved',
-        description: 'Your social media information has been updated successfully.',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
+      // Success toast removed to prevent duplicate notifications
+      // The step-level toast in Step0_SocialMedia.jsx will handle success notification
     } catch (err) {
       const errorMessage = err.response?.data?.detail || 'Failed to save social media information. Please try again.';
       setError(errorMessage);
