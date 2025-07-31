@@ -11,3 +11,14 @@ alwaysApply: false
 * Avoid making major changes to the patterns and architecture of how a feature works, after it has shown to work well, unless explicitly instructed
 * Always think about what other methods and areas of code might be affected by code changes
 *Split into multiple responses if one response isn't enough to answer the question.
+
+## 🎭 Playwright Testing Preferences
+
+* Always run Playwright tests before suggesting code changes that affect UI
+* Use `npm run debug:playwright` for interactive debugging of complex issues
+* Write tests that cover both happy path and error scenarios
+* Prefer `data-testid` attributes over CSS selectors for element targeting
+* Include console error monitoring in all tests
+* Test across multiple browsers when UI changes are involved
+* Use descriptive test names that explain the user scenario being tested
+* Always check test reports after CI/CD runs to identify issues early
