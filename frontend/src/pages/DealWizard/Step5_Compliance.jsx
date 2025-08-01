@@ -352,39 +352,19 @@ const Step5_Compliance = () => {
                   </FormControl>
                 </Box>
               ))}
-            </VStack>
-          </Box>
 
-          {/* Footer Navigation */}
-          <Box p={6} borderTop="1px" borderColor="brand.accentSecondary">
-            <Flex justify="space-between">
-              <Button
-                leftIcon={<Icon as={ChevronLeft} />}
-                variant="ghost"
-                color="brand.textSecondary"
-                onClick={handleBack}
-                px={8}
-                py={6}
-                h="auto"
-                fontSize="md"
-                _hover={{
-                  bg: "brand.backgroundLight",
-                  color: "brand.textPrimary",
-                }}
-              >
-                Back
-              </Button>
-
-              <Flex gap={4}>
+              {/* Navigation Buttons */}
+              <Flex justify="space-between" pt={8} w="full">
                 <Button
                   leftIcon={<Icon as={Clock} />}
                   variant="ghost"
                   color="brand.textSecondary"
-                  onClick={() => navigate('/dashboard')}
                   px={8}
-                  py={6}
-                  h="auto"
-                  fontSize="md"
+                  py={3}
+                  h={12}
+                  fontSize="base"
+                  fontWeight="medium"
+                  onClick={() => navigate('/dashboard')}
                   _hover={{
                     bg: "brand.backgroundLight",
                     color: "brand.textPrimary",
@@ -393,25 +373,52 @@ const Step5_Compliance = () => {
                   Finish Later
                 </Button>
 
-                <Button
-                  rightIcon={<Icon as={ChevronRight} />}
-                  variant="solid"
-                  bg="brand.accentPrimary"
-                  color="white"
-                  onClick={handleNext}
-                  isDisabled={!isFormValid()}
-                  px={8}
-                  py={6}
-                  h="auto"
-                  fontSize="md"
-                  _hover={{
-                    bg: "brand.accentPrimaryHover",
-                  }}
-                >
-                  Next
-                </Button>
+                <Flex gap={4}>
+                  <Button
+                    leftIcon={<Icon as={ChevronLeft} />}
+                    variant="outline"
+                    px={6}
+                    py={3}
+                    h={12}
+                    fontSize="base"
+                    fontWeight="medium"
+                    borderColor="brand.accentSecondary"
+                    color="brand.textSecondary"
+                    onClick={handleBack}
+                    _hover={{
+                      bg: "brand.backgroundLight",
+                      borderColor: "brand.accentPrimary",
+                      color: "brand.textPrimary",
+                    }}
+                  >
+                    Back
+                  </Button>
+
+                  <Button
+                    rightIcon={<Icon as={ChevronRight} />}
+                    bg="brand.accentPrimary"
+                    color="white"
+                    px={8}
+                    py={3}
+                    h={12}
+                    fontSize="base"
+                    fontWeight="semibold"
+                    onClick={handleNext}
+                    isDisabled={!isFormValid()}
+                    transition="all 0.2s"
+                    _hover={{
+                      bg: "brand.accentPrimaryHover",
+                    }}
+                    _disabled={{
+                      opacity: 0.6,
+                      cursor: "not-allowed",
+                    }}
+                  >
+                    Next
+                  </Button>
+                </Flex>
               </Flex>
-            </Flex>
+            </VStack>
           </Box>
         </Box>
       </Container>
