@@ -142,6 +142,9 @@ class DealUpdate(BaseModel):
     compensation_goods: Optional[List[Dict[str, Any]]] = None
     compensation_other: Optional[List[OtherCompensationItem]] = None
     
+    # Step 7: Deal Type Classification
+    submission_type: Optional[str] = Field(None, pattern=r'^(test_demo|prospective|finalized)$', description="Type of submission: test/demo, prospective, finalized")
+    
     # Additional Fields
     is_group_deal: Optional[bool] = None
     is_paid_to_llc: Optional[bool] = None
