@@ -71,7 +71,7 @@ test.describe('Simple Deal Logging - Complete Flow Testing', () => {
       }
     }
     
-    const continueButton = page.locator('button:has-text("Continue")');
+    const continueButton = page.locator('button:has-text("Next")');
     await continueButton.click();
     await page.waitForLoadState('networkidle');
 
@@ -106,7 +106,7 @@ test.describe('Simple Deal Logging - Complete Flow Testing', () => {
     if (await activityButtons.count() >= 3) {
       await activityButtons.nth(2).click();
     }
-    await page.locator('button:has-text("Continue")').click();
+    await page.locator('button:has-text("Next")').click();
     await page.waitForLoadState('networkidle');
 
     // Step 5: Fill compliance questions
@@ -134,15 +134,15 @@ test.describe('Simple Deal Logging - Complete Flow Testing', () => {
       }
     }
 
-    // Check if Continue button is enabled
-    const continueButtonStep5 = page.locator('button:has-text("Continue")');
+    // Check if Next button is enabled
+    const continueButtonStep5 = page.locator('button:has-text("Next")');
     const isContinueButtonEnabled = await continueButtonStep5.isEnabled();
-    console.log(`🔘 Continue button enabled: ${isContinueButtonEnabled}`);
+    console.log(`🔘 Next button enabled: ${isContinueButtonEnabled}`);
 
     if (isContinueButtonEnabled) {
-      // Click Continue button
+      // Click Next button
       await continueButtonStep5.click();
-      console.log('✅ Clicked Continue button, waiting for navigation...');
+      console.log('✅ Clicked Next button, waiting for navigation...');
       await page.waitForTimeout(1000);
 
       // Verify we moved to next step (Compensation)
