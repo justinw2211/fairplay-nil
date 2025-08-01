@@ -1,6 +1,6 @@
 # 🏈 FairPlay NIL Platform
 
-A comprehensive Name, Image, and Likeness (NIL) platform for college athletes, brands, and collectives. Built with React, FastAPI, and Supabase to streamline NIL deal management and compliance tracking.
+A comprehensive Name, Image, and Likeness (NIL) platform for college athletes, brands, and collectives. Built with React, FastAPI, and Supabase to streamline NIL deal valuation, management and compliance tracking.
 
 ## 🚀 Quick Start
 

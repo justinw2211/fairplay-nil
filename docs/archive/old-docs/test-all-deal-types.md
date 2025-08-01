@@ -1,5 +1,8 @@
 # Comprehensive Deal Type Routing Test Plan
 
+> **⚠️ OUTDATED DOCUMENTATION**  
+> This document is archived and reflects an older implementation. The current deal type routing is implemented differently. See `docs/features/deal-wizard/three-deal-form-routing.md` for current architecture.
+
 ## 🎯 **Objective**
 Verify that all three deal types (Simple, Clearinghouse, Valuation) properly route to their respective workflows and render correctly.
 

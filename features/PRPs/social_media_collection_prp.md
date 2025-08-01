@@ -52,12 +52,6 @@ Create a seamless social media collection system that:
 ### Documentation & References
 ```yaml
 # MUST READ - Include these in your context window (per cursor rules)
-- file: PLANNING.md
-  why: Project architecture, goals, style, and constraints (cursor rule requirement)
-  
-- file: TASK.md
-  why: Check existing tasks before starting, add new task with date (cursor rule requirement)
-  
 - file: docs/development/database/supabase-guide.md
   why: Complete database schema, relationships, and query patterns (cursor rule requirement)
   
@@ -371,7 +365,7 @@ class SocialMediaPlatform(BaseModel):
 async def get_social_media(user_id: str = Depends(get_user_id)):
     # CRITICAL: Validate user permissions (cursor rule)
     # CRITICAL: Use async/await for database operations (cursor rule)
-    try:
+    try {
         data = await supabase.from_("social_media_platforms").select("*").eq("user_id", user_id).execute()
         return data.data or []
     except Exception as e:
@@ -797,7 +791,7 @@ curl -X PUT http://localhost:8000/profile/social-media \
 ```
 
 ## Final validation Checklist (per cursor rules)
-- [ ] **Project Documentation**: Read PLANNING.md, TASK.md, and docs/development/database/supabase-guide.md
+- [ ] **Project Documentation**: Read docs/development/database/supabase-guide.md
 - [ ] **Database**: Migration files created, never deleted existing ones
 - [ ] **Testing**: All tests pass: `npm test && pytest tests/`
 - [ ] **Code Quality**: No linting errors: `npm run lint && ruff check`

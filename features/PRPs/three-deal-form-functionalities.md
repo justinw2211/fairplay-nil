@@ -1,5 +1,8 @@
 # Three Deal Form Functionalities PRP
 
+> **⚠️ OUTDATED PRP**  
+> This PRP reflects an early design that was later simplified. The current implementation uses Dashboard-based deal type selection rather than a separate DealTypeSelection page. See `docs/features/deal-wizard/three-deal-form-routing.md` for current architecture.
+
 ## Goal
 Transform the current single "Add New Deal" functionality on student-athlete dashboards into three distinct deal workflows:
 1. **Simple Deal Logging** - Basic tracking without predictive analysis, just status management

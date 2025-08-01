@@ -1,5 +1,8 @@
 # Deal Navigation Test Plan
 
+> **⚠️ OUTDATED DOCUMENTATION**  
+> This document is archived and reflects an older implementation. The current deal navigation and routing is implemented differently. See `docs/features/deal-wizard/three-deal-form-routing.md` for current architecture.
+
 ## Issue Fixed
 - **Problem**: SVG attribute errors (`<svg> attribute height: Expected length, "lg"` and `<svg> attribute width: Expected length, "lg"`) were causing blank screens when navigating to deal types
 - **Root Cause**: `DealTypeCard.jsx` had an Icon component with both `size="lg"` and `boxSize={8}` props

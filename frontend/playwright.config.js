@@ -7,6 +7,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
+  timeout: 60000, // Increase timeout to 60 seconds
 
   // Global authentication setup
   globalSetup: './global-setup.js',

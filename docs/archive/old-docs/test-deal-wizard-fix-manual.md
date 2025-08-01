@@ -1,5 +1,8 @@
 # Manual Test Guide for Deal Wizard Fix
 
+> **⚠️ OUTDATED DOCUMENTATION**  
+> This document is archived and reflects an older implementation. The current deal wizard flow and state management is implemented differently. See `docs/features/deal-wizard/bug-fixes.md` for current implementation details.
+
 ## 🧪 Testing the Loading Screen Fix
 
 This guide will help you manually test the fix for the loading screen issue that was occurring after completing the "select activities" page.

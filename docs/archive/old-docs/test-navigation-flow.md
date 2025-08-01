@@ -1,5 +1,8 @@
 # Website Navigation Flow Test Plan
 
+> **⚠️ OUTDATED DOCUMENTATION**  
+> This document is archived and reflects an older implementation. The current navigation flow and API endpoints are implemented differently. See `docs/features/deal-wizard/three-deal-form-routing.md` for current architecture.
+
 ## Issues Identified and Fixed
 
 ### ✅ **Primary Issue: Missing Backend API Endpoint**

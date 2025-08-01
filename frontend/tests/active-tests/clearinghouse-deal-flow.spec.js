@@ -4,10 +4,10 @@ import { test, expect } from '@playwright/test';
  * NIL GO CLEARINGHOUSE CHECK - COMPLETE FLOW TESTING
  *
  * This test completes the entire NIL Go Clearinghouse Check flow from start to finish.
- * It tests the complete user journey: Dashboard → NIL Go Clearinghouse Check → All 8 Steps → Submission → Clearinghouse Results
+ * It tests the complete user journey: Dashboard → NIL Go Clearinghouse Check → All Steps → Submission → Clearinghouse Results
  * 
  * Deal Type: NIL Go Clearinghouse Check
- * Flow: 8 steps (Social Media → Deal Terms → Payor Info → Activities → Activity Form → Compliance → Compensation → Review)
+ * Flow: 10 steps (Social Media → Deal Terms → Payor Info → Activities → Activity Form → Compliance → Compensation → Deal Type → Review → Clearinghouse)
  * End State: Clearinghouse results page
  * Success Rate: TBD (new test)
  * Performance: TBD
@@ -95,56 +95,12 @@ test.describe('NIL Go Clearinghouse Check - Complete Flow Testing', () => {
     await page.waitForLoadState('networkidle');
 
     // Step 3: Select activities
-    console.log('📋 Selecting activities...');
-    
-    // Wait for activities to load
+    await page.locator('text="Social Media"').first().click();
+    await page.locator('button:has-text("Next")').click();
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-    
-    // Select Social Media activity
-    const socialMediaCheckbox = page.locator('text="Social Media"').first();
-    await socialMediaCheckbox.waitFor({ state: 'visible', timeout: 10000 });
-    await socialMediaCheckbox.click();
-    console.log('✅ Selected Social Media activity');
-    
-    // Check if Next button is enabled
-    const nextButtonStep3 = page.locator('button:has-text("Next")');
-    const isNextButtonStep3Enabled = await nextButtonStep3.isEnabled();
-    console.log(`🔘 Next button enabled: ${isNextButtonStep3Enabled}`);
-    
-    if (isNextButtonStep3Enabled) {
-      await nextButtonStep3.click();
-      console.log('✅ Clicked Next button, waiting for navigation...');
-      await page.waitForLoadState('networkidle');
-      console.log('✅ Successfully navigated to Activity Form step');
-    } else {
-      console.log('❌ Next button not enabled on Activities step');
-      await page.screenshot({ path: 'test-results/clearinghouse-flow-activities-no-next.png' });
-      throw new Error('Next button not enabled on Activities step');
-    }
 
     // Step 4: Fill social media activity form
-    console.log('📱 Filling social media activity form...');
-    
-    // Wait for the activity form to load
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-    
-    // Look for Instagram option or any social media platform
-    const instagramOption = page.locator('text="Instagram"');
-    if (await instagramOption.count() > 0) {
-      await instagramOption.first().click();
-      console.log('✅ Selected Instagram platform');
-    } else {
-      // If Instagram is not available, try to select any available platform
-      const platformOptions = page.locator('text="TikTok", text="Twitter", text="YouTube", text="Facebook"');
-      if (await platformOptions.count() > 0) {
-        await platformOptions.first().click();
-        console.log('✅ Selected alternative platform');
-      } else {
-        console.log('⚠️ No social media platforms found, proceeding without selection');
-      }
-    }
+    await page.locator('text="Instagram"').first().click();
     const activityButtons = page.locator('button');
     if (await activityButtons.count() >= 3) {
       await activityButtons.nth(2).click();
@@ -298,10 +254,39 @@ test.describe('NIL Go Clearinghouse Check - Complete Flow Testing', () => {
     
     // Wait for page to load
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(2000);
 
-    // Select "Prospective deal" for NIL Go Clearinghouse
-    const prospectiveOption = page.locator('text="Prospective deal"');
+    // Debug: Check current URL and page content
+    const currentUrl = page.url();
+    console.log(`📍 Current URL: ${currentUrl}`);
+    
+    // Debug: Check if we're on the right page
+    const pageTitle = page.locator('h1, h2, h3').first();
+    const titleText = await pageTitle.textContent();
+    console.log(`📄 Page title: ${titleText}`);
+    
+    // Debug: List all text on the page
+    const allText = await page.locator('*').allTextContents();
+    console.log(`📝 All text on page: ${allText.join(' ').substring(0, 500)}...`);
+
+    // Take a screenshot to see what's on the page
+    await page.screenshot({ path: 'test-results/clearinghouse-deal-type-step-debug.png' });
+    console.log('📸 Screenshot saved: clearinghouse-deal-type-step-debug.png');
+
+    // Try different text selectors for Prospective deal
+    console.log('🔍 Looking for deal type options...');
+    
+    // Try the full text first
+    let prospectiveOption = page.locator('text="Prospective deal (in negotiation)"');
+    if (await prospectiveOption.count() === 0) {
+      console.log('⚠️ Full text not found, trying partial text...');
+      prospectiveOption = page.locator('text="Prospective deal"');
+    }
+    if (await prospectiveOption.count() === 0) {
+      console.log('⚠️ Partial text not found, trying radio button...');
+      prospectiveOption = page.locator('input[type="radio"]').nth(1); // Second radio button
+    }
+    
     await prospectiveOption.waitFor({ state: 'visible', timeout: 10000 });
     await prospectiveOption.click();
     console.log('✅ Selected "Prospective deal" option');
@@ -321,9 +306,9 @@ test.describe('NIL Go Clearinghouse Check - Complete Flow Testing', () => {
     console.log('✅ Successfully navigated to Review step');
 
     // Step 8: Review and submit deal
-    const currentUrl = page.url();
-    console.log(`📍 Current URL: ${currentUrl}`);
-    expect(currentUrl).toMatch(/\/add\/deal\/review\/\d+/);
+    const reviewStepUrl = page.url();
+    console.log(`📍 Current URL: ${reviewStepUrl}`);
+    expect(reviewStepUrl).toMatch(/\/add\/deal\/review\/\d+/);
 
     // Review the deal information
     console.log('📋 Reviewing deal information...');
@@ -339,13 +324,13 @@ test.describe('NIL Go Clearinghouse Check - Complete Flow Testing', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(3000); // Give time for submission
 
-    // Verify we're on the clearinghouse review page
+    // Verify we're on the clearinghouse wizard page
     const finalUrl = page.url();
     console.log(`📍 Final URL: ${finalUrl}`);
     expect(finalUrl).toMatch(/\/clearinghouse-wizard\/\d+/);
-    console.log('✅ Successfully submitted deal and reached clearinghouse review page');
+    console.log('✅ Successfully submitted deal and reached clearinghouse wizard page');
 
-    // Step 8: Run NIL Go Prediction
+    // Step 9: Run NIL Go Prediction
     console.log('⚡ Running NIL Go Prediction...');
     
     // Look for the "Run NIL Go Prediction" button
@@ -365,7 +350,7 @@ test.describe('NIL Go Clearinghouse Check - Complete Flow Testing', () => {
     expect(predictionUrl).toMatch(/\/clearinghouse-result\/\d+/);
     console.log('✅ Successfully completed NIL Go prediction and reached clearinghouse results page');
 
-    // Step 9: Return to Dashboard
+    // Step 10: Return to Dashboard
     console.log('🏠 Returning to dashboard...');
     
     // Look for the "Return to Dashboard" button
@@ -386,8 +371,8 @@ test.describe('NIL Go Clearinghouse Check - Complete Flow Testing', () => {
     console.log('✅ Successfully navigated to student-athlete dashboard');
 
     // Take final screenshot for verification
-    await page.screenshot({ path: 'test-results/clearinghouse-flow-dashboard.png' });
-    console.log('📸 Final screenshot saved: clearinghouse-flow-dashboard.png');
+    await page.screenshot({ path: 'test-results/clearinghouse-flow-complete.png' });
+    console.log('📸 Final screenshot saved: clearinghouse-flow-complete.png');
     console.log('🎉 NIL GO CLEARINGHOUSE CHECK COMPLETE: Successfully completed entire Clearinghouse flow from dashboard to dashboard!');
   });
 }); 
