@@ -293,11 +293,11 @@ const Step1_DealTerms = () => {
     navigate('/dashboard');
   };
 
-  // Get progress information - all deal types use same 9-step flow
+  // Get progress information - all deal types use same 10-step flow
   const getProgressInfo = () => {
     return {
-      stepNumber: '2 of 9',
-      percentage: 22.2
+      stepNumber: '2 of 10',
+      percentage: 20
     };
   };
 

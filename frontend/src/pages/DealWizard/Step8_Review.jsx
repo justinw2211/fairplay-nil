@@ -166,7 +166,7 @@ const Step8_Review = () => {
   };
 
   return (
-    <DealWizardStepWrapper stepNumber={8} stepName="Review & Submit" dealId={dealId}>
+    <DealWizardStepWrapper stepNumber={9} stepName="Review & Submit" dealId={dealId}>
       <Container maxW="4xl" py={8}>
         {/* Header */}
         <VStack spacing={6} align="stretch" mb={8}>
@@ -174,14 +174,14 @@ const Step8_Review = () => {
             <VStack spacing={3} mb={6}>
               <Flex justify="space-between" w="full" fontSize="sm">
                 <Text color="brand.textSecondary" fontWeight="medium">
-                  Step 8 of 9
+                  Step 9 of 10
                 </Text>
                 <Text color="brand.textSecondary">
-                  88.9% Complete
+                  90% Complete
                 </Text>
               </Flex>
               <Progress
-                value={88.9}
+                value={90}
                 w="full"
                 h="2"
                 bg="brand.accentSecondary"

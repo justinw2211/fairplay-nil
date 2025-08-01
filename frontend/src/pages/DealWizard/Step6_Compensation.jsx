@@ -174,9 +174,9 @@ const Step6_Compensation = () => {
     try {
       await updateDeal(dealId, formattedData);
 
-      // ALL deal types now continue to review step (no more conditional navigation)
+      // ALL deal types now continue to deal-type step
       const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-      navigate(`/add/deal/review/${dealId}${typeParam}`);
+      navigate(`/add/deal/deal-type/${dealId}${typeParam}`);
     } catch (error) {
       formLogger.error('Error updating deal', { error: error.message });
     }
@@ -186,11 +186,11 @@ const Step6_Compensation = () => {
     navigate('/dashboard');
   };
 
-  // Get progress information - all deal types use same 9-step flow
+  // Get progress information - all deal types use same 10-step flow
   const getProgressInfo = () => {
     return {
-      stepNumber: '7 of 9',
-      percentage: 77.8,
+      stepNumber: '7 of 10',
+      percentage: 70,
       isLastStep: false
     };
   };

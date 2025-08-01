@@ -183,11 +183,11 @@ const Step2_PayorInfo = () => {
     navigate('/dashboard');
   };
 
-  // Get progress information - all deal types use same 9-step flow
+  // Get progress information - all deal types use same 10-step flow
   const getProgressInfo = () => {
     return {
-      stepNumber: '3 of 9',
-      percentage: 33.3
+      stepNumber: '3 of 10',
+      percentage: 30
     };
   };
 

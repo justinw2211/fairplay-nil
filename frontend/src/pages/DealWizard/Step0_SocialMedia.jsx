@@ -225,11 +225,11 @@ const Step0_SocialMedia = () => {
 
   const dealTypeInfo = getDealTypeInfo();
 
-  // Get progress information - all deal types use same 9-step flow
+  // Get progress information - all deal types use same 10-step flow
   const getProgressInfo = () => {
     return {
-      stepNumber: '1 of 9',
-      percentage: 11.1
+      stepNumber: '1 of 10',
+      percentage: 10
     };
   };
 

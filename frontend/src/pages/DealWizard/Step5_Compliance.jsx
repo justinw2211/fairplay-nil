@@ -238,14 +238,14 @@ const Step5_Compliance = () => {
             <VStack spacing={3} mb={6}>
               <Flex justify="space-between" w="full" fontSize="sm">
                 <Text color="brand.textSecondary" fontWeight="medium">
-                  Step 6 of 9
+                  Step 6 of 10
                 </Text>
                 <Text color="brand.textSecondary">
-                  66.7% Complete
+                  60% Complete
                 </Text>
               </Flex>
               <Progress
-                value={66.7}
+                value={60}
                 w="full"
                 h="2"
                 bg="brand.accentSecondary"

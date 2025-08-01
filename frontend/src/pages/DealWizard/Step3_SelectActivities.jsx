@@ -260,14 +260,14 @@ const Step3_SelectActivities = () => {
             {/* Progress Indicator */}
             <VStack spacing={3} mb={6}>
               <Flex justify="space-between" w="full" fontSize="sm">
-                <Text color="brand.textSecondary" fontWeight="medium">Step 4 of 9</Text>
-                <Text color="brand.textSecondary">44.4% Complete</Text>
+                <Text color="brand.textSecondary" fontWeight="medium">Step 4 of 10</Text>
+                <Text color="brand.textSecondary">40% Complete</Text>
               </Flex>
               <Box w="full" bg="brand.accentSecondary" h="2" rounded="full">
                 <Box
                   bg="brand.accentPrimary"
                   h="2"
-                  w="44.4%"
+                  w="40%"
                   rounded="full"
                   transition="width 0.5s ease-out"
                 />
