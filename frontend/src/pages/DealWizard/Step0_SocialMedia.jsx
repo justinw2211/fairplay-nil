@@ -355,7 +355,7 @@ const Step0_SocialMedia = () => {
                     bg: "#c8aeb0",
                   }}
                 >
-                  Continue
+                  Next
                 </Button>
               </Flex>
             </VStack>
