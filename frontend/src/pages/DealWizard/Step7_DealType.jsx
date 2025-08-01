@@ -230,64 +230,73 @@ const Step7_DealType = () => {
                 {error && <FormErrorMessage>{error}</FormErrorMessage>}
               </FormControl>
             </VStack>
-          </CardBody>
 
-          {/* Footer Navigation */}
-          <Box p={6} borderTop="1px" borderColor="brand.accentSecondary">
-            <Flex justify="space-between">
+            {/* Navigation */}
+            <Flex justify="space-between" align="center" pt={8} w="full">
               <Button
-                leftIcon={<Icon as={ChevronLeft} />}
+                leftIcon={<Icon as={Clock} w="5" h="5" />}
                 variant="ghost"
+                h="12"
+                px="6"
+                fontSize="base"
+                fontWeight="medium"
                 color="brand.textSecondary"
-                onClick={handleBack}
-                px={8}
-                py={6}
-                h="auto"
-                fontSize="md"
+                onClick={handleFinishLater}
                 _hover={{
-                  bg: "brand.backgroundLight",
-                  color: "brand.textPrimary",
+                  color: "brand.textPrimary"
                 }}
               >
-                Back
+                Finish Later
               </Button>
 
               <Flex gap={4}>
                 <Button
-                  variant="ghost"
+                  leftIcon={<Icon as={ChevronLeft} w="5" h="5" />}
+                  variant="outline"
+                  h="12"
+                  px="6"
+                  fontSize="base"
+                  fontWeight="medium"
+                  borderColor="brand.accentSecondary"
                   color="brand.textSecondary"
-                  onClick={handleFinishLater}
-                  px={8}
-                  py={6}
-                  h="auto"
-                  fontSize="md"
-                  leftIcon={<Icon as={Clock} />}
+                  onClick={handleBack}
                   _hover={{
                     bg: "brand.backgroundLight",
-                    color: "brand.textPrimary",
+                    borderColor: "brand.accentPrimary",
+                    color: "brand.textPrimary"
                   }}
                 >
-                  Finish Later
+                  Back
                 </Button>
-
                 <Button
-                  rightIcon={<Icon as={ChevronRight} />}
-                  colorScheme="brand"
-                  onClick={handleNext}
+                  rightIcon={<Icon as={ChevronRight} w="5" h="5" />}
+                  h="12"
+                  px="8"
+                  fontSize="base"
+                  fontWeight="semibold"
+                  bg={isFormValid ? "brand.accentPrimary" : "brand.accentSecondary"}
+                  color="white"
                   isDisabled={!isFormValid}
-                  px={8}
-                  py={6}
-                  h="auto"
-                  fontSize="md"
-                  _hover={{
-                    bg: "brand.accentPrimaryDark",
+                  onClick={handleNext}
+                  transition="all 0.2s"
+                  _hover={
+                    isFormValid
+                      ? {
+                          transform: "scale(1.05)",
+                          shadow: "xl"
+                        }
+                      : {}
+                  }
+                  _disabled={{
+                    opacity: 0.6,
+                    cursor: "not-allowed"
                   }}
                 >
                   Next
                 </Button>
               </Flex>
             </Flex>
-          </Box>
+          </CardBody>
         </Card>
       </Container>
     </DealWizardStepWrapper>
