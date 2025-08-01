@@ -23,7 +23,7 @@ import {
   Alert,
   AlertIcon,
 } from '@chakra-ui/react';
-import { Upload, ChevronRight, Clock } from 'lucide-react';
+import { Upload, ChevronRight, ChevronLeft, Clock } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
@@ -293,6 +293,18 @@ const Step1_DealTerms = () => {
     navigate('/dashboard');
   };
 
+  const handleBack = () => {
+    logger.info('User navigated back', {
+      dealId,
+      dealType,
+      step: 'Step1_DealTerms',
+      operation: 'handleBack'
+    });
+
+    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+    navigate(`/add/deal/social-media/${dealId}${typeParam}`);
+  };
+
   // Get progress information - all deal types use same 10-step flow
   const getProgressInfo = () => {
     return {
@@ -472,34 +484,55 @@ const Step1_DealTerms = () => {
                 >
                   Finish Later
                 </Button>
-                <Button
-                  rightIcon={<Icon as={ChevronRight} />}
-                  bg={dealNickname.trim() ? "brand.accentPrimary" : "brand.accentSecondary"}
-                  color="white"
-                  px={8}
-                  py={3}
-                  h={12}
-                  fontSize="base"
-                  fontWeight="semibold"
-                  transition="all 0.2s"
-                  _hover={
-                    dealNickname.trim()
-                      ? {
-                          transform: "scale(1.05)",
-                          bg: "brand.accentPrimary",
-                          shadow: "xl",
-                        }
-                      : {}
-                  }
-                  _disabled={{
-                    opacity: 0.6,
-                    cursor: "not-allowed",
-                  }}
-                  isDisabled={!dealNickname.trim()}
-                  onClick={onContinue}
-                >
-                  Next
-                </Button>
+                <Flex gap={4}>
+                  <Button
+                    leftIcon={<Icon as={ChevronLeft} />}
+                    variant="outline"
+                    px={6}
+                    py={3}
+                    h={12}
+                    fontSize="base"
+                    fontWeight="medium"
+                    borderColor="brand.accentSecondary"
+                    color="brand.textSecondary"
+                    onClick={handleBack}
+                    _hover={{
+                      bg: "brand.backgroundLight",
+                      borderColor: "brand.accentPrimary",
+                      color: "brand.textPrimary",
+                    }}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    rightIcon={<Icon as={ChevronRight} />}
+                    bg={dealNickname.trim() ? "brand.accentPrimary" : "brand.accentSecondary"}
+                    color="white"
+                    px={8}
+                    py={3}
+                    h={12}
+                    fontSize="base"
+                    fontWeight="semibold"
+                    transition="all 0.2s"
+                    _hover={
+                      dealNickname.trim()
+                        ? {
+                            transform: "scale(1.05)",
+                            bg: "brand.accentPrimary",
+                            shadow: "xl",
+                          }
+                        : {}
+                    }
+                    _disabled={{
+                      opacity: 0.6,
+                      cursor: "not-allowed",
+                    }}
+                    isDisabled={!dealNickname.trim()}
+                    onClick={onContinue}
+                  >
+                    Next
+                  </Button>
+                </Flex>
               </Flex>
             </VStack>
           </CardBody>

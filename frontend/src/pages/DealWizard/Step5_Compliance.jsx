@@ -408,7 +408,7 @@ const Step5_Compliance = () => {
                     bg: "brand.accentPrimaryHover",
                   }}
                 >
-                  Continue
+                  Next
                 </Button>
               </Flex>
             </Flex>

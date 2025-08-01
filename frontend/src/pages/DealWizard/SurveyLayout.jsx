@@ -88,13 +88,14 @@ const SurveyLayout = ({
                 leftIcon={<Icon as={Clock} />}
                 variant="ghost"
                 color="brand.textSecondary"
-                px={6}
+                px={8}
                 py={3}
                 h={12}
                 fontSize="base"
                 fontWeight="medium"
                 onClick={handleFinishLater}
                 _hover={{
+                  bg: "brand.backgroundLight",
                   color: "brand.textPrimary",
                 }}
               >

@@ -603,7 +603,7 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
                     cursor: "not-allowed",
                   }}
                 >
-                  Continue
+                  Next
                 </Button>
               </Flex>
             </Flex>
