@@ -532,9 +532,7 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
               justify="space-between"
               align="center"
               pt={8}
-              borderTopWidth="1px"
-              borderColor="brand.accentSecondary"
-              opacity={0.9}
+              w="full"
             >
               <Button
                 leftIcon={<Icon as={Clock} w="5" h="5" />}
