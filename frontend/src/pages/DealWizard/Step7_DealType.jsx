@@ -39,14 +39,15 @@ const Step7_DealType = () => {
 
   useEffect(() => {
     if (currentDeal) {
-      setSubmissionType(currentDeal.submission_type || '');
+      // Always start with empty selection for deal type
+      setSubmissionType('');
 
-      logger.info('Deal type info loaded from deal', {
+      logger.info('Deal type step initialized with empty selection', {
         dealId,
         dealType,
         step: 'Step7_DealType',
         operation: 'useEffect',
-        hasSubmissionType: !!currentDeal.submission_type
+        hasSubmissionType: false
       });
     }
   }, [currentDeal]);
