@@ -369,25 +369,19 @@ const Step8_Review = () => {
               </AccordionPanel>
             </AccordionItem>
           </Accordion>
-        </VStack>
 
-        {/* Footer Navigation */}
-        <Box
-          borderTop="1px"
-          borderColor="brand.accentSecondary"
-          pt={6}
-          mt={8}
-        >
-          <Flex justify="space-between">
+          {/* Navigation Buttons */}
+          <Flex justify="space-between" pt={8} w="full">
             <Button
               leftIcon={<Icon as={ChevronLeft} />}
               variant="ghost"
               color="brand.textSecondary"
-              onClick={() => navigate(`/add/deal/compensation/${dealId}`)}
               px={8}
-              py={6}
-              h="auto"
-              fontSize="md"
+              py={3}
+              h={12}
+              fontSize="base"
+              fontWeight="medium"
+              onClick={() => navigate(`/add/deal/compensation/${dealId}`)}
               _hover={{
                 bg: "brand.backgroundLight",
                 color: "brand.textPrimary",
@@ -400,11 +394,12 @@ const Step8_Review = () => {
               <Button
                 variant="ghost"
                 color="brand.textSecondary"
-                onClick={() => navigate('/dashboard')}
                 px={8}
-                py={6}
-                h="auto"
-                fontSize="md"
+                py={3}
+                h={12}
+                fontSize="base"
+                fontWeight="medium"
+                onClick={() => navigate('/dashboard')}
                 _hover={{
                   bg: "brand.backgroundLight",
                   color: "brand.textPrimary",
@@ -418,13 +413,15 @@ const Step8_Review = () => {
                 variant="solid"
                 bg="brand.accentPrimary"
                 color="white"
+                px={8}
+                py={3}
+                h={12}
+                fontSize="base"
+                fontWeight="semibold"
                 onClick={handleSubmit}
                 isLoading={isSubmitting}
                 loadingText="Submitting..."
-                px={8}
-                py={6}
-                h="auto"
-                fontSize="md"
+                transition="all 0.2s"
                 _hover={{
                   bg: "brand.accentPrimaryHover",
                 }}
@@ -433,7 +430,7 @@ const Step8_Review = () => {
               </Button>
             </Flex>
           </Flex>
-        </Box>
+        </VStack>
       </Container>
     </DealWizardStepWrapper>
   );

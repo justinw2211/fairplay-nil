@@ -454,49 +454,45 @@ const ClearinghouseResult = () => {
         </Card>
       </VStack>
 
-      {/* Footer Navigation */}
-      <Box
-        borderTop="1px"
-        borderColor="brand.accentSecondary"
-        pt={6}
-        mt={8}
-      >
-        <Flex justify="space-between">
-          <Button
-            leftIcon={<Icon as={ChevronLeft} />}
-            variant="ghost"
-            color="brand.textSecondary"
-            onClick={() => navigate(`/clearinghouse-wizard/${dealId}?type=${dealType}`)}
-            px={8}
-            py={6}
-            h="auto"
-            fontSize="md"
-            _hover={{
-              bg: "brand.backgroundLight",
-              color: "brand.textPrimary",
-            }}
-          >
-            Back to Analysis
-          </Button>
+      {/* Navigation Buttons */}
+      <Flex justify="space-between" pt={8} w="full">
+        <Button
+          leftIcon={<Icon as={ChevronLeft} />}
+          variant="ghost"
+          color="brand.textSecondary"
+          px={8}
+          py={3}
+          h={12}
+          fontSize="base"
+          fontWeight="medium"
+          onClick={() => navigate(`/clearinghouse-wizard/${dealId}?type=${dealType}`)}
+          _hover={{
+            bg: "brand.backgroundLight",
+            color: "brand.textPrimary",
+          }}
+        >
+          Back to Analysis
+        </Button>
 
-          <Button
-            leftIcon={<Icon as={Home} />}
-            variant="ghost"
-            color="brand.textSecondary"
-            onClick={() => navigate('/dashboard')}
-            px={8}
-            py={6}
-            h="auto"
-            fontSize="md"
-            _hover={{
-              bg: "brand.backgroundLight",
-              color: "brand.textPrimary",
-            }}
-          >
-            Return to Dashboard
-          </Button>
-        </Flex>
-      </Box>
+        <Button
+          leftIcon={<Icon as={Home} />}
+          variant="ghost"
+          color="brand.textSecondary"
+          px={8}
+          py={3}
+          h={12}
+          fontSize="base"
+          fontWeight="medium"
+          onClick={() => navigate('/dashboard')}
+          _hover={{
+            bg: "brand.backgroundLight",
+            color: "brand.textPrimary",
+          }}
+        >
+          Return to Dashboard
+        </Button>
+      </Flex>
+    </VStack>
     </Container>
   );
 };
