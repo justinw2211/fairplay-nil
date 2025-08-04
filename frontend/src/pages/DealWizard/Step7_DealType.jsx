@@ -1,5 +1,5 @@
 // frontend/src/pages/DealWizard/Step7_DealType.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
@@ -36,20 +36,29 @@ const Step7_DealType = () => {
 
   const [submissionType, setSubmissionType] = useState('');
   const [error, setError] = useState('');
-  const isInitializedRef = useRef(false);
 
   useEffect(() => {
-    if (currentDeal && !isInitializedRef.current) {
-      // Only set empty selection on first load, don't override user selections
-      setSubmissionType('');
-      isInitializedRef.current = true;
+    try {
+      if (currentDeal) {
+        setSubmissionType(currentDeal.submission_type || '');
 
-      logger.info('Deal type step initialized with empty selection', {
+        logger.info('Deal type info loaded from deal', {
+          dealId,
+          dealType,
+          step: 'Step7_DealType',
+          operation: 'useEffect',
+          hasSubmissionType: !!currentDeal.submission_type,
+          submissionType: currentDeal.submission_type
+        });
+      }
+    } catch (error) {
+      logger.error('Error loading deal type info from deal', {
+        error: error.message,
         dealId,
         dealType,
         step: 'Step7_DealType',
         operation: 'useEffect',
-        hasSubmissionType: false
+        currentDealExists: !!currentDeal
       });
     }
   }, [currentDeal]);

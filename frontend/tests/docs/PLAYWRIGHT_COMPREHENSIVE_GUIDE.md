@@ -8,6 +8,8 @@
 
 **Understand the actual UI structure before writing  tests**
 
+**See the error → Fix it automatically → Continue testing**
+
 ## Status: 2 Complete, 1 In Progress
 
 ### Working Tests

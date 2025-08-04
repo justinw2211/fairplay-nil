@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * SIMPLE DEAL LOGGING - SCREENSHOT CAPTURE TEST
+ * SIMPLE DEAL LOGGING - SCREENSHOT CAPTURE TEST -- WORKING *
  *
  * Based on simple-deal-logging-flow.spec.js but with screenshot capture
  * at each step to document the UI flow and navigation patterns

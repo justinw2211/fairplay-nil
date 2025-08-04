@@ -1,5 +1,7 @@
 # Playwright Tests Directory
 
+** test only on the chrome browser and on the production vercel link **
+
 ## 📁 **File Structure**
 
 ```
@@ -41,7 +43,7 @@ These are the main end-to-end tests for the three deal types:
 - **Command**: `npx playwright test active-tests/simple-deal-logging-flow.spec.js --project=chromium-auth`
 - **Flow**: Dashboard → Social Media → Deal Terms → Payor Info → Activities → Activity Form → Compliance → Compensation → Review → Dashboard
 
-#### **2. Clearinghouse Deal Flow** ✅ **COMPLETE**
+#### **2. Clearinghouse Deal Flow** ✅ **IN PROGRESS**
 - **File**: `active-tests/clearinghouse-deal-flow.spec.js`
 - **Status**: 10/10 steps working (100%)
 - **Command**: `npx playwright test active-tests/clearinghouse-deal-flow.spec.js --project=chromium-auth`

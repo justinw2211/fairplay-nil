@@ -67,7 +67,7 @@ const Step6_Compensation = () => {
   const [searchParams] = useSearchParams();
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
-  const { deal, updateDeal } = useDeal();
+  const { currentDeal, updateDeal } = useDeal();
   const { user } = useAuth();
   const toast = useToast();
 
@@ -88,10 +88,19 @@ const Step6_Compensation = () => {
   };
 
   useEffect(() => {
-    if (deal?.compensation?.items) {
-      setCompensationItems(deal.compensation.items);
+    if (currentDeal?.compensation?.items) {
+      setCompensationItems(currentDeal.compensation.items);
+
+      formLogger.info('Compensation items loaded from deal', {
+        dealId,
+        dealType,
+        step: 'Step6_Compensation',
+        operation: 'useEffect',
+        hasCompensationItems: !!currentDeal.compensation?.items,
+        itemCount: currentDeal.compensation?.items?.length || 0
+      });
     }
-  }, [deal]);
+  }, [currentDeal]);
 
   const getTypeDescription = (type) => {
     const found = compensationTypes.find(ct => ct.value === type);

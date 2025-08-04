@@ -1,0 +1,43 @@
+# Page snapshot
+
+```yaml
+- navigation:
+  - link "FAIR PLAY NIL":
+    - /url: /
+  - link "Athletes":
+    - /url: /athletes
+    - paragraph: Athletes
+  - link "Universities":
+    - /url: /universities
+    - paragraph: Universities
+  - link "Collectives":
+    - /url: /collectives
+    - paragraph: Collectives
+  - link "Brands":
+    - /url: /brands
+    - paragraph: Brands
+  - link "Log In":
+    - /url: /login
+    - paragraph: Log In
+  - link "Sign Up":
+    - /url: /signup
+    - button "Sign Up"
+- heading "Sign In to FairPlay" [level=1]
+- group:
+  - text: Email Address
+  - textbox "Email Address"
+- group:
+  - text: Password
+  - textbox "Password"
+- button "Sign In"
+- paragraph:
+  - text: Don't have an account?
+  - link "Sign Up":
+    - /url: /signup
+- region "Notifications-top"
+- region "Notifications-top-left"
+- region "Notifications-top-right"
+- region "Notifications-bottom-left"
+- region "Notifications-bottom"
+- region "Notifications-bottom-right"
+```
