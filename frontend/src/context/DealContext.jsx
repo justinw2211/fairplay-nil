@@ -11,6 +11,188 @@ const dealLogger = createLogger('DealContext');
 // Create context
 const DealContext = createContext();
 
+// Field mapping utility functions for backend schema
+const getCompensationCash = (deal) => {
+  try {
+    return deal?.compensation_cash || 0;
+  } catch (error) {
+    dealLogger.error('Error accessing compensation_cash', { error: error.message, dealId: deal?.id });
+    Sentry.captureException(error, {
+      tags: { component: 'DealContext', action: 'getCompensationCash' },
+      extra: { dealId: deal?.id }
+    });
+    return 0;
+  }
+};
+
+const getCompensationGoods = (deal) => {
+  try {
+    return deal?.compensation_goods || [];
+  } catch (error) {
+    dealLogger.error('Error accessing compensation_goods', { error: error.message, dealId: deal?.id });
+    Sentry.captureException(error, {
+      tags: { component: 'DealContext', action: 'getCompensationGoods' },
+      extra: { dealId: deal?.id }
+    });
+    return [];
+  }
+};
+
+const getCompensationOther = (deal) => {
+  try {
+    return deal?.compensation_other || [];
+  } catch (error) {
+    dealLogger.error('Error accessing compensation_other', { error: error.message, dealId: deal?.id });
+    Sentry.captureException(error, {
+      tags: { component: 'DealContext', action: 'getCompensationOther' },
+      extra: { dealId: deal?.id }
+    });
+    return [];
+  }
+};
+
+const getPayorName = (deal) => {
+  try {
+    return deal?.payor_name || 'Not specified';
+  } catch (error) {
+    dealLogger.error('Error accessing payor_name', { error: error.message, dealId: deal?.id });
+    Sentry.captureException(error, {
+      tags: { component: 'DealContext', action: 'getPayorName' },
+      extra: { dealId: deal?.id }
+    });
+    return 'Not specified';
+  }
+};
+
+const getPayorType = (deal) => {
+  try {
+    return deal?.payor_type || 'Not specified';
+  } catch (error) {
+    dealLogger.error('Error accessing payor_type', { error: error.message, dealId: deal?.id });
+    Sentry.captureException(error, {
+      tags: { component: 'DealContext', action: 'getPayorType' },
+      extra: { dealId: deal?.id }
+    });
+    return 'Not specified';
+  }
+};
+
+const getUniversity = (deal) => {
+  try {
+    return deal?.university || 'Not specified';
+  } catch (error) {
+    dealLogger.error('Error accessing university', { error: error.message, dealId: deal?.id });
+    Sentry.captureException(error, {
+      tags: { component: 'DealContext', action: 'getUniversity' },
+      extra: { dealId: deal?.id }
+    });
+    return 'Not specified';
+  }
+};
+
+const getSports = (deal) => {
+  try {
+    if (!deal?.sports || !Array.isArray(deal.sports)) {
+      return 'Not specified';
+    }
+    return deal.sports.join(', ');
+  } catch (error) {
+    dealLogger.error('Error accessing sports', { error: error.message, dealId: deal?.id });
+    Sentry.captureException(error, {
+      tags: { component: 'DealContext', action: 'getSports' },
+      extra: { dealId: deal?.id }
+    });
+    return 'Not specified';
+  }
+};
+
+const getDealNickname = (deal) => {
+  try {
+    return deal?.deal_nickname || 'Untitled Deal';
+  } catch (error) {
+    dealLogger.error('Error accessing deal_nickname', { error: error.message, dealId: deal?.id });
+    Sentry.captureException(error, {
+      tags: { component: 'DealContext', action: 'getDealNickname' },
+      extra: { dealId: deal?.id }
+    });
+    return 'Untitled Deal';
+  }
+};
+
+const getContactName = (deal) => {
+  try {
+    return deal?.contact_name || 'Not specified';
+  } catch (error) {
+    dealLogger.error('Error accessing contact_name', { error: error.message, dealId: deal?.id });
+    Sentry.captureException(error, {
+      tags: { component: 'DealContext', action: 'getContactName' },
+      extra: { dealId: deal?.id }
+    });
+    return 'Not specified';
+  }
+};
+
+const getContactEmail = (deal) => {
+  try {
+    return deal?.contact_email || 'Not specified';
+  } catch (error) {
+    dealLogger.error('Error accessing contact_email', { error: error.message, dealId: deal?.id });
+    Sentry.captureException(error, {
+      tags: { component: 'DealContext', action: 'getContactEmail' },
+      extra: { dealId: deal?.id }
+    });
+    return 'Not specified';
+  }
+};
+
+const getObligations = (deal) => {
+  try {
+    return deal?.obligations || {};
+  } catch (error) {
+    dealLogger.error('Error accessing obligations', { error: error.message, dealId: deal?.id });
+    Sentry.captureException(error, {
+      tags: { component: 'DealContext', action: 'getObligations' },
+      extra: { dealId: deal?.id }
+    });
+    return {};
+  }
+};
+
+const getTotalCompensation = (deal) => {
+  try {
+    let total = 0;
+    
+    // Add cash compensation
+    const cash = getCompensationCash(deal);
+    total += parseFloat(cash) || 0;
+    
+    // Add goods compensation
+    const goods = getCompensationGoods(deal);
+    if (Array.isArray(goods)) {
+      total += goods.reduce((sum, item) => {
+        return sum + (parseFloat(item.value || item.estimated_value) || 0);
+      }, 0);
+    }
+    
+    // Add other compensation
+    const other = getCompensationOther(deal);
+    if (Array.isArray(other)) {
+      total += other.reduce((sum, item) => {
+        return sum + (parseFloat(item.estimated_value) || 0);
+      }, 0);
+    }
+    
+    return total;
+  } catch (error) {
+    dealLogger.error('Error calculating total compensation', { error: error.message, dealId: deal?.id });
+    Sentry.captureException(error, {
+      tags: { component: 'DealContext', action: 'getTotalCompensation' },
+      extra: { dealId: deal?.id }
+    });
+    return 0;
+  }
+};
+
 // Custom hook to use deal context
 export const useDeal = () => {
   const context = useContext(DealContext);
@@ -305,7 +487,20 @@ export const DealProvider = ({ children }) => {
     updateDeal,
     fetchDealById,
     currentDeal,
-    deal: currentDeal // Backward compatibility
+    deal: currentDeal, // Backward compatibility
+    // Field mapping functions for backend schema
+    getCompensationCash,
+    getCompensationGoods,
+    getCompensationOther,
+    getPayorName,
+    getPayorType,
+    getUniversity,
+    getSports,
+    getDealNickname,
+    getContactName,
+    getContactEmail,
+    getObligations,
+    getTotalCompensation
   };
 
   return (

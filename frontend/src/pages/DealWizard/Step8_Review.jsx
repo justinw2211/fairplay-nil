@@ -1,5 +1,5 @@
 // frontend/src/pages/DealWizard/Step8_Review.jsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
@@ -12,9 +12,6 @@ import {
   Spinner,
   VStack,
   HStack,
-  Divider,
-  SimpleGrid,
-  Tag,
   List,
   ListItem,
   Icon,
@@ -29,6 +26,7 @@ import {
   AccordionButton,
   AccordionPanel,
   AccordionIcon,
+  SimpleGrid,
 } from '@chakra-ui/react';
 import {
   CheckCircle,
@@ -40,22 +38,33 @@ import {
   AlertCircle,
   ChevronRight,
   ChevronLeft,
+  HelpCircle,
+  Edit,
 } from 'lucide-react';
 import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
 
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(amount);
-};
+// Import constants from Step6_Compensation.jsx
+const compensationTypes = [
+  { value: 'cash', label: 'Cash Payment', description: 'Direct monetary compensation' },
+  { value: 'non-cash', label: 'Goods/Products', description: 'Physical items or services' },
+  { value: 'bonus', label: 'Performance Bonus', description: 'Additional payment based on metrics' },
+  { value: 'royalty', label: 'Royalty Payment', description: 'Percentage of sales or revenue' },
+  { value: 'other', label: 'Other', description: 'Custom compensation type' },
+];
 
-const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+const formatCurrency = (amount) => {
+  try {
+    if (!amount || isNaN(amount)) {
+      return '$0.00';
+    }
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  } catch (error) {
+    console.error('Error formatting currency:', error);
+    return '$0.00';
+  }
 };
 
 const StatusBadge = ({ status }) => {
@@ -73,21 +82,31 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const SectionCard = ({ title, icon: IconComponent, children }) => (
-  <Card variant="outline" borderColor="brand.accentSecondary" shadow="sm">
+const SectionCard = ({ title, icon: IconComponent, children, onClick }) => (
+  <Card
+    variant="outline"
+    borderColor="brand.accentSecondary"
+    shadow="sm"
+    onClick={onClick}
+    cursor={onClick ? "pointer" : "default"}
+    _hover={onClick ? { shadow: "md" } : {}}
+  >
     <CardHeader borderBottom="1px" borderColor="brand.accentSecondary" bg="brand.backgroundLight" roundedTop="lg">
-      <HStack spacing={3}>
-        <Box
-          bg="brand.accentPrimary"
-          p={2}
-          rounded="lg"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <Icon as={IconComponent} color="white" />
-        </Box>
-        <Heading size="md" color="brand.textPrimary">{title}</Heading>
+      <HStack spacing={3} justify="space-between">
+        <HStack spacing={3}>
+          <Box
+            bg="brand.accentPrimary"
+            p={2}
+            rounded="lg"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <Icon as={IconComponent} color="white" />
+          </Box>
+          <Heading size="md" color="brand.textPrimary">{title}</Heading>
+        </HStack>
+        {onClick && <Icon as={Edit} color="brand.textSecondary" boxSize={4} />}
       </HStack>
     </CardHeader>
     <CardBody bg="white">{children}</CardBody>
@@ -100,7 +119,23 @@ const Step8_Review = () => {
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
   const toast = useToast();
-  const { deal, fetchDealById, updateDeal } = useDeal();
+  const {
+    deal,
+    fetchDealById,
+    updateDeal,
+    getTotalCompensation: getTotalCompensationFromContext,
+    getCompensationCash,
+    getCompensationGoods,
+    getCompensationOther,
+    getPayorName,
+    getPayorType,
+    getUniversity,
+    getSports,
+    getDealNickname,
+    getContactName,
+    getContactEmail,
+    getObligations
+  } = useDeal();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -156,13 +191,28 @@ const Step8_Review = () => {
     }
   };
 
+  // Use the context function for total compensation calculation
   const getTotalCompensation = () => {
-    return deal.compensation?.items?.reduce((total, item) => {
-      if (item.type === 'cash' || item.type === 'bonus') {
-        return total + (parseFloat(item.amount) || 0);
+    try {
+      return getTotalCompensationFromContext(deal);
+    } catch (error) {
+      console.error('Error calculating total compensation:', error);
+      return 0;
+    }
+  };
+
+  // Get deal duration from endorsement data
+  const getDealDuration = () => {
+    try {
+      const endorsementData = getObligations(deal)?.endorsements;
+      if (endorsementData?.duration) {
+        return endorsementData.duration;
       }
-      return total + (parseFloat(item.value) || 0);
-    }, 0) || 0;
+      return 'Duration not specified';
+    } catch (error) {
+      console.error('Error getting deal duration:', error);
+      return 'Duration not specified';
+    }
   };
 
   return (
@@ -208,6 +258,10 @@ const Step8_Review = () => {
             <SectionCard title="Deal Overview" icon={Briefcase}>
               <VStack align="stretch" spacing={4}>
                 <Box>
+                  <Text fontWeight="medium" color="brand.textSecondary">Deal Name</Text>
+                  <Text color="brand.textPrimary">{getDealNickname(deal)}</Text>
+                </Box>
+                <Box>
                   <Text fontWeight="medium" color="brand.textSecondary">Total Value</Text>
                   <Text fontSize="2xl" fontWeight="bold" color="brand.textPrimary">
                     {formatCurrency(getTotalCompensation())}
@@ -216,7 +270,7 @@ const Step8_Review = () => {
                 <Box>
                   <Text fontWeight="medium" color="brand.textSecondary">Deal Period</Text>
                   <Text color="brand.textPrimary">
-                    {formatDate(deal.startDate)} - {formatDate(deal.endDate)}
+                    {getDealDuration()}
                   </Text>
                 </Box>
               </VStack>
@@ -226,13 +280,18 @@ const Step8_Review = () => {
               <VStack align="stretch" spacing={4}>
                 <Box>
                   <Text fontWeight="medium" color="brand.textSecondary">Payor</Text>
-                  <Text color="brand.textPrimary">{deal.payorInfo?.name}</Text>
-                  <Text fontSize="sm" color="brand.textSecondary">{deal.payorInfo?.type}</Text>
+                  <Text color="brand.textPrimary">{getPayorName(deal)}</Text>
+                  <Text fontSize="sm" color="brand.textSecondary">{getPayorType(deal)}</Text>
                 </Box>
                 <Box>
                   <Text fontWeight="medium" color="brand.textSecondary">Institution</Text>
-                  <Text color="brand.textPrimary">{deal.school}</Text>
-                  <Text fontSize="sm" color="brand.textSecondary">{deal.sport}</Text>
+                  <Text color="brand.textPrimary">{getUniversity(deal)}</Text>
+                  <Text fontSize="sm" color="brand.textSecondary">{getSports(deal)}</Text>
+                </Box>
+                <Box>
+                  <Text fontWeight="medium" color="brand.textSecondary">Contact</Text>
+                  <Text color="brand.textPrimary">{getContactName(deal)}</Text>
+                  <Text fontSize="sm" color="brand.textSecondary">{getContactEmail(deal)}</Text>
                 </Box>
               </VStack>
             </SectionCard>
@@ -251,10 +310,21 @@ const Step8_Review = () => {
                   <Text fontWeight="semibold">Activities & Obligations</Text>
                 </HStack>
                 <AccordionIcon />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/add/deal/activities/select/${dealId}?type=${dealType}`);
+                  }}
+                  leftIcon={<Icon as={Edit} />}
+                >
+                  Edit
+                </Button>
               </AccordionButton>
               <AccordionPanel pb={4}>
                 <List spacing={3}>
-                  {Object.entries(deal.obligations || {}).map(([activity, details]) => (
+                  {Object.entries(getObligations(deal)).map(([activity, details]) => (
                     <ListItem key={activity}>
                       <HStack align="start">
                         <Icon as={CheckCircle} color="green.500" mt={1} />
@@ -285,10 +355,40 @@ const Step8_Review = () => {
                   <Text fontWeight="semibold">Compensation Details</Text>
                 </HStack>
                 <AccordionIcon />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/add/deal/compensation/${dealId}?type=${dealType}`);
+                  }}
+                  leftIcon={<Icon as={Edit} />}
+                >
+                  Edit
+                </Button>
               </AccordionButton>
               <AccordionPanel pb={4}>
                 <List spacing={4}>
-                  {deal.compensation?.items.map((item, index) => (
+                  {/* Cash Compensation */}
+                  {getCompensationCash(deal) > 0 && (
+                    <ListItem>
+                      <Box
+                        p={4}
+                        bg="gray.50"
+                        rounded="lg"
+                        border="1px"
+                        borderColor="brand.accentSecondary"
+                      >
+                        <Text fontWeight="semibold" color="brand.textPrimary" mb={2}>
+                          Cash Payment
+                        </Text>
+                        <Text color="brand.textSecondary">Amount: {formatCurrency(getCompensationCash(deal))}</Text>
+                      </Box>
+                    </ListItem>
+                  )}
+
+                  {/* Goods Compensation */}
+                  {getCompensationGoods(deal).map((item, index) => (
                     <ListItem key={index}>
                       <Box
                         p={4}
@@ -298,22 +398,29 @@ const Step8_Review = () => {
                         borderColor="brand.accentSecondary"
                       >
                         <Text fontWeight="semibold" color="brand.textPrimary" mb={2}>
-                          {compensationTypes.find(t => t.value === item.type)?.label}
+                          Goods/Products
                         </Text>
-                        {item.type === 'cash' && (
-                          <>
-                            <Text color="brand.textSecondary">Amount: {formatCurrency(item.amount)}</Text>
-                            <Text color="brand.textSecondary">
-                              Schedule: {paymentSchedules.find(s => s.value === item.schedule)?.label}
-                            </Text>
-                          </>
-                        )}
-                        {item.type === 'non-cash' && (
-                          <>
-                            <Text color="brand.textSecondary">{item.description}</Text>
-                            <Text color="brand.textSecondary">Value: {formatCurrency(item.value)}</Text>
-                          </>
-                        )}
+                        <Text color="brand.textSecondary">{item.description}</Text>
+                        <Text color="brand.textSecondary">Value: {formatCurrency(item.value || item.estimated_value)}</Text>
+                      </Box>
+                    </ListItem>
+                  ))}
+
+                  {/* Other Compensation */}
+                  {getCompensationOther(deal).map((item, index) => (
+                    <ListItem key={index}>
+                      <Box
+                        p={4}
+                        bg="gray.50"
+                        rounded="lg"
+                        border="1px"
+                        borderColor="brand.accentSecondary"
+                      >
+                        <Text fontWeight="semibold" color="brand.textPrimary" mb={2}>
+                          {compensationTypes.find(t => t.value === item.payment_type)?.label || 'Other Payment'}
+                        </Text>
+                        <Text color="brand.textSecondary">{item.description}</Text>
+                        <Text color="brand.textSecondary">Value: {formatCurrency(item.estimated_value)}</Text>
                       </Box>
                     </ListItem>
                   ))}
@@ -333,10 +440,23 @@ const Step8_Review = () => {
                   <Text fontWeight="semibold">Compliance Information</Text>
                 </HStack>
                 <AccordionIcon />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/add/deal/compliance/${dealId}?type=${dealType}`);
+                  }}
+                  leftIcon={<Icon as={Edit} />}
+                >
+                  Edit
+                </Button>
               </AccordionButton>
               <AccordionPanel pb={4}>
                 <List spacing={3}>
-                  {Object.entries(deal.compliance || {}).map(([key, value]) => {
+                  {Object.entries(getObligations(deal)).filter(([key, _value]) =>
+                    key === 'uses_school_ip' || key === 'grant_exclusivity' || key === 'licenses_nil'
+                  ).map(([key, value]) => {
                     if (typeof value === 'string' && !key.includes('Info')) {
                       return (
                         <ListItem key={key}>
@@ -352,9 +472,9 @@ const Step8_Review = () => {
                               </Text>
                               <Text color="brand.textSecondary">
                                 {value.charAt(0).toUpperCase() + value.slice(1)}
-                                {deal.compliance[`${key}Info`] && (
+                                {getObligations(deal)[`${key}Info`] && (
                                   <Text fontSize="sm" mt={1}>
-                                    Additional Info: {deal.compliance[`${key}Info`]}
+                                    Additional Info: {getObligations(deal)[`${key}Info`]}
                                   </Text>
                                 )}
                               </Text>
@@ -369,19 +489,25 @@ const Step8_Review = () => {
               </AccordionPanel>
             </AccordionItem>
           </Accordion>
+        </VStack>
 
-          {/* Navigation Buttons */}
-          <Flex justify="space-between" pt={8} w="full">
+        {/* Footer Navigation */}
+        <Box
+          borderTop="1px"
+          borderColor="brand.accentSecondary"
+          pt={6}
+          mt={8}
+        >
+          <Flex justify="space-between">
             <Button
               leftIcon={<Icon as={ChevronLeft} />}
               variant="ghost"
               color="brand.textSecondary"
+              onClick={() => navigate(`/add/deal/compensation/${dealId}?type=${dealType}`)}
               px={8}
-              py={3}
-              h={12}
-              fontSize="base"
-              fontWeight="medium"
-              onClick={() => navigate(`/add/deal/compensation/${dealId}`)}
+              py={6}
+              h="auto"
+              fontSize="md"
               _hover={{
                 bg: "brand.backgroundLight",
                 color: "brand.textPrimary",
@@ -394,12 +520,11 @@ const Step8_Review = () => {
               <Button
                 variant="ghost"
                 color="brand.textSecondary"
-                px={8}
-                py={3}
-                h={12}
-                fontSize="base"
-                fontWeight="medium"
                 onClick={() => navigate('/dashboard')}
+                px={8}
+                py={6}
+                h="auto"
+                fontSize="md"
                 _hover={{
                   bg: "brand.backgroundLight",
                   color: "brand.textPrimary",
@@ -413,14 +538,14 @@ const Step8_Review = () => {
                 variant="solid"
                 bg="brand.accentPrimary"
                 color="white"
-                px={8}
-                py={3}
-                h={12}
-                fontSize="base"
-                fontWeight="semibold"
                 onClick={handleSubmit}
                 isLoading={isSubmitting}
                 loadingText="Submitting..."
+                px={8}
+                py={6}
+                h="auto"
+                fontSize="md"
+                fontWeight="semibold"
                 transition="all 0.2s"
                 _hover={{
                   bg: "brand.accentPrimaryHover",
@@ -430,7 +555,7 @@ const Step8_Review = () => {
               </Button>
             </Flex>
           </Flex>
-        </VStack>
+        </Box>
       </Container>
     </DealWizardStepWrapper>
   );
