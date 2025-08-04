@@ -45,6 +45,34 @@ const Step1_DealTerms = () => {
   const [dealNickname, setDealNickname] = useState('');
   const [uploading, setUploading] = useState(false);
 
+  useEffect(() => {
+    if (currentDeal) {
+      setDealNickname(currentDeal.deal_nickname || '');
+
+      logger.info('Deal nickname loaded from deal', {
+        dealId,
+        dealType,
+        step: 'Step1_DealTerms',
+        operation: 'useEffect',
+        hasDealNickname: !!currentDeal.deal_nickname
+      });
+
+      // Restore uploaded file if it exists
+      if (currentDeal?.contract_file) {
+        setUploadedFile(currentDeal.contract_file);
+
+        logger.info('Uploaded file restored from deal', {
+          dealId,
+          dealType,
+          step: 'Step1_DealTerms',
+          operation: 'useEffect',
+          fileName: currentDeal.contract_file.name,
+          fileSize: currentDeal.contract_file.size
+        });
+      }
+    }
+  }, [currentDeal]);
+
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -250,14 +278,22 @@ const Step1_DealTerms = () => {
     }
 
     try {
-      await updateDeal(dealId, { deal_nickname: dealNickname });
+      const updateData = { deal_nickname: dealNickname };
 
-      logger.info('Deal nickname updated successfully', {
+      // Add contract file data if uploaded
+      if (uploadedFile) {
+        updateData.contract_file = uploadedFile;
+      }
+
+      await updateDeal(dealId, updateData);
+
+      logger.info('Deal data updated successfully', {
         dealId,
         dealType,
         step: 'Step1_DealTerms',
         operation: 'onContinue',
-        dealNickname: dealNickname
+        dealNickname: dealNickname,
+        hasContractFile: !!uploadedFile
       });
 
       // Conditional navigation based on deal type
