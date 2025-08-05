@@ -172,9 +172,29 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
           }));
       }),
       description,
+      completed: true, // Mark activity as completed
     };
 
     console.log('📱 Social Media formattedData:', formattedData);
+
+    // Track activity completion
+    Sentry.captureMessage('ActivityForm_SocialMedia: Marking activity as completed', 'info', {
+      tags: {
+        component: 'ActivityForm_SocialMedia',
+        action: 'activity_completion',
+        dealId
+      },
+      extra: {
+        dealId,
+        dealType,
+        activityType: 'social-media',
+        formattedData,
+        currentActivity,
+        totalActivities,
+        step: 'ActivityForm_SocialMedia',
+        operation: 'handleNext'
+      }
+    });
 
     await updateDeal(dealId, {
       obligations: {

@@ -25,6 +25,7 @@ import {
   Plus,
   Minus,
 } from 'lucide-react';
+import * as Sentry from '@sentry/react';
 
 const appearanceTypes = [
   { id: "not-determined", name: "Not yet determined" },
@@ -102,7 +103,27 @@ const ActivityForm_Appearance = ({ onNext, currentActivity, totalActivities }) =
       details: appearanceDetails,
       description,
       otherAppearance,
+      completed: true, // Mark activity as completed
     };
+
+    // Track activity completion
+    Sentry.captureMessage('ActivityForm_Appearance: Marking activity as completed', 'info', {
+      tags: {
+        component: 'ActivityForm_Appearance',
+        action: 'activity_completion',
+        dealId
+      },
+      extra: {
+        dealId,
+        dealType,
+        activityType: 'appearance',
+        formattedData,
+        currentActivity,
+        totalActivities,
+        step: 'ActivityForm_Appearance',
+        operation: 'handleNext'
+      }
+    });
 
     // Get the existing activity entry to preserve sequence and completed status
     const existingActivity = deal.obligations?.['appearance'] || {};

@@ -46,6 +46,26 @@ const Step5_Compliance = () => {
   const [restrictedCategories, setRestrictedCategories] = useState("");
 
   useEffect(() => {
+    // Track when user reaches compliance page
+    Sentry.captureMessage('Step5_Compliance: User reached compliance page', 'info', {
+      tags: {
+        component: 'Step5_Compliance',
+        action: 'page_reached',
+        dealId
+      },
+      extra: {
+        dealId,
+        dealType,
+        currentUrl: window.location.href,
+        obligations: currentDeal?.obligations || {},
+        completedActivities: Object.keys(currentDeal?.obligations || {}).filter(activity => 
+          currentDeal?.obligations?.[activity]?.completed === true
+        ),
+        step: 'Step5_Compliance',
+        operation: 'useEffect_page_load'
+      }
+    });
+
     if (currentDeal) {
       // Only set values if the fields actually exist and have been explicitly set
       if (currentDeal.licenses_nil !== undefined) {
@@ -283,6 +303,22 @@ const Step5_Compliance = () => {
   };
 
   const handleBack = () => {
+    // Track back navigation attempt
+    Sentry.captureMessage('Step5_Compliance: Back navigation attempt started', 'info', {
+      tags: {
+        component: 'Step5_Compliance',
+        action: 'back_navigation_attempt',
+        dealId
+      },
+      extra: {
+        dealId,
+        dealType,
+        currentUrl: window.location.href,
+        step: 'Step5_Compliance',
+        operation: 'handleBack_start'
+      }
+    });
+    
     // Find the last completed activity from obligations
     const obligations = currentDeal?.obligations || {};
     const validActivityTypes = [
@@ -290,10 +326,46 @@ const Step5_Compliance = () => {
       'merch-and-products', 'endorsements', 'other'
     ];
     
+    // Track obligations analysis
+    Sentry.captureMessage('Step5_Compliance: Analyzing obligations for back navigation', 'info', {
+      tags: {
+        component: 'Step5_Compliance',
+        action: 'obligations_analysis',
+        dealId
+      },
+      extra: {
+        dealId,
+        dealType,
+        obligations,
+        obligationsKeys: Object.keys(obligations),
+        validActivityTypes,
+        step: 'Step5_Compliance',
+        operation: 'handleBack_analysis'
+      }
+    });
+    
     // Get valid activities that have been completed
     const completedActivities = Object.keys(obligations)
       .filter(activity => validActivityTypes.includes(activity))
       .filter(activity => obligations[activity]?.completed === true);
+    
+    // Track completed activities found
+    Sentry.captureMessage('Step5_Compliance: Completed activities found', 'info', {
+      tags: {
+        component: 'Step5_Compliance',
+        action: 'completed_activities_found',
+        dealId
+      },
+      extra: {
+        dealId,
+        dealType,
+        completedActivities,
+        completedActivitiesCount: completedActivities.length,
+        allObligations: obligations,
+        step: 'Step5_Compliance',
+        operation: 'handleBack_completed_activities'
+      }
+    });
     
     let destinationUrl;
     
@@ -315,11 +387,12 @@ const Step5_Compliance = () => {
           dealId,
           dealType,
           lastActivity,
+          encodedActivity,
           completedActivities,
           destinationUrl,
           currentUrl: window.location.href,
           step: 'Step5_Compliance',
-          operation: 'handleBack'
+          operation: 'handleBack_to_activity'
         }
       });
     } else {
@@ -340,11 +413,29 @@ const Step5_Compliance = () => {
           completedActivities: [],
           destinationUrl,
           currentUrl: window.location.href,
+          obligations,
           step: 'Step5_Compliance',
-          operation: 'handleBack'
+          operation: 'handleBack_fallback'
         }
       });
     }
+    
+    // Track final navigation attempt
+    Sentry.captureMessage('Step5_Compliance: Executing navigation', 'info', {
+      tags: {
+        component: 'Step5_Compliance',
+        action: 'navigation_execution',
+        dealId
+      },
+      extra: {
+        dealId,
+        dealType,
+        destinationUrl,
+        currentUrl: window.location.href,
+        step: 'Step5_Compliance',
+        operation: 'handleBack_execution'
+      }
+    });
     
     navigate(destinationUrl);
   };
