@@ -52,10 +52,7 @@ const Step5_Compliance = () => {
         setLicensingRights(currentDeal.licenses_nil);
       }
 
-      // Only set if the field exists and we're not on a new draft deal
-      if (currentDeal.uses_school_ip !== undefined && (!currentDeal.id || currentDeal.status === 'draft')) {
-        // Don't set for new draft deals to prevent pre-selection
-      } else if (currentDeal.uses_school_ip !== undefined) {
+      if (currentDeal.uses_school_ip !== undefined) {
         setSchoolBrandVisible(currentDeal.uses_school_ip ? "yes" : "no");
       }
 
