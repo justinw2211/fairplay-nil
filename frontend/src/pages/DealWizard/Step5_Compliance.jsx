@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { formLogger } from '../../utils/logger';
 import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
+import * as Sentry from '@sentry/react';
 
 const Step5_Compliance = () => {
   const { dealId } = useParams();
@@ -51,7 +52,8 @@ const Step5_Compliance = () => {
         setLicensingRights(currentDeal.licenses_nil);
       }
 
-      if (currentDeal.uses_school_ip !== undefined) {
+      // TEMPORARY FIX: Only set if the deal has been saved before (has an ID and is not a new deal)
+      if (currentDeal.uses_school_ip !== undefined && currentDeal.id && currentDeal.status !== 'draft') {
         setSchoolBrandVisible(currentDeal.uses_school_ip ? "yes" : "no");
       }
 
@@ -80,6 +82,30 @@ const Step5_Compliance = () => {
           setRestrictedCategories(currentDeal.obligations.restrictedCategories);
         }
       }
+
+      // Send detailed debugging info to Sentry
+      Sentry.captureMessage('Step5_Compliance: Data loading debug', 'info', {
+        tags: {
+          component: 'Step5_Compliance',
+          action: 'useEffect_data_loading',
+          dealId: dealId?.toString()
+        },
+        extra: {
+          dealId,
+          dealType,
+          step: 'Step5_Compliance',
+          operation: 'useEffect',
+          hasLicensesNil: currentDeal.licenses_nil !== undefined,
+          licensesNilValue: currentDeal.licenses_nil,
+          hasUsesSchoolIp: currentDeal.uses_school_ip !== undefined,
+          usesSchoolIpValue: currentDeal.uses_school_ip,
+          hasGrantExclusivity: currentDeal.grant_exclusivity !== undefined,
+          grantExclusivityValue: currentDeal.grant_exclusivity,
+          hasObligations: !!currentDeal.obligations,
+          currentDealKeys: Object.keys(currentDeal),
+          fullCurrentDeal: currentDeal
+        }
+      });
 
       formLogger.info('Compliance data loaded from deal', {
         dealId,
