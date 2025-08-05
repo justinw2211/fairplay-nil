@@ -249,21 +249,61 @@ const Step5_Compliance = () => {
   const isFormValid = () => {
     formLogger.debug('Validating compliance form');
 
-    return complianceQuestions.every(q => {
-      // Base validation - must have a value selected
-      if (!q.value) {return false;}
+    // Track validation for data preservation
+    const missingFields = complianceQuestions.filter(q => {
+      if (!q.value) return true;
+      if (q.additionalInfo?.show && q.value === "not-sure" && !q.additionalInfo.value?.trim()) return true;
+      return false;
+    }).map(q => q.id);
 
-      // If additional info is required (showing) and the value is "not-sure"
-      if (q.additionalInfo?.show && q.value === "not-sure") {
-        return !!q.additionalInfo.value?.trim();
-      }
+    if (missingFields.length > 0) {
+      Sentry.captureMessage('Step5_Compliance: Validation failed - missing required fields', 'warning', {
+        tags: {
+          component: 'Step5_Compliance',
+          action: 'validation_failed',
+          dealId
+        },
+        extra: {
+          dealId,
+          dealType,
+          missingFields,
+          allFieldValues: complianceQuestions.reduce((acc, q) => { acc[q.id] = q.value; return acc; }, {}),
+          step: 'Step5_Compliance',
+          operation: 'isFormValid',
+          url: window.location.href
+        }
+      });
+    }
 
-      // If no additional info is needed or value isn't "not-sure", just need the main value
-      return true;
-    });
+    return missingFields.length === 0;
   };
 
   const handleNext = async () => {
+    // Track form submission for data preservation
+    const allFieldValues = complianceQuestions.reduce((acc, q) => { acc[q.id] = q.value; return acc; }, {});
+    const missingFields = complianceQuestions.filter(q => {
+      if (!q.value) return true;
+      if (q.additionalInfo?.show && q.value === "not-sure" && !q.additionalInfo.value?.trim()) return true;
+      return false;
+    }).map(q => q.id);
+
+    Sentry.captureMessage('Step5_Compliance: Form submit attempt', 'info', {
+      tags: {
+        component: 'Step5_Compliance',
+        action: 'form_submit_attempt',
+        dealId
+      },
+      extra: {
+        dealId,
+        dealType,
+        allFieldValues,
+        missingFields,
+        step: 'Step5_Compliance',
+        operation: 'handleNext',
+        url: window.location.href
+      }
+    });
+
     if (!isFormValid()) {
       formLogger.debug('Form validation failed - missing required answers');
       return;
@@ -271,16 +311,9 @@ const Step5_Compliance = () => {
 
     // Format the data according to the backend schema
     const formattedData = {
-      // Map licensingRights to licenses_nil
       licenses_nil: licensingRights,
-
-      // Map schoolBrandVisible to uses_school_ip
       uses_school_ip: schoolBrandVisible === 'yes',
-
-      // Map exclusiveRights to grant_exclusivity
       grant_exclusivity: exclusiveRights,
-
-      // Store the rest in obligations
       obligations: {
         licensingInfo,
         schoolBrandInfo,
@@ -292,6 +325,23 @@ const Step5_Compliance = () => {
     };
 
     formLogger.debug('Submitting compliance data');
+
+    // Track successful submission
+    Sentry.captureMessage('Step5_Compliance: Form submitted successfully', 'info', {
+      tags: {
+        component: 'Step5_Compliance',
+        action: 'form_submitted',
+        dealId
+      },
+      extra: {
+        dealId,
+        dealType,
+        submittedData: formattedData,
+        step: 'Step5_Compliance',
+        operation: 'handleNext',
+        url: window.location.href
+      }
+    });
 
     try {
       await updateDeal(dealId, formattedData);
