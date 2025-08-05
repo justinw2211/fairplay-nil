@@ -256,7 +256,7 @@ const Step5_Compliance = () => {
       return false;
     }).map(q => q.id);
 
-    if (missingFields.length > 0) {
+    if (missingFields.length > 0 && typeof Sentry !== 'undefined' && Sentry.captureMessage) {
       Sentry.captureMessage('Step5_Compliance: Validation failed - missing required fields', 'warning', {
         tags: {
           component: 'Step5_Compliance',
@@ -287,7 +287,8 @@ const Step5_Compliance = () => {
       return false;
     }).map(q => q.id);
 
-    Sentry.captureMessage('Step5_Compliance: Form submit attempt', 'info', {
+    if (typeof Sentry !== 'undefined' && Sentry.captureMessage) {
+      Sentry.captureMessage('Step5_Compliance: Form submit attempt', 'info', {
       tags: {
         component: 'Step5_Compliance',
         action: 'form_submit_attempt',
@@ -327,7 +328,8 @@ const Step5_Compliance = () => {
     formLogger.debug('Submitting compliance data');
 
     // Track successful submission
-    Sentry.captureMessage('Step5_Compliance: Form submitted successfully', 'info', {
+    if (typeof Sentry !== 'undefined' && Sentry.captureMessage) {
+      Sentry.captureMessage('Step5_Compliance: Form submitted successfully', 'info', {
       tags: {
         component: 'Step5_Compliance',
         action: 'form_submitted',
@@ -342,6 +344,7 @@ const Step5_Compliance = () => {
         url: window.location.href
       }
     });
+    }
 
     try {
       await updateDeal(dealId, formattedData);
