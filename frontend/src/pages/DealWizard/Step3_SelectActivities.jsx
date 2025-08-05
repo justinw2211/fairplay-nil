@@ -77,6 +77,23 @@ const Step3_SelectActivities = () => {
     if (currentDeal?.obligations) {
       console.log('🔄 Loading activities from obligations:', currentDeal.obligations);
       
+      // Track activity loading attempt
+      Sentry.captureMessage('Step3_SelectActivities: Loading activities from obligations', 'info', {
+        tags: {
+          component: 'Step3_SelectActivities',
+          action: 'load_activities',
+          dealId
+        },
+        extra: {
+          dealId,
+          dealType,
+          obligations: currentDeal.obligations,
+          obligationsKeys: Object.keys(currentDeal.obligations),
+          step: 'Step3_SelectActivities',
+          operation: 'useEffect'
+        }
+      });
+      
       // Filter out invalid activity types but preserve valid ones
       const validActivities = Object.keys(currentDeal.obligations).filter(activity => {
         const validActivityTypes = [
@@ -86,11 +103,46 @@ const Step3_SelectActivities = () => {
         const isValid = validActivityTypes.includes(activity);
         if (!isValid) {
           console.warn('⚠️ Filtering out invalid activity type:', activity);
+          
+          // Track invalid activity filtering
+          Sentry.captureMessage('Step3_SelectActivities: Filtering invalid activity', 'warning', {
+            tags: {
+              component: 'Step3_SelectActivities',
+              action: 'filter_invalid_activity',
+              dealId
+            },
+            extra: {
+              dealId,
+              dealType,
+              invalidActivity: activity,
+              validActivityTypes,
+              step: 'Step3_SelectActivities',
+              operation: 'useEffect'
+            }
+          });
         }
         return isValid;
       });
       
       console.log('✅ Valid activities found:', validActivities);
+      
+      // Track successful activity loading
+      Sentry.captureMessage('Step3_SelectActivities: Activities loaded successfully', 'info', {
+        tags: {
+          component: 'Step3_SelectActivities',
+          action: 'activities_loaded',
+          dealId
+        },
+        extra: {
+          dealId,
+          dealType,
+          validActivities,
+          validActivitiesCount: validActivities.length,
+          step: 'Step3_SelectActivities',
+          operation: 'useEffect'
+        }
+      });
+      
       setSelectedActivities(validActivities);
       
       if (currentDeal.obligations.other?.description) {
@@ -98,6 +150,24 @@ const Step3_SelectActivities = () => {
       }
     } else {
       console.log('📝 No obligations found, starting with empty selection');
+      
+      // Track empty obligations case
+      Sentry.captureMessage('Step3_SelectActivities: No obligations found', 'info', {
+        tags: {
+          component: 'Step3_SelectActivities',
+          action: 'no_obligations',
+          dealId
+        },
+        extra: {
+          dealId,
+          dealType,
+          hasCurrentDeal: !!currentDeal,
+          currentDealKeys: currentDeal ? Object.keys(currentDeal) : [],
+          step: 'Step3_SelectActivities',
+          operation: 'useEffect'
+        }
+      });
+      
       setSelectedActivities([]);
     }
   }, [currentDeal]);
@@ -121,9 +191,45 @@ const Step3_SelectActivities = () => {
   };
 
   const handleNext = async () => {
+    // Track navigation attempt
+    Sentry.captureMessage('Step3_SelectActivities: Navigation attempt started', 'info', {
+      tags: {
+        component: 'Step3_SelectActivities',
+        action: 'navigation_attempt',
+        dealId
+      },
+      extra: {
+        dealId,
+        dealType,
+        selectedActivities,
+        selectedActivitiesCount: selectedActivities.length,
+        otherActivity,
+        step: 'Step3_SelectActivities',
+        operation: 'handleNext'
+      }
+    });
+    
     // Validate that we have at least one activity selected
     if (selectedActivities.length === 0) {
       console.error('❌ No activities selected');
+      
+      // Track no activities selected error
+      Sentry.captureMessage('Step3_SelectActivities: No activities selected', 'error', {
+        tags: {
+          component: 'Step3_SelectActivities',
+          action: 'no_activities_selected',
+          dealId
+        },
+        extra: {
+          dealId,
+          dealType,
+          selectedActivities,
+          selectedActivitiesCount: selectedActivities.length,
+          step: 'Step3_SelectActivities',
+          operation: 'handleNext'
+        }
+      });
+      
       toast({
         title: 'No Activities Selected',
         description: 'Please select at least one activity to continue.',
@@ -224,6 +330,24 @@ const Step3_SelectActivities = () => {
         console.error('Selected activities:', selectedActivities);
         console.error('Valid activity types:', validActivityTypes);
         
+        // Track invalid activity type error
+        Sentry.captureMessage('Step3_SelectActivities: Invalid activity type', 'error', {
+          tags: {
+            component: 'Step3_SelectActivities',
+            action: 'invalid_activity_type',
+            dealId
+          },
+          extra: {
+            dealId,
+            dealType,
+            firstActivity,
+            selectedActivities,
+            validActivityTypes,
+            step: 'Step3_SelectActivities',
+            operation: 'handleNext'
+          }
+        });
+        
         toast({
           title: 'Invalid Activity Type',
           description: `The activity "${firstActivity}" is not valid. Please select different activities.`,
@@ -236,25 +360,22 @@ const Step3_SelectActivities = () => {
       
       const encodedActivity = encodeURIComponent(firstActivity);
       const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-
-      console.log('🎯 Navigating to first activity:');
-      console.log('firstActivity:', firstActivity);
-      console.log('encodedActivity:', encodedActivity);
-      console.log('Full URL:', `/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`);
-
-      // Track navigation attempt
-      Sentry.captureMessage('Step3_SelectActivities: Attempting navigation', 'info', {
+      
+      // Track successful navigation attempt
+      Sentry.captureMessage('Step3_SelectActivities: Navigating to first activity', 'info', {
         tags: {
           component: 'Step3_SelectActivities',
-          action: 'navigation_attempt',
+          action: 'navigate_to_activity',
           dealId
         },
         extra: {
           dealId,
+          dealType,
           firstActivity,
           encodedActivity,
-          fullUrl: `/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`,
-          typeParam
+          targetUrl: `/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`,
+          step: 'Step3_SelectActivities',
+          operation: 'handleNext'
         }
       });
 

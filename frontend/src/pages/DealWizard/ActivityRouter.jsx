@@ -162,6 +162,24 @@ const ActivityRouter = () => {
   // Check if we have a valid activity component
   const ActivityComponent = activityComponentMap[decodedActivityType];
   
+  // Track component resolution attempt
+  Sentry.captureMessage('ActivityRouter: Component resolution attempt', 'info', {
+    tags: {
+      component: 'ActivityRouter',
+      action: 'component_resolution',
+      dealId
+    },
+    extra: {
+      dealId,
+      dealType,
+      decodedActivityType,
+      hasComponent: !!ActivityComponent,
+      availableComponents: Object.keys(activityComponentMap),
+      step: 'ActivityRouter',
+      operation: 'component_resolution'
+    }
+  });
+  
   if (!ActivityComponent) {
     console.error('❌ No component found for activity type:', decodedActivityType);
     console.error('Available components:', Object.keys(activityComponentMap));
@@ -175,14 +193,36 @@ const ActivityRouter = () => {
       },
       extra: {
         dealId,
+        dealType,
         decodedActivityType,
-        availableComponents: Object.keys(activityComponentMap)
+        availableComponents: Object.keys(activityComponentMap),
+        step: 'ActivityRouter',
+        operation: 'component_resolution'
       }
     });
     
     // Redirect to activities selection instead of dashboard
     const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-    return <Navigate to={`/add/deal/activities/select/${dealId}${typeParam}`} replace />;
+    const redirectUrl = `/add/deal/activities/select/${dealId}${typeParam}`;
+    
+    // Track redirect to activities selection
+    Sentry.captureMessage('ActivityRouter: Redirecting to activities selection', 'info', {
+      tags: {
+        component: 'ActivityRouter',
+        action: 'redirect_to_activities',
+        dealId
+      },
+      extra: {
+        dealId,
+        dealType,
+        decodedActivityType,
+        redirectUrl,
+        step: 'ActivityRouter',
+        operation: 'component_resolution'
+      }
+    });
+    
+    return <Navigate to={redirectUrl} replace />;
   }
 
   // Calculate current activity index directly from the URL and sequence
