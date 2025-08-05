@@ -45,24 +45,31 @@ const Step5_Compliance = () => {
   const [restrictedCategories, setRestrictedCategories] = useState("");
 
   useEffect(() => {
-    if (currentDeal?.compliance) {
-      setLicensingRights(currentDeal.compliance.licensingRights || "");
-      setLicensingInfo(currentDeal.compliance.licensingInfo || "");
-      setSchoolBrandVisible(currentDeal.compliance.schoolBrandVisible || "");
-      setSchoolBrandInfo(currentDeal.compliance.schoolBrandInfo || "");
-      setExclusiveRights(currentDeal.compliance.exclusiveRights || "");
-      setConflictingSponsorships(currentDeal.compliance.conflictingSponsorships || "");
-      setConflictingInfo(currentDeal.compliance.conflictingInfo || "");
-      setProfessionalRep(currentDeal.compliance.professionalRep || "");
-      setRestrictedCategories(currentDeal.compliance.restrictedCategories || "");
+    if (currentDeal) {
+      // Load data from the fields where it's actually being saved
+      setLicensingRights(currentDeal.licenses_nil || "");
+      setSchoolBrandVisible(currentDeal.uses_school_ip ? "yes" : "no");
+      setExclusiveRights(currentDeal.grant_exclusivity || "");
+
+      // Load additional info from obligations if it exists
+      if (currentDeal.obligations) {
+        setLicensingInfo(currentDeal.obligations.licensingInfo || "");
+        setSchoolBrandInfo(currentDeal.obligations.schoolBrandInfo || "");
+        setConflictingSponsorships(currentDeal.obligations.conflictingSponsorships || "");
+        setConflictingInfo(currentDeal.obligations.conflictingInfo || "");
+        setProfessionalRep(currentDeal.obligations.professionalRep || "");
+        setRestrictedCategories(currentDeal.obligations.restrictedCategories || "");
+      }
 
       formLogger.info('Compliance data loaded from deal', {
         dealId,
         dealType,
         step: 'Step5_Compliance',
         operation: 'useEffect',
-        hasComplianceData: !!currentDeal.compliance,
-        complianceFields: Object.keys(currentDeal.compliance || {})
+        hasLicensesNil: !!currentDeal.licenses_nil,
+        hasUsesSchoolIp: !!currentDeal.uses_school_ip,
+        hasGrantExclusivity: !!currentDeal.grant_exclusivity,
+        hasObligations: !!currentDeal.obligations
       });
     }
   }, [currentDeal]);
