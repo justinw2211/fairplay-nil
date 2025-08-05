@@ -52,22 +52,15 @@ const Step5_Compliance = () => {
         setLicensingRights(currentDeal.licenses_nil);
       }
 
-      // TEMPORARY FIX: Only set if the deal has been saved before (has an ID and is not a new deal)
-      if (currentDeal.uses_school_ip !== undefined && currentDeal.id && currentDeal.status !== 'draft') {
+      // Only set if the field exists and we're not on a new draft deal
+      if (currentDeal.uses_school_ip !== undefined && (!currentDeal.id || currentDeal.status === 'draft')) {
+        // Don't set for new draft deals to prevent pre-selection
+      } else if (currentDeal.uses_school_ip !== undefined) {
         setSchoolBrandVisible(currentDeal.uses_school_ip ? "yes" : "no");
       }
 
-      // TEMPORARY FIX: Only set if the deal has been saved before (has an ID and is not a new deal)
-      if (currentDeal.grant_exclusivity !== undefined && currentDeal.id && currentDeal.status !== 'draft') {
+      if (currentDeal.grant_exclusivity !== undefined) {
         setExclusiveRights(currentDeal.grant_exclusivity);
-        formLogger.info('Exclusive rights loaded', {
-          dealId,
-          dealType,
-          step: 'Step5_Compliance',
-          operation: 'useEffect',
-          grantExclusivityValue: currentDeal.grant_exclusivity,
-          willSetExclusiveRights: currentDeal.grant_exclusivity
-        });
       }
 
       // Load additional info from obligations if it exists
