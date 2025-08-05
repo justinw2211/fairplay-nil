@@ -46,19 +46,39 @@ const Step5_Compliance = () => {
 
   useEffect(() => {
     if (currentDeal) {
-      // Load data from the fields where it's actually being saved
-      setLicensingRights(currentDeal.licenses_nil || "");
-      setSchoolBrandVisible(currentDeal.uses_school_ip !== undefined ? (currentDeal.uses_school_ip ? "yes" : "no") : "");
-      setExclusiveRights(currentDeal.grant_exclusivity || "");
+      // Only set values if the fields actually exist and have been explicitly set
+      if (currentDeal.licenses_nil !== undefined) {
+        setLicensingRights(currentDeal.licenses_nil);
+      }
+
+      if (currentDeal.uses_school_ip !== undefined) {
+        setSchoolBrandVisible(currentDeal.uses_school_ip ? "yes" : "no");
+      }
+
+      if (currentDeal.grant_exclusivity !== undefined) {
+        setExclusiveRights(currentDeal.grant_exclusivity);
+      }
 
       // Load additional info from obligations if it exists
       if (currentDeal.obligations) {
-        setLicensingInfo(currentDeal.obligations.licensingInfo || "");
-        setSchoolBrandInfo(currentDeal.obligations.schoolBrandInfo || "");
-        setConflictingSponsorships(currentDeal.obligations.conflictingSponsorships || "");
-        setConflictingInfo(currentDeal.obligations.conflictingInfo || "");
-        setProfessionalRep(currentDeal.obligations.professionalRep || "");
-        setRestrictedCategories(currentDeal.obligations.restrictedCategories || "");
+        if (currentDeal.obligations.licensingInfo !== undefined) {
+          setLicensingInfo(currentDeal.obligations.licensingInfo);
+        }
+        if (currentDeal.obligations.schoolBrandInfo !== undefined) {
+          setSchoolBrandInfo(currentDeal.obligations.schoolBrandInfo);
+        }
+        if (currentDeal.obligations.conflictingSponsorships !== undefined) {
+          setConflictingSponsorships(currentDeal.obligations.conflictingSponsorships);
+        }
+        if (currentDeal.obligations.conflictingInfo !== undefined) {
+          setConflictingInfo(currentDeal.obligations.conflictingInfo);
+        }
+        if (currentDeal.obligations.professionalRep !== undefined) {
+          setProfessionalRep(currentDeal.obligations.professionalRep);
+        }
+        if (currentDeal.obligations.restrictedCategories !== undefined) {
+          setRestrictedCategories(currentDeal.obligations.restrictedCategories);
+        }
       }
 
       formLogger.info('Compliance data loaded from deal', {
@@ -66,11 +86,14 @@ const Step5_Compliance = () => {
         dealType,
         step: 'Step5_Compliance',
         operation: 'useEffect',
-        hasLicensesNil: !!currentDeal.licenses_nil,
+        hasLicensesNil: currentDeal.licenses_nil !== undefined,
+        licensesNilValue: currentDeal.licenses_nil,
         hasUsesSchoolIp: currentDeal.uses_school_ip !== undefined,
         usesSchoolIpValue: currentDeal.uses_school_ip,
-        hasGrantExclusivity: !!currentDeal.grant_exclusivity,
-        hasObligations: !!currentDeal.obligations
+        hasGrantExclusivity: currentDeal.grant_exclusivity !== undefined,
+        grantExclusivityValue: currentDeal.grant_exclusivity,
+        hasObligations: !!currentDeal.obligations,
+        currentDealKeys: Object.keys(currentDeal)
       });
     }
   }, [currentDeal]);
