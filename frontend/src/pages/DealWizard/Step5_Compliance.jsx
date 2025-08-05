@@ -289,21 +289,22 @@ const Step5_Compliance = () => {
 
     if (typeof Sentry !== 'undefined' && Sentry.captureMessage) {
       Sentry.captureMessage('Step5_Compliance: Form submit attempt', 'info', {
-      tags: {
-        component: 'Step5_Compliance',
-        action: 'form_submit_attempt',
-        dealId
-      },
-      extra: {
-        dealId,
-        dealType,
-        allFieldValues,
-        missingFields,
-        step: 'Step5_Compliance',
-        operation: 'handleNext',
-        url: window.location.href
-      }
-    });
+        tags: {
+          component: 'Step5_Compliance',
+          action: 'form_submit_attempt',
+          dealId
+        },
+        extra: {
+          dealId,
+          dealType,
+          allFieldValues,
+          missingFields,
+          step: 'Step5_Compliance',
+          operation: 'handleNext',
+          url: window.location.href
+        }
+      });
+    }
 
     if (!isFormValid()) {
       formLogger.debug('Form validation failed - missing required answers');
@@ -330,20 +331,20 @@ const Step5_Compliance = () => {
     // Track successful submission
     if (typeof Sentry !== 'undefined' && Sentry.captureMessage) {
       Sentry.captureMessage('Step5_Compliance: Form submitted successfully', 'info', {
-      tags: {
-        component: 'Step5_Compliance',
-        action: 'form_submitted',
-        dealId
-      },
-      extra: {
-        dealId,
-        dealType,
-        submittedData: formattedData,
-        step: 'Step5_Compliance',
-        operation: 'handleNext',
-        url: window.location.href
-      }
-    });
+        tags: {
+          component: 'Step5_Compliance',
+          action: 'form_submitted',
+          dealId
+        },
+        extra: {
+          dealId,
+          dealType,
+          submittedData: formattedData,
+          step: 'Step5_Compliance',
+          operation: 'handleNext',
+          url: window.location.href
+        }
+      });
     }
 
     try {
