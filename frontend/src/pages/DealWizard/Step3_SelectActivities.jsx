@@ -75,7 +75,16 @@ const Step3_SelectActivities = () => {
 
   useEffect(() => {
     if (currentDeal?.obligations) {
-      setSelectedActivities(Object.keys(currentDeal.obligations));
+      // Filter out invalid activity types
+      const validActivities = Object.keys(currentDeal.obligations).filter(activity => {
+        const validActivityTypes = [
+          'social-media', 'appearance', 'content-for-brand', 'autographs', 
+          'merch-and-products', 'endorsements', 'other'
+        ];
+        return validActivityTypes.includes(activity);
+      });
+      
+      setSelectedActivities(validActivities);
       if (currentDeal.obligations.other?.description) {
         setOtherActivity(currentDeal.obligations.other.description);
       }
@@ -179,6 +188,25 @@ const Step3_SelectActivities = () => {
       });
 
       const firstActivity = selectedActivities[0];
+      
+      // Validate that the first activity is a valid activity type
+      const validActivityTypes = [
+        'social-media', 'appearance', 'content-for-brand', 'autographs', 
+        'merch-and-products', 'endorsements', 'other'
+      ];
+      
+      if (!validActivityTypes.includes(firstActivity)) {
+        console.error('❌ Invalid activity type:', firstActivity);
+        toast({
+          title: 'Invalid Activity',
+          description: 'Please select valid activities to continue.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+      
       const encodedActivity = encodeURIComponent(firstActivity);
       const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
 

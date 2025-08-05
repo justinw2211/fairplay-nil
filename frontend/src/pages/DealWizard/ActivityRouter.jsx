@@ -159,35 +159,18 @@ const ActivityRouter = () => {
   }
 
   const decodedActivityType = decodeURIComponent(activityType);
+  // Check if we have a valid activity component
   const ActivityComponent = activityComponentMap[decodedActivityType];
-
-  console.log('🎯 Component resolution:');
-  console.log('decodedActivityType:', decodedActivityType);
-  console.log('ActivityComponent:', ActivityComponent);
-
-  // Track component resolution
-  Sentry.captureMessage('ActivityRouter: Component resolution', 'info', {
-    tags: {
-      component: 'ActivityRouter',
-      action: 'component_resolution',
-      dealId
-    },
-    extra: {
-      dealId,
-      decodedActivityType,
-      hasComponent: !!ActivityComponent,
-      availableComponents: Object.keys(activityComponentMap)
-    }
-  });
-
+  
   if (!ActivityComponent) {
-    console.error(`❌ No component found for activity type: ${decodedActivityType}`);
-
-    // Track missing component error
+    console.error('❌ No component found for activity type:', decodedActivityType);
+    console.error('Available components:', Object.keys(activityComponentMap));
+    
+    // Track component not found error
     Sentry.captureMessage('ActivityRouter: No component found', 'error', {
       tags: {
         component: 'ActivityRouter',
-        action: 'missing_component',
+        action: 'component_not_found',
         dealId
       },
       extra: {
@@ -196,8 +179,10 @@ const ActivityRouter = () => {
         availableComponents: Object.keys(activityComponentMap)
       }
     });
-
-    return <Navigate to="/dashboard" replace />;
+    
+    // Redirect to activities selection instead of dashboard
+    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+    return <Navigate to={`/add/deal/activities/select/${dealId}${typeParam}`} replace />;
   }
 
   // Calculate current activity index directly from the URL and sequence
