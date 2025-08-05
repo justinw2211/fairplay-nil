@@ -75,19 +75,30 @@ const Step3_SelectActivities = () => {
 
   useEffect(() => {
     if (currentDeal?.obligations) {
-      // Filter out invalid activity types
+      console.log('🔄 Loading activities from obligations:', currentDeal.obligations);
+      
+      // Filter out invalid activity types but preserve valid ones
       const validActivities = Object.keys(currentDeal.obligations).filter(activity => {
         const validActivityTypes = [
           'social-media', 'appearance', 'content-for-brand', 'autographs', 
           'merch-and-products', 'endorsements', 'other'
         ];
-        return validActivityTypes.includes(activity);
+        const isValid = validActivityTypes.includes(activity);
+        if (!isValid) {
+          console.warn('⚠️ Filtering out invalid activity type:', activity);
+        }
+        return isValid;
       });
       
+      console.log('✅ Valid activities found:', validActivities);
       setSelectedActivities(validActivities);
+      
       if (currentDeal.obligations.other?.description) {
         setOtherActivity(currentDeal.obligations.other.description);
       }
+    } else {
+      console.log('📝 No obligations found, starting with empty selection');
+      setSelectedActivities([]);
     }
   }, [currentDeal]);
 
@@ -110,6 +121,19 @@ const Step3_SelectActivities = () => {
   };
 
   const handleNext = async () => {
+    // Validate that we have at least one activity selected
+    if (selectedActivities.length === 0) {
+      console.error('❌ No activities selected');
+      toast({
+        title: 'No Activities Selected',
+        description: 'Please select at least one activity to continue.',
+        status: 'warning',
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+    
     // Create obligations with proper sequential ordering
     const newObligations = {};
     selectedActivities.forEach((activity, index) => {
@@ -197,11 +221,14 @@ const Step3_SelectActivities = () => {
       
       if (!validActivityTypes.includes(firstActivity)) {
         console.error('❌ Invalid activity type:', firstActivity);
+        console.error('Selected activities:', selectedActivities);
+        console.error('Valid activity types:', validActivityTypes);
+        
         toast({
-          title: 'Invalid Activity',
-          description: 'Please select valid activities to continue.',
+          title: 'Invalid Activity Type',
+          description: `The activity "${firstActivity}" is not valid. Please select different activities.`,
           status: 'error',
-          duration: 5000,
+          duration: 7000,
           isClosable: true,
         });
         return;
