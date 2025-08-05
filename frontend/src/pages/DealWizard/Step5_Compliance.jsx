@@ -54,6 +54,24 @@ const Step5_Compliance = () => {
 
       if (currentDeal.uses_school_ip !== undefined) {
         setSchoolBrandVisible(currentDeal.uses_school_ip ? "yes" : "no");
+        Sentry.captureMessage('Step5_Compliance: Question 2 data loading', 'info', {
+          tags: {
+            component: 'Step5_Compliance',
+            action: 'question2_data_loading',
+            dealId: dealId?.toString()
+          },
+          extra: {
+            dealId,
+            dealType,
+            step: 'Step5_Compliance',
+            operation: 'useEffect',
+            question: 'School Brand Visible',
+            usesSchoolIpValue: currentDeal.uses_school_ip,
+            willSetSchoolBrandVisible: currentDeal.uses_school_ip ? "yes" : "no",
+            currentDealKeys: Object.keys(currentDeal),
+            fullCurrentDeal: currentDeal
+          }
+        });
       }
 
       if (currentDeal.grant_exclusivity !== undefined) {
