@@ -430,6 +430,12 @@ export const DealProvider = ({ children }) => {
       throw new Error('User must be authenticated to fetch a deal');
     }
 
+    // Prevent fetching if we're already loading the same deal
+    if (loading && currentDeal?.id?.toString() === dealId) {
+      console.log('[DealContext] Already loading this deal, skipping fetch');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 

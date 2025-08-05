@@ -21,7 +21,11 @@ const DealWizardLayoutContent = ({ children, title, instructions, onContinue, is
         contextDealId: deal?.id,
         willFetch: true
       });
-      fetchDealById(dealId);
+      // Add a small delay to prevent race conditions
+      const timeoutId = setTimeout(() => {
+        fetchDealById(dealId);
+      }, 100);
+      return () => clearTimeout(timeoutId);
     } else {
       console.log('[DealWizardLayout] Deal ID check:', {
         urlDealId: dealId,
@@ -29,7 +33,7 @@ const DealWizardLayoutContent = ({ children, title, instructions, onContinue, is
         willFetch: false
       });
     }
-  }, [dealId, deal, fetchDealById]);
+  }, [dealId, deal?.id, fetchDealById]);
 
   // This handles the "Save and Exit" functionality.
   const handleSaveAndExit = () => {
