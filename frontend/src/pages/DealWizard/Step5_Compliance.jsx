@@ -175,29 +175,32 @@ const Step5_Compliance = () => {
       return;
     }
 
-    // Format the data to match what useEffect expects to load
-    const complianceData = {
-      licensingRights,
-      licensingInfo,
-      schoolBrandVisible,
-      schoolBrandInfo,
-      exclusiveRights,
-      conflictingSponsorships,
-      conflictingInfo,
-      professionalRep,
-      restrictedCategories
+    // Format the data according to the backend schema
+    const formattedData = {
+      // Map licensingRights to licenses_nil
+      licenses_nil: licensingRights,
+
+      // Map schoolBrandVisible to uses_school_ip
+      uses_school_ip: schoolBrandVisible === 'yes',
+
+      // Map exclusiveRights to grant_exclusivity
+      grant_exclusivity: exclusiveRights,
+
+      // Store the rest in obligations
+      obligations: {
+        licensingInfo,
+        schoolBrandInfo,
+        conflictingSponsorships,
+        conflictingInfo,
+        professionalRep,
+        restrictedCategories
+      }
     };
 
-    formLogger.info('Saving compliance data', {
-      dealId,
-      dealType,
-      step: 'Step5_Compliance',
-      operation: 'handleNext',
-      complianceData
-    });
+    formLogger.debug('Submitting compliance data');
 
     try {
-      await updateDeal(dealId, { compliance: complianceData });
+      await updateDeal(dealId, formattedData);
       const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
       navigate(`/add/deal/compensation/${dealId}${typeParam}`);
     } catch (error) {
