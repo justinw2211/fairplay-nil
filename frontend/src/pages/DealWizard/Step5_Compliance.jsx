@@ -57,8 +57,17 @@ const Step5_Compliance = () => {
         setSchoolBrandVisible(currentDeal.uses_school_ip ? "yes" : "no");
       }
 
-      if (currentDeal.grant_exclusivity !== undefined) {
+      // TEMPORARY FIX: Only set if the deal has been saved before (has an ID and is not a new deal)
+      if (currentDeal.grant_exclusivity !== undefined && currentDeal.id && currentDeal.status !== 'draft') {
         setExclusiveRights(currentDeal.grant_exclusivity);
+        formLogger.info('Exclusive rights loaded', {
+          dealId,
+          dealType,
+          step: 'Step5_Compliance',
+          operation: 'useEffect',
+          grantExclusivityValue: currentDeal.grant_exclusivity,
+          willSetExclusiveRights: currentDeal.grant_exclusivity
+        });
       }
 
       // Load additional info from obligations if it exists
