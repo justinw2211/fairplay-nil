@@ -285,7 +285,26 @@ const Step5_Compliance = () => {
   const handleBack = () => {
     // Navigate back to activities selection (Step 3)
     const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
+    const destinationUrl = `/add/deal/activities/select/${dealId}${typeParam}`;
+    
+    // Track back navigation with destination URL
+    Sentry.captureMessage('Step5_Compliance: Back navigation', 'info', {
+      tags: {
+        component: 'Step5_Compliance',
+        action: 'back_navigation',
+        dealId
+      },
+      extra: {
+        dealId,
+        dealType,
+        destinationUrl,
+        currentUrl: window.location.href,
+        step: 'Step5_Compliance',
+        operation: 'handleBack'
+      }
+    });
+    
+    navigate(destinationUrl);
   };
 
   return (

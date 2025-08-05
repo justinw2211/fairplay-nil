@@ -379,7 +379,28 @@ const Step3_SelectActivities = () => {
         }
       });
 
-      navigate(`/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`);
+      // Track successful navigation with destination URL
+      const destinationUrl = `/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`;
+      Sentry.captureMessage('Step3_SelectActivities: Navigation successful', 'info', {
+        tags: {
+          component: 'Step3_SelectActivities',
+          action: 'navigation_successful',
+          dealId
+        },
+        extra: {
+          dealId,
+          dealType,
+          firstActivity,
+          encodedActivity,
+          destinationUrl,
+          currentUrl: window.location.href,
+          selectedActivities,
+          step: 'Step3_SelectActivities',
+          operation: 'handleNext'
+        }
+      });
+      
+      navigate(destinationUrl);
 
       // Track successful navigation
       Sentry.captureMessage('Step3_SelectActivities: Navigation completed', 'info', {

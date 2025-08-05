@@ -204,9 +204,7 @@ const ActivityRouter = () => {
     // Redirect to activities selection instead of dashboard
     const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
     const redirectUrl = `/add/deal/activities/select/${dealId}${typeParam}`;
-    
-    // Track redirect to activities selection
-    Sentry.captureMessage('ActivityRouter: Redirecting to activities selection', 'info', {
+    Sentry.captureMessage('ActivityRouter: Redirecting to activities selection', 'warning', {
       tags: {
         component: 'ActivityRouter',
         action: 'redirect_to_activities',
@@ -217,12 +215,14 @@ const ActivityRouter = () => {
         dealType,
         decodedActivityType,
         redirectUrl,
+        currentUrl: window.location.href,
+        availableComponents: Object.keys(activityComponentMap),
         step: 'ActivityRouter',
-        operation: 'component_resolution'
+        operation: 'component_not_found_redirect'
       }
     });
     
-    return <Navigate to={redirectUrl} replace />;
+    navigate(redirectUrl);
   }
 
   // Calculate current activity index directly from the URL and sequence
