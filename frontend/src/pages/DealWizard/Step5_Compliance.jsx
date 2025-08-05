@@ -283,26 +283,68 @@ const Step5_Compliance = () => {
   };
 
   const handleBack = () => {
-    // Navigate back to activities selection (Step 3)
-    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-    const destinationUrl = `/add/deal/activities/select/${dealId}${typeParam}`;
+    // Find the last completed activity from obligations
+    const obligations = currentDeal?.obligations || {};
+    const validActivityTypes = [
+      'social-media', 'appearance', 'content-for-brand', 'autographs', 
+      'merch-and-products', 'endorsements', 'other'
+    ];
     
-    // Track back navigation with destination URL
-    Sentry.captureMessage('Step5_Compliance: Back navigation', 'info', {
-      tags: {
-        component: 'Step5_Compliance',
-        action: 'back_navigation',
-        dealId
-      },
-      extra: {
-        dealId,
-        dealType,
-        destinationUrl,
-        currentUrl: window.location.href,
-        step: 'Step5_Compliance',
-        operation: 'handleBack'
-      }
-    });
+    // Get valid activities that have been completed
+    const completedActivities = Object.keys(obligations)
+      .filter(activity => validActivityTypes.includes(activity))
+      .filter(activity => obligations[activity]?.completed === true);
+    
+    let destinationUrl;
+    
+    if (completedActivities.length > 0) {
+      // Navigate to the last completed activity
+      const lastActivity = completedActivities[completedActivities.length - 1];
+      const encodedActivity = encodeURIComponent(lastActivity);
+      const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+      destinationUrl = `/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`;
+      
+      // Track back navigation to last activity
+      Sentry.captureMessage('Step5_Compliance: Back navigation to last activity', 'info', {
+        tags: {
+          component: 'Step5_Compliance',
+          action: 'back_navigation_to_activity',
+          dealId
+        },
+        extra: {
+          dealId,
+          dealType,
+          lastActivity,
+          completedActivities,
+          destinationUrl,
+          currentUrl: window.location.href,
+          step: 'Step5_Compliance',
+          operation: 'handleBack'
+        }
+      });
+    } else {
+      // Fallback to activities selection if no completed activities
+      const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+      destinationUrl = `/add/deal/activities/select/${dealId}${typeParam}`;
+      
+      // Track fallback navigation
+      Sentry.captureMessage('Step5_Compliance: Back navigation fallback to activities', 'warning', {
+        tags: {
+          component: 'Step5_Compliance',
+          action: 'back_navigation_fallback',
+          dealId
+        },
+        extra: {
+          dealId,
+          dealType,
+          completedActivities: [],
+          destinationUrl,
+          currentUrl: window.location.href,
+          step: 'Step5_Compliance',
+          operation: 'handleBack'
+        }
+      });
+    }
     
     navigate(destinationUrl);
   };
