@@ -48,7 +48,7 @@ const Step5_Compliance = () => {
     if (currentDeal) {
       // Load data from the fields where it's actually being saved
       setLicensingRights(currentDeal.licenses_nil || "");
-      setSchoolBrandVisible(currentDeal.uses_school_ip ? "yes" : "no");
+      setSchoolBrandVisible(currentDeal.uses_school_ip !== undefined ? (currentDeal.uses_school_ip ? "yes" : "no") : "");
       setExclusiveRights(currentDeal.grant_exclusivity || "");
 
       // Load additional info from obligations if it exists
@@ -67,7 +67,8 @@ const Step5_Compliance = () => {
         step: 'Step5_Compliance',
         operation: 'useEffect',
         hasLicensesNil: !!currentDeal.licenses_nil,
-        hasUsesSchoolIp: !!currentDeal.uses_school_ip,
+        hasUsesSchoolIp: currentDeal.uses_school_ip !== undefined,
+        usesSchoolIpValue: currentDeal.uses_school_ip,
         hasGrantExclusivity: !!currentDeal.grant_exclusivity,
         hasObligations: !!currentDeal.obligations
       });
