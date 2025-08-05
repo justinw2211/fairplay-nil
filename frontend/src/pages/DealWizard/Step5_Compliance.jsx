@@ -32,7 +32,7 @@ const Step5_Compliance = () => {
   const [searchParams] = useSearchParams();
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
-  const { deal, updateDeal } = useDeal();
+  const { currentDeal, updateDeal } = useDeal();
 
   const [licensingRights, setLicensingRights] = useState("");
   const [licensingInfo, setLicensingInfo] = useState("");
@@ -45,18 +45,27 @@ const Step5_Compliance = () => {
   const [restrictedCategories, setRestrictedCategories] = useState("");
 
   useEffect(() => {
-    if (deal?.compliance) {
-      setLicensingRights(deal.compliance.licensingRights || "");
-      setLicensingInfo(deal.compliance.licensingInfo || "");
-      setSchoolBrandVisible(deal.compliance.schoolBrandVisible || "");
-      setSchoolBrandInfo(deal.compliance.schoolBrandInfo || "");
-      setExclusiveRights(deal.compliance.exclusiveRights || "");
-      setConflictingSponsorships(deal.compliance.conflictingSponsorships || "");
-      setConflictingInfo(deal.compliance.conflictingInfo || "");
-      setProfessionalRep(deal.compliance.professionalRep || "");
-      setRestrictedCategories(deal.compliance.restrictedCategories || "");
+    if (currentDeal?.compliance) {
+      setLicensingRights(currentDeal.compliance.licensingRights || "");
+      setLicensingInfo(currentDeal.compliance.licensingInfo || "");
+      setSchoolBrandVisible(currentDeal.compliance.schoolBrandVisible || "");
+      setSchoolBrandInfo(currentDeal.compliance.schoolBrandInfo || "");
+      setExclusiveRights(currentDeal.compliance.exclusiveRights || "");
+      setConflictingSponsorships(currentDeal.compliance.conflictingSponsorships || "");
+      setConflictingInfo(currentDeal.compliance.conflictingInfo || "");
+      setProfessionalRep(currentDeal.compliance.professionalRep || "");
+      setRestrictedCategories(currentDeal.compliance.restrictedCategories || "");
+
+      formLogger.info('Compliance data loaded from deal', {
+        dealId,
+        dealType,
+        step: 'Step5_Compliance',
+        operation: 'useEffect',
+        hasComplianceData: !!currentDeal.compliance,
+        complianceFields: Object.keys(currentDeal.compliance || {})
+      });
     }
-  }, [deal]);
+  }, [currentDeal]);
 
   const complianceQuestions = [
     {
@@ -201,13 +210,13 @@ const Step5_Compliance = () => {
 
   const handleBack = () => {
     // Need to get the last completed activity or the last activity in sequence
-    if (deal?.obligations) {
-      const selectedActivities = Object.entries(deal.obligations)
+    if (currentDeal?.obligations) {
+      const selectedActivities = Object.entries(currentDeal.obligations)
         .sort((a, b) => a[1].sequence - b[1].sequence)
         .map(([activity]) => activity);
 
       // Find the last activity (either the last completed one or the last in sequence)
-      const lastActivity = deal.lastCompletedActivity || selectedActivities[selectedActivities.length - 1];
+      const lastActivity = currentDeal.lastCompletedActivity || selectedActivities[selectedActivities.length - 1];
 
       if (lastActivity) {
         const encodedActivity = encodeURIComponent(lastActivity);
