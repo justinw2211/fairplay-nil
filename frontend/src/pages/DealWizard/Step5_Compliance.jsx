@@ -283,24 +283,7 @@ const Step5_Compliance = () => {
   };
 
   const handleBack = () => {
-    // Need to get the last completed activity or the last activity in sequence
-    if (currentDeal?.obligations) {
-      const selectedActivities = Object.entries(currentDeal.obligations)
-        .sort((a, b) => a[1].sequence - b[1].sequence)
-        .map(([activity]) => activity);
-
-      // Find the last activity (either the last completed one or the last in sequence)
-      const lastActivity = currentDeal.lastCompletedActivity || selectedActivities[selectedActivities.length - 1];
-
-      if (lastActivity) {
-        const encodedActivity = encodeURIComponent(lastActivity);
-        const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-        navigate(`/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`);
-        return;
-      }
-    }
-
-    // Fallback to activities selection if we can't determine the last activity
+    // Navigate back to activities selection (Step 3)
     const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
     navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
   };
