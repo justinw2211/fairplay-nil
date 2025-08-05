@@ -16,7 +16,18 @@ const DealWizardLayoutContent = ({ children, title, instructions, onContinue, is
   useEffect(() => {
     // Only fetch if there's a dealId in the URL and it doesn't match the deal in context
     if (dealId && deal?.id?.toString() !== dealId) {
+      console.log('[DealWizardLayout] Deal ID mismatch detected:', {
+        urlDealId: dealId,
+        contextDealId: deal?.id,
+        willFetch: true
+      });
       fetchDealById(dealId);
+    } else {
+      console.log('[DealWizardLayout] Deal ID check:', {
+        urlDealId: dealId,
+        contextDealId: deal?.id,
+        willFetch: false
+      });
     }
   }, [dealId, deal, fetchDealById]);
 
