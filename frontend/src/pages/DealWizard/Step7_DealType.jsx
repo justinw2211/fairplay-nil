@@ -50,14 +50,19 @@ const Step7_DealType = () => {
   }, [dealId]);
   const [error, setError] = useState('');
 
-  // Hydrate from saved deal value ONLY when it exists, is valid, and the user has previously visited this step
+  // Hydrate from saved deal value ONLY when:
+  // 1) user has previously visited this step (per-deal flag), and
+  // 2) there is currently no local selection in state, and
+  // 3) the saved value is valid.
   useEffect(() => {
     try {
       if (!currentDeal) {return;}
       const saved = currentDeal.submission_type;
       const validOptions = ['test_demo', 'prospective', 'finalized'];
       const isValid = typeof saved === 'string' && validOptions.includes(saved);
-      setSubmissionType(hasVisited && isValid ? saved : '');
+      if (hasVisited && !submissionType && isValid) {
+        setSubmissionType(saved);
+      }
 
       logger.info('Deal type step loaded', {
         dealId,
@@ -67,7 +72,7 @@ const Step7_DealType = () => {
         hasSubmissionType: !!saved,
         savedSubmissionType: saved,
         hasVisited,
-        appliedValue: hasVisited && isValid ? saved : undefined
+        appliedValue: hasVisited && !submissionType && isValid ? saved : undefined
       });
     } catch (error) {
       logger.error('Error during deal type init', {
@@ -80,7 +85,7 @@ const Step7_DealType = () => {
         hasVisited
       });
     }
-  }, [currentDeal, hasVisited]);
+  }, [currentDeal, hasVisited, submissionType]);
 
   const handleSubmissionTypeChange = async (value) => {
     setSubmissionType(value);
