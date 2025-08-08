@@ -1,5 +1,5 @@
 // frontend/src/pages/DealWizard/ActivityForm_Autographs.jsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
@@ -26,7 +26,7 @@ const ActivityForm_Autographs = ({ onNext, currentActivity, totalActivities }) =
   const [searchParams] = useSearchParams();
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
-  const { deal, updateDeal } = useDeal();
+  const { currentDeal, updateDeal } = useDeal();
 
   const [numberOfItems, setNumberOfItems] = useState("");
   const [itemTypes, setItemTypes] = useState("");

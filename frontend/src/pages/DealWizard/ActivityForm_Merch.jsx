@@ -1,5 +1,5 @@
 // frontend/src/pages/DealWizard/ActivityForm_Merch.jsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
@@ -33,7 +33,7 @@ const ActivityForm_Merch = ({ onNext, currentActivity, totalActivities }) => {
   const [searchParams] = useSearchParams();
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
-  const { deal, updateDeal } = useDeal();
+  const { currentDeal, updateDeal } = useDeal();
 
   const [selectedMerch, setSelectedMerch] = useState([]);
   const [merchDetails, setMerchDetails] = useState({});
@@ -53,13 +53,13 @@ const ActivityForm_Merch = ({ onNext, currentActivity, totalActivities }) => {
   ];
 
   useEffect(() => {
-    if (deal?.obligations?.['merch-and-products']) {
-      const merchData = deal.obligations['merch-and-products'];
+    if (currentDeal?.obligations?.['merch-and-products']) {
+      const merchData = currentDeal.obligations['merch-and-products'];
       setSelectedMerch(merchData.selectedTypes || []);
       setMerchDetails(merchData.details || {});
       setCustomMerch(merchData.customMerch || "");
     }
-  }, [deal]);
+  }, [currentDeal]);
 
   const handleMerchToggle = (merchId, checked) => {
     if (checked) {
@@ -108,11 +108,11 @@ const ActivityForm_Merch = ({ onNext, currentActivity, totalActivities }) => {
     };
 
     // Get the existing activity entry to preserve sequence and completed status
-    const existingActivity = deal.obligations?.['merch-and-products'] || {};
+    const existingActivity = currentDeal.obligations?.['merch-and-products'] || {};
 
     await updateDeal(dealId, {
       obligations: {
-        ...deal.obligations,
+        ...currentDeal.obligations,
         'merch-and-products': {
           ...existingActivity, // Preserve sequence, completed, etc.
           ...formattedData,    // Add the form data

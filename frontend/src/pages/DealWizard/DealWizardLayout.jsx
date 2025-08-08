@@ -9,16 +9,16 @@ import DealWizardErrorFallback from '../../components/DealWizardErrorFallback';
 const DealWizardLayoutContent = ({ children, title, instructions, onContinue, isContinueDisabled = false, currentStep = 0 }) => {
   const { dealId } = useParams();
   const navigate = useNavigate();
-  const { deal, fetchDealById, loading } = useDeal();
+  const { currentDeal, fetchDealById, loading } = useDeal();
 
   // This effect ensures that if a user navigates directly to a wizard step URL,
   // we fetch the correct deal data to populate the form.
   useEffect(() => {
     // Only fetch if there's a dealId in the URL and it doesn't match the deal in context
-    if (dealId && deal?.id?.toString() !== dealId) {
+    if (dealId && currentDeal?.id?.toString() !== dealId) {
       console.log('[DealWizardLayout] Deal ID mismatch detected:', {
         urlDealId: dealId,
-        contextDealId: deal?.id,
+        contextDealId: currentDeal?.id,
         willFetch: true
       });
       // Add a small delay to prevent race conditions
@@ -29,11 +29,11 @@ const DealWizardLayoutContent = ({ children, title, instructions, onContinue, is
     } else {
       console.log('[DealWizardLayout] Deal ID check:', {
         urlDealId: dealId,
-        contextDealId: deal?.id,
+        contextDealId: currentDeal?.id,
         willFetch: false
       });
     }
-  }, [dealId, deal?.id, fetchDealById]);
+  }, [dealId, currentDeal?.id, fetchDealById]);
 
   // This handles the "Save and Exit" functionality.
   const handleSaveAndExit = () => {
@@ -42,7 +42,7 @@ const DealWizardLayoutContent = ({ children, title, instructions, onContinue, is
   };
 
   // While fetching the initial deal data, show a loading spinner.
-  if (loading && !deal) {
+  if (loading && !currentDeal) {
     return (
       <Flex justify="center" align="center" minH="80vh">
         <Spinner size="xl" />

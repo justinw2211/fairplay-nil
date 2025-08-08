@@ -67,7 +67,7 @@ const ValuationResult = () => {
   const dealType = searchParams.get('type') || 'valuation';
   const navigate = useNavigate();
   const toast = useToast();
-  const { deal, fetchDealById } = useDeal();
+  const { currentDeal, fetchDealById } = useDeal();
   const [prediction, setPrediction] = useState(null);
 
   useEffect(() => {
@@ -77,14 +77,14 @@ const ValuationResult = () => {
   }, [deal, dealId, fetchDealById]);
 
   useEffect(() => {
-    if (deal?.valuation_prediction) {
-      console.log('📊 ValuationResult - Setting prediction from deal:', deal.valuation_prediction);
-      setPrediction(deal.valuation_prediction);
+    if (currentDeal?.valuation_prediction) {
+      console.log('📊 ValuationResult - Setting prediction from deal:', currentDeal.valuation_prediction);
+      setPrediction(currentDeal.valuation_prediction);
     }
-  }, [deal]);
+  }, [currentDeal]);
 
   console.log('📊 ValuationResult - Current state:', {
-    deal: deal ? 'loaded' : 'loading',
+    deal: currentDeal ? 'loaded' : 'loading',
     prediction: prediction ? 'available' : 'not available',
     predictionData: prediction,
     predictionKeys: prediction ? Object.keys(prediction) : 'none',
@@ -351,7 +351,7 @@ const ValuationResult = () => {
 
                 <Box bg="blue.50" p={4} rounded="lg" borderLeft="4px" borderColor="blue.400">
                   <Text fontSize="sm" color="blue.700">
-                    <strong>Current Deal:</strong> {formatCurrency(parseFloat(deal.compensation_cash) || 0)}
+                    <strong>Current Deal:</strong> {formatCurrency(parseFloat(currentDeal.compensation_cash) || 0)}
                   </Text>
                   <Text fontSize="xs" color="blue.600" mt={1}>
                     {prediction?.market_comparison?.position_description || 'Compared to similar deals'}

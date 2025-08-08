@@ -1,5 +1,5 @@
 // frontend/src/pages/DealWizard/ActivityForm_Endorsements.jsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
@@ -29,7 +29,7 @@ const ActivityForm_Endorsements = ({ onNext, currentActivity, totalActivities })
   const [searchParams] = useSearchParams();
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
-  const { deal, updateDeal } = useDeal();
+  const { currentDeal, updateDeal } = useDeal();
 
   const [selectedEndorsements, setSelectedEndorsements] = useState([]);
   const [endorsementDetails, setEndorsementDetails] = useState({});
@@ -50,14 +50,14 @@ const ActivityForm_Endorsements = ({ onNext, currentActivity, totalActivities })
   ];
 
   useEffect(() => {
-    if (deal?.obligations?.['endorsements']) {
-      const endorsementData = deal.obligations['endorsements'];
+    if (currentDeal?.obligations?.['endorsements']) {
+      const endorsementData = currentDeal.obligations['endorsements'];
       setSelectedEndorsements(endorsementData.selectedTypes || []);
       setEndorsementDetails(endorsementData.details || {});
       setDescription(endorsementData.description || "");
       setDuration(endorsementData.duration || "");
     }
-  }, [deal]);
+  }, [currentDeal]);
 
   const handleEndorsementToggle = (endorsementId, checked) => {
     if (checked) {
@@ -103,11 +103,11 @@ const ActivityForm_Endorsements = ({ onNext, currentActivity, totalActivities })
     };
 
     // Get the existing activity entry to preserve sequence and completed status
-    const existingActivity = deal.obligations?.['endorsements'] || {};
+    const existingActivity = currentDeal.obligations?.['endorsements'] || {};
 
     await updateDeal(dealId, {
       obligations: {
-        ...deal.obligations,
+        ...currentDeal.obligations,
         'endorsements': {
           ...existingActivity, // Preserve sequence, completed, etc.
           ...formattedData,    // Add the form data

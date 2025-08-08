@@ -32,6 +32,7 @@ cd fairplay-nil
 - **[Code Quality](docs/development/code-quality/improvements.md)** - Performance and security improvements
 - **[Testing Protocol](docs/testing/testing-protocol.md)** - Comprehensive testing strategy and guidelines
 - **[Environment Setup](docs/getting-started/environment-setup.md)** - Complete environment configuration guide
+- **[Variable Naming Standards](docs/development/variable-naming-standards.md)** - Standardized variable naming conventions
 
 ### Features
 - **[Deal Wizard Bug Fixes](docs/features/deal-wizard/bug-fixes.md)** - Recent bug fixes and improvements

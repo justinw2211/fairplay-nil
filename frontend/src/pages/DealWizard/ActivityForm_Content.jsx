@@ -1,5 +1,5 @@
 // frontend/src/pages/DealWizard/ActivityForm_Content.jsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
@@ -28,7 +28,7 @@ const ActivityForm_Content = ({ onNext, currentActivity, totalActivities }) => {
   const [searchParams] = useSearchParams();
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
-  const { deal, updateDeal } = useDeal();
+  const { currentDeal, updateDeal } = useDeal();
 
   const [quantityOfContent, setQuantityOfContent] = useState("");
   const [contentDescription, setContentDescription] = useState("");

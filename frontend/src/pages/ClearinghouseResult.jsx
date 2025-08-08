@@ -62,7 +62,7 @@ const ClearinghouseResult = () => {
   const dealType = searchParams.get('type') || 'clearinghouse';
   const navigate = useNavigate();
   const toast = useToast();
-  const { deal, fetchDealById } = useDeal();
+  const { currentDeal, fetchDealById } = useDeal();
   const [prediction, setPrediction] = useState(null);
 
   useEffect(() => {

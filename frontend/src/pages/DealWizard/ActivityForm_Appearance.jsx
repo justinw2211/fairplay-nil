@@ -1,5 +1,5 @@
 // frontend/src/pages/DealWizard/ActivityForm_Appearance.jsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
@@ -40,7 +40,8 @@ const appearanceTypes = [
 const ActivityForm_Appearance = ({ onNext, currentActivity, totalActivities }) => {
   const { dealId } = useParams();
   const navigate = useNavigate();
-  const { deal, updateDeal } = useDeal();
+  const { currentDeal, updateDeal } = useDeal();
+  const dealType = 'standard'; // Default deal type for appearance form
 
   const [selectedAppearances, setSelectedAppearances] = useState([]);
   const [appearanceDetails, setAppearanceDetails] = useState({});
@@ -48,14 +49,14 @@ const ActivityForm_Appearance = ({ onNext, currentActivity, totalActivities }) =
   const [otherAppearance, setOtherAppearance] = useState("");
 
   useEffect(() => {
-    if (deal?.obligations?.['appearance']) {
-      const appearanceData = deal.obligations['appearance'];
+    if (currentDeal?.obligations?.['appearance']) {
+      const appearanceData = currentDeal.obligations['appearance'];
       setSelectedAppearances(appearanceData.selectedTypes || []);
       setAppearanceDetails(appearanceData.details || {});
       setDescription(appearanceData.description || "");
       setOtherAppearance(appearanceData.otherAppearance || "");
     }
-  }, [deal]);
+  }, [currentDeal]);
 
   const handleAppearanceToggle = (appearanceId, checked) => {
     if (checked) {
@@ -126,11 +127,11 @@ const ActivityForm_Appearance = ({ onNext, currentActivity, totalActivities }) =
     });
 
     // Get the existing activity entry to preserve sequence and completed status
-    const existingActivity = deal.obligations?.['appearance'] || {};
+    const existingActivity = currentDeal.obligations?.['appearance'] || {};
 
     await updateDeal(dealId, {
       obligations: {
-        ...deal.obligations,
+        ...currentDeal.obligations,
         'appearance': {
           ...existingActivity, // Preserve sequence, completed, etc.
           ...formattedData,    // Add the form data

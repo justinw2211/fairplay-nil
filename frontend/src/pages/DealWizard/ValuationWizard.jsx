@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import { useDealPredictions } from '../../hooks/useDealPredictions';
@@ -103,18 +103,18 @@ const ValuationWizard = () => {
   const dealType = searchParams.get('type') || 'valuation';
   const navigate = useNavigate();
   const toast = useToast();
-  const { deal, fetchDealById, updateDeal } = useDeal();
+  const { currentDeal, fetchDealById, updateDeal } = useDeal();
   const { saveValuationPrediction } = useDealPredictions(dealId);
   const [isCalculating, setIsCalculating] = useState(false);
   const [showPredictionProcess, setShowPredictionProcess] = useState(false);
 
   useEffect(() => {
-    if (!deal && dealId) {
+    if (!currentDeal && dealId) {
       fetchDealById(dealId);
     }
-  }, [deal, dealId, fetchDealById]);
+  }, [currentDeal, dealId, fetchDealById]);
 
-  if (!deal) {
+  if (!currentDeal) {
     return (
       <Flex justify="center" align="center" minH="80vh">
         <Spinner size="xl" color="brand.accentPrimary" />
@@ -125,18 +125,18 @@ const ValuationWizard = () => {
   const getTotalCompensation = () => {
     let total = 0;
 
-    if (deal.compensation_cash) {
-      total += parseFloat(deal.compensation_cash) || 0;
+    if (currentDeal.compensation_cash) {
+      total += parseFloat(currentDeal.compensation_cash) || 0;
     }
 
-    if (deal.compensation_goods && Array.isArray(deal.compensation_goods)) {
-      total += deal.compensation_goods.reduce((sum, item) => {
+    if (currentDeal.compensation_goods && Array.isArray(currentDeal.compensation_goods)) {
+      total += currentDeal.compensation_goods.reduce((sum, item) => {
         return sum + (parseFloat(item.estimated_value) || 0);
       }, 0);
     }
 
-    if (deal.compensation_other && Array.isArray(deal.compensation_other)) {
-      total += deal.compensation_other.reduce((sum, item) => {
+    if (currentDeal.compensation_other && Array.isArray(currentDeal.compensation_other)) {
+      total += currentDeal.compensation_other.reduce((sum, item) => {
         return sum + (parseFloat(item.estimated_value) || 0);
       }, 0);
     }
@@ -146,7 +146,7 @@ const ValuationWizard = () => {
 
   const handleRunValuation = async () => {
     console.log('🔍 Starting valuation prediction...');
-    console.log('Deal data:', deal);
+    console.log('Deal data:', currentDeal);
     console.log('Deal ID:', dealId);
     console.log('predictValuation function:', typeof predictValuation);
 
@@ -159,20 +159,20 @@ const ValuationWizard = () => {
 
       // Prepare athlete data for valuation (would come from user profile in real app)
       const athleteData = {
-        instagram_followers: deal.athlete_instagram_followers || 0,
-        tiktok_followers: deal.athlete_tiktok_followers || 0,
-        twitter_followers: deal.athlete_twitter_followers || 0,
-        university: deal.athlete_university || deal.deal_school,
-        sports: deal.athlete_sports || ['football'], // Default for demo
-        gender: deal.athlete_gender || 'male',
-        athletic_performance: deal.athlete_performance || null,
-        achievements: deal.athlete_achievements || []
+        instagram_followers: currentDeal.athlete_instagram_followers || 0,
+        tiktok_followers: currentDeal.athlete_tiktok_followers || 0,
+        twitter_followers: currentDeal.athlete_twitter_followers || 0,
+        university: currentDeal.athlete_university || currentDeal.deal_school,
+        sports: currentDeal.athlete_sports || ['football'], // Default for demo
+        gender: currentDeal.athlete_gender || 'male',
+        athletic_performance: currentDeal.athlete_performance || null,
+        achievements: currentDeal.athlete_achievements || []
       };
 
-      console.log('📊 Running valuation prediction with data:', { deal, athleteData });
+      console.log('📊 Running valuation prediction with data:', { currentDeal, athleteData });
 
       // Run the valuation prediction
-      const prediction = predictValuation(deal, athleteData);
+      const prediction = predictValuation(currentDeal, athleteData);
 
       console.log('✅ Valuation result:', prediction);
 
@@ -288,12 +288,12 @@ const ValuationWizard = () => {
               <HStack justify="space-between">
                 <VStack align="start" spacing={1}>
                   <Heading size="md" color="brand.textPrimary">
-                    {deal.deal_nickname || 'Deal Summary'}
+                    {currentDeal.deal_nickname || 'Deal Summary'}
                   </Heading>
                   <HStack>
-                    <StatusBadge status={deal.status} />
+                    <StatusBadge status={currentDeal.status} />
                     <Text color="brand.textSecondary" fontSize="sm">
-                      Created {new Date(deal.created_at).toLocaleDateString()}
+                      Created {new Date(currentDeal.created_at).toLocaleDateString()}
                     </Text>
                   </HStack>
                 </VStack>
@@ -309,27 +309,27 @@ const ValuationWizard = () => {
               <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6}>
                 <SectionCard title="Deal Terms" icon={Briefcase}>
                   <VStack align="start" spacing={2}>
-                    <Text><strong>Type:</strong> {deal.deal_type || 'Standard Deal'}</Text>
-                    <Text><strong>Activities:</strong> {deal.activities?.join(', ') || 'Not specified'}</Text>
-                    <Text><strong>Duration:</strong> {deal.start_date && deal.end_date ?
-                      `${new Date(deal.start_date).toLocaleDateString()} - ${new Date(deal.end_date).toLocaleDateString()}` :
+                    <Text><strong>Type:</strong> {currentDeal.deal_type || 'Standard Deal'}</Text>
+                    <Text><strong>Activities:</strong> {currentDeal.activities?.join(', ') || 'Not specified'}</Text>
+                    <Text><strong>Duration:</strong> {currentDeal.start_date && currentDeal.end_date ?
+                      `${new Date(currentDeal.start_date).toLocaleDateString()} - ${new Date(currentDeal.end_date).toLocaleDateString()}` :
                       'Not specified'}</Text>
                   </VStack>
                 </SectionCard>
 
                 <SectionCard title="Payor Information" icon={Users}>
                   <VStack align="start" spacing={2}>
-                    <Text><strong>Company:</strong> {deal.payor_name || 'Not specified'}</Text>
-                    <Text><strong>Type:</strong> {deal.payor_type || 'Not specified'}</Text>
-                    <Text><strong>Industry:</strong> {deal.payor_industry || 'Not specified'}</Text>
+                    <Text><strong>Company:</strong> {currentDeal.payor_name || 'Not specified'}</Text>
+                    <Text><strong>Type:</strong> {currentDeal.payor_type || 'Not specified'}</Text>
+                    <Text><strong>Industry:</strong> {currentDeal.payor_industry || 'Not specified'}</Text>
                   </VStack>
                 </SectionCard>
 
                 <SectionCard title="Deliverables" icon={Target}>
                   <VStack align="start" spacing={2}>
-                    <Text><strong>Posts:</strong> {deal.social_media_posts || 0} posts</Text>
-                    <Text><strong>Platforms:</strong> {deal.platforms?.join(', ') || 'Not specified'}</Text>
-                    <Text><strong>Timeline:</strong> {deal.deliverable_timeline || 'Not specified'}</Text>
+                    <Text><strong>Posts:</strong> {currentDeal.social_media_posts || 0} posts</Text>
+                    <Text><strong>Platforms:</strong> {currentDeal.platforms?.join(', ') || 'Not specified'}</Text>
+                    <Text><strong>Timeline:</strong> {currentDeal.deliverable_timeline || 'Not specified'}</Text>
                   </VStack>
                 </SectionCard>
               </SimpleGrid>

@@ -29,7 +29,7 @@ import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
 const SubmissionSuccess = () => {
   const navigate = useNavigate();
   const { dealId } = useParams();
-  const { deal } = useDeal();
+  const { currentDeal } = useDeal();
 
   const nextSteps = [
     {

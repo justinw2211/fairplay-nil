@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import { useDealPredictions } from '../../hooks/useDealPredictions';
@@ -101,18 +101,18 @@ const ClearinghouseWizard = () => {
   const dealType = searchParams.get('type') || 'clearinghouse';
   const navigate = useNavigate();
   const toast = useToast();
-  const { deal, fetchDealById, updateDeal } = useDeal();
+  const { currentDeal, fetchDealById, updateDeal } = useDeal();
   const { saveClearinghousePrediction } = useDealPredictions(dealId);
   const [isCalculating, setIsCalculating] = useState(false);
   const [showPredictionProcess, setShowPredictionProcess] = useState(false);
 
   useEffect(() => {
-    if (!deal && dealId) {
+    if (!currentDeal && dealId) {
       fetchDealById(dealId);
     }
-  }, [deal, dealId, fetchDealById]);
+  }, [currentDeal, dealId, fetchDealById]);
 
-  if (!deal) {
+  if (!currentDeal) {
     return (
       <Flex justify="center" align="center" minH="80vh">
         <Spinner size="xl" color="brand.accentPrimary" />
@@ -123,18 +123,18 @@ const ClearinghouseWizard = () => {
   const getTotalCompensation = () => {
     let total = 0;
 
-    if (deal.compensation_cash) {
-      total += parseFloat(deal.compensation_cash) || 0;
+    if (currentDeal.compensation_cash) {
+      total += parseFloat(currentDeal.compensation_cash) || 0;
     }
 
-    if (deal.compensation_goods && Array.isArray(deal.compensation_goods)) {
-      total += deal.compensation_goods.reduce((sum, item) => {
+    if (currentDeal.compensation_goods && Array.isArray(currentDeal.compensation_goods)) {
+      total += currentDeal.compensation_goods.reduce((sum, item) => {
         return sum + (parseFloat(item.estimated_value) || 0);
       }, 0);
     }
 
-    if (deal.compensation_other && Array.isArray(deal.compensation_other)) {
-      total += deal.compensation_other.reduce((sum, item) => {
+    if (currentDeal.compensation_other && Array.isArray(currentDeal.compensation_other)) {
+      total += currentDeal.compensation_other.reduce((sum, item) => {
         return sum + (parseFloat(item.estimated_value) || 0);
       }, 0);
     }
@@ -144,7 +144,7 @@ const ClearinghouseWizard = () => {
 
   const handleRunPrediction = async () => {
     console.log('🔍 Starting clearinghouse prediction...');
-    console.log('Deal data:', deal);
+    console.log('Deal data:', currentDeal);
     console.log('Deal ID:', dealId);
     console.log('predictClearinghouse function:', typeof predictClearinghouse);
 
@@ -155,10 +155,10 @@ const ClearinghouseWizard = () => {
       // Simulate prediction process with realistic delays
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      console.log('📊 Running clearinghouse prediction with data:', { deal });
+      console.log('📊 Running clearinghouse prediction with data:', { currentDeal });
 
       // Run the clearinghouse prediction
-      const prediction = predictClearinghouse(deal, deal);
+      const prediction = predictClearinghouse(currentDeal, currentDeal);
 
       console.log('✅ Prediction result:', prediction);
 
@@ -301,7 +301,7 @@ const ClearinghouseWizard = () => {
 
             <Flex justify="space-between" align="center" mb={2}>
               <Heading size="lg" color="brand.textPrimary">NIL Go Clearinghouse Review</Heading>
-              <StatusBadge status={deal.status} />
+              <StatusBadge status={currentDeal.status} />
             </Flex>
             <Text color="brand.textSecondary">
               Your deal is ready for NIL Go clearinghouse analysis. Review the details below and run the prediction.
@@ -330,7 +330,7 @@ const ClearinghouseWizard = () => {
                 </Box>
                 <Box>
                   <Text fontWeight="medium" color="brand.textSecondary">Deal Nickname</Text>
-                  <Text color="brand.textPrimary">{deal.deal_nickname || 'Untitled Deal'}</Text>
+                  <Text color="brand.textPrimary">{currentDeal.deal_nickname || 'Untitled Deal'}</Text>
                 </Box>
                 <Box>
                   <Text fontWeight="medium" color="brand.textSecondary">Deal Type</Text>
@@ -343,15 +343,15 @@ const ClearinghouseWizard = () => {
               <VStack align="stretch" spacing={3}>
                 <Box>
                   <Text fontWeight="medium" color="brand.textSecondary">Payor Name</Text>
-                  <Text color="brand.textPrimary">{deal.payor_name || 'Not specified'}</Text>
+                  <Text color="brand.textPrimary">{currentDeal.payor_name || 'Not specified'}</Text>
                 </Box>
                 <Box>
                   <Text fontWeight="medium" color="brand.textSecondary">Payor Type</Text>
-                  <Text color="brand.textPrimary">{deal.payor_type || 'Not specified'}</Text>
+                  <Text color="brand.textPrimary">{currentDeal.payor_type || 'Not specified'}</Text>
                 </Box>
                 <Box>
                   <Text fontWeight="medium" color="brand.textSecondary">Contact</Text>
-                  <Text color="brand.textPrimary">{deal.contact_name || 'Not specified'}</Text>
+                  <Text color="brand.textPrimary">{currentDeal.contact_name || 'Not specified'}</Text>
                 </Box>
               </VStack>
             </SectionCard>
@@ -372,9 +372,9 @@ const ClearinghouseWizard = () => {
                 <AccordionIcon />
               </AccordionButton>
               <AccordionPanel pb={4}>
-                {deal.activities && deal.activities.length > 0 ? (
+                {currentDeal.activities && currentDeal.activities.length > 0 ? (
                   <List spacing={3}>
-                    {deal.activities.map((activity, index) => (
+                    {currentDeal.activities.map((activity, index) => (
                       <ListItem key={index}>
                         <HStack align="start">
                           <Icon as={CheckCircle} color="green.500" mt={1} />
@@ -414,14 +414,14 @@ const ClearinghouseWizard = () => {
                   <ListItem>
                     <HStack align="start">
                       <Icon
-                        as={deal.uses_school_ip ? AlertCircle : CheckCircle}
-                        color={deal.uses_school_ip ? "orange.500" : "green.500"}
+                        as={currentDeal.uses_school_ip ? AlertCircle : CheckCircle}
+                        color={currentDeal.uses_school_ip ? "orange.500" : "green.500"}
                         mt={1}
                       />
                       <Box>
                         <Text fontWeight="semibold" color="brand.textPrimary">School IP Usage</Text>
                         <Text color="brand.textSecondary">
-                          {deal.uses_school_ip ? 'Uses school intellectual property' : 'No school IP used'}
+                          {currentDeal.uses_school_ip ? 'Uses school intellectual property' : 'No school IP used'}
                         </Text>
                       </Box>
                     </HStack>
@@ -429,14 +429,14 @@ const ClearinghouseWizard = () => {
                   <ListItem>
                     <HStack align="start">
                       <Icon
-                        as={deal.grant_exclusivity === 'yes' ? AlertCircle : CheckCircle}
-                        color={deal.grant_exclusivity === 'yes' ? "orange.500" : "green.500"}
+                        as={currentDeal.grant_exclusivity === 'yes' ? AlertCircle : CheckCircle}
+                        color={currentDeal.grant_exclusivity === 'yes' ? "orange.500" : "green.500"}
                         mt={1}
                       />
                       <Box>
                         <Text fontWeight="semibold" color="brand.textPrimary">Exclusivity Terms</Text>
                         <Text color="brand.textSecondary">
-                          {deal.grant_exclusivity === 'yes' ? 'Exclusive representation required' : 'Non-exclusive arrangement'}
+                          {currentDeal.grant_exclusivity === 'yes' ? 'Exclusive representation required' : 'Non-exclusive arrangement'}
                         </Text>
                       </Box>
                     </HStack>
