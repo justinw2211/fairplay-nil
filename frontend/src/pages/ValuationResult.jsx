@@ -71,10 +71,10 @@ const ValuationResult = () => {
   const [prediction, setPrediction] = useState(null);
 
   useEffect(() => {
-    if (!deal && dealId) {
+    if (!currentDeal && dealId) {
       fetchDealById(dealId);
     }
-  }, [deal, dealId, fetchDealById]);
+  }, [currentDeal, dealId, fetchDealById]);
 
   useEffect(() => {
     if (currentDeal?.valuation_prediction) {
@@ -92,7 +92,7 @@ const ValuationResult = () => {
     rationaleType: prediction?.rationale ? typeof prediction.rationale : 'none'
   });
 
-  if (!deal) {
+  if (!currentDeal) {
     return (
       <Flex justify="center" align="center" minH="80vh">
         <Spinner size="xl" color="brand.accentPrimary" />
@@ -135,7 +135,7 @@ const ValuationResult = () => {
   };
 
   const getValuationAssessment = () => {
-    const currentCompensation = parseFloat(deal.compensation_cash) || 0;
+    const currentCompensation = parseFloat(currentDeal.compensation_cash) || 0;
     const fmv = prediction?.estimated_fmv || 0;
 
     if (fmv === 0) {
@@ -249,7 +249,7 @@ const ValuationResult = () => {
               Fair Market Value Analysis
             </Heading>
             <Text color="brand.textSecondary" fontSize="lg">
-              Deal #{dealId} • {String(deal?.deal_nickname || 'Untitled Deal')}
+              Deal #{dealId} • {String(currentDeal?.deal_nickname || 'Untitled Deal')}
             </Text>
           </Box>
 
@@ -578,7 +578,7 @@ const ValuationResult = () => {
         {/* Additional Info */}
         <Box mt={8} textAlign="center">
           <Text fontSize="xs" color="brand.textSecondary">
-            Analysis completed on {new Date(deal.prediction_calculated_at || Date.now()).toLocaleString()} •
+            Analysis completed on {new Date(currentDeal.prediction_calculated_at || Date.now()).toLocaleString()} •
             Based on industry data from On3, Opendorse, and NIL market research
           </Text>
         </Box>
