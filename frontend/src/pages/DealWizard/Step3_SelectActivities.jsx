@@ -240,21 +240,24 @@ const Step3_SelectActivities = () => {
       return;
     }
     
-    // Create obligations with proper sequential ordering
+    // Create obligations with proper sequential ordering while PRESERVING any existing activity data
     const newObligations = {};
     selectedActivities.forEach((activity, index) => {
+      const existing = currentDeal?.obligations?.[activity] || {};
+
+      // Preserve prior fields (like details, quantities, etc.), update sequence and keep existing completion state
+      const merged = {
+        ...existing,
+        sequence: index,
+        completed: existing?.completed ?? false,
+      };
+
+      // For "other", prefer newly entered description; otherwise preserve existing description
       if (activity === "other") {
-        newObligations[activity] = {
-          description: otherActivity,
-          sequence: index,
-          completed: false // Track completion status
-        };
-      } else {
-        newObligations[activity] = {
-          sequence: index,
-          completed: false // Track completion status
-        };
+        merged.description = otherActivity || existing?.description || "";
       }
+
+      newObligations[activity] = merged;
     });
 
     console.log('📝 Step3_SelectActivities Debug Info:');
@@ -301,7 +304,7 @@ const Step3_SelectActivities = () => {
         obligations: newObligations,
         currentActivityIndex: 0,
         totalActivities: selectedActivities.length,
-        lastCompletedActivity: null // Track the last completed activity
+        lastCompletedActivity: null // Reset last completed activity when resequencing
       });
 
       // Track successful updateDeal
