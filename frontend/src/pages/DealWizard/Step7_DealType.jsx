@@ -34,8 +34,8 @@ const Step7_DealType = () => {
   const navigate = useNavigate();
   const { currentDeal, updateDeal } = useDeal();
 
-  // Keep undefined until the user explicitly selects a value or a valid saved value exists
-  const [submissionType, setSubmissionType] = useState(undefined);
+  // Use empty string for no-selection state (consistent with other steps)
+  const [submissionType, setSubmissionType] = useState('');
   const [error, setError] = useState('');
 
   // Hydrate from saved deal value ONLY when it exists and is valid; otherwise leave unselected
@@ -45,7 +45,7 @@ const Step7_DealType = () => {
       const saved = currentDeal.submission_type;
       const validOptions = ['test_demo', 'prospective', 'finalized'];
       const isValid = typeof saved === 'string' && validOptions.includes(saved);
-      setSubmissionType(isValid ? saved : undefined);
+      setSubmissionType(isValid ? saved : '');
 
       logger.info('Deal type step loaded', {
         dealId,
