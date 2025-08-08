@@ -34,13 +34,20 @@ const Step7_DealType = () => {
   const navigate = useNavigate();
   const { currentDeal, updateDeal } = useDeal();
 
-  const [submissionType, setSubmissionType] = useState('');
+  // Keep undefined until the user explicitly selects a value or a valid saved value exists
+  const [submissionType, setSubmissionType] = useState(undefined);
   const [error, setError] = useState('');
 
   useEffect(() => {
     try {
       if (currentDeal) {
-        setSubmissionType(currentDeal.submission_type || '');
+        const saved = currentDeal.submission_type;
+        const isValidSaved = typeof saved === 'string' && ['test_demo', 'prospective', 'finalized'].includes(saved);
+        if (isValidSaved) {
+          setSubmissionType(saved);
+        } else {
+          setSubmissionType(undefined);
+        }
 
         logger.info('Deal type info loaded from deal', {
           dealId,
@@ -93,7 +100,7 @@ const Step7_DealType = () => {
     }
   };
 
-  const isFormValid = submissionType;
+  const isFormValid = Boolean(submissionType);
 
   const handleBack = () => {
     logger.info('User navigated back', {
@@ -205,7 +212,7 @@ const Step7_DealType = () => {
                 <FormLabel color="brand.textPrimary" fontWeight="semibold">
                   What best describes this deal? *
                 </FormLabel>
-                <RadioGroup value={submissionType} onChange={handleSubmissionTypeChange}>
+                <RadioGroup value={submissionType || ''} onChange={handleSubmissionTypeChange}>
                   <Stack spacing={3}>
                     <Radio
                       value="test_demo"
