@@ -26,6 +26,10 @@ const isVercelPreview = deploymentEnvironment === 'preview';
 export const config = {
   development: {
     apiUrl: 'http://localhost:8000',
+    supabase: {
+      url: getEnvVar('VITE_SUPABASE_URL') || 'https://your-project.supabase.co',
+      anonKey: getEnvVar('VITE_SUPABASE_ANON_KEY') || 'your-anon-key'
+    },
     debug: true,
     logLevel: 'debug',
     enableErrorTracking: false,
@@ -38,6 +42,10 @@ export const config = {
   },
   staging: {
     apiUrl: getEnvVar('VITE_API_URL') || 'https://staging-api.fairplay-nil.com',
+    supabase: {
+      url: getEnvVar('VITE_SUPABASE_URL'),
+      anonKey: getEnvVar('VITE_SUPABASE_ANON_KEY')
+    },
     debug: false,
     logLevel: 'info',
     enableErrorTracking: true,
@@ -50,6 +58,10 @@ export const config = {
   },
   production: {
     apiUrl: getEnvVar('VITE_API_URL') || 'https://api.fairplay-nil.com',
+    supabase: {
+      url: getEnvVar('VITE_SUPABASE_URL'),
+      anonKey: getEnvVar('VITE_SUPABASE_ANON_KEY')
+    },
     debug: false,
     logLevel: 'error',
     enableErrorTracking: true,
@@ -189,6 +201,15 @@ export const validateEnvironmentConfig = () => {
 
   if (isProduction && !getEnvVar('VITE_API_URL')) {
     errors.push('VITE_API_URL is required in production environment');
+  }
+
+  // Validate Supabase configuration
+  if (isProduction && !getEnvVar('VITE_SUPABASE_URL')) {
+    errors.push('VITE_SUPABASE_URL is required in production environment');
+  }
+
+  if (isProduction && !getEnvVar('VITE_SUPABASE_ANON_KEY')) {
+    errors.push('VITE_SUPABASE_ANON_KEY is required in production environment');
   }
 
   // Validate configuration consistency
