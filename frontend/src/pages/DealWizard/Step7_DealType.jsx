@@ -205,7 +205,7 @@ const Step7_DealType = () => {
                 <FormLabel color="brand.textPrimary" fontWeight="semibold">
                   What best describes this deal? *
                 </FormLabel>
-                <RadioGroup value={submissionType || ''} onChange={handleSubmissionTypeChange}>
+                <RadioGroup value={submissionType} onChange={handleSubmissionTypeChange}>
                   <Stack spacing={3}>
                     <Radio
                       value="test_demo"
