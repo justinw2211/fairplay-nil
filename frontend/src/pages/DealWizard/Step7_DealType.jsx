@@ -36,16 +36,28 @@ const Step7_DealType = () => {
 
   // Use empty string for no-selection state (consistent with other steps)
   const [submissionType, setSubmissionType] = useState('');
+  // Track whether this step has been visited in this browser (per deal)
+  const [hasVisited, setHasVisited] = useState(false);
+
+  // Determine visit state from localStorage so first navigation shows unselected
+  useEffect(() => {
+    const visitKey = `deal:${dealId}:step8_deal_type_visited`;
+    const visitedFlag = localStorage.getItem(visitKey) === 'true';
+    setHasVisited(visitedFlag);
+    if (!visitedFlag) {
+      localStorage.setItem(visitKey, 'true');
+    }
+  }, [dealId]);
   const [error, setError] = useState('');
 
-  // Hydrate from saved deal value ONLY when it exists and is valid; otherwise leave unselected
+  // Hydrate from saved deal value ONLY when it exists, is valid, and the user has previously visited this step
   useEffect(() => {
     try {
       if (!currentDeal) {return;}
       const saved = currentDeal.submission_type;
       const validOptions = ['test_demo', 'prospective', 'finalized'];
       const isValid = typeof saved === 'string' && validOptions.includes(saved);
-      setSubmissionType(isValid ? saved : '');
+      setSubmissionType(hasVisited && isValid ? saved : '');
 
       logger.info('Deal type step loaded', {
         dealId,
@@ -54,7 +66,8 @@ const Step7_DealType = () => {
         operation: 'hydrate_from_saved',
         hasSubmissionType: !!saved,
         savedSubmissionType: saved,
-        appliedValue: isValid ? saved : undefined
+        hasVisited,
+        appliedValue: hasVisited && isValid ? saved : undefined
       });
     } catch (error) {
       logger.error('Error during deal type init', {
@@ -63,10 +76,11 @@ const Step7_DealType = () => {
         dealType,
         step: 'Step7_DealType',
         operation: 'hydrate_from_saved',
-        currentDealExists: !!currentDeal
+        currentDealExists: !!currentDeal,
+        hasVisited
       });
     }
-  }, [currentDeal]);
+  }, [currentDeal, hasVisited]);
 
   const handleSubmissionTypeChange = async (value) => {
     setSubmissionType(value);
