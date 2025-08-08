@@ -4,8 +4,24 @@ import { getConfig } from './config/environment.js';
 
 // Get Supabase configuration from centralized environment config
 const supabaseConfig = getConfig().supabase;
-const supabaseUrl = supabaseConfig?.url;
-const supabaseAnonKey = supabaseConfig?.anonKey;
+let supabaseUrl = supabaseConfig?.url;
+let supabaseAnonKey = supabaseConfig?.anonKey;
+
+// Fallback to direct import.meta.env access if centralized config fails
+if (!supabaseUrl && isProduction) {
+  try {
+    supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  } catch (e) {
+    // Ignore error, will be handled by error handler
+  }
+}
+if (!supabaseAnonKey && isProduction) {
+  try {
+    supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  } catch (e) {
+    // Ignore error, will be handled by error handler
+  }
+}
 
 // Environment detection for error handling
 const isProduction = (() => {
@@ -21,8 +37,19 @@ const handleSupabaseError = (variableName, value) => {
   if (!value) {
     const errorMessage = `${variableName} is not defined in the environment. Please set it in your Vercel project settings.`;
     
-    // Only throw fatal errors in production, not during build or development
+    // In production, try to get the value directly from import.meta.env as fallback
     if (isProduction) {
+      try {
+        const directValue = import.meta.env[variableName];
+        if (directValue) {
+          console.warn(`WARNING: Using direct import.meta.env access for ${variableName} in production`);
+          return true;
+        }
+      } catch (e) {
+        // Fall through to error
+      }
+      
+      // If we still don't have a value, throw the error
       throw new Error(`FATAL: ${errorMessage}`);
     } else {
       // In development/staging, log warning but don't break the build
