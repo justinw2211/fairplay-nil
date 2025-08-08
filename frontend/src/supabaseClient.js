@@ -2,6 +2,15 @@
 import { createClient } from '@supabase/supabase-js';
 import { getConfig } from './config/environment.js';
 
+// Environment detection for error handling
+const isProduction = (() => {
+  try {
+    return import.meta.env.MODE === 'production';
+  } catch {
+    return false; // Default to development mode if import.meta.env is not available
+  }
+})();
+
 // Get Supabase configuration from centralized environment config
 const supabaseConfig = getConfig().supabase;
 let supabaseUrl = supabaseConfig?.url;
@@ -23,20 +32,11 @@ if (!supabaseAnonKey && isProduction) {
   }
 }
 
-// Environment detection for error handling
-const isProduction = (() => {
-  try {
-    return import.meta.env.MODE === 'production';
-  } catch {
-    return false; // Default to development mode if import.meta.env is not available
-  }
-})();
-
 // Graceful error handling that doesn't break the deployment pipeline
 const handleSupabaseError = (variableName, value) => {
   if (!value) {
     const errorMessage = `${variableName} is not defined in the environment. Please set it in your Vercel project settings.`;
-    
+
     // In production, try to get the value directly from import.meta.env as fallback
     if (isProduction) {
       try {
@@ -48,7 +48,7 @@ const handleSupabaseError = (variableName, value) => {
       } catch (e) {
         // Fall through to error
       }
-      
+
       // If we still don't have a value, throw the error
       throw new Error(`FATAL: ${errorMessage}`);
     } else {
