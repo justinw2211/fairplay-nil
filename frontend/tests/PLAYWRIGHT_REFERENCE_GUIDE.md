@@ -40,7 +40,7 @@ npx playwright test tests/active-tests/valuation-deal-flow.spec.js --project=chr
 
 ## Tips
 - If elements time out, re‑run with `--debug` to step through
-- Artifacts (screenshots/videos) are saved in `frontend/test-results/` and `frontend/playwright-report/`
+- Artifacts (screenshots/videos) are saved in `frontend/tests/test-artifacts/`
 
 ## When to use these
 - Manual verification of critical flows

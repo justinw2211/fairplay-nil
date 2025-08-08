@@ -9,6 +9,9 @@ export default defineConfig({
   reporter: 'html',
   timeout: 60000, // Increase timeout to 60 seconds
 
+  // Output test artifacts to tests/ folder for organization
+  outputDir: './tests/test-artifacts',
+
   use: {
     baseURL: process.env.BASE_URL || 'http://localhost:3000',
     trace: 'on-first-retry',

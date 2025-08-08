@@ -12,7 +12,7 @@
   - `active-tests/valuation-deal-flow.spec.js`
 
 ## Artifacts
-- `test-results/`, `playwright-report/`
+- `test-artifacts/` - Screenshots, videos, and reports from Playwright tests
 
 ## Notes
 - Use Playwright only when explicitly requested.
