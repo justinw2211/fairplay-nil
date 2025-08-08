@@ -216,6 +216,7 @@ const Step7_DealType = () => {
                   <Stack spacing={3}>
                     <Radio
                       value="test_demo"
+                      isChecked={submissionType === 'test_demo'}
                       borderColor="brand.accentSecondary"
                       _checked={{
                         borderColor: "brand.accentPrimary",
@@ -226,6 +227,7 @@ const Step7_DealType = () => {
                     </Radio>
                     <Radio
                       value="prospective"
+                      isChecked={submissionType === 'prospective'}
                       borderColor="brand.accentSecondary"
                       _checked={{
                         borderColor: "brand.accentPrimary",
@@ -236,6 +238,7 @@ const Step7_DealType = () => {
                     </Radio>
                     <Radio
                       value="finalized"
+                      isChecked={submissionType === 'finalized'}
                       borderColor="brand.accentSecondary"
                       _checked={{
                         borderColor: "brand.accentPrimary",
