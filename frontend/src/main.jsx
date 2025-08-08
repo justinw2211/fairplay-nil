@@ -11,12 +11,11 @@ import theme from "./theme";
 
 // Initialize Sentry properly
 import * as Sentry from "@sentry/react";
-import { errorTrackingConfig } from "./config/environment";
 
 Sentry.init({
-  dsn: errorTrackingConfig.sentry.dsn,
-  environment: errorTrackingConfig.sentry.environment,
-  debug: errorTrackingConfig.sentry.debug,
+  dsn: import.meta.env.VITE_SENTRY_DSN || "https://8a759dc24e0d183c942867eb9d1eadc6@o4509759316426752.ingest.us.sentry.io/4509759319572480",
+  environment: import.meta.env.MODE,
+  debug: import.meta.env.MODE === 'development',
   beforeSend(event) {
     // Filter out sensitive data
     if (event.request?.headers) {

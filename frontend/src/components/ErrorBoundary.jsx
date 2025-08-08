@@ -7,7 +7,6 @@ import React from 'react';
 import { createLogger } from '../utils/logger';
 import FallbackUI from './FallbackUI';
 import * as Sentry from '@sentry/react';
-import { getConfig, isProduction, isDevelopment } from '../config/environment';
 
 const logger = createLogger('ErrorBoundary');
 
@@ -83,8 +82,8 @@ class ErrorBoundary extends React.Component {
     });
 
     // Report to error tracking service in production (existing functionality)
-    if (isProduction && getConfig().apiUrl) {
-      fetch(`${getConfig().apiUrl}/api/errors`, {
+    if (import.meta.env.MODE === 'production' && import.meta.env.VITE_API_URL) {
+      fetch(`${import.meta.env.VITE_API_URL}/api/errors`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -133,13 +132,13 @@ class ErrorBoundary extends React.Component {
       }
 
       // Only attempt error reporting if we're in production AND have an API URL configured
-      if (!isProduction || !getConfig().apiUrl) {
+      if (import.meta.env.MODE !== 'production' || !import.meta.env.VITE_API_URL) {
         logger.debug('Error reporting skipped - not in production or API URL not configured');
         return;
       }
 
       // Send error report to backend only if the endpoint exists
-      const response = await fetch(`${getConfig().apiUrl}/api/errors`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/errors`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -185,7 +184,7 @@ class ErrorBoundary extends React.Component {
         onRetry: this.handleRetry,
         isRetrying: this.state.isRetrying,
         context: this.props.context,
-        showDetails: isDevelopment
+        showDetails: import.meta.env.MODE === 'development'
       };
 
       // Use custom fallback component if provided
@@ -260,8 +259,8 @@ export const useErrorHandler = () => {
     }
 
     // Report to error tracking service in production (existing functionality)
-    if (isProduction && getConfig().apiUrl) {
-      fetch(`${getConfig().apiUrl}/api/errors`, {
+    if (import.meta.env.MODE === 'production' && import.meta.env.VITE_API_URL) {
+      fetch(`${import.meta.env.VITE_API_URL}/api/errors`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

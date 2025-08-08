@@ -1,17 +1,9 @@
 // frontend/src/supabaseClient.js
 import { createClient } from '@supabase/supabase-js';
 
-// Securely load the environment variables using centralized configuration.
-const getEnvVar = (key) => {
-  try {
-    return import.meta?.env?.[key];
-  } catch {
-    return undefined;
-  }
-};
-
-const supabaseUrl = getEnvVar('VITE_SUPABASE_URL');
-const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY');
+// Securely load the environment variables.
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Add robust error checking to fail fast with clear errors.
 if (!supabaseUrl) {

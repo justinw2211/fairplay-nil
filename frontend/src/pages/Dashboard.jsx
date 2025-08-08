@@ -10,7 +10,6 @@ import { useAuth } from '../context/AuthContext';
 import { useDeal } from '../context/DealContext';
 // *** BUG FIX: Import the supabase client to make it available in this file ***
 import { supabase } from '../supabaseClient';
-import { getConfig } from '../config/environment';
 import DealsTable from '../components/DealsTable';
 import SummaryCards from '../components/SummaryCards';
 import { useNavigate } from 'react-router-dom';
@@ -225,7 +224,7 @@ const Dashboard = () => {
     }
 
     try {
-      const response = await fetch(`${getConfig().apiUrl}/api/deals`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 

@@ -3,7 +3,6 @@ import { createContext, useContext, useState, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '../supabaseClient';
 import { createLogger } from '../utils/logger';
-import { getConfig } from '../config/environment';
 import * as Sentry from '@sentry/react';
 
 // Create logger instance for this context
@@ -235,7 +234,7 @@ export const DealProvider = ({ children }) => {
       }
 
       console.log('[DealContext] Making API request to create deal...');
-      const response = await fetch(`${getConfig().apiUrl}/api/deals`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -314,12 +313,12 @@ export const DealProvider = ({ children }) => {
         },
         extra: {
           dealId,
-          apiUrl: `${getConfig().apiUrl}/api/deals/${dealId}`,
+          apiUrl: `${import.meta.env.VITE_API_URL}/api/deals/${dealId}`,
           hasToken: !!token
         }
       });
 
-      const response = await fetch(`${getConfig().apiUrl}/api/deals/${dealId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -451,7 +450,7 @@ export const DealProvider = ({ children }) => {
       }
 
       console.log('[DealContext] Making API request to fetch deal...');
-      const response = await fetch(`${getConfig().apiUrl}/api/deals/${dealId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

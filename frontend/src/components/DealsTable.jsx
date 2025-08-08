@@ -47,7 +47,6 @@ import StatusBadge from './StatusBadge';
 import StatusMenu from './StatusMenu';
 import { ResultBadges } from './ResultBadge';
 import { supabase } from '../supabaseClient';
-import { getConfig } from '../config/environment';
 
 const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'descending' });
@@ -140,7 +139,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
       const updatedDeal = { ...originalDeal, ...editValues };
       setDeals(deals.map(deal => deal.id === dealId ? updatedDeal : deal));
 
-      const response = await fetch(`${getConfig().apiUrl}/api/deals/${dealId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -195,7 +194,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
 
     try {
       const token = (await supabase.auth.getSession()).data.session?.access_token;
-      const response = await fetch(`${getConfig().apiUrl}/api/deals/${dealId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -242,7 +241,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
     setIsDeleting(true);
     try {
       const token = (await supabase.auth.getSession()).data.session?.access_token;
-      const response = await fetch(`${getConfig().apiUrl}/api/deals/${dealToDelete.id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealToDelete.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -298,7 +297,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
 
       // Delete deals in parallel
       const deletePromises = dealIds.map(dealId =>
-        fetch(`${getConfig().apiUrl}/api/deals/${dealId}`, {
+        fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
         })
@@ -349,7 +348,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
 
       // Update deals in parallel
       const updatePromises = dealIds.map(dealId =>
-        fetch(`${getConfig().apiUrl}/api/deals/${dealId}`, {
+        fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
           method: 'PATCH',
           headers: {
             'Authorization': `Bearer ${token}`,

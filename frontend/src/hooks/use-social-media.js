@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabaseClient';
-import { getConfig } from '../config/environment';
 
 /**
  * Custom hook for social media operations
@@ -13,8 +12,8 @@ const useSocialMedia = () => {
   const [error, setError] = useState(null);
   const { user } = useAuth();
 
-  // API base URL - use centralized environment configuration
-  const API_BASE = `${getConfig().apiUrl}/api`;
+  // API base URL - use environment variable like other API calls
+  const API_BASE = `${import.meta.env.VITE_API_URL}/api`;
 
   // Helper function to get auth headers
   const getAuthHeaders = useCallback(async () => {

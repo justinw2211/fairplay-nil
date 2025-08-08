@@ -4,7 +4,8 @@
  */
 
 import * as Sentry from '@sentry/react';
-import { isDevelopment } from '../config/environment';
+
+const isDevelopment = import.meta.env.MODE === 'development';
 
 // Sensitive data patterns to filter out
 const SENSITIVE_PATTERNS = [

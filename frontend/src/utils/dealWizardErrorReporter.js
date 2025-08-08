@@ -5,18 +5,17 @@
  */
 
 import { formLogger } from './logger';
-import { getConfig, isProduction } from '../config/environment';
 
 class DealWizardErrorReporter {
   constructor() {
     this.errorQueue = [];
     this.maxQueueSize = 50;
     this.reportingEndpoint = null;
-    this.isReportingEnabled = isProduction;
+    this.isReportingEnabled = import.meta.env.MODE === 'production';
 
     // Initialize reporting endpoint
-    if (getConfig().apiUrl) {
-      this.reportingEndpoint = `${getConfig().apiUrl}/api/errors/dealwizard`;
+    if (import.meta.env.VITE_API_URL) {
+      this.reportingEndpoint = `${import.meta.env.VITE_API_URL}/api/errors/dealwizard`;
     }
   }
 
@@ -79,10 +78,10 @@ class DealWizardErrorReporter {
 
       // Application context
       appContext: {
-        mode: isProduction ? 'production' : 'development',
+        mode: import.meta.env.MODE,
         version: import.meta.env.VITE_APP_VERSION || '1.0.0',
         buildTime: import.meta.env.VITE_BUILD_TIME || timestamp,
-        apiUrl: getConfig().apiUrl
+        apiUrl: import.meta.env.VITE_API_URL
       },
 
       // Performance context
