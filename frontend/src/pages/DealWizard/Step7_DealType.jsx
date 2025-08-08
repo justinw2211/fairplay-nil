@@ -38,33 +38,26 @@ const Step7_DealType = () => {
   const [submissionType, setSubmissionType] = useState(undefined);
   const [error, setError] = useState('');
 
+  // Intentionally do not hydrate a default selection from saved deal data to avoid implicit defaults
   useEffect(() => {
     try {
       if (currentDeal) {
-        const saved = currentDeal.submission_type;
-        const isValidSaved = typeof saved === 'string' && ['test_demo', 'prospective', 'finalized'].includes(saved);
-        if (isValidSaved) {
-          setSubmissionType(saved);
-        } else {
-          setSubmissionType(undefined);
-        }
-
-        logger.info('Deal type info loaded from deal', {
+        logger.info('Deal type step loaded (no preselection)', {
           dealId,
           dealType,
           step: 'Step7_DealType',
-          operation: 'useEffect',
+          operation: 'useEffect_init',
           hasSubmissionType: !!currentDeal.submission_type,
-          submissionType: currentDeal.submission_type
+          savedSubmissionType: currentDeal.submission_type
         });
       }
     } catch (error) {
-      logger.error('Error loading deal type info from deal', {
+      logger.error('Error during deal type init', {
         error: error.message,
         dealId,
         dealType,
         step: 'Step7_DealType',
-        operation: 'useEffect',
+        operation: 'useEffect_init',
         currentDealExists: !!currentDeal
       });
     }
