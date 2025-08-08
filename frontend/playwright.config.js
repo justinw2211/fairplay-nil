@@ -9,9 +9,6 @@ export default defineConfig({
   reporter: 'html',
   timeout: 60000, // Increase timeout to 60 seconds
 
-  // Global authentication setup
-  globalSetup: './global-setup.js',
-
   use: {
     baseURL: process.env.BASE_URL || 'http://localhost:3000',
     trace: 'on-first-retry',
@@ -20,42 +17,10 @@ export default defineConfig({
   },
 
   projects: [
-    // Unauthenticated tests
+    // Chrome-only reference runs
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
-    },
-
-    // Authenticated tests (can access protected routes)
-    {
-      name: 'chromium-auth',
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: 'playwright/.auth/user.json',
-      },
-    },
-    {
-      name: 'firefox-auth',
-      use: {
-        ...devices['Desktop Firefox'],
-        storageState: 'playwright/.auth/user.json',
-      },
     },
   ],
 

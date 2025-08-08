@@ -12,13 +12,10 @@ alwaysApply: false
 * Always think about what other methods and areas of code might be affected by code changes
 *Split into multiple responses if one response isn't enough to answer the question.
 
-## 🎭 Playwright Testing Preferences
+## Testing Preferences
 
-* Always run Playwright tests before suggesting code changes that affect UI
-* Use `npm run debug:playwright` for interactive debugging of complex issues
-* Write tests that cover both happy path and error scenarios
-* Prefer `data-testid` attributes over CSS selectors for element targeting
-* Include console error monitoring in all tests
-* Test across multiple browsers when UI changes are involved
-* Use descriptive test names that explain the user scenario being tested
-* Always check test reports after CI/CD runs to identify issues early
+* Default to Jest + React Testing Library for unit/integration tests
+* Use Playwright only for reference flows on Chrome against production
+* Write tests for new components, hooks, utilities
+* Test business logic and data transformations
+* Use test utilities from `frontend/src/utils/test-utils.js`

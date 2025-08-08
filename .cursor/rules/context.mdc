@@ -22,13 +22,8 @@ fairplay-nil/
 │   │   ├── pages/
 │   │   ├── context/
 │   │   └── main.jsx             # ⚠️ CRITICAL: App entry (Sentry setup)
-│   ├── tests/                  # ⚠️ CRITICAL: Playwright E2E tests
-│   │   ├── smoke.spec.js        # Basic application tests
-│   │   ├── deal-wizard.spec.js  # Deal Wizard functionality tests
-│   │   └── setup-verification.spec.js # Setup verification tests
-│   ├── scripts/
-│   │   └── debug-with-playwright.js # Interactive debugging script
-│   ├── playwright.config.js     # ⚠️ CRITICAL: Playwright configuration
+│   ├── tests/                  # Reference Playwright flows (on-demand only)
+│   ├── playwright.config.js     # Chrome-only configuration
 │   ├── vercel.json              # ⚠️ CRITICAL: Vercel deployment config
 │   └── package.json
 ├── backend/                    # FastAPI app
@@ -38,7 +33,7 @@ fairplay-nil/
 │   │   └── main.py
 │   └── migrations/
 ├── .github/workflows/
-│   └── playwright.yml          # ⚠️ CRITICAL: CI/CD with Playwright testing
+│   └── (no Playwright CI)
 └── To-do-before-bug-fixing.md  # ⚠️ CRITICAL: Implementation status
 ```
 
@@ -48,22 +43,18 @@ fairplay-nil/
 ```bash
 # 1. Make changes
 # 2. Test locally: npm run dev
-# 3. Run Playwright tests: npm run test:e2e
+# 3. Run unit/integration tests: npm test
 # 4. Build test: npm run build
 # 5. Commit & push:
 git add . && git commit -m "message" && git push origin main
-# 6. GitHub Actions runs Playwright tests
+# 6. GitHub Actions runs unit/integration tests
 # 7. Vercel auto-deploys from GitHub (only if tests pass)
 ```
 
-### Enhanced Testing Workflow
+### Testing Workflow
 ```bash
 # Pre-deployment testing
-npm run test:e2e              # Run all tests
-npm run test:e2e:headed       # Run with browser visible
-npm run test:e2e:debug        # Step-through debugging
-npm run debug:playwright      # Interactive debugging session
-npm run test:e2e:report       # View test reports
+npm test                      # Run unit/integration tests
 ```
 
 ### Production Deployment Process
@@ -124,16 +115,13 @@ try {
 - **Environment-specific** configuration
 - **Graceful degradation** if Sentry fails
 
-## 📋 Validation Commands
+## 📋 Validation Commands (CI-safe)
 
 ```bash
 npm run validate:env    # Check environment config
 npm run lint           # Code quality
 npm run test           # Run unit tests
-npm run test:e2e       # Run Playwright E2E tests
-npm run test:e2e:headed # Run tests with browser visible
-npm run test:e2e:debug # Step-through test debugging
-npm run debug:playwright # Interactive debugging session
+npm test               # Run unit/integration tests
 npm run build          # Test build
 ```
 
@@ -174,9 +162,7 @@ npm run build          # Test build
 1. Check Vercel dashboard for errors
 2. Verify `vercel.json` configuration
 3. Ensure all environment variables are set
-4. Check GitHub Actions for Playwright test failures
-5. Review test reports in `frontend/playwright-report/`
-6. Run `npm run test:e2e:headed` locally to reproduce issues
+4. Check GitHub Actions logs for build/test failures
 
 ## 🎯 Technical Preferences
 
@@ -197,75 +183,27 @@ npm run build          # Test build
 - Be concise. Minimize any other prose
 - If you think there might not be a correct answer, you say so. If you do not know the answer, say so instead of guessing
 
-## 🎭 Playwright E2E Testing System
+## Testing System
 
-### **Critical Testing Infrastructure**
-- **Multi-browser testing**: Chrome, Firefox, Safari, Mobile Chrome, Mobile Safari
-- **Automated CI/CD**: GitHub Actions runs tests before deployment
-- **Interactive debugging**: `npm run debug:playwright` for real-time debugging
-- **Test coverage**: 40 tests across 5 browsers covering critical user flows
+### Default Testing (Jest + RTL)
+- Unit/integration tests for components, hooks, utilities
+- Fast feedback, comprehensive coverage
+- Run on every commit, CI/CD
+- Command: `npm test`
 
-### **Test Categories**
-```javascript
-// Smoke Tests (tests/smoke.spec.js)
-- Homepage loading and navigation
-- Authentication flow testing
-- Console error detection
-- Cross-browser compatibility
+### Reference Playwright Flows
+- Four specific flows on Chrome against production
+- Manual verification of critical user journeys
+- On-demand only
+- Commands: See `frontend/tests/PLAYWRIGHT_REFERENCE_GUIDE.md`
 
-// Deal Wizard Tests (tests/deal-wizard.spec.js)
-- Form interactions and validation
-- Step navigation and state management
-- Error handling and recovery
-- User flow completion
-
-// Setup Verification (tests/setup-verification.spec.js)
-- Basic functionality verification
-- Browser interaction testing
-- Configuration validation
-```
-
-### **Debugging Commands**
-```bash
-# Run all tests
-npm run test:e2e
-
-# Interactive debugging (recommended for complex issues)
-npm run debug:playwright
-
-# Step-through debugging
-npm run test:e2e:debug
-
-# Visual debugging (see browser)
-npm run test:e2e:headed
-
-# View test reports
-npm run test:e2e:report
-```
-
-### **Test Writing Guidelines**
-```javascript
-// ✅ CORRECT: Use descriptive test names and proper error handling
-test('should handle deal wizard form submission', async ({ page }) => {
-  await page.goto('/deal-wizard');
-  await page.fill('[name="dealType"]', 'endorsement');
-  await page.click('[data-testid="submit"]');
-  await expect(page.locator('.success-message')).toBeVisible();
-});
-
-// ❌ WRONG: Avoid generic test names and missing error handling
-test('test form', async ({ page }) => {
-  await page.goto('/form');
-  // Missing assertions and error handling
-});
-```
-
-### **Error Detection Features**
-- **Console error monitoring**: Automatic capture of JavaScript errors
-- **Network failure detection**: Failed API calls and slow responses
-- **Visual regression testing**: Screenshot comparison on failures
-- **Performance monitoring**: Page load times and memory usage
-- **Cross-browser issues**: Browser-specific problem detection
+### Testing Guidelines
+- Write tests for new components, hooks, utilities
+- Test business logic and data transformations
+- Test form validation and error handling
+- Test API integration patterns
+- Use test utilities from `frontend/src/utils/test-utils.js`
+- Mock API calls with `frontend/src/__mocks__/api.js`
 
 ## 📊 Implementation Status
 
@@ -275,12 +213,11 @@ test('test form', async ({ page }) => {
 - **Sentry Integration** - Dynamic imports with graceful error handling
 - **Deployment Pipeline** - GitHub → Vercel auto-deployment working
 - **Production Configuration** - All environment variables and settings configured
-- **Playwright E2E Testing** - Complete testing infrastructure with CI/CD integration
+- **Testing System** - Unit/integration tests with reference Playwright flows
 
 ### 🔄 Remaining (Optional):
 - Database Performance Indexes
 - ESLint Configuration
-- Additional test scenarios for specific user flows
 
 The platform is now production-ready with robust error handling, monitoring, and deployment infrastructure.    
     

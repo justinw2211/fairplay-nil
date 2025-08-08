@@ -25,12 +25,12 @@ cd fairplay-nil
 
 ### Getting Started
 - **[Local Development](docs/getting-started/local-development.md)** - Complete setup and testing guide
-- **[Testing Setup](docs/getting-started/local-development.md#testing-with-playwright)** - Playwright E2E testing
+- **[Testing Setup](docs/getting-started/local-development.md#playwright-reference-only)** - Reference Playwright info
 
 ### Development
 - **[Database Guide](docs/development/database/supabase-guide.md)** - Complete Supabase database documentation
 - **[Code Quality](docs/development/code-quality/improvements.md)** - Performance and security improvements
-- **[Testing Guide](docs/getting-started/local-development.md#testing-with-playwright)** - Automated testing with Playwright
+- **[Testing Protocol](docs/testing/testing-protocol.md)** - Comprehensive testing strategy and guidelines
 
 ### Features
 - **[Deal Wizard Bug Fixes](docs/features/deal-wizard/bug-fixes.md)** - Recent bug fixes and improvements
@@ -44,7 +44,7 @@ cd fairplay-nil
 - **React 18** - Modern UI framework
 - **Vite** - Fast build tool and dev server
 - **Chakra UI** - Component library
-- **Playwright** - E2E testing framework
+- **Playwright** - Reference E2E flows (Chrome-only, on-demand)
 
 ### Backend
 - **FastAPI** - Modern Python web framework
@@ -80,12 +80,12 @@ cd fairplay-nil
 ### Local Development
 1. **Start Environment** - Use `./start-local-dev.sh` for automated setup
 2. **Make Changes** - Frontend auto-reloads, backend auto-reloads
-3. **Test Changes** - Run Playwright tests with `npm run test:e2e`
+3. **Test Changes** - Run unit/integration tests with `npm test`
 4. **Deploy** - Push to GitHub for automatic deployment
 
 ### Testing Strategy
 - **Unit Tests** - Component and utility testing
-- **E2E Tests** - Playwright for full user journey testing
+- **E2E Tests** - On-demand Playwright reference flows only
 - **API Tests** - FastAPI endpoint testing
 - **Database Tests** - Migration and query testing
 
@@ -157,7 +157,7 @@ fairplay-nil/
 
 ### Monitoring
 - **Error Tracking**: Sentry integration
-- **Performance**: Playwright performance monitoring
+- **Performance**: Application performance monitoring
 - **Database**: Supabase performance advisors
 - **Logs**: Real-time application and database logs
 

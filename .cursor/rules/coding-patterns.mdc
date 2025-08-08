@@ -25,64 +25,16 @@ Never add stubbing or fake data patterns to code that affects the dev or prod en
 
 Never overwrite my .env file without first asking and confirming
 
-## 🎭 Playwright Testing Patterns
+## Testing Patterns
 
-### **Test Structure Guidelines**
-- Write descriptive test names that explain the user scenario
-- Group related tests using `test.describe()` blocks
-- Use `data-testid` attributes for reliable element selection
-- Implement proper error handling and assertions in every test
+### Default Testing (Jest + RTL)
+- Write tests for components, hooks, utilities
+- Test business logic and data transformations
+- Test form validation and error handling
+- Test API integration patterns
+- Use test utilities from `frontend/src/utils/test-utils.js`
 
-### **Element Selection Best Practices**
-```javascript
-// ✅ CORRECT: Use data-testid for reliable selection
-await page.locator('[data-testid="submit-button"]').click();
-
-// ✅ CORRECT: Use semantic selectors
-await page.locator('button[type="submit"]').click();
-
-// ❌ WRONG: Avoid fragile selectors
-await page.locator('.btn-primary').click(); // Too generic
-```
-
-### **Error Handling in Tests**
-```javascript
-// ✅ CORRECT: Handle potential errors gracefully
-test('should handle form submission', async ({ page }) => {
-  try {
-    await page.goto('/form');
-    await page.fill('[name="email"]', 'test@example.com');
-    await page.click('[data-testid="submit"]');
-    await expect(page.locator('.success')).toBeVisible();
-  } catch (error) {
-    console.log('Test failed:', error.message);
-    // Take screenshot for debugging
-    await page.screenshot({ path: 'test-failure.png' });
-    throw error;
-  }
-});
-```
-
-### **Test Data Management**
-- Use realistic test data that matches production scenarios
-- Avoid hardcoded values in tests
-- Create reusable test utilities for common operations
-- Clean up test data after each test
-
-### **Performance Testing**
-```javascript
-// ✅ CORRECT: Monitor performance metrics
-test('should load page within acceptable time', async ({ page }) => {
-  const startTime = Date.now();
-  await page.goto('/dashboard');
-  const loadTime = Date.now() - startTime;
-  
-  expect(loadTime).toBeLessThan(3000); // 3 seconds max
-});
-```
-
-### **Cross-Browser Testing**
-- Always test across multiple browsers (Chrome, Firefox, Safari)
-- Handle browser-specific differences gracefully
-- Use responsive design testing for mobile devices
-- Test both desktop and mobile viewports
+### Reference Playwright Flows
+- Chrome-only, production URL, four flows in `frontend/tests/active-tests/`
+- Not part of default CI or development workflow
+- Use only when explicitly requested for manual verification

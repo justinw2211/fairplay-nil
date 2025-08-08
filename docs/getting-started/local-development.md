@@ -43,42 +43,27 @@ SUPABASE_URL=https://izitucbtlygkzncwmsjl.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ```
 
-## 🧪 Testing with Playwright
+## 🧪 Testing
 
-### 1. Install Playwright
+### Default Testing (Jest + RTL)
 ```bash
 cd frontend
-npm install
-npx playwright install
+npm test
 ```
 
-### 2. Run Tests Locally
+### Reference Playwright Flows
 ```bash
-# Run all tests
-npm run test:e2e
-
-# Run with UI (interactive)
-npm run test:e2e:ui
-
-# Run in headed mode (see browser)
-npm run test:e2e:headed
-
-# Debug mode (step through)
-npm run test:e2e:debug
-
-# Test local development environment
-npx playwright test local-dev-test.spec.js --headed
-
-# Test specific functionality
-npx playwright test --grep "deal wizard"
+# See frontend/tests/PLAYWRIGHT_REFERENCE_GUIDE.md for exact commands
+cd frontend
+npx playwright test tests/active-tests/simple-deal-logging-flow.spec.js --project=chromium --headed
 ```
 
-### 3. Manual Testing
+### Manual Testing
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/docs
 
-### 4. API Testing
+### API Testing
 ```bash
 # Test backend health
 curl http://localhost:8000/
@@ -91,18 +76,11 @@ curl http://localhost:8000/docs
 
 ### Frontend Debugging
 ```bash
-# Interactive debugging with Playwright
-npm run debug:playwright
+# Run tests in watch mode
+npm test -- --watch
 
-# View test reports
-npm run test:e2e:report
-
-# Step-through debugging
-npm run test:e2e:debug
-
-# Check test artifacts
-ls frontend/playwright-report/
-ls frontend/test-results/
+# Debug specific test
+npm test -- --verbose StatusBadge.test.jsx
 ```
 
 ### Backend Debugging
@@ -114,60 +92,9 @@ tail -f backend/logs/app.log
 curl -X GET http://localhost:8000/api/health
 ```
 
-### Debug Commands
-```bash
-# Install browsers
-npx playwright install
+## 📊 Testing
 
-# Update browsers
-npx playwright install --force
-
-# Show test report
-npx playwright show-report
-
-# Debug specific test
-npx playwright test --debug tests/smoke.spec.js
-```
-
-## 📊 Test Coverage
-
-### Smoke Tests (`tests/smoke.spec.js`)
-- ✅ Homepage loading
-- ✅ Navigation functionality
-- ✅ Authentication flow
-- ✅ Console error detection
-
-### Deal Wizard Tests (`tests/deal-wizard.spec.js`)
-- ✅ Wizard component loading
-- ✅ Form interactions
-- ✅ Step navigation
-- ✅ Error handling
-
-## 🔍 Debugging Features
-
-### Console Error Detection
-```javascript
-// Automatically captures and reports:
-// - JavaScript errors
-// - Network failures
-// - Console warnings
-// - Page errors
-```
-
-### Network Monitoring
-```javascript
-// Records all network activity:
-// - Failed requests
-// - Slow responses
-// - API errors
-// - Resource loading issues
-```
-
-### Visual Debugging
-- Screenshots on test failures
-- Video recordings of test sessions
-- HAR files for network analysis
-- DevTools integration
+For comprehensive testing information, see [Testing Protocol](docs/testing/testing-protocol.md).
 
 ## 📊 Development Workflow
 
@@ -176,8 +103,8 @@ npx playwright test --debug tests/smoke.spec.js
 # Start local environment
 ./start-local-dev.sh
 
-# Run tests to ensure everything works
-cd frontend && npm run test:e2e
+# Run unit/integration tests
+cd frontend && npm test
 ```
 
 ### 2. **During Development**
@@ -185,15 +112,12 @@ cd frontend && npm run test:e2e
 # Make your changes
 # Frontend auto-reloads on http://localhost:3000
 # Backend auto-reloads on http://localhost:8000
-
-# Test specific functionality
-npx playwright test --grep "deal wizard"
 ```
 
 ### 3. **Before Deploying**
 ```bash
-# Run all tests
-npm run test:e2e
+# Run unit/integration tests
+npm test
 
 # Build test
 npm run build
@@ -202,46 +126,36 @@ npm run build
 git add . && git commit -m "feat: your changes" && git push
 ```
 
-### Enhanced Workflow with CI/CD
+### CI/CD Pipeline
 ```bash
-# 1. Run tests locally
-npm run test:e2e
+# 1. Run unit/integration tests locally
+npm test
 
 # 2. If tests pass, build and deploy
 npm run build
 git add . && git commit -m "feat: add new feature" && git push
 ```
 
-**Automated CI/CD Pipeline:**
-- GitHub Actions runs Playwright tests on every push
-- Only deploys to production if tests pass
-- Generates test reports and videos for debugging
+**Automated Pipeline:**
+- GitHub Actions runs unit/integration tests on every push
+- Vercel deploys from GitHub
 
 ## 🎯 Key Benefits
 
-### 1. **Pre-Deployment Testing**
-- Catch errors before they reach production
-- Test across multiple browsers (Chrome, Firefox, Safari)
-- Mobile device testing included
+### 1. **Fast Development**
+- No deployment delays
+- Full access to logs and errors
+- Offline development capability
 
-### 2. **Automated Debugging**
-- Console error detection
-- Network request monitoring
-- Visual regression testing
-- Performance monitoring
-
-### 3. **Interactive Debugging**
+### 2. **Better Debugging**
 - Real-time error reporting
-- Video recording of test sessions
-- Network HAR files for analysis
-- DevTools integration
+- Full control over test environment
+- Cost effective development
 
-### 4. **Local Development Benefits**
-- **Faster Development**: No deployment delays
-- **Better Debugging**: Full access to logs and errors
-- **Offline Development**: Work without internet
-- **Cost Effective**: No cloud resource usage
-- **Better Testing**: Full control over test environment
+### 3. **Environment Control**
+- Test against local, staging, or production APIs
+- Full control over environment variables
+- Isolated development environment
 
 ## 🚨 Common Issues
 
@@ -269,21 +183,21 @@ cat frontend/.env.local
 pkill -f "npm run dev" && npm run dev
 ```
 
-### Playwright Tests Failing
+### Unit Tests Failing
 ```bash
 # Check if servers are running
 curl http://localhost:3000/
 curl http://localhost:8000/
 
 # Run tests with debugging
-npx playwright test --headed --debug
+npm test -- --verbose
 ```
 
-### Common Playwright Issues
+### Common Test Issues
 1. **Tests failing locally**: Check if dev server is running
-2. **Browser issues**: Run `npx playwright install`
-3. **Network timeouts**: Increase timeout in playwright.config.js
-4. **Flaky tests**: Add retries and better selectors
+2. **Mock issues**: Verify mock imports and setup
+3. **Import errors**: Check file paths and extensions
+4. **Hook errors**: Ensure hooks are at top level
 
 ## 🚨 Error Detection
 
@@ -292,16 +206,13 @@ npx playwright test --headed --debug
 2. **Network Issues**: Failed API calls, slow responses
 3. **UI Problems**: Missing elements, broken navigation
 4. **Performance Issues**: Slow loading, memory leaks
-5. **Cross-browser Issues**: Browser-specific problems
+5. **Component Issues**: Rendering errors, state problems
 
 ### Error Reporting
 ```bash
-# View test reports
-npm run test:e2e:report
-
-# Check test artifacts
-ls frontend/playwright-report/
-ls frontend/test-results/
+# Check console for errors
+# Monitor network tab in dev tools
+# Review Sentry dashboard (if configured)
 ```
 
 ## 📈 Performance Monitoring
@@ -310,17 +221,15 @@ ls frontend/test-results/
 - Page load times
 - Network request performance
 - Memory usage
-- CPU utilization
+- API call performance
 
 ### Custom Metrics
 ```javascript
 // Add custom performance tracking
-await page.evaluate(() => {
-  performance.mark('custom-start');
-  // Your code here
-  performance.mark('custom-end');
-  performance.measure('custom', 'custom-start', 'custom-end');
-});
+const startTime = performance.now();
+// Your code here
+const endTime = performance.now();
+console.log(`Execution time: ${endTime - startTime}ms`);
 ```
 
 ## 📝 Environment Differences
@@ -350,23 +259,19 @@ npm run dev
 ### Environment-Specific Testing
 ```bash
 # Test against staging
-BASE_URL=https://staging.fairplay-nil.com npm run test:e2e
+VITE_API_URL=https://staging-backend.onrender.com npm test
 
 # Test against production
-BASE_URL=https://fairplay-nil.vercel.app npm run test:e2e
+VITE_API_URL=https://fairplay-nil-backend.onrender.com npm test
 ```
 
 ## 🛠️ Advanced Usage
 
-### Custom Test Scenarios
+### Custom Development Scenarios
 ```javascript
-// Add to tests/custom.spec.js
-test('should handle specific user flow', async ({ page }) => {
-  await page.goto('/deal-wizard');
-  await page.fill('[name="dealType"]', 'endorsement');
-  await page.click('[data-testid="next-step"]');
-  // Add more specific test logic
-});
+// Add custom debugging
+console.log('Debug info:', data);
+// Use browser dev tools for inspection
 ```
 
 ## 🎯 Best Practices
@@ -374,23 +279,23 @@ test('should handle specific user flow', async ({ page }) => {
 ### 1. **Test Before Deploy**
 Always run tests before pushing to main branch
 
-### 2. **Monitor Test Results**
-Check GitHub Actions for test failures
+### 2. **Monitor Development**
+Check console for errors during development
 
-### 3. **Use Debug Mode**
-Use `npm run debug:playwright` for interactive debugging
+### 3. **Use Debug Tools**
+Use browser dev tools for inspection
 
-### 4. **Review Reports**
-Regularly check test reports for patterns
+### 4. **Environment Management**
+Keep environment variables organized
 
-### 5. **Update Tests**
-Keep tests in sync with new features
+### 5. **Regular Maintenance**
+Update dependencies and configurations
 
 ## 📚 Next Steps
 
-1. **Run initial tests**: `npm run test:e2e`
-2. **Set up GitHub Actions**: Already configured
-3. **Add more test scenarios**: Based on your specific needs
-4. **Monitor and improve**: Regular test maintenance
+1. **Start development**: `./start-local-dev.sh`
+2. **Set up environment**: Configure your `.env` files
+3. **Add features**: Develop with full local control
+4. **Monitor and improve**: Regular development maintenance
 
-This setup allows you to develop locally with full control while maintaining the ability to test against production APIs when needed. The enhanced Playwright integration provides robust debugging and testing capabilities that integrate seamlessly with your existing Vercel deployment workflow. 
+This setup allows you to develop locally with full control while maintaining the ability to test against production APIs when needed. 
