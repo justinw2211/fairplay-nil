@@ -31,6 +31,7 @@ cd fairplay-nil
 - **[Database Guide](docs/development/database/supabase-guide.md)** - Complete Supabase database documentation
 - **[Code Quality](docs/development/code-quality/improvements.md)** - Performance and security improvements
 - **[Testing Protocol](docs/testing/testing-protocol.md)** - Comprehensive testing strategy and guidelines
+- **[Environment Setup](docs/getting-started/environment-setup.md)** - Complete environment configuration guide
 
 ### Features
 - **[Deal Wizard Bug Fixes](docs/features/deal-wizard/bug-fixes.md)** - Recent bug fixes and improvements

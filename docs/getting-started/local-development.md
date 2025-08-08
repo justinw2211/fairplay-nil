@@ -26,22 +26,12 @@ npm run dev
 
 ## 🔧 Environment Configuration
 
-### Frontend Environment (`.env.local`)
-```bash
-# Development Environment Configuration
-VITE_API_URL=http://localhost:8000
-VITE_ENVIRONMENT=development
-VITE_DEBUG=true
-VITE_SENTRY_DSN=
-VITE_APP_VERSION=1.0.0-dev
-VITE_BUILD_TIME=
-```
+For complete environment setup instructions, see [Environment Setup Guide](environment-setup.md).
 
-### Backend Environment (`.env`)
-```bash
-SUPABASE_URL=https://izitucbtlygkzncwmsjl.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-```
+**Quick Setup:**
+- **Frontend**: Create `frontend/.env.local` with required variables
+- **Backend**: Create `backend/.env` with Supabase credentials
+- **Validation**: Run `npm run validate:env` to verify configuration
 
 ## 🧪 Testing
 
