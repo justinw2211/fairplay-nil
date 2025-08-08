@@ -1,7 +1,7 @@
 # Three Deal Form Functionalities PRP
 
 > **⚠️ OUTDATED PRP**  
-> This PRP reflects an early design that was later simplified. The current implementation uses Dashboard-based deal type selection rather than a separate DealTypeSelection page. See `docs/features/deal-wizard/three-deal-form-routing.md` for current architecture.
+> **UPDATED**: This PRP reflects the current implementation. Deal type selection happens on the Dashboard page via deal type cards, not a separate route. See `docs/features/deal-wizard/three-deal-form-routing.md` for complete architecture details.
 
 ## Goal
 Transform the current single "Add New Deal" functionality on student-athlete dashboards into three distinct deal workflows:
@@ -89,7 +89,6 @@ backend/app/
 frontend/src/
 ├── pages/
 │   ├── Dashboard.jsx                    # MODIFY: Replace button with three cards
-│   ├── DealTypeSelection.jsx           # CREATE: Deal type selection page
 │   ├── ClearinghouseResult.jsx         # CREATE: Clearinghouse prediction result
 │   ├── ValuationResult.jsx             # CREATE: Valuation analysis result
 │   └── DealWizard/
@@ -175,12 +174,13 @@ Task 1: Create Deal Type Selection UI
 MODIFY src/pages/Dashboard.jsx:
   - FIND pattern: "Add New Deal" button
   - REPLACE with three DealTypeCard components
-  - ADD routing to /deal-type-selection
+  - ADD deal type selection handler in Dashboard.jsx
+  - IMPLEMENT routing to wizard with deal type parameter
 
-CREATE src/pages/DealTypeSelection.jsx:
-  - MIRROR pattern from: existing wizard layouts
-  - ADD three card options with descriptions
-  - IMPLEMENT routing to appropriate wizard
+CREATE src/components/DealTypeCard.jsx:
+  - USE Chakra UI Card, Button, Icon components
+  - FOLLOW existing brand color patterns
+  - ADD hover states and click handlers
 
 CREATE src/components/DealTypeCard.jsx:
   - USE Chakra UI Card, Button, Icon components
@@ -292,8 +292,8 @@ MODIFY backend/app/database.py:
 ### Per Task Pseudocode
 
 ```javascript
-// Task 1: Deal Type Selection UI
-function DealTypeSelection() {
+// Task 1: Deal Type Selection UI (Dashboard-based)
+function Dashboard() {
   const dealTypes = [
     {
       id: 'simple',
@@ -318,16 +318,17 @@ function DealTypeSelection() {
     }
   ];
 
-  const handleTypeSelection = (type) => {
-    navigate(`/add/deal/social-media/new?type=${type}`);
+  const handleDealTypeSelect = async (dealType) => {
+    const newDeal = await createDraftDeal(dealType);
+    navigate(`/add/deal/social-media/${newDeal.id}?type=${dealType}`);
   };
 
   return (
-    <Grid templateColumns="repeat(auto-fit, minmax(300px, 1fr))">
+    <CreateDealSection>
       {dealTypes.map(type => (
-        <DealTypeCard key={type.id} {...type} onSelect={handleTypeSelection} />
+        <DealTypeCard key={type.id} {...type} onClick={() => handleDealTypeSelect(type.id)} />
       ))}
-    </Grid>
+    </CreateDealSection>
   );
 }
 
@@ -387,8 +388,7 @@ function predictValuation(dealData, athleteProfile) {
 ```yaml
 ROUTING:
   - add to: frontend/src/App.jsx
-  - pattern: "<Route path='/deal-type-selection' element={<DealTypeSelection />} />"
-  - pattern: "<Route path='/add/deal/clearinghouse-result/:dealId' element={<ClearinghouseResult />} />"
+  - pattern: "<Route path='/clearinghouse-result/:dealId' element={<ClearinghouseResult />} />"
 
 DATABASE:
   - migration: "ADD COLUMN deal_type VARCHAR(20) DEFAULT 'simple'"

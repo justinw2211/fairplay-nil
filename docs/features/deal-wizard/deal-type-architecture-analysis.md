@@ -24,7 +24,7 @@ All three deal types share the same core wizard steps:
 
 ### Deal Type Selection
 
-**Location**: `DealTypeSelection.jsx` and `Dashboard.jsx`
+**Location**: `Dashboard.jsx` (deal type selection via cards)
 
 **Selection Options**:
 ```javascript
