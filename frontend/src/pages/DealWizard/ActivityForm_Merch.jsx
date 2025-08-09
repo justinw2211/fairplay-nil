@@ -33,7 +33,7 @@ const ActivityForm_Merch = ({ onNext, currentActivity, totalActivities }) => {
   const [searchParams] = useSearchParams();
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
-  const { currentDeal, updateDeal } = useDeal();
+  const { currentDeal, updateDeal, fetchDealById } = useDeal();
 
   const [selectedMerch, setSelectedMerch] = useState([]);
   const [merchDetails, setMerchDetails] = useState({});
@@ -110,12 +110,16 @@ const ActivityForm_Merch = ({ onNext, currentActivity, totalActivities }) => {
     // Get the existing activity entry to preserve sequence and completed status
     const existingActivity = currentDeal.obligations?.['merch-and-products'] || {};
 
+    let baseDeal = currentDeal;
+    try {
+      baseDeal = await fetchDealById(dealId);
+    } catch (_e) {}
     await updateDeal(dealId, {
       obligations: {
-        ...currentDeal.obligations,
+        ...(baseDeal?.obligations || currentDeal.obligations || {}),
         'merch-and-products': {
-          ...existingActivity, // Preserve sequence, completed, etc.
-          ...formattedData,    // Add the form data
+          ...existingActivity,
+          ...formattedData,
         },
       },
     });
@@ -132,9 +136,13 @@ const ActivityForm_Merch = ({ onNext, currentActivity, totalActivities }) => {
 
     const existingActivity = currentDeal.obligations?.['merch-and-products'] || {};
 
+    let baseDeal = currentDeal;
+    try {
+      baseDeal = await fetchDealById(dealId);
+    } catch (_e) {}
     await updateDeal(dealId, {
       obligations: {
-        ...currentDeal.obligations,
+        ...(baseDeal?.obligations || currentDeal.obligations || {}),
         'merch-and-products': {
           ...existingActivity,
           ...formattedData,

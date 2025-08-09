@@ -1,5 +1,5 @@
 // frontend/src/pages/DealWizard/ActivityForm_SocialMedia.jsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
@@ -16,21 +16,8 @@ import {
   Textarea,
   Badge,
 } from '@chakra-ui/react';
-import {
-  Plus,
-  Minus,
-  ChevronRight,
-  ChevronLeft,
-  Clock,
-  Camera,
-  MessageSquare,
-  Radio,
-  Hash,
-  Monitor,
-  Smartphone,
-  Globe,
-} from 'lucide-react';
-import { FaInstagram, FaTiktok, FaYoutube, FaTwitter, FaFacebook, FaLinkedin, FaTwitch } from 'react-icons/fa';
+import { Plus, Minus, ChevronRight, ChevronLeft, Clock, Globe } from 'lucide-react';
+import { FaInstagram, FaTiktok, FaYoutube, FaTwitter, FaTwitch } from 'react-icons/fa';
 import * as Sentry from '@sentry/react';
 
 const platforms = [
@@ -83,7 +70,7 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
   const [searchParams] = useSearchParams();
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
-  const { currentDeal, updateDeal } = useDeal();
+  const { currentDeal, updateDeal, fetchDealById } = useDeal();
 
   const [selectedPlatforms, setSelectedPlatforms] = useState([]);
   const [platformContent, setPlatformContent] = useState({});
@@ -196,11 +183,15 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
       }
     });
 
+    let baseDeal = currentDeal;
+    try {
+      baseDeal = await fetchDealById(dealId);
+    } catch (_e) {}
     await updateDeal(dealId, {
       obligations: {
-        ...currentDeal.obligations,
+        ...(baseDeal?.obligations || currentDeal.obligations || {}),
         'social-media': {
-          ...currentDeal.obligations?.['social-media'],
+          ...(baseDeal?.obligations?.['social-media'] || currentDeal.obligations?.['social-media'] || {}),
           ...formattedData,
         },
       },
@@ -226,11 +217,15 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
       description,
     };
 
+    let baseDeal = currentDeal;
+    try {
+      baseDeal = await fetchDealById(dealId);
+    } catch (_e) {}
     await updateDeal(dealId, {
       obligations: {
-        ...currentDeal.obligations,
+        ...(baseDeal?.obligations || currentDeal.obligations || {}),
         'social-media': {
-          ...currentDeal.obligations?.['social-media'],
+          ...(baseDeal?.obligations?.['social-media'] || currentDeal.obligations?.['social-media'] || {}),
           ...formattedData,
         },
       },

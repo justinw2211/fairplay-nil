@@ -29,7 +29,7 @@ const ActivityForm_Endorsements = ({ onNext, currentActivity, totalActivities })
   const [searchParams] = useSearchParams();
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
-  const { currentDeal, updateDeal } = useDeal();
+  const { currentDeal, updateDeal, fetchDealById } = useDeal();
 
   const [selectedEndorsements, setSelectedEndorsements] = useState([]);
   const [endorsementDetails, setEndorsementDetails] = useState({});
@@ -105,12 +105,17 @@ const ActivityForm_Endorsements = ({ onNext, currentActivity, totalActivities })
     // Get the existing activity entry to preserve sequence and completed status
     const existingActivity = currentDeal.obligations?.['endorsements'] || {};
 
+    // Merge with freshest obligations from the server to avoid overwrites
+    let baseDeal = currentDeal;
+    try {
+      baseDeal = await fetchDealById(dealId);
+    } catch (_e) {}
     await updateDeal(dealId, {
       obligations: {
-        ...currentDeal.obligations,
+        ...(baseDeal?.obligations || currentDeal.obligations || {}),
         'endorsements': {
-          ...existingActivity, // Preserve sequence, completed, etc.
-          ...formattedData,    // Add the form data
+          ...existingActivity,
+          ...formattedData,
         },
       },
     });
