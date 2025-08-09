@@ -375,39 +375,49 @@ const Universities = () => {
         </Grid>
       </Container>
 
-      {/* CTA Section */}
-      <Box bg={primaryColor} color="white" py={16}>
-        <Container maxW="5xl">
-          <VStack spacing={6} textAlign="center">
-            <Heading as="h2" size="xl">
-              Ready to Transform Your NIL Program?
-            </Heading>
-            <Text fontSize="lg" color="gray.200" maxW="3xl">
-              Join hundreds of athletic programs already using FairPlay NIL to manage their
-              NIL operations with confidence and compliance.
-            </Text>
-            <HStack spacing={4}>
-              <Button
-                size="lg"
-                bg={accentColor}
-                color="white"
-                _hover={{ bg: "#c8aeb0" }}
-                px={8}
-              >
-                Start Free Trial
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                borderColor="white"
-                color="white"
-                _hover={{ bg: "whiteAlpha.100" }}
-                px={8}
-              >
-                Contact Sales
-              </Button>
-            </HStack>
-          </VStack>
+      {/* Footer (same structure as Home) */}
+      <Box bg="brand.backgroundLight" py={12}>
+        <Container maxW="7xl">
+          <Grid templateColumns={{ base: '1fr', md: 'repeat(4, 1fr)' }} gap={8}>
+            <VStack align="start">
+              <Text as="a" href="/" fontSize="2xl" fontWeight="bold" color="brand.textPrimary">
+                FairPlay NIL
+              </Text>
+            </VStack>
+
+            <VStack align="start">
+              <Heading size="sm" color="brand.textPrimary" mb={4}>Product</Heading>
+              <VStack align="start" spacing={2}>
+                <Text as="a" href="/athletes" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>Athletes</Text>
+                <Text as="a" href="/brands" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>Brands</Text>
+              </VStack>
+            </VStack>
+
+            <VStack align="start">
+              <Heading size="sm" color="brand.textPrimary" mb={4}>Company</Heading>
+              <VStack align="start" spacing={2}>
+                <Text as="a" href="/about" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>About Us</Text>
+                <Text as="a" href="/careers" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>Careers</Text>
+                <Text as="a" href="/blog" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>Blogs</Text>
+              </VStack>
+            </VStack>
+
+            <VStack align="start">
+              <Heading size="sm" color="brand.textPrimary" mb={4}>Legal</Heading>
+              <VStack align="start" spacing={2}>
+                <Text as="a" href="/privacy" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>Privacy Policy</Text>
+                <Text as="a" href="/terms" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>Terms of Service</Text>
+              </VStack>
+            </VStack>
+          </Grid>
+
+          <HStack justify="center" spacing={6} mt={8} pt={8} borderTop="1px" borderColor="gray.300">
+            <Text as="a" href="#" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>Twitter</Text>
+            <Text as="a" href="#" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>Instagram</Text>
+            <Text as="a" href="#" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>LinkedIn</Text>
+          </HStack>
+        </Container>
+      </Box>
         </Container>
       </Box>
     </Box>
