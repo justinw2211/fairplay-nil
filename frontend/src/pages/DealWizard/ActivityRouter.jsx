@@ -283,16 +283,9 @@ const ActivityRouter = () => {
     console.log('Total activities:', totalActivities);
     console.log('Is last activity?', currentActivityIndex >= totalActivities - 1);
 
-    // Mark the current activity as completed in obligations
-    const updatedObligations = { ...currentDeal.obligations };
-    if (updatedObligations[decodedActivityType]) {
-      updatedObligations[decodedActivityType].completed = true;
-      console.log(`✅ Marked ${decodedActivityType} as completed`);
-    }
-
-    // Update the deal with completion status
+    // IMPORTANT: Do NOT overwrite obligations here to avoid racing the form save.
+    // Forms set their own activity subobject (including completed flag). We only advance wizard metadata.
     await updateDeal(dealId, {
-      obligations: updatedObligations,
       lastCompletedActivity: decodedActivityType,
       currentActivityIndex: currentActivityIndex + 1
     });
