@@ -59,6 +59,7 @@ const ActivityForm_Content = ({ onNext, currentActivity, totalActivities }) => {
     const formattedData = {
       quantity: quantityOfContent,
       description: contentDescription,
+      completed: true,
     };
 
     // Get the existing activity entry to preserve sequence and completed status

@@ -54,6 +54,7 @@ const ActivityForm_Other = ({ onNext, currentActivity, totalActivities }) => {
       name: activityName,
       description: activityDescription,
       dueDate: dueDate,
+      completed: true,
     };
 
     // Get the existing activity entry to preserve sequence and completed status

@@ -47,6 +47,7 @@ const ActivityForm_Autographs = ({ onNext, currentActivity, totalActivities }) =
     const formattedData = {
       numberOfItems: Number.parseInt(numberOfItems),
       itemTypes,
+      completed: true,
     };
 
     // Get the existing activity entry to preserve sequence and completed status
