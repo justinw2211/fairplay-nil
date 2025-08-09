@@ -77,6 +77,31 @@ const ActivityForm_Content = ({ onNext, currentActivity, totalActivities }) => {
     onNext();
   };
 
+  const handleBack = async () => {
+    // Save current progress before navigating back to selection
+    const formattedData = {
+      quantity: quantityOfContent,
+      description: contentDescription,
+    };
+
+    const existingActivity = currentDeal.obligations?.['content-for-brand'] || {};
+
+    try {
+      await updateDeal(dealId, {
+        obligations: {
+          ...currentDeal.obligations,
+          'content-for-brand': {
+            ...existingActivity,
+            ...formattedData,
+          },
+        },
+      });
+    } catch (_) { /* ignore and still navigate back */ }
+
+    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
+  };
+
   return (
     <Container maxW="2xl" py={6}>
       <Box
@@ -223,12 +248,7 @@ const ActivityForm_Content = ({ onNext, currentActivity, totalActivities }) => {
                   fontWeight="medium"
                   borderColor="brand.accentSecondary"
                   color="brand.textSecondary"
-                  onClick={() => {
-                    const searchParams = new URLSearchParams(window.location.search);
-                    const dealType = searchParams.get('type') || 'standard';
-                    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-                    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
-                  }}
+                  onClick={handleBack}
                   _hover={{
                     bg: "brand.backgroundLight",
                     borderColor: "brand.accentPrimary",
