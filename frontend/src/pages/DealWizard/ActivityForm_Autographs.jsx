@@ -26,7 +26,7 @@ const ActivityForm_Autographs = ({ onNext, currentActivity, totalActivities }) =
   const [searchParams] = useSearchParams();
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
-  const { currentDeal, updateDeal } = useDeal();
+  const { currentDeal, updateDeal, fetchDealById } = useDeal();
 
   const [numberOfItems, setNumberOfItems] = useState("");
   const [itemTypes, setItemTypes] = useState("");
@@ -47,48 +47,26 @@ const ActivityForm_Autographs = ({ onNext, currentActivity, totalActivities }) =
     const formattedData = {
       numberOfItems: Number.parseInt(numberOfItems),
       itemTypes,
-      completed: true,
     };
 
     // Get the existing activity entry to preserve sequence and completed status
     const existingActivity = currentDeal.obligations?.['autographs'] || {};
 
+    let baseDeal = currentDeal;
+    try {
+      baseDeal = await fetchDealById(dealId);
+    } catch (_e) {}
     await updateDeal(dealId, {
       obligations: {
-        ...currentDeal.obligations,
+        ...(baseDeal?.obligations || currentDeal.obligations || {}),
         'autographs': {
-          ...existingActivity, // Preserve sequence, completed, etc.
-          ...formattedData,    // Add the form data
+          ...existingActivity,
+          ...formattedData,
         },
       },
     });
 
     onNext();
-  };
-
-  const handleBack = async () => {
-    // Persist current progress before navigating back
-    const formattedData = {
-      numberOfItems: numberOfItems ? Number.parseInt(numberOfItems) : undefined,
-      itemTypes,
-    };
-
-    const existingActivity = currentDeal.obligations?.['autographs'] || {};
-
-    try {
-      await updateDeal(dealId, {
-        obligations: {
-          ...currentDeal.obligations,
-          'autographs': {
-            ...existingActivity,
-            ...formattedData,
-          },
-        },
-      });
-    } catch (_) { /* ignore and still navigate back */ }
-
-    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
   };
 
   const progressPercentage = ((currentActivity - 1) / totalActivities) * 100;
@@ -233,7 +211,10 @@ const ActivityForm_Autographs = ({ onNext, currentActivity, totalActivities }) =
                   fontWeight="medium"
                   borderColor="brand.accentSecondary"
                   color="brand.textSecondary"
-                  onClick={handleBack}
+                  onClick={() => {
+                    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+                    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
+                  }}
                   _hover={{
                     bg: "brand.backgroundLight",
                     borderColor: "brand.accentPrimary",

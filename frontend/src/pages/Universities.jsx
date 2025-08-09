@@ -10,7 +10,6 @@ import {
   Flex,
   Icon,
   SimpleGrid,
-  Grid,
   useDisclosure,
 } from "@chakra-ui/react";
 import UniversitiesDemoModal from "../components/UniversitiesDemoModal";
@@ -134,45 +133,25 @@ const Universities = () => {
 
       {/* Outcomes */}
       <Container maxW="7xl" py={20}>
-        <VStack spacing={12} align="stretch">
-          <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap={12} alignItems="start">
-            <VStack align="start" spacing={4}>
-              <Heading as="h2" size="xl" color="brand.textPrimary">
-                Outcomes for Your Program
-              </Heading>
-              <VStack align="start" spacing={3}>
-                {[ 
-                  "Increase visibility into NIL activity across teams and sports.",
-                  "Consolidate submissions, approvals, and documentation.",
-                  "Equip staff with dashboards and exports for oversight.",
-                  "Integrate data with existing systems as needed.",
-                ].map((benefit, index) => (
-                  <HStack key={index} spacing={3}>
-                    <Icon as={FiMonitor} color="brand.accentPrimary" />
-                    <Text color="brand.textSecondary">{benefit}</Text>
-                  </HStack>
-                ))}
-              </VStack>
+        <VStack spacing={10} align="stretch">
+          <VStack align="start" spacing={4}>
+            <Heading as="h2" size="xl" color="brand.textPrimary">
+              Outcomes for Your Program
+            </Heading>
+            <VStack align="start" spacing={3}>
+              {[ 
+                "Increase visibility into NIL activity across teams and sports.",
+                "Consolidate submissions, approvals, and documentation.",
+                "Equip staff with dashboards and exports for oversight.",
+                "Integrate data with existing systems as needed.",
+              ].map((benefit, index) => (
+                <HStack key={index} spacing={3}>
+                  <Icon as={FiMonitor} color="brand.accentPrimary" />
+                  <Text color="brand.textSecondary">{benefit}</Text>
+                </HStack>
+              ))}
             </VStack>
-
-            {/* Side CTA panel to utilize horizontal space */}
-            <Box bg="brand.backgroundLight" borderRadius="xl" boxShadow="md" p={0}>
-              <VStack align="start" spacing={4} px={8} pb={8} pt={0}>
-                <Heading as="h3" size="lg" color="brand.textPrimary" mt={0}>
-                  See It in Action
-                </Heading>
-                <Text color="brand.textSecondary">
-                  Schedule a live walkthrough of compliance tracking, deal workflows, and analytics.
-                </Text>
-                <Button size="lg" w="full" onClick={handleCtaClick}>
-                  Schedule a Demo
-                </Button>
-                <Text fontSize="sm" color="brand.textSecondary">
-                  We’ll follow up by email to coordinate a time that works for your team.
-                </Text>
-              </VStack>
-            </Box>
-          </Grid>
+          </VStack>
 
           <SimpleGrid columns={{ base: 2, md: 4 }} spacing={6}>
             {[
@@ -192,7 +171,22 @@ const Universities = () => {
         </VStack>
       </Container>
 
-      {/** Final CTA band removed per request to reduce redundancy **/}
+      {/* Final CTA */}
+      <Box bg="brand.textPrimary" color="white" py={16}>
+        <Container maxW="5xl">
+          <VStack spacing={6} textAlign="center">
+            <Heading as="h2" size="xl">
+              Ready to See the Platform?
+            </Heading>
+            <Text fontSize="lg" color="gray.200" maxW="3xl">
+              Schedule a demo to explore compliance tracking, deal workflows, and program analytics.
+            </Text>
+            <Button size="lg" px={8} onClick={handleCtaClick}>
+              Schedule a Demo
+            </Button>
+          </VStack>
+        </Container>
+      </Box>
       <UniversitiesDemoModal isOpen={isOpen} onClose={onClose} onSubmit={handleSubmitModal} />
     </Box>
   );

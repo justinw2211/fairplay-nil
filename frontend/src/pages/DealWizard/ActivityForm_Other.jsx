@@ -29,7 +29,7 @@ const ActivityForm_Other = ({ onNext, currentActivity, totalActivities }) => {
   const [searchParams] = useSearchParams();
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
-  const { currentDeal, updateDeal } = useDeal();
+  const { currentDeal, updateDeal, fetchDealById } = useDeal();
 
   const [activityName, setActivityName] = useState("");
   const [activityDescription, setActivityDescription] = useState("");
@@ -54,18 +54,21 @@ const ActivityForm_Other = ({ onNext, currentActivity, totalActivities }) => {
       name: activityName,
       description: activityDescription,
       dueDate: dueDate,
-      completed: true,
     };
 
     // Get the existing activity entry to preserve sequence and completed status
     const existingActivity = currentDeal.obligations?.['other'] || {};
 
+    let baseDeal = currentDeal;
+    try {
+      baseDeal = await fetchDealById(dealId);
+    } catch (_e) {}
     await updateDeal(dealId, {
       obligations: {
-        ...currentDeal.obligations,
+        ...(baseDeal?.obligations || currentDeal.obligations || {}),
         'other': {
-          ...existingActivity, // Preserve sequence, completed, etc.
-          ...formattedData,    // Add the form data
+          ...existingActivity,
+          ...formattedData,
         },
       },
     });

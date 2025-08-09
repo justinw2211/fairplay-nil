@@ -16,14 +16,7 @@ import {
   Textarea,
   Badge,
 } from '@chakra-ui/react';
-import {
-  Plus,
-  Minus,
-  ChevronRight,
-  ChevronLeft,
-  Clock,
-  Globe,
-} from 'lucide-react';
+import { Plus, Minus, ChevronRight, ChevronLeft, Clock, Globe } from 'lucide-react';
 import { FaInstagram, FaTiktok, FaYoutube, FaTwitter, FaTwitch } from 'react-icons/fa';
 import * as Sentry from '@sentry/react';
 
@@ -72,12 +65,12 @@ const platforms = [
   },
 ];
 
-const ActivityForm_SocialMedia = ({ onNext, currentActivity, totalActivities }) => {
+const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalActivities }) => {
   const { dealId } = useParams();
   const [searchParams] = useSearchParams();
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
-  const { currentDeal, updateDeal } = useDeal();
+  const { currentDeal, updateDeal, fetchDealById } = useDeal();
 
   const [selectedPlatforms, setSelectedPlatforms] = useState([]);
   const [platformContent, setPlatformContent] = useState({});
@@ -86,15 +79,12 @@ const ActivityForm_SocialMedia = ({ onNext, currentActivity, totalActivities }) 
   useEffect(() => {
     if (currentDeal?.obligations?.['social-media']) {
       const socialMediaData = currentDeal.obligations['social-media'];
-
-      // Legacy shape: array of platform entries
       if (Array.isArray(socialMediaData)) {
         const converted = {};
         socialMediaData.forEach(item => {
           if (item.platform) {
             const platform = platforms.find(p => p.name.toLowerCase() === item.platform.toLowerCase());
             if (platform) {
-              // Map all content types, use item.quantity for saved ones (legacy had one quantity per item)
               converted[platform.id] = platform.contentTypes.map(type => ({
                 id: type.toLowerCase().replace(/\s+/g, "-"),
                 name: type,
@@ -105,49 +95,8 @@ const ActivityForm_SocialMedia = ({ onNext, currentActivity, totalActivities }) 
         });
         setPlatformContent(converted);
         setSelectedPlatforms(Object.keys(converted));
-        setDescription('');
-        return;
       }
-
-      // Current shape: object with { platforms: [{ platform, type, quantity }], description, ... }
-      if (socialMediaData && Array.isArray(socialMediaData.platforms)) {
-        const byPlatformId = {};
-
-        // Group saved items by platform name
-        const itemsByPlatformName = socialMediaData.platforms.reduce((acc, item) => {
-          if (!item || !item.platform) {return acc;}
-          const key = String(item.platform).toLowerCase();
-          if (!acc[key]) {acc[key] = [];}
-          acc[key].push(item);
-          return acc;
-        }, {});
-
-        Object.entries(itemsByPlatformName).forEach(([platformNameLc, items]) => {
-          const platform = platforms.find(p => p.name.toLowerCase() === platformNameLc);
-          if (!platform) {return;}
-
-          // Build full content list for this platform using known contentTypes
-          const contentList = platform.contentTypes.map(typeName => {
-            const id = typeName.toLowerCase().replace(/\s+/g, "-");
-            const saved = items.find(i => String(i.type).toLowerCase() === String(typeName).toLowerCase());
-            return {
-              id,
-              name: typeName,
-              quantity: saved?.quantity ? Math.max(0, Number(saved.quantity) || 0) : 0,
-            };
-          });
-
-          byPlatformId[platform.id] = contentList;
-        });
-
-        setPlatformContent(byPlatformId);
-        setSelectedPlatforms(Object.keys(byPlatformId));
-        setDescription(socialMediaData.description || '');
-        return;
-      }
-
-      // Fallback: only description present
-      setDescription(socialMediaData.description || '');
+      setDescription(currentDeal.obligations['social-media'].description || "");
     }
   }, [currentDeal]);
 
@@ -234,26 +183,22 @@ const ActivityForm_SocialMedia = ({ onNext, currentActivity, totalActivities }) 
       }
     });
 
+    let baseDeal = currentDeal;
     try {
-      await updateDeal(dealId, {
-        obligations: {
-          ...currentDeal.obligations,
-          'social-media': {
-            ...currentDeal.obligations?.['social-media'],
-            ...formattedData,
-            completed: true,
-          },
+      baseDeal = await fetchDealById(dealId);
+    } catch (_e) {}
+    await updateDeal(dealId, {
+      obligations: {
+        ...(baseDeal?.obligations || currentDeal.obligations || {}),
+        'social-media': {
+          ...(baseDeal?.obligations?.['social-media'] || currentDeal.obligations?.['social-media'] || {}),
+          ...formattedData,
         },
-      });
-      console.log('📱 Calling onNext()');
-      onNext();
-    } catch (e) {
-      console.error('❌ Failed to save Social Media activity:', e);
-      Sentry.captureException(e, {
-        tags: { component: 'ActivityForm_SocialMedia', action: 'handleNext' },
-        extra: { dealId, formattedDataKeys: Object.keys(formattedData || {}) }
-      });
-    }
+      },
+    });
+
+    console.log('📱 Calling onNext()');
+    onNext();
   };
 
   const handleBack = async () => {
@@ -272,11 +217,15 @@ const ActivityForm_SocialMedia = ({ onNext, currentActivity, totalActivities }) 
       description,
     };
 
+    let baseDeal = currentDeal;
+    try {
+      baseDeal = await fetchDealById(dealId);
+    } catch (_e) {}
     await updateDeal(dealId, {
       obligations: {
-        ...currentDeal.obligations,
+        ...(baseDeal?.obligations || currentDeal.obligations || {}),
         'social-media': {
-          ...currentDeal.obligations?.['social-media'],
+          ...(baseDeal?.obligations?.['social-media'] || currentDeal.obligations?.['social-media'] || {}),
           ...formattedData,
         },
       },

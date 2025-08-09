@@ -28,7 +28,7 @@ const ActivityForm_Content = ({ onNext, currentActivity, totalActivities }) => {
   const [searchParams] = useSearchParams();
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
-  const { currentDeal, updateDeal } = useDeal();
+  const { currentDeal, updateDeal, fetchDealById } = useDeal();
 
   const [quantityOfContent, setQuantityOfContent] = useState("");
   const [contentDescription, setContentDescription] = useState("");
@@ -59,47 +59,26 @@ const ActivityForm_Content = ({ onNext, currentActivity, totalActivities }) => {
     const formattedData = {
       quantity: quantityOfContent,
       description: contentDescription,
-      completed: true,
     };
 
     // Get the existing activity entry to preserve sequence and completed status
     const existingActivity = currentDeal.obligations?.['content-for-brand'] || {};
 
+    let baseDeal = currentDeal;
+    try {
+      baseDeal = await fetchDealById(dealId);
+    } catch (_e) {}
+
     await updateDeal(dealId, {
       obligations: {
-        ...currentDeal.obligations,
+        ...(baseDeal?.obligations || currentDeal.obligations || {}),
         'content-for-brand': {
-          ...existingActivity, // Preserve sequence, completed, etc.
-          ...formattedData,    // Add the form data
+          ...existingActivity,
+          ...formattedData,
         },
       },
     });
     onNext();
-  };
-
-  const handleBack = async () => {
-    // Save current progress before navigating back to selection
-    const formattedData = {
-      quantity: quantityOfContent,
-      description: contentDescription,
-    };
-
-    const existingActivity = currentDeal.obligations?.['content-for-brand'] || {};
-
-    try {
-      await updateDeal(dealId, {
-        obligations: {
-          ...currentDeal.obligations,
-          'content-for-brand': {
-            ...existingActivity,
-            ...formattedData,
-          },
-        },
-      });
-    } catch (_) { /* ignore and still navigate back */ }
-
-    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
   };
 
   return (
@@ -248,7 +227,12 @@ const ActivityForm_Content = ({ onNext, currentActivity, totalActivities }) => {
                   fontWeight="medium"
                   borderColor="brand.accentSecondary"
                   color="brand.textSecondary"
-                  onClick={handleBack}
+                  onClick={() => {
+                    const searchParams = new URLSearchParams(window.location.search);
+                    const dealType = searchParams.get('type') || 'standard';
+                    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+                    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
+                  }}
                   _hover={{
                     bg: "brand.backgroundLight",
                     borderColor: "brand.accentPrimary",
