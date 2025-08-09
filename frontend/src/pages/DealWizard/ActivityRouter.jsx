@@ -283,12 +283,8 @@ const ActivityRouter = () => {
     console.log('Total activities:', totalActivities);
     console.log('Is last activity?', currentActivityIndex >= totalActivities - 1);
 
-    // IMPORTANT: Do NOT overwrite obligations here to avoid racing the form save.
-    // Forms set their own activity subobject (including completed flag). We only advance wizard metadata.
-    await updateDeal(dealId, {
-      lastCompletedActivity: decodedActivityType,
-      currentActivityIndex: currentActivityIndex + 1
-    });
+    // Do not call updateDeal here. Backend schema ignores wizard-only fields and
+    // returns 400 when no valid fields are present. Forms persist their own data.
 
     const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
 
