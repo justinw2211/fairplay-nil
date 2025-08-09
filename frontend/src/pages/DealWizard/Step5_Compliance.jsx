@@ -359,7 +359,7 @@ const Step5_Compliance = () => {
     }
   };
 
-  const handleBack = () => {
+  const handleBack = async () => {
     // Track back navigation attempt
     Sentry.captureMessage('Step5_Compliance: Back navigation attempt started', 'info', {
       tags: {
@@ -376,6 +376,34 @@ const Step5_Compliance = () => {
       }
     });
     
+    // Persist current answers before navigating away (partial, only include set fields)
+    const partialUpdate = { obligations: { ...(currentDeal?.obligations || {}) } };
+    if (licensingRights) { partialUpdate.licenses_nil = licensingRights; }
+    if (schoolBrandVisible) { partialUpdate.uses_school_ip = schoolBrandVisible === 'yes'; }
+    if (exclusiveRights) { partialUpdate.grant_exclusivity = exclusiveRights; }
+    if (licensingRights === 'not-sure' && licensingInfo.trim()) {
+      partialUpdate.obligations.licensingInfo = licensingInfo;
+    }
+    if (schoolBrandVisible === 'not-sure' && schoolBrandInfo.trim()) {
+      partialUpdate.obligations.schoolBrandInfo = schoolBrandInfo;
+    }
+    if (conflictingSponsorships) {
+      partialUpdate.obligations.conflictingSponsorships = conflictingSponsorships;
+    }
+    if (conflictingInfo.trim()) {
+      partialUpdate.obligations.conflictingInfo = conflictingInfo;
+    }
+    if (professionalRep) {
+      partialUpdate.obligations.professionalRep = professionalRep;
+    }
+    if (restrictedCategories) {
+      partialUpdate.obligations.restrictedCategories = restrictedCategories;
+    }
+
+    try {
+      await updateDeal(dealId, partialUpdate);
+    } catch (_) { /* ignore persistence errors on back nav */ }
+
     // Find the last completed activity from obligations
     const obligations = currentDeal?.obligations || {};
     const validActivityTypes = [
