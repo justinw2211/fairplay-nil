@@ -135,7 +135,7 @@ const Universities = () => {
       {/* Outcomes */}
       <Container maxW="7xl" py={20}>
          <VStack spacing={12} align="stretch">
-           <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={10} alignItems="stretch">
+           <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={10} alignItems="center">
              <VStack align="start" spacing={4}>
                <Heading as="h2" size="xl" color="brand.textPrimary">
                  Outcomes for Your Program
@@ -156,7 +156,7 @@ const Universities = () => {
              </VStack>
 
              {/* See It in Action — Side Callout */}
-             <Box
+              <Box
                role="region"
                aria-labelledby="see-it-in-action"
                bg="brand.background"
@@ -166,9 +166,7 @@ const Universities = () => {
                borderTopColor="brand.accentPrimary"
                borderRadius="xl"
                boxShadow="sm"
-               p={{ base: 6, md: 8 }}
-               display="flex"
-               h="100%"
+                p={{ base: 6, md: 8 }}
              >
                <VStack align="start" spacing={4} w="full">
                  <Heading id="see-it-in-action" as="h3" size="lg" color="brand.textPrimary">
