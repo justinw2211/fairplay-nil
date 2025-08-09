@@ -425,7 +425,7 @@ const ClearinghouseResult = () => {
                 <Button
                   leftIcon={<Icon as={CheckCircle} />}
                   colorScheme="green"
-                  onClick={() => navigate(`/deal-submission-success/${dealId}?type=${dealType}`)}
+                  onClick={() => navigate('/dashboard')}
                   h="auto"
                   py={4}
                   flexDirection="column"

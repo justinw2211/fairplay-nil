@@ -189,13 +189,11 @@ const ValuationResult = () => {
 
   const handleOptimizeDeal = () => {
     toast({
-      title: 'Optimizing Deal',
-      description: 'Returning to editor with valuation recommendations.',
+      title: 'Feature coming soon',
       status: 'info',
       duration: 3000,
       isClosable: true,
     });
-    navigate(`/add/deal/terms/${dealId}?type=${dealType}&optimize=true`);
   };
 
   const handleAcceptValuation = () => {
@@ -211,8 +209,7 @@ const ValuationResult = () => {
 
   const handleNegotiate = () => {
     toast({
-      title: 'Negotiation Tools',
-      description: 'Use the insights below to improve your deal terms.',
+      title: 'Feature coming soon',
       status: 'info',
       duration: 3000,
       isClosable: true,
