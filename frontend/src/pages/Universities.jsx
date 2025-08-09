@@ -77,14 +77,17 @@ const Universities = () => {
   return (
     <Box bg="brand.backgroundLight" minH="100vh">
       {/* Hero */}
-      <Box bg="brand.textPrimary" color="white" py={16}>
-        <Container maxW="7xl">
-          <VStack spacing={5} textAlign="center">
-            <Heading as="h1" size="2xl" fontWeight="bold">
-              A Single Platform for University NIL Operations
+      <Box bg="brand.background" color="brand.textPrimary" py={20}>
+        <Container maxW="6xl">
+          <VStack spacing={6} textAlign="center">
+            <Text fontSize="sm" bg="brand.accentSecondary" color="brand.textSecondary" px={3} py={1} borderRadius="full">
+              Trusted by Leading Athletic Programs
+            </Text>
+            <Heading as="h1" size="2xl" fontWeight="extrabold" lineHeight="1.2">
+              A Single Platform for <Box as="span" color="brand.accentPrimary">University NIL Operations</Box>
             </Heading>
-            <Text fontSize="xl" maxW="3xl" color="gray.200">
-              Manage NIL disclosures, track deal workflows, and access program-wide insights — in one place.
+            <Text fontSize="lg" maxW="3xl" color="brand.textSecondary">
+              Manage NIL disclosures, track deal workflows, and access program-wide insights — all in one comprehensive platform designed for athletic departments.
             </Text>
             <HStack spacing={4} pt={2}>
               <Button size="lg" px={8} onClick={handleCtaClick}>
@@ -107,18 +110,21 @@ const Universities = () => {
             </Text>
           </VStack>
 
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} w="full">
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8} w="full">
             {tools.map((tool, index) => (
-              <Box key={index} bg="white" shadow="sm" borderRadius="lg" p={5} border="1px solid" borderColor="brand.accentSecondary">
+              <Box
+                key={index}
+                bg="white"
+                borderRadius="lg"
+                p={6}
+                border="1px solid"
+                borderColor="brand.accentSecondary"
+                boxShadow="sm"
+                _hover={{ transform: "translateY(-4px)", boxShadow: "md" }}
+                transition="all 0.2s"
+              >
                 <VStack align="start" spacing={4}>
-                  <Flex
-                    align="center"
-                    justify="center"
-                    w={12}
-                    h={12}
-                    bg="brand.backgroundLight"
-                    borderRadius="lg"
-                  >
+                  <Flex align="center" justify="center" w={12} h={12} bg="brand.backgroundLight" borderRadius="lg">
                     <Icon as={tool.icon} w={6} h={6} color="brand.accentPrimary" />
                   </Flex>
                   <Heading as="h3" size="md" color="brand.textPrimary">
@@ -135,7 +141,8 @@ const Universities = () => {
       </Container>
 
       {/* Outcomes */}
-      <Container maxW="7xl" py={16}>
+      <Box bg="brand.backgroundLight" py={16}>
+        <Container maxW="7xl">
         <VStack spacing={10} align="stretch">
           <Grid
             templateColumns={{ base: "1fr", lg: "minmax(0, 1fr) 420px" }}
@@ -149,10 +156,10 @@ const Universities = () => {
               </Heading>
               <VStack align="start" spacing={3}>
                 {[
-                  "Increase visibility into NIL activity across teams and sports.",
-                  "Consolidate submissions, approvals, and documentation.",
-                  "Equip staff with dashboards and exports for oversight.",
-                  "Integrate data with existing systems as needed.",
+                  "Increase visibility into NIL activity across teams and sports programs",
+                  "Consolidate submissions, approvals, and documentation workflows",
+                  "Equip staff with dashboards and exports for comprehensive oversight",
+                  "Integrate data with existing systems as needed for operational efficiency",
                 ].map((benefit, index) => (
                   <HStack key={index} spacing={3}>
                     <Icon as={FiMonitor} color="brand.accentPrimary" />
@@ -183,28 +190,31 @@ const Universities = () => {
                 <Button size="md" onClick={handleCtaClick} alignSelf="stretch">
                   Schedule a Demo
                 </Button>
+                <Text fontSize="sm" color="brand.textSecondary">30-minute personalized walkthrough</Text>
               </VStack>
             </Box>
           </Grid>
 
           {/* Program highlights grid */}
-          <SimpleGrid columns={{ base: 2, md: 4 }} spacing={6}>
+          <SimpleGrid columns={{ base: 2, md: 4 }} spacing={10}>
             {[
-              { icon: FiDatabase, label: "Secure Storage" },
-              { icon: FiMonitor, label: "Operational Visibility" },
-              { icon: FiUsers, label: "Stakeholder Access" },
-              { icon: FiBarChart, label: "Dashboards & Exports" },
+              { icon: FiDatabase, label: "Secure Storage", desc: "Enterprise-grade security for NIL documentation and sensitive data" },
+              { icon: FiMonitor, label: "Operational Visibility", desc: "Real-time insights into NIL activities across your program" },
+              { icon: FiUsers, label: "Stakeholder Access", desc: "Role-based permissions for coaches, compliance, and admins" },
+              { icon: FiBarChart, label: "Dashboards & Exports", desc: "Comprehensive reporting tools and export capabilities" },
             ].map((item, index) => (
               <VStack key={index} spacing={3} textAlign="center">
-                <Flex align="center" justify="center" w={16} h={16} bg="brand.backgroundLight" borderRadius="xl">
+                <Flex align="center" justify="center" w={16} h={16} bg="brand.background" borderRadius="full" border="1px solid" borderColor="brand.accentSecondary">
                   <Icon as={item.icon} w={8} h={8} color="brand.accentPrimary" />
                 </Flex>
                 <Text fontWeight="semibold" color="brand.textPrimary">{item.label}</Text>
+                <Text fontSize="sm" color="brand.textSecondary" maxW="56">{item.desc}</Text>
               </VStack>
             ))}
           </SimpleGrid>
         </VStack>
-      </Container>
+        </Container>
+      </Box>
 
       {/* Footer (from Home page) */}
       <Box bg="brand.backgroundLight" py={12}>
