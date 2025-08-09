@@ -400,10 +400,18 @@ const Step5_Compliance = () => {
       }
     });
     
-    // Get valid activities that have been completed
-    const completedActivities = Object.keys(obligations)
-      .filter(activity => validActivityTypes.includes(activity))
-      .filter(activity => obligations[activity]?.completed === true);
+    // Get valid activities that have been completed, prefer highest sequence
+    const completedWithSeq = Object.entries(obligations)
+      .filter(([activity, value]) => validActivityTypes.includes(activity) && value && value.completed === true)
+      .map(([activity, value]) => ({ activity, sequence: typeof value.sequence === 'number' ? value.sequence : -1 }));
+
+    // Sort by sequence asc and pick the last; if no sequences, fall back to insertion order
+    const hasSeq = completedWithSeq.some(a => a.sequence >= 0);
+    const completedActivities = hasSeq
+      ? completedWithSeq.sort((a, b) => a.sequence - b.sequence).map(a => a.activity)
+      : Object.keys(obligations)
+          .filter(activity => validActivityTypes.includes(activity))
+          .filter(activity => obligations[activity]?.completed === true);
     
     // Track completed activities found
     Sentry.captureMessage('Step5_Compliance: Completed activities found', 'info', {

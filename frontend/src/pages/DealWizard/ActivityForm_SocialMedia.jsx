@@ -241,6 +241,7 @@ const ActivityForm_SocialMedia = ({ onNext, currentActivity, totalActivities }) 
           'social-media': {
             ...currentDeal.obligations?.['social-media'],
             ...formattedData,
+            completed: true,
           },
         },
       });

@@ -249,7 +249,8 @@ const Step3_SelectActivities = () => {
       const merged = {
         ...existing,
         sequence: index,
-        completed: existing?.completed ?? false,
+        // preserve completed if already true; otherwise default to false
+        completed: existing?.completed === true,
       };
 
       // For "other", prefer newly entered description; otherwise preserve existing description
