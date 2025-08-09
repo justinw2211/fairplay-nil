@@ -77,16 +77,16 @@ const Universities = () => {
   return (
     <Box bg="brand.backgroundLight" minH="100vh">
       {/* Hero */}
-      <Box bg="brand.textPrimary" color="white" py={20}>
+      <Box bg="brand.textPrimary" color="white" py={16}>
         <Container maxW="7xl">
-          <VStack spacing={6} textAlign="center">
+          <VStack spacing={5} textAlign="center">
             <Heading as="h1" size="2xl" fontWeight="bold">
               A Single Platform for University NIL Operations
             </Heading>
             <Text fontSize="xl" maxW="3xl" color="gray.200">
               Manage NIL disclosures, track deal workflows, and access program-wide insights — in one place.
             </Text>
-            <HStack spacing={4} pt={4}>
+            <HStack spacing={4} pt={2}>
               <Button size="lg" px={8} onClick={handleCtaClick}>
                 Schedule a Demo
               </Button>
@@ -96,9 +96,9 @@ const Universities = () => {
       </Box>
 
       {/* Capabilities */}
-      <Container maxW="7xl" py={20}>
-        <VStack spacing={12}>
-          <VStack spacing={4} textAlign="center">
+      <Container maxW="7xl" py={16}>
+        <VStack spacing={8}>
+          <VStack spacing={3} textAlign="center">
             <Heading as="h2" size="xl" color="brand.textPrimary">
               Capabilities Built for Athletic Departments
             </Heading>
@@ -107,9 +107,9 @@ const Universities = () => {
             </Text>
           </VStack>
 
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8} w="full">
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} w="full">
             {tools.map((tool, index) => (
-              <Box key={index} bg="white" shadow="sm" borderRadius="lg" p={6} border="1px solid" borderColor="brand.accentSecondary">
+              <Box key={index} bg="white" shadow="sm" borderRadius="lg" p={5} border="1px solid" borderColor="brand.accentSecondary">
                 <VStack align="start" spacing={4}>
                   <Flex
                     align="center"
@@ -135,11 +135,11 @@ const Universities = () => {
       </Container>
 
       {/* Outcomes */}
-      <Container maxW="7xl" py={20}>
+      <Container maxW="7xl" py={16}>
         <VStack spacing={10} align="stretch">
           <Grid
             templateColumns={{ base: "1fr", lg: "minmax(0, 1fr) 420px" }}
-            gap={8}
+            gap={6}
             alignItems="start"
           >
             {/* Left: Outcomes content */}
@@ -169,9 +169,9 @@ const Universities = () => {
               border="1px solid"
               borderColor="brand.accentSecondary"
               borderRadius="lg"
-              p={6}
+              p={5}
               position={{ lg: "sticky" }}
-              top={{ lg: "100px" }}
+              top={{ lg: "80px" }}
             >
               <VStack align="start" spacing={4}>
                 <Heading as="h3" size="md" color="brand.textPrimary">
