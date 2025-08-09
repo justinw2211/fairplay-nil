@@ -30,6 +30,7 @@ export const FormField = ({
   placeholder,
   helperText,
   isRequired = false,
+  rules,
   leftIcon,
   rightIcon,
   maxLength,
@@ -197,6 +198,7 @@ export const FormField = ({
     <Controller
       name={name}
       control={control}
+      rules={rules}
       render={({ field, fieldState: { error } }) => (
         <FormControl isInvalid={!!error} isRequired={isRequired}>
           {label && type !== 'checkbox' && (
