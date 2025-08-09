@@ -1,12 +1,12 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { ChakraProvider } from '@chakra-ui/react';
 import theme from '../../../theme';
 import BlogArticle from '../BlogArticle';
 
 const renderWithRoute = (initialEntry) => {
-  return (
+  return render(
     <ChakraProvider theme={theme}>
       <MemoryRouter initialEntries={[initialEntry]}>
         <Routes>

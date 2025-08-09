@@ -11,7 +11,7 @@ test('renders blog list and navigates to article', async () => {
   const title = await screen.findByText('Welcome to FairPlay NIL');
   expect(title).toBeInTheDocument();
 
-  const readMore = screen.getByRole('button', { name: /read more/i });
+  const readMore = screen.getByRole('link', { name: /read more/i });
   await userEvent.click(readMore);
 
   // After navigation, article title should be visible
