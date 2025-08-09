@@ -10,6 +10,7 @@ import {
   Flex,
   Icon,
   SimpleGrid,
+  Grid,
   useDisclosure,
 } from "@chakra-ui/react";
 import UniversitiesDemoModal from "../components/UniversitiesDemoModal";
@@ -133,25 +134,45 @@ const Universities = () => {
 
       {/* Outcomes */}
       <Container maxW="7xl" py={20}>
-        <VStack spacing={10} align="stretch">
-          <VStack align="start" spacing={4}>
-            <Heading as="h2" size="xl" color="brand.textPrimary">
-              Outcomes for Your Program
-            </Heading>
-            <VStack align="start" spacing={3}>
-              {[ 
-                "Increase visibility into NIL activity across teams and sports.",
-                "Consolidate submissions, approvals, and documentation.",
-                "Equip staff with dashboards and exports for oversight.",
-                "Integrate data with existing systems as needed.",
-              ].map((benefit, index) => (
-                <HStack key={index} spacing={3}>
-                  <Icon as={FiMonitor} color="brand.accentPrimary" />
-                  <Text color="brand.textSecondary">{benefit}</Text>
-                </HStack>
-              ))}
+        <VStack spacing={12} align="stretch">
+          <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap={12} alignItems="start">
+            <VStack align="start" spacing={4}>
+              <Heading as="h2" size="xl" color="brand.textPrimary">
+                Outcomes for Your Program
+              </Heading>
+              <VStack align="start" spacing={3}>
+                {[ 
+                  "Increase visibility into NIL activity across teams and sports.",
+                  "Consolidate submissions, approvals, and documentation.",
+                  "Equip staff with dashboards and exports for oversight.",
+                  "Integrate data with existing systems as needed.",
+                ].map((benefit, index) => (
+                  <HStack key={index} spacing={3}>
+                    <Icon as={FiMonitor} color="brand.accentPrimary" />
+                    <Text color="brand.textSecondary">{benefit}</Text>
+                  </HStack>
+                ))}
+              </VStack>
             </VStack>
-          </VStack>
+
+            {/* Side CTA panel to utilize horizontal space */}
+            <Box bg="white" border="1px solid" borderColor="brand.accentSecondary" borderRadius="xl" p={8}>
+              <VStack align="start" spacing={4}>
+                <Heading as="h3" size="lg" color="brand.textPrimary">
+                  See It in Action
+                </Heading>
+                <Text color="brand.textSecondary">
+                  Schedule a live walkthrough of compliance tracking, deal workflows, and analytics tailored to your program.
+                </Text>
+                <Button size="md" onClick={handleCtaClick}>
+                  Schedule a Demo
+                </Button>
+                <Text fontSize="sm" color="brand.textSecondary">
+                  We’ll follow up by email to coordinate a time that works for your team.
+                </Text>
+              </VStack>
+            </Box>
+          </Grid>
 
           <SimpleGrid columns={{ base: 2, md: 4 }} spacing={6}>
             {[
