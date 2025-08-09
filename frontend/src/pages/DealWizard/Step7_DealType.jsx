@@ -34,34 +34,58 @@ const Step7_DealType = () => {
   const navigate = useNavigate();
   const { currentDeal, updateDeal } = useDeal();
 
+  // Use empty string for no-selection state (consistent with other steps)
   const [submissionType, setSubmissionType] = useState('');
+  // Track whether this step has been visited in this browser (per deal)
+  const [hasVisited, setHasVisited] = useState(false);
+
+  // Determine visit state from localStorage so first navigation shows unselected
+  useEffect(() => {
+    const visitKey = `deal:${dealId}:step8_deal_type_visited`;
+    const visitedFlag = localStorage.getItem(visitKey) === 'true';
+    setHasVisited(visitedFlag);
+    if (!visitedFlag) {
+      localStorage.setItem(visitKey, 'true');
+    }
+  }, [dealId]);
   const [error, setError] = useState('');
 
+  // Hydrate from saved deal value ONLY when:
+  // 1) user has previously visited this step (per-deal flag), and
+  // 2) there is currently no local selection in state, and
+  // 3) the saved value is valid.
   useEffect(() => {
     try {
-      if (currentDeal) {
-        setSubmissionType(currentDeal.submission_type || '');
-
-        logger.info('Deal type info loaded from deal', {
-          dealId,
-          dealType,
-          step: 'Step7_DealType',
-          operation: 'useEffect',
-          hasSubmissionType: !!currentDeal.submission_type,
-          submissionType: currentDeal.submission_type
-        });
+      if (!currentDeal) {return;}
+      const saved = currentDeal.submission_type;
+      const validOptions = ['test_demo', 'prospective', 'finalized'];
+      const isValid = typeof saved === 'string' && validOptions.includes(saved);
+      if (hasVisited && !submissionType && isValid) {
+        setSubmissionType(saved);
       }
+
+      logger.info('Deal type step loaded', {
+        dealId,
+        dealType,
+        step: 'Step7_DealType',
+        operation: 'hydrate_from_saved',
+        hasSubmissionType: !!saved,
+        savedSubmissionType: saved,
+        hasVisited,
+        appliedValue: hasVisited && !submissionType && isValid ? saved : undefined
+      });
     } catch (error) {
-      logger.error('Error loading deal type info from deal', {
+      logger.error('Error during deal type init', {
         error: error.message,
         dealId,
         dealType,
         step: 'Step7_DealType',
-        operation: 'useEffect',
-        currentDealExists: !!currentDeal
+        operation: 'hydrate_from_saved',
+        currentDealExists: !!currentDeal,
+        hasVisited
       });
     }
-  }, [currentDeal]);
+  }, [currentDeal, hasVisited, submissionType]);
 
   const handleSubmissionTypeChange = async (value) => {
     setSubmissionType(value);
@@ -93,7 +117,7 @@ const Step7_DealType = () => {
     }
   };
 
-  const isFormValid = submissionType;
+  const isFormValid = Boolean(submissionType);
 
   const handleBack = () => {
     logger.info('User navigated back', {
@@ -209,6 +233,7 @@ const Step7_DealType = () => {
                   <Stack spacing={3}>
                     <Radio
                       value="test_demo"
+                      isChecked={submissionType === 'test_demo'}
                       borderColor="brand.accentSecondary"
                       _checked={{
                         borderColor: "brand.accentPrimary",
@@ -219,6 +244,7 @@ const Step7_DealType = () => {
                     </Radio>
                     <Radio
                       value="prospective"
+                      isChecked={submissionType === 'prospective'}
                       borderColor="brand.accentSecondary"
                       _checked={{
                         borderColor: "brand.accentPrimary",
@@ -229,6 +255,7 @@ const Step7_DealType = () => {
                     </Radio>
                     <Radio
                       value="finalized"
+                      isChecked={submissionType === 'finalized'}
                       borderColor="brand.accentSecondary"
                       _checked={{
                         borderColor: "brand.accentPrimary",

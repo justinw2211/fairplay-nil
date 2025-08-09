@@ -1,13 +1,10 @@
 // frontend/src/pages/DealWizard/Step6_Compensation.jsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
-import { useAuth } from '../../context/AuthContext';
 import {
   Box,
   Button,
-  Card,
-  CardBody,
   Container,
   Flex,
   FormControl,
@@ -20,30 +17,13 @@ import {
   Text,
   Textarea,
   VStack,
-  useToast,
-  Heading,
-  HStack,
   IconButton,
-  Alert,
-  AlertIcon,
 } from '@chakra-ui/react';
 import { DollarSign, Plus, Trash2, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, Clock } from 'lucide-react';
 import { formLogger } from '../../utils/logger';
 import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
 
-// Types
-const CompensationItem = {
-  id: String,
-  type: String,
-  amount: String,
-  schedule: String,
-  description: String,
-  value: String,
-  percentage: String,
-  requirements: String,
-  paymentDate: String,
-  expanded: Boolean,
-};
+// (component-local shape used directly in state)
 
 const paymentSchedules = [
   { value: 'lump_sum', label: 'Lump Sum' },
@@ -68,8 +48,6 @@ const Step6_Compensation = () => {
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
   const { currentDeal, updateDeal } = useDeal();
-  const { user } = useAuth();
-  const toast = useToast();
 
   const [compensationItems, setCompensationItems] = useState([
     {
@@ -88,19 +66,133 @@ const Step6_Compensation = () => {
   };
 
   useEffect(() => {
-    if (currentDeal?.compensation?.items) {
+    if (!currentDeal) {return;}
+
+    // Prefer legacy shape if present for backward compatibility
+    if (currentDeal?.compensation?.items && Array.isArray(currentDeal.compensation.items)) {
       setCompensationItems(currentDeal.compensation.items);
 
-      formLogger.info('Compensation items loaded from deal', {
+      formLogger.info('Compensation items loaded from legacy deal shape', {
         dealId,
         dealType,
         step: 'Step6_Compensation',
-        operation: 'useEffect',
+        operation: 'useEffect_legacy',
         hasCompensationItems: !!currentDeal.compensation?.items,
         itemCount: currentDeal.compensation?.items?.length || 0
       });
+      return;
     }
-  }, [currentDeal]);
+
+    // Map from normalized backend fields to UI items
+    const mappedItems = [];
+
+    const cash = currentDeal?.compensation_cash;
+    if (cash && !isNaN(parseFloat(cash)) && parseFloat(cash) > 0) {
+      mappedItems.push({
+        id: 1,
+        type: 'cash',
+        amount: String(cash),
+        schedule: '',
+        description: '',
+        expanded: true,
+      });
+    }
+
+    const goods = currentDeal?.compensation_goods;
+    if (Array.isArray(goods)) {
+      goods.forEach((g) => {
+        mappedItems.push({
+          id: mappedItems.length + 1,
+          type: 'non-cash',
+          description: g?.description || '',
+          value: g?.value !== undefined && g?.value !== null
+            ? String(g.value)
+            : g?.estimated_value !== undefined && g?.estimated_value !== null
+              ? String(g.estimated_value)
+              : '',
+          expanded: true,
+        });
+      });
+    }
+
+    const other = currentDeal?.compensation_other;
+    if (Array.isArray(other)) {
+      other.forEach((o) => {
+        const paymentType = o?.payment_type || 'other';
+        if (paymentType === 'bonus') {
+          mappedItems.push({
+            id: mappedItems.length + 1,
+            type: 'bonus',
+            amount: o?.estimated_value !== undefined && o?.estimated_value !== null
+              ? String(o.estimated_value)
+              : '',
+            requirements: o?.description || '',
+            paymentDate: '',
+            expanded: true,
+          });
+        } else if (paymentType === 'royalty') {
+          mappedItems.push({
+            id: mappedItems.length + 1,
+            type: 'royalty',
+            description: o?.description || '',
+            // Backend does not store percentage; keep empty and allow user to re-enter
+            percentage: '',
+            value: o?.estimated_value !== undefined && o?.estimated_value !== null
+              ? String(o.estimated_value)
+              : '',
+            expanded: true,
+          });
+        } else {
+          mappedItems.push({
+            id: mappedItems.length + 1,
+            type: 'other',
+            description: o?.description || '',
+            value: o?.estimated_value !== undefined && o?.estimated_value !== null
+              ? String(o.estimated_value)
+              : '',
+            expanded: true,
+          });
+        }
+      });
+    }
+
+    if (mappedItems.length > 0) {
+      // Merge any locally saved form state (sessionStorage) to preserve fields like schedule
+      try {
+        const savedRaw = sessionStorage.getItem(`deal_${dealId}_compensation_form`);
+        if (savedRaw) {
+          const saved = JSON.parse(savedRaw);
+          if (Array.isArray(saved?.items)) {
+            // Merge on type/id; primarily we care about schedule for cash item
+            saved.items.forEach((savedItem) => {
+              const idx = mappedItems.findIndex(mi => (mi.id === savedItem.id) || (mi.type === savedItem.type));
+              if (idx >= 0) {
+                mappedItems[idx] = { ...mappedItems[idx], ...savedItem };
+              }
+            });
+          }
+        }
+      } catch (_) { /* ignore parse errors */ }
+
+      setCompensationItems(mappedItems);
+
+      formLogger.info('Compensation items mapped from normalized fields', {
+        dealId,
+        dealType,
+        step: 'Step6_Compensation',
+        operation: 'useEffect_normalized',
+        itemCount: mappedItems.length,
+      });
+    }
+  }, [currentDeal, dealId, dealType]);
+
+  // Persist local form state (including payment schedule) for navigation back/forward within wizard
+  useEffect(() => {
+    try {
+      const toSave = { items: compensationItems };
+      sessionStorage.setItem(`deal_${dealId}_compensation_form`, JSON.stringify(toSave));
+    } catch (_) { /* ignore storage issues */ }
+  }, [compensationItems, dealId]);
 
   const getTypeDescription = (type) => {
     const found = compensationTypes.find(ct => ct.value === type);
@@ -120,7 +212,11 @@ const Step6_Compensation = () => {
   };
 
   const addCompensationItem = () => {
-    const newId = Math.max(...compensationItems.map(item => item.id)) + 1;
+    const maxId = compensationItems.reduce((max, item) => {
+      const idNum = typeof item.id === 'number' ? item.id : parseInt(item.id, 10) || 0;
+      return Math.max(max, idNum);
+    }, 0);
+    const newId = maxId + 1;
     setCompensationItems(prev => [...prev, { id: newId, type: "cash", amount: "", schedule: "", description: "", expanded: true }]);
   };
 
@@ -192,6 +288,10 @@ const Step6_Compensation = () => {
   };
 
   const handleFinishLater = () => {
+    try {
+      const toSave = { items: compensationItems };
+      sessionStorage.setItem(`deal_${dealId}_compensation_form`, JSON.stringify(toSave));
+    } catch (_) { /* ignore */ }
     navigate('/dashboard');
   };
 

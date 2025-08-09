@@ -94,12 +94,12 @@ const ActivityForm_Endorsements = ({ onNext, currentActivity, totalActivities })
   };
 
   const handleNext = async () => {
+    // Align saved keys with what we load in useEffect (selectedTypes, details, description, duration)
     const formattedData = {
-      productTypes: selectedEndorsements,
-      usageFrequency: endorsementDetails.usage || "",
-      usageLocations: endorsementDetails.usageLocations || [],
-      exclusivityPeriod: Number.parseInt(endorsementDetails.exclusivityPeriod) || 0,
-      hasProductSupply: endorsementDetails.hasProductSupply || false,
+      selectedTypes: selectedEndorsements,
+      details: endorsementDetails,
+      description,
+      duration,
     };
 
     // Get the existing activity entry to preserve sequence and completed status
@@ -116,6 +116,30 @@ const ActivityForm_Endorsements = ({ onNext, currentActivity, totalActivities })
     });
 
     onNext();
+  };
+
+  const handleBack = async () => {
+    const formattedData = {
+      selectedTypes: selectedEndorsements,
+      details: endorsementDetails,
+      description,
+      duration,
+    };
+
+    const existingActivity = currentDeal.obligations?.['endorsements'] || {};
+
+    await updateDeal(dealId, {
+      obligations: {
+        ...currentDeal.obligations,
+        'endorsements': {
+          ...existingActivity,
+          ...formattedData,
+        },
+      },
+    });
+
+    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
   };
 
   const progressPercentage = ((currentActivity - 1) / totalActivities) * 100;
@@ -362,10 +386,7 @@ const ActivityForm_Endorsements = ({ onNext, currentActivity, totalActivities })
                   fontWeight="medium"
                   borderColor="brand.accentSecondary"
                   color="brand.textSecondary"
-                  onClick={() => {
-                    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-                    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
-                  }}
+                  onClick={handleBack}
                   _hover={{
                     bg: "brand.backgroundLight",
                     borderColor: "brand.accentPrimary",

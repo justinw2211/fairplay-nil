@@ -210,6 +210,36 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
     onNext();
   };
 
+  const handleBack = async () => {
+    // Save current progress before navigating back to activity selection
+    const formattedData = {
+      platforms: selectedPlatforms.flatMap(platformId => {
+        const platform = platforms.find(p => p.id === platformId);
+        return platformContent[platformId]
+          .filter(content => content.quantity > 0)
+          .map(content => ({
+            platform: platform.name,
+            type: content.name,
+            quantity: content.quantity,
+          }));
+      }),
+      description,
+    };
+
+    await updateDeal(dealId, {
+      obligations: {
+        ...currentDeal.obligations,
+        'social-media': {
+          ...currentDeal.obligations?.['social-media'],
+          ...formattedData,
+        },
+      },
+    });
+
+    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
+  };
+
   const progressPercentage = ((currentActivity - 1) / totalActivities) * 100;
 
   return (
@@ -583,10 +613,7 @@ const ActivityForm_SocialMedia = ({ nextStepUrl, onNext, currentActivity, totalA
                   borderWidth="2px"
                   borderColor="brand.accentSecondary"
                   color="brand.textSecondary"
-                  onClick={() => {
-                    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-                    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
-                  }}
+                  onClick={handleBack}
                   rounded="xl"
                   _hover={{
                     bg: "brand.backgroundLight",

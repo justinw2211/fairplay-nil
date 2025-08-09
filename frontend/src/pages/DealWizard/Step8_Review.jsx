@@ -503,7 +503,7 @@ const Step8_Review = () => {
               leftIcon={<Icon as={ChevronLeft} />}
               variant="ghost"
               color="brand.textSecondary"
-              onClick={() => navigate(`/add/deal/compensation/${dealId}?type=${dealType}`)}
+              onClick={() => navigate(`/add/deal/deal-type/${dealId}?type=${dealType}`)}
               px={8}
               py={6}
               h="auto"

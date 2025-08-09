@@ -72,7 +72,9 @@ const Step5_Compliance = () => {
         setLicensingRights(currentDeal.licenses_nil);
       }
 
-      if (currentDeal.uses_school_ip !== undefined) {
+      // Only set from deal when the value is an explicit boolean
+      // This prevents null from being treated as "no" and preselecting a default
+      if (typeof currentDeal.uses_school_ip === 'boolean') {
         setSchoolBrandVisible(currentDeal.uses_school_ip ? "yes" : "no");
         Sentry.captureMessage('Step5_Compliance: Question 2 data loading', 'info', {
           tags: {

@@ -66,18 +66,18 @@ const ClearinghouseResult = () => {
   const [prediction, setPrediction] = useState(null);
 
   useEffect(() => {
-    if (!deal && dealId) {
+    if (!currentDeal && dealId) {
       fetchDealById(dealId);
     }
-  }, [deal, dealId, fetchDealById]);
+  }, [currentDeal, dealId, fetchDealById]);
 
   useEffect(() => {
-    if (deal?.clearinghouse_prediction) {
-      setPrediction(deal.clearinghouse_prediction);
+    if (currentDeal?.clearinghouse_prediction) {
+      setPrediction(currentDeal.clearinghouse_prediction);
     }
-  }, [deal]);
+  }, [currentDeal]);
 
-  if (!deal) {
+  if (!currentDeal) {
     return (
       <Flex justify="center" align="center" minH="80vh">
         <Spinner size="xl" color="brand.accentPrimary" />
@@ -192,7 +192,7 @@ const ClearinghouseResult = () => {
             NIL Go Clearinghouse Analysis
           </Heading>
           <Text color="brand.textSecondary" fontSize="lg">
-            Deal #{dealId} • {deal.deal_nickname || 'Untitled Deal'}
+            Deal #{dealId} • {currentDeal.deal_nickname || 'Untitled Deal'}
           </Text>
         </Box>
 

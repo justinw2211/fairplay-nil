@@ -123,6 +123,29 @@ const ActivityForm_Merch = ({ onNext, currentActivity, totalActivities }) => {
     onNext();
   };
 
+  const handleBack = async () => {
+    const formattedData = {
+      selectedTypes: selectedMerch,
+      details: merchDetails,
+      customMerch,
+    };
+
+    const existingActivity = currentDeal.obligations?.['merch-and-products'] || {};
+
+    await updateDeal(dealId, {
+      obligations: {
+        ...currentDeal.obligations,
+        'merch-and-products': {
+          ...existingActivity,
+          ...formattedData,
+        },
+      },
+    });
+
+    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
+  };
+
   const progressPercentage = ((currentActivity - 1) / totalActivities) * 100;
 
   return (
@@ -372,10 +395,7 @@ const ActivityForm_Merch = ({ onNext, currentActivity, totalActivities }) => {
                   fontWeight="medium"
                   borderColor="brand.accentSecondary"
                   color="brand.textSecondary"
-                  onClick={() => {
-                    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-                    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
-                  }}
+                  onClick={handleBack}
                   _hover={{
                     bg: "brand.backgroundLight",
                     borderColor: "brand.accentPrimary",
