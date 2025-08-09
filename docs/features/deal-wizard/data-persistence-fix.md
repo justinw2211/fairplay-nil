@@ -11,15 +11,11 @@ When users navigate backward and forward through the deal wizard forms, previous
 - **Automatic Loading**: Most steps have `useEffect` hooks to load existing data
 
 ### Working Steps (Data Restored)
-- ✅ Step0_SocialMedia - data loading confirmed working
-- ✅ Step2_PayorInfo - loads payor information from `currentDeal`
-- ✅ Step5_Compliance - loads compliance data from `deal.compliance`
-- ✅ Step6_Compensation - loads compensation data from `deal.compensation.items`
-- ✅ ActivityForm_SocialMedia - loads social media data from `currentDeal`
-- ✅ ActivityForm_Endorsements - loads endorsement data from `deal`
-- ✅ ActivityForm_Content - loads content data from `deal.obligations['content-for-brand']`
-- ✅ ActivityForm_Autographs - loads autograph data from `deal.obligations['autographs']`
-- ✅ Other activity forms - load their respective data
+- ✅ Step0_SocialMedia — loads from `currentDeal`
+- ✅ Step2_PayorInfo — loads from `currentDeal`
+- ✅ Step5_Compliance — loads from top-level fields and `obligations` details
+- ✅ Step6_Compensation — loads from normalized fields
+- ✅ Activity forms — load from `currentDeal.obligations[*]`
 
 ### Broken Steps (Data Not Restored)
 - ❌ Step1_DealTerms - missing `useEffect` to load `dealNickname` from `currentDeal`
@@ -32,10 +28,13 @@ Step1_DealTerms component lacks the `useEffect` hook that other steps use to res
 After user testing, it was discovered that most form steps actually have proper data persistence implemented:
 
 **Working Steps (Verified):**
-- ✅ Step5_Compliance - loads compliance data from `deal.compliance`
-- ✅ Step6_Compensation - loads compensation data from `deal.compensation.items`
-- ✅ ActivityForm_Content - loads content data from `deal.obligations['content-for-brand']`
-- ✅ ActivityForm_Autographs - loads autograph data from `deal.obligations['autographs']`
+- ✅ Step5_Compliance — persists Q1–Q6. Fields:
+  - Top-level: `licenses_nil`, `uses_school_ip`, `grant_exclusivity`
+  - Obligations: `licensingInfo`, `schoolBrandInfo`, `conflictingSponsorships`, `conflictingInfo`, `professionalRep`, `restrictedCategories`
+- ✅ Step6_Compensation — normalized fields:
+  - `compensation_cash`, `compensation_cash_schedule`, `compensation_goods[]`, `compensation_other[]`
+- ✅ ActivityForm_Content — `obligations['content-for-brand']`
+- ✅ ActivityForm_Autographs — `obligations['autographs']`
 
 **Still Broken:**
 - ❌ Step1_DealTerms - missing `useEffect` to load `dealNickname`
@@ -66,6 +65,8 @@ Check each step component to ensure they have proper `useEffect` hooks:
 - Step5_Compliance
 - Step7_DealType
 - Step8_Review
+
+Note: Step3 preserves non-activity `obligations` keys when saving selection, preventing compliance fields from being dropped.
 
 ### 3. Standardize Variable Names
 Some components use `currentDeal` while others use `deal`. Standardize on `currentDeal` for consistency.

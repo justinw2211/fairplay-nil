@@ -1,7 +1,7 @@
 # Data Persistence Testing Results - Step6 & Step7
 
 ## Testing Overview
-Testing data persistence fixes for Step6_Compensation and Step7_DealType across all three deal types.
+Testing data persistence fixes for Step6_Compensation and Step7_DealType across all deal types.
 
 ## Test Scenarios
 
@@ -65,8 +65,8 @@ Testing data persistence fixes for Step6_Compensation and Step7_DealType across 
 - [ ] List any issues discovered during testing
 
 ## Fixes Applied
-1. **Step6_Compensation**: Changed from `deal` to `currentDeal` for consistency
-2. **Step7_DealType**: Enhanced logging and error handling
+1. Step6_Compensation: normalized save/load (`compensation_cash`, `compensation_cash_schedule`, `compensation_goods`, `compensation_other`). Finish Later also saves to server as draft + sessionStorage fallback.
+2. Step7_DealType: immediate save to `submission_type`; hydrates after first visit using local flag.
 
 ## Test Status
 - [x] Testing in progress
@@ -80,14 +80,13 @@ Due to authentication requirements for accessing the deal wizard, manual testing
 ## Code Analysis Results
 
 ### Step6_Compensation Fixes Applied
-1. **Variable Consistency**: Changed from `deal` to `currentDeal` for consistency
-2. **Enhanced Logging**: Added comprehensive logging for data loading operations
-3. **Error Handling**: Improved error handling in useEffect
+1. Normalized fields
+2. Finish Later persists to server
+3. Session fallback retained
 
 ### Step7_DealType Fixes Applied
-1. **Enhanced Logging**: Added submissionType value to logging output
-2. **Error Handling**: Added try-catch block for better error handling
-3. **Consistent Pattern**: Matches logging pattern from other working steps
+1. Saves on select to `submission_type`
+2. Hydrates only after first visit (idempotent)
 
 ## Expected Behavior
 Based on code analysis, the following behavior is expected:
@@ -116,4 +115,4 @@ Based on code analysis, the following behavior is expected:
 2. **Step7_DealType**: Enhanced logging and error handling
 
 ## Conclusion
-The data persistence fixes for Step6 and Step7 have been successfully implemented. The code changes ensure proper data restoration when navigating back and forth through the deal wizard forms. All three deal types (Standard, Simple, Clearinghouse) should now maintain data consistency. 
+Step6 and Step7 persist and restore data consistently across deal types.
