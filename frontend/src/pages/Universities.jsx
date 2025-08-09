@@ -156,15 +156,15 @@ const Universities = () => {
             </VStack>
 
             {/* Side CTA panel to utilize horizontal space */}
-            <Box bg="white" border="1px solid" borderColor="brand.accentSecondary" borderRadius="xl" p={8}>
-              <VStack align="start" spacing={4}>
-                <Heading as="h3" size="lg" color="brand.textPrimary">
+            <Box bg="brand.backgroundLight" borderRadius="xl" boxShadow="md" p={0}>
+              <VStack align="start" spacing={4} px={8} pb={8} pt={0}>
+                <Heading as="h3" size="lg" color="brand.textPrimary" mt={0}>
                   See It in Action
                 </Heading>
                 <Text color="brand.textSecondary">
-                  Schedule a live walkthrough of compliance tracking, deal workflows, and analytics tailored to your program.
+                  Schedule a live walkthrough of compliance tracking, deal workflows, and analytics.
                 </Text>
-                <Button size="md" onClick={handleCtaClick}>
+                <Button size="lg" w="full" onClick={handleCtaClick}>
                   Schedule a Demo
                 </Button>
                 <Text fontSize="sm" color="brand.textSecondary">
@@ -192,22 +192,7 @@ const Universities = () => {
         </VStack>
       </Container>
 
-      {/* Final CTA */}
-      <Box bg="brand.textPrimary" color="white" py={16}>
-        <Container maxW="5xl">
-          <VStack spacing={6} textAlign="center">
-            <Heading as="h2" size="xl">
-              Ready to See the Platform?
-            </Heading>
-            <Text fontSize="lg" color="gray.200" maxW="3xl">
-              Schedule a demo to explore compliance tracking, deal workflows, and program analytics.
-            </Text>
-            <Button size="lg" px={8} onClick={handleCtaClick}>
-              Schedule a Demo
-            </Button>
-          </VStack>
-        </Container>
-      </Box>
+      {/** Final CTA band removed per request to reduce redundancy **/}
       <UniversitiesDemoModal isOpen={isOpen} onClose={onClose} onSubmit={handleSubmitModal} />
     </Box>
   );
