@@ -11,6 +11,8 @@ import {
   Icon,
   SimpleGrid,
   useDisclosure,
+  Grid,
+  Link,
 } from "@chakra-ui/react";
 import UniversitiesDemoModal from "../components/UniversitiesDemoModal";
 import { createLogger } from "../utils/logger";
@@ -25,6 +27,7 @@ import {
   FiDatabase,
   FiMonitor,
 } from "react-icons/fi";
+import { Twitter, Instagram, Linkedin } from "lucide-react";
 
 const Universities = () => {
   const tools = [
@@ -134,25 +137,53 @@ const Universities = () => {
       {/* Outcomes */}
       <Container maxW="7xl" py={20}>
         <VStack spacing={10} align="stretch">
-          <VStack align="start" spacing={4}>
-            <Heading as="h2" size="xl" color="brand.textPrimary">
-              Outcomes for Your Program
-            </Heading>
-            <VStack align="start" spacing={3}>
-              {[ 
-                "Increase visibility into NIL activity across teams and sports.",
-                "Consolidate submissions, approvals, and documentation.",
-                "Equip staff with dashboards and exports for oversight.",
-                "Integrate data with existing systems as needed.",
-              ].map((benefit, index) => (
-                <HStack key={index} spacing={3}>
-                  <Icon as={FiMonitor} color="brand.accentPrimary" />
-                  <Text color="brand.textSecondary">{benefit}</Text>
-                </HStack>
-              ))}
+          <Grid templateColumns={{ base: "1fr", lg: "2fr 1fr" }} gap={10} alignItems="start">
+            {/* Left: Outcomes content */}
+            <VStack align="start" spacing={4}>
+              <Heading as="h2" size="xl" color="brand.textPrimary">
+                Outcomes for Your Program
+              </Heading>
+              <VStack align="start" spacing={3}>
+                {[
+                  "Increase visibility into NIL activity across teams and sports.",
+                  "Consolidate submissions, approvals, and documentation.",
+                  "Equip staff with dashboards and exports for oversight.",
+                  "Integrate data with existing systems as needed.",
+                ].map((benefit, index) => (
+                  <HStack key={index} spacing={3}>
+                    <Icon as={FiMonitor} color="brand.accentPrimary" />
+                    <Text color="brand.textSecondary">{benefit}</Text>
+                  </HStack>
+                ))}
+              </VStack>
             </VStack>
-          </VStack>
 
+            {/* Right: CTA card */}
+            <Box
+              bg="white"
+              shadow="sm"
+              border="1px solid"
+              borderColor="brand.accentSecondary"
+              borderRadius="lg"
+              p={6}
+              position={{ lg: "sticky" }}
+              top={{ lg: "100px" }}
+            >
+              <VStack align="start" spacing={4}>
+                <Heading as="h3" size="md" color="brand.textPrimary">
+                  Schedule a Demo
+                </Heading>
+                <Text color="brand.textSecondary">
+                  See how FairPlay NIL can streamline compliance, deal workflows, and reporting.
+                </Text>
+                <Button size="md" onClick={handleCtaClick} alignSelf="stretch">
+                  Schedule a Demo
+                </Button>
+              </VStack>
+            </Box>
+          </Grid>
+
+          {/* Program highlights grid */}
           <SimpleGrid columns={{ base: 2, md: 4 }} spacing={6}>
             {[
               { icon: FiDatabase, label: "Secure Storage" },
@@ -171,20 +202,78 @@ const Universities = () => {
         </VStack>
       </Container>
 
-      {/* Final CTA */}
-      <Box bg="brand.textPrimary" color="white" py={16}>
-        <Container maxW="5xl">
-          <VStack spacing={6} textAlign="center">
-            <Heading as="h2" size="xl">
-              Ready to See the Platform?
-            </Heading>
-            <Text fontSize="lg" color="gray.200" maxW="3xl">
-              Schedule a demo to explore compliance tracking, deal workflows, and program analytics.
-            </Text>
-            <Button size="lg" px={8} onClick={handleCtaClick}>
-              Schedule a Demo
-            </Button>
-          </VStack>
+      {/* Footer (from Home page) */}
+      <Box bg="brand.backgroundLight" py={12}>
+        <Container maxW="7xl">
+          <Grid templateColumns={{ base: "1fr", md: "repeat(4, 1fr)" }} gap={8}>
+            {/* Logo */}
+            <VStack align="start">
+              <Link href="/" fontSize="2xl" fontWeight="bold" color="brand.textPrimary">
+                FairPlay NIL
+              </Link>
+            </VStack>
+
+            {/* Product */}
+            <VStack align="start">
+              <Heading size="sm" color="brand.textPrimary" mb={4}>
+                Product
+              </Heading>
+              <VStack align="start" spacing={2}>
+                <Link href="/athletes" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+                  Athletes
+                </Link>
+                <Link href="/brands" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+                  Brands
+                </Link>
+              </VStack>
+            </VStack>
+
+            {/* Company */}
+            <VStack align="start">
+              <Heading size="sm" color="brand.textPrimary" mb={4}>
+                Company
+              </Heading>
+              <VStack align="start" spacing={2}>
+                <Link href="/about" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+                  About Us
+                </Link>
+                <Link href="/careers" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+                  Careers
+                </Link>
+                <Link href="/blog" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+                  Blogs
+                </Link>
+              </VStack>
+            </VStack>
+
+            {/* Legal */}
+            <VStack align="start">
+              <Heading size="sm" color="brand.textPrimary" mb={4}>
+                Legal
+              </Heading>
+              <VStack align="start" spacing={2}>
+                <Link href="/privacy" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+                  Privacy Policy
+                </Link>
+                <Link href="/terms" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+                  Terms of Service
+                </Link>
+              </VStack>
+            </VStack>
+          </Grid>
+
+          {/* Social Media Icons */}
+          <HStack justify="center" spacing={6} mt={8} pt={8} borderTop="1px" borderColor="gray.300">
+            <Link href="#" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+              <Icon as={Twitter} boxSize={6} />
+            </Link>
+            <Link href="#" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+              <Icon as={Instagram} boxSize={6} />
+            </Link>
+            <Link href="#" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+              <Icon as={Linkedin} boxSize={6} />
+            </Link>
+          </HStack>
         </Container>
       </Box>
       <UniversitiesDemoModal isOpen={isOpen} onClose={onClose} onSubmit={handleSubmitModal} />
