@@ -217,7 +217,7 @@ const Universities = () => {
       </Box>
 
       {/* Footer (from Home page) */}
-      <Box bg="brand.backgroundLight" py={12}>
+      <Box bg="brand.background" py={12}>
         <Container maxW="7xl">
           <Grid templateColumns={{ base: "1fr", md: "repeat(4, 1fr)" }} gap={8}>
             {/* Logo */}
