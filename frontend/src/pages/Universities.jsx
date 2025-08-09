@@ -133,7 +133,7 @@ const Universities = () => {
 
       {/* Outcomes */}
       <Container maxW="7xl" py={20}>
-        <VStack spacing={10} align="stretch">
+         <VStack spacing={10} align="stretch">
           <VStack align="start" spacing={4}>
             <Heading as="h2" size="xl" color="brand.textPrimary">
               Outcomes for Your Program
@@ -152,6 +152,33 @@ const Universities = () => {
               ))}
             </VStack>
           </VStack>
+
+           {/* See It in Action — Callout */}
+           <Box
+             role="region"
+             aria-labelledby="see-it-in-action"
+             bg="white"
+             border="1px solid"
+             borderColor="brand.accentSecondary"
+             borderLeftWidth="6px"
+             borderLeftColor="brand.accentPrimary"
+             borderRadius="lg"
+             p={{ base: 5, md: 6 }}
+           >
+             <Flex direction={{ base: 'column', md: 'row' }} align="center" justify="space-between" gap={6}>
+               <VStack align="start" spacing={1} flex="1">
+                 <Heading id="see-it-in-action" as="h3" size="md" color="brand.textPrimary">
+                   See It in Action
+                 </Heading>
+                 <Text color="brand.textSecondary">
+                   Schedule a live walkthrough of compliance tracking, deal workflows, and analytics tailored to your program.
+                 </Text>
+               </VStack>
+               <Button size="lg" minW="220px" onClick={handleCtaClick}>
+                 Schedule a Demo
+               </Button>
+             </Flex>
+           </Box>
 
           <SimpleGrid columns={{ base: 2, md: 4 }} spacing={6}>
             {[
