@@ -157,6 +157,23 @@ const Step6_Compensation = () => {
     }
 
     if (mappedItems.length > 0) {
+      // Merge any locally saved form state (sessionStorage) to preserve fields like schedule
+      try {
+        const savedRaw = sessionStorage.getItem(`deal_${dealId}_compensation_form`);
+        if (savedRaw) {
+          const saved = JSON.parse(savedRaw);
+          if (Array.isArray(saved?.items)) {
+            // Merge on type/id; primarily we care about schedule for cash item
+            saved.items.forEach((savedItem) => {
+              const idx = mappedItems.findIndex(mi => (mi.id === savedItem.id) || (mi.type === savedItem.type));
+              if (idx >= 0) {
+                mappedItems[idx] = { ...mappedItems[idx], ...savedItem };
+              }
+            });
+          }
+        }
+      } catch (_) { /* ignore parse errors */ }
+
       setCompensationItems(mappedItems);
 
       formLogger.info('Compensation items mapped from normalized fields', {
@@ -168,6 +185,14 @@ const Step6_Compensation = () => {
       });
     }
   }, [currentDeal, dealId, dealType]);
+
+  // Persist local form state (including payment schedule) for navigation back/forward within wizard
+  useEffect(() => {
+    try {
+      const toSave = { items: compensationItems };
+      sessionStorage.setItem(`deal_${dealId}_compensation_form`, JSON.stringify(toSave));
+    } catch (_) { /* ignore storage issues */ }
+  }, [compensationItems, dealId]);
 
   const getTypeDescription = (type) => {
     const found = compensationTypes.find(ct => ct.value === type);
@@ -263,6 +288,10 @@ const Step6_Compensation = () => {
   };
 
   const handleFinishLater = () => {
+    try {
+      const toSave = { items: compensationItems };
+      sessionStorage.setItem(`deal_${dealId}_compensation_form`, JSON.stringify(toSave));
+    } catch (_) { /* ignore */ }
     navigate('/dashboard');
   };
 
