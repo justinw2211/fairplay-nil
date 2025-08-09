@@ -40,6 +40,14 @@ const Universities = () => {
   const accentSecondary = "#d6dce4";
   const primaryColor = "#282f3d";
 
+  const handleCtaClick = () => {
+    try {
+      window.location.href = "/contact";
+    } catch (error) {
+      // no-op
+    }
+  };
+
   const packages = [
     {
       name: "Essential",
@@ -209,99 +217,61 @@ const Universities = () => {
         </VStack>
       </Container>
 
-      {/* Pricing Section */}
-      <Box bg="gray.50" py={20}>
-        <Container maxW="7xl">
-          <VStack spacing={12}>
-            <VStack spacing={4} textAlign="center">
-              <Heading as="h2" size="xl" color={primaryColor}>
-                Choose the Right Package for Your Program
+      {/* Outcomes */}
+      <Container maxW="7xl" py={20}>
+        <VStack spacing={12} align="stretch">
+          <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={10} alignItems="center">
+            <VStack align="start" spacing={4}>
+              <Heading as="h2" size="xl" color="brand.textPrimary">
+                Outcomes for Your Program
               </Heading>
-              <Text fontSize="lg" color="gray.600" maxW="3xl">
-                Flexible pricing options designed to scale with your athletic program's needs and budget.
-              </Text>
+              <VStack align="start" spacing={3}>
+                {[
+                  "Increase visibility into NIL activity across teams and sports.",
+                  "Consolidate submissions, approvals, and documentation.",
+                  "Equip staff with dashboards and exports for oversight.",
+                  "Integrate data with existing systems as needed.",
+                ].map((benefit, index) => (
+                  <HStack key={index} spacing={3}>
+                    <Icon as={FiMonitor} color="brand.accentPrimary" />
+                    <Text color="brand.textSecondary">{benefit}</Text>
+                  </HStack>
+                ))}
+              </VStack>
             </VStack>
 
-            <SimpleGrid columns={{ base: 1, lg: 3 }} spacing={8} w="full">
-              {packages.map((pkg, index) => (
-                <Card
-                  key={index}
-                  bg="white"
-                  shadow="xl"
-                  borderRadius="xl"
-                  position="relative"
-                  transform={index === 1 ? "scale(1.05)" : "scale(1)"}
-                  border={index === 1 ? `2px solid ${accentColor}` : "1px solid"}
-                  borderColor={index === 1 ? accentColor : "gray.200"}
-                >
-                  {pkg.badge && (
-                    <Badge
-                      position="absolute"
-                      top="-10px"
-                      left="50%"
-                      transform="translateX(-50%)"
-                      bg={accentColor}
-                      color="white"
-                      px={3}
-                      py={1}
-                      borderRadius="full"
-                      fontSize="sm"
-                    >
-                      {pkg.badge}
-                    </Badge>
-                  )}
-
-                  <CardHeader pb={4}>
-                    <VStack spacing={2} align="start">
-                      <Heading as="h3" size="lg" color={primaryColor}>
-                        {pkg.name}
-                      </Heading>
-                      <HStack align="baseline">
-                        <Text fontSize="3xl" fontWeight="bold" color={primaryColor}>
-                          {pkg.price}
-                        </Text>
-                        <Text color="gray.500">{pkg.period}</Text>
-                      </HStack>
-                      <Text color="gray.600" fontSize="sm">
-                        {pkg.description}
-                      </Text>
-                    </VStack>
-                  </CardHeader>
-
-                  <CardBody pt={0}>
-                    <VStack spacing={6} align="stretch">
-                      <List spacing={3}>
-                        {pkg.features.map((feature, featureIndex) => (
-                          <ListItem key={featureIndex}>
-                            <HStack align="start">
-                              <ListIcon as={FiCheckCircle} color="green.500" mt={0.5} />
-                              <Text fontSize="sm" color="gray.700">
-                                {feature}
-                              </Text>
-                            </HStack>
-                          </ListItem>
-                        ))}
-                      </List>
-
-                      <Button
-                        size="lg"
-                        bg={index === 1 ? accentColor : "gray.100"}
-                        color={index === 1 ? "white" : "gray.700"}
-                        _hover={{
-                          bg: index === 1 ? "#c8aeb0" : "gray.200"
-                        }}
-                        w="full"
-                      >
-                        {pkg.price === "Custom" ? "Contact Sales" : "Get Started"}
-                      </Button>
-                    </VStack>
-                  </CardBody>
-                </Card>
-              ))}
-            </SimpleGrid>
-          </VStack>
-        </Container>
-      </Box>
+            {/* See It in Action — Side Callout */}
+            <Box
+              role="region"
+              aria-labelledby="see-it-in-action"
+              bg="brand.background"
+              border="1px solid"
+              borderColor="brand.accentSecondary"
+              borderTopWidth="6px"
+              borderTopColor="brand.accentPrimary"
+              borderRadius="xl"
+              boxShadow="sm"
+              p={{ base: 6, md: 8 }}
+            >
+              <VStack align="start" spacing={4} w="full">
+                <Heading id="see-it-in-action" as="h3" size="lg" color="brand.textPrimary">
+                  See It in Action
+                </Heading>
+                <Text color="brand.textSecondary">
+                  Get a live walkthrough of compliance tracking, deal workflows, and analytics tailored to your program.
+                </Text>
+                <Button size="lg" w="full" onClick={handleCtaClick}>
+                  Schedule a Demo
+                </Button>
+                <HStack spacing={6} color="brand.textSecondary" fontSize="sm">
+                  <Text>No obligation</Text>
+                  <Text>15–30 minutes</Text>
+                </HStack>
+              </VStack>
+            </Box>
+          </Grid>
+        </VStack>
+      </Container>
 
       {/* Benefits Section */}
       <Container maxW="7xl" py={20}>
