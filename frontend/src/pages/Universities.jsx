@@ -11,6 +11,8 @@ import {
   Icon,
   SimpleGrid,
   useDisclosure,
+  Grid,
+  Link,
 } from "@chakra-ui/react";
 import UniversitiesDemoModal from "../components/UniversitiesDemoModal";
 import { createLogger } from "../utils/logger";
@@ -25,6 +27,7 @@ import {
   FiDatabase,
   FiMonitor,
 } from "react-icons/fi";
+import { Twitter, Instagram, Linkedin } from "lucide-react";
 
 const Universities = () => {
   const tools = [
@@ -74,16 +77,19 @@ const Universities = () => {
   return (
     <Box bg="brand.backgroundLight" minH="100vh">
       {/* Hero */}
-      <Box bg="brand.textPrimary" color="white" py={20}>
-        <Container maxW="7xl">
+      <Box bg="brand.background" color="brand.textPrimary" py={20}>
+        <Container maxW="6xl">
           <VStack spacing={6} textAlign="center">
-            <Heading as="h1" size="2xl" fontWeight="bold">
-              A Single Platform for University NIL Operations
-            </Heading>
-            <Text fontSize="xl" maxW="3xl" color="gray.200">
-              Manage NIL disclosures, track deal workflows, and access program-wide insights — in one place.
+            <Text fontSize="sm" bg="brand.accentSecondary" color="brand.textSecondary" px={3} py={1} borderRadius="full">
+              Trusted by Leading Athletic Programs
             </Text>
-            <HStack spacing={4} pt={4}>
+            <Heading as="h1" size="2xl" fontWeight="extrabold" lineHeight="1.2">
+              A Single Platform for <Box as="span" color="brand.accentPrimary">University NIL Operations</Box>
+            </Heading>
+            <Text fontSize="lg" maxW="3xl" color="brand.textSecondary">
+              Manage NIL disclosures, track deal workflows, and access program-wide insights — all in one comprehensive platform designed for athletic departments.
+            </Text>
+            <HStack spacing={4} pt={2}>
               <Button size="lg" px={8} onClick={handleCtaClick}>
                 Schedule a Demo
               </Button>
@@ -93,9 +99,9 @@ const Universities = () => {
       </Box>
 
       {/* Capabilities */}
-      <Container maxW="7xl" py={20}>
-        <VStack spacing={12}>
-          <VStack spacing={4} textAlign="center">
+      <Container maxW="7xl" py={16}>
+        <VStack spacing={8}>
+          <VStack spacing={3} textAlign="center">
             <Heading as="h2" size="xl" color="brand.textPrimary">
               Capabilities Built for Athletic Departments
             </Heading>
@@ -106,16 +112,19 @@ const Universities = () => {
 
           <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8} w="full">
             {tools.map((tool, index) => (
-              <Box key={index} bg="white" shadow="sm" borderRadius="lg" p={6} border="1px solid" borderColor="brand.accentSecondary">
+              <Box
+                key={index}
+                bg="white"
+                borderRadius="lg"
+                p={6}
+                border="1px solid"
+                borderColor="brand.accentSecondary"
+                boxShadow="sm"
+                _hover={{ transform: "translateY(-4px)", boxShadow: "md" }}
+                transition="all 0.2s"
+              >
                 <VStack align="start" spacing={4}>
-                  <Flex
-                    align="center"
-                    justify="center"
-                    w={12}
-                    h={12}
-                    bg="brand.backgroundLight"
-                    borderRadius="lg"
-                  >
+                  <Flex align="center" justify="center" w={12} h={12} bg="brand.backgroundLight" borderRadius="lg">
                     <Icon as={tool.icon} w={6} h={6} color="brand.accentPrimary" />
                   </Flex>
                   <Heading as="h3" size="md" color="brand.textPrimary">
@@ -132,59 +141,153 @@ const Universities = () => {
       </Container>
 
       {/* Outcomes */}
-      <Container maxW="7xl" py={20}>
+      <Box bg="brand.backgroundLight" py={16}>
+        <Container maxW="7xl">
         <VStack spacing={10} align="stretch">
-          <VStack align="start" spacing={4}>
-            <Heading as="h2" size="xl" color="brand.textPrimary">
-              Outcomes for Your Program
-            </Heading>
-            <VStack align="start" spacing={3}>
-              {[ 
-                "Increase visibility into NIL activity across teams and sports.",
-                "Consolidate submissions, approvals, and documentation.",
-                "Equip staff with dashboards and exports for oversight.",
-                "Integrate data with existing systems as needed.",
-              ].map((benefit, index) => (
-                <HStack key={index} spacing={3}>
-                  <Icon as={FiMonitor} color="brand.accentPrimary" />
-                  <Text color="brand.textSecondary">{benefit}</Text>
-                </HStack>
-              ))}
+          <Grid
+            templateColumns={{ base: "1fr", lg: "minmax(0, 1fr) 420px" }}
+            gap={6}
+            alignItems="start"
+          >
+            {/* Left: Outcomes content */}
+            <VStack align="start" spacing={4}>
+              <Heading as="h2" size="xl" color="brand.textPrimary">
+                Outcomes for Your Program
+              </Heading>
+              <VStack align="start" spacing={3}>
+                {[
+                  "Increase visibility into NIL activity across teams and sports programs",
+                  "Consolidate submissions, approvals, and documentation workflows",
+                  "Equip staff with dashboards and exports for comprehensive oversight",
+                  "Integrate data with existing systems as needed for operational efficiency",
+                ].map((benefit, index) => (
+                  <HStack key={index} spacing={3}>
+                    <Icon as={FiMonitor} color="brand.accentPrimary" />
+                    <Text color="brand.textSecondary">{benefit}</Text>
+                  </HStack>
+                ))}
+              </VStack>
             </VStack>
-          </VStack>
 
-          <SimpleGrid columns={{ base: 2, md: 4 }} spacing={6}>
+            {/* Right: CTA card */}
+            <Box
+              bg="white"
+              shadow="sm"
+              border="1px solid"
+              borderColor="brand.accentSecondary"
+              borderRadius="lg"
+              p={5}
+              position={{ lg: "sticky" }}
+              top={{ lg: "80px" }}
+            >
+              <VStack align="start" spacing={4}>
+                <Heading as="h3" size="md" color="brand.textPrimary">
+                  Schedule a Demo
+                </Heading>
+                <Text color="brand.textSecondary">
+                  See how FairPlay NIL can streamline compliance, deal workflows, and reporting.
+                </Text>
+                <Button size="md" onClick={handleCtaClick} alignSelf="stretch">
+                  Schedule a Demo
+                </Button>
+                <Text fontSize="sm" color="brand.textSecondary">30-minute personalized walkthrough</Text>
+              </VStack>
+            </Box>
+          </Grid>
+
+          {/* Program highlights grid */}
+          <SimpleGrid columns={{ base: 2, md: 4 }} spacing={10}>
             {[
-              { icon: FiDatabase, label: "Secure Storage" },
-              { icon: FiMonitor, label: "Operational Visibility" },
-              { icon: FiUsers, label: "Stakeholder Access" },
-              { icon: FiBarChart, label: "Dashboards & Exports" },
+              { icon: FiDatabase, label: "Secure Storage", desc: "Enterprise-grade security for NIL documentation and sensitive data" },
+              { icon: FiMonitor, label: "Operational Visibility", desc: "Real-time insights into NIL activities across your program" },
+              { icon: FiUsers, label: "Stakeholder Access", desc: "Role-based permissions for coaches, compliance, and admins" },
+              { icon: FiBarChart, label: "Dashboards & Exports", desc: "Comprehensive reporting tools and export capabilities" },
             ].map((item, index) => (
               <VStack key={index} spacing={3} textAlign="center">
-                <Flex align="center" justify="center" w={16} h={16} bg="brand.backgroundLight" borderRadius="xl">
+                <Flex align="center" justify="center" w={16} h={16} bg="brand.background" borderRadius="full" border="1px solid" borderColor="brand.accentSecondary">
                   <Icon as={item.icon} w={8} h={8} color="brand.accentPrimary" />
                 </Flex>
                 <Text fontWeight="semibold" color="brand.textPrimary">{item.label}</Text>
+                <Text fontSize="sm" color="brand.textSecondary" maxW="56">{item.desc}</Text>
               </VStack>
             ))}
           </SimpleGrid>
         </VStack>
-      </Container>
+        </Container>
+      </Box>
 
-      {/* Final CTA */}
-      <Box bg="brand.textPrimary" color="white" py={16}>
-        <Container maxW="5xl">
-          <VStack spacing={6} textAlign="center">
-            <Heading as="h2" size="xl">
-              Ready to See the Platform?
-            </Heading>
-            <Text fontSize="lg" color="gray.200" maxW="3xl">
-              Schedule a demo to explore compliance tracking, deal workflows, and program analytics.
-            </Text>
-            <Button size="lg" px={8} onClick={handleCtaClick}>
-              Schedule a Demo
-            </Button>
-          </VStack>
+      {/* Footer (from Home page) */}
+      <Box bg="brand.background" py={12}>
+        <Container maxW="7xl">
+          <Grid templateColumns={{ base: "1fr", md: "repeat(4, 1fr)" }} gap={8}>
+            {/* Logo */}
+            <VStack align="start">
+              <Link href="/" fontSize="2xl" fontWeight="bold" color="brand.textPrimary">
+                FairPlay NIL
+              </Link>
+            </VStack>
+
+            {/* Product */}
+            <VStack align="start">
+              <Heading size="sm" color="brand.textPrimary" mb={4}>
+                Product
+              </Heading>
+              <VStack align="start" spacing={2}>
+                <Link href="/athletes" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+                  Athletes
+                </Link>
+                <Link href="/brands" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+                  Brands
+                </Link>
+              </VStack>
+            </VStack>
+
+            {/* Company */}
+            <VStack align="start">
+              <Heading size="sm" color="brand.textPrimary" mb={4}>
+                Company
+              </Heading>
+              <VStack align="start" spacing={2}>
+                <Link href="/about" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+                  About Us
+                </Link>
+                <Link href="/careers" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+                  Careers
+                </Link>
+                <Link href="/blog" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+                  Blogs
+                </Link>
+              </VStack>
+            </VStack>
+
+            {/* Legal */}
+            <VStack align="start">
+              <Heading size="sm" color="brand.textPrimary" mb={4}>
+                Legal
+              </Heading>
+              <VStack align="start" spacing={2}>
+                <Link href="/privacy" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+                  Privacy Policy
+                </Link>
+                <Link href="/terms" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+                  Terms of Service
+                </Link>
+              </VStack>
+            </VStack>
+          </Grid>
+
+          {/* Social Media Icons */}
+          <HStack justify="center" spacing={6} mt={8} pt={8} borderTop="1px" borderColor="gray.300">
+            <Link href="#" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+              <Icon as={Twitter} boxSize={6} />
+            </Link>
+            <Link href="#" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+              <Icon as={Instagram} boxSize={6} />
+            </Link>
+            <Link href="#" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+              <Icon as={Linkedin} boxSize={6} />
+            </Link>
+          </HStack>
         </Container>
       </Box>
       <UniversitiesDemoModal isOpen={isOpen} onClose={onClose} onSubmit={handleSubmitModal} />
