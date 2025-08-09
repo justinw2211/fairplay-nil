@@ -162,6 +162,10 @@ const ActivityForm_Appearance = ({ onNext, currentActivity, totalActivities }) =
       },
     });
 
+    if (typeof onBack === 'function') {
+      onBack();
+      return;
+    }
     const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
     navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
   };

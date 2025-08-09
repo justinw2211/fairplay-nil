@@ -250,6 +250,7 @@ const ActivityForm_Other = ({ onNext, currentActivity, totalActivities }) => {
                   borderColor="brand.accentSecondary"
                   color="brand.textSecondary"
                   onClick={() => {
+                    if (typeof onBack === 'function') { onBack(); return; }
                     const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
                     navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
                   }}

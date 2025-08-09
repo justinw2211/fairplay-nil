@@ -228,6 +228,7 @@ const ActivityForm_Content = ({ onNext, currentActivity, totalActivities }) => {
                   borderColor="brand.accentSecondary"
                   color="brand.textSecondary"
                   onClick={() => {
+                    if (typeof onBack === 'function') { onBack(); return; }
                     const searchParams = new URLSearchParams(window.location.search);
                     const dealType = searchParams.get('type') || 'standard';
                     const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';

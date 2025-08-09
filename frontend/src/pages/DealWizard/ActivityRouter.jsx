@@ -307,10 +307,25 @@ const ActivityRouter = () => {
     navigate(`/add/deal/activity/${encodedNextActivity}/${dealId}${typeParam}`);
   };
 
+  const handleBack = () => {
+    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+
+    // If we have no sequence, go to selection
+    if (activitySequence.length === 0 || currentActivityIndex <= 0) {
+      navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
+      return;
+    }
+
+    const prevActivity = activitySequence[currentActivityIndex - 1];
+    const encodedPrev = encodeURIComponent(prevActivity);
+    navigate(`/add/deal/activity/${encodedPrev}/${dealId}${typeParam}`);
+  };
+
   return (
     <DealWizardStepWrapper stepNumber={4} stepName="Activity Forms">
       <ActivityComponent
         onNext={handleNext}
+        onBack={handleBack}
         currentActivity={currentActivityNumber}
         totalActivities={totalActivities}
       />
