@@ -84,6 +84,12 @@ async def update_deal(
     """Update a deal with comprehensive validation and cache invalidation."""
     try:
         update_data = deal_data.dict(exclude_unset=True)
+        # Instrumentation: log incoming keys
+        try:
+            incoming_keys = list(update_data.keys())
+            logger.info(f"[update_deal] deal_id={deal_id} user_id={user_id} incoming_keys={incoming_keys}")
+        except Exception:
+            pass
         if not update_data:
             raise HTTPException(status_code=400, detail="No update data provided.")
 
@@ -102,8 +108,19 @@ async def update_deal(
         if update_data.get('social_media_confirmed') is True:
             update_data['social_media_confirmed_at'] = 'now()'
 
+        # Instrumentation: log sanitized keys
+        try:
+            sanitized_keys = list(update_data.keys())
+            logger.info(f"[update_deal] deal_id={deal_id} sanitized_keys={sanitized_keys}")
+        except Exception:
+            pass
+
         # Use optimized update with cache invalidation
         updated_deal = await db.update_deal_with_cache_invalidation(deal_id, user_id, update_data)
+        try:
+            logger.info(f"[update_deal] deal_id={deal_id} updated_fields={list(updated_deal.keys())}")
+        except Exception:
+            pass
         return DealResponse(**updated_deal)
         
     except (ValidationError, SecurityError):

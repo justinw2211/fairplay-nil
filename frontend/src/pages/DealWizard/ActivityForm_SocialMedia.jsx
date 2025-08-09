@@ -234,18 +234,25 @@ const ActivityForm_SocialMedia = ({ onNext, currentActivity, totalActivities }) 
       }
     });
 
-    await updateDeal(dealId, {
-      obligations: {
-        ...currentDeal.obligations,
-        'social-media': {
-          ...currentDeal.obligations?.['social-media'],
-          ...formattedData,
+    try {
+      await updateDeal(dealId, {
+        obligations: {
+          ...currentDeal.obligations,
+          'social-media': {
+            ...currentDeal.obligations?.['social-media'],
+            ...formattedData,
+          },
         },
-      },
-    });
-
-    console.log('📱 Calling onNext()');
-    onNext();
+      });
+      console.log('📱 Calling onNext()');
+      onNext();
+    } catch (e) {
+      console.error('❌ Failed to save Social Media activity:', e);
+      Sentry.captureException(e, {
+        tags: { component: 'ActivityForm_SocialMedia', action: 'handleNext' },
+        extra: { dealId, formattedDataKeys: Object.keys(formattedData || {}) }
+      });
+    }
   };
 
   const handleBack = async () => {
