@@ -139,6 +139,10 @@ class DealUpdate(BaseModel):
     
     # Step 6: Compensation
     compensation_cash: Optional[float] = None
+    compensation_cash_schedule: Optional[str] = Field(
+        default=None,
+        pattern=r'^(lump_sum|monthly|quarterly|per_deliverable|milestone_based|other)$'
+    )
     compensation_goods: Optional[List[Dict[str, Any]]] = None
     compensation_other: Optional[List[OtherCompensationItem]] = None
     

@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Updated DEAL_SELECT_FIELDS to include new columns and analytics fields
-DEAL_SELECT_FIELDS = "id,user_id,status,created_at,deal_nickname,deal_terms_url,deal_terms_file_name,deal_terms_file_type,deal_terms_file_size,payor_name,payor_type,contact_name,contact_email,contact_phone,activities,obligations,grant_exclusivity,uses_school_ip,licenses_nil,compensation_cash,compensation_goods,compensation_other,is_group_deal,is_paid_to_llc,athlete_social_media,social_media_confirmed,social_media_confirmed_at,deal_type,clearinghouse_prediction,valuation_prediction,brand_partner,clearinghouse_result,actual_compensation,valuation_range,submission_type"
+DEAL_SELECT_FIELDS = "id,user_id,status,created_at,deal_nickname,deal_terms_url,deal_terms_file_name,deal_terms_file_type,deal_terms_file_size,payor_name,payor_type,contact_name,contact_email,contact_phone,activities,obligations,grant_exclusivity,uses_school_ip,licenses_nil,compensation_cash,compensation_cash_schedule,compensation_goods,compensation_other,is_group_deal,is_paid_to_llc,athlete_social_media,social_media_confirmed,social_media_confirmed_at,deal_type,clearinghouse_prediction,valuation_prediction,brand_partner,clearinghouse_result,actual_compensation,valuation_range,submission_type"
 
 def validate_file_metadata(file_type: str, file_size: int) -> bool:
     """Validate file metadata on the backend."""

@@ -92,7 +92,7 @@ const Step6_Compensation = () => {
         id: 1,
         type: 'cash',
         amount: String(cash),
-        schedule: '',
+        schedule: currentDeal?.compensation_cash_schedule || '',
         description: '',
         expanded: true,
       });
@@ -252,6 +252,7 @@ const Step6_Compensation = () => {
     // Format the data according to the backend schema
     const formattedData = {
       compensation_cash: 0,
+      compensation_cash_schedule: undefined,
       compensation_goods: [],
       compensation_other: []
     };
@@ -260,6 +261,7 @@ const Step6_Compensation = () => {
     compensationItems.forEach(item => {
       if (item.type === "cash") {
         formattedData.compensation_cash = parseFloat(item.amount) || 0;
+        formattedData.compensation_cash_schedule = item.schedule || null;
       } else if (item.type === "non-cash") {
         formattedData.compensation_goods.push({
           description: item.description,
