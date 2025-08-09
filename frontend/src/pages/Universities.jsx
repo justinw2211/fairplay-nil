@@ -137,7 +137,11 @@ const Universities = () => {
       {/* Outcomes */}
       <Container maxW="7xl" py={20}>
         <VStack spacing={10} align="stretch">
-          <Grid templateColumns={{ base: "1fr", lg: "2fr 1fr" }} gap={10} alignItems="start">
+          <Grid
+            templateColumns={{ base: "1fr", lg: "minmax(0, 1fr) 420px" }}
+            gap={8}
+            alignItems="start"
+          >
             {/* Left: Outcomes content */}
             <VStack align="start" spacing={4}>
               <Heading as="h2" size="xl" color="brand.textPrimary">
