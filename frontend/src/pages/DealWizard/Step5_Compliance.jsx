@@ -429,18 +429,15 @@ const Step5_Compliance = () => {
       }
     });
     
-    // Get valid activities that have been completed, prefer highest sequence
-    const completedWithSeq = Object.entries(obligations)
-      .filter(([activity, value]) => validActivityTypes.includes(activity) && value && value.completed === true)
+    // Build full activity sequence from obligations, not just completed
+    const allActivitiesWithSeq = Object.entries(obligations)
+      .filter(([activity, value]) => validActivityTypes.includes(activity) && value && typeof value === 'object')
       .map(([activity, value]) => ({ activity, sequence: typeof value.sequence === 'number' ? value.sequence : -1 }));
 
-    // Sort by sequence asc and pick the last; if no sequences, fall back to insertion order
-    const hasSeq = completedWithSeq.some(a => a.sequence >= 0);
-    const completedActivities = hasSeq
-      ? completedWithSeq.sort((a, b) => a.sequence - b.sequence).map(a => a.activity)
-      : Object.keys(obligations)
-          .filter(activity => validActivityTypes.includes(activity))
-          .filter(activity => obligations[activity]?.completed === true);
+    const hasSeq = allActivitiesWithSeq.some(a => a.sequence >= 0);
+    const orderedActivities = hasSeq
+      ? allActivitiesWithSeq.sort((a, b) => a.sequence - b.sequence).map(a => a.activity)
+      : Object.keys(obligations).filter(activity => validActivityTypes.includes(activity));
     
     // Track completed activities found
     Sentry.captureMessage('Step5_Compliance: Completed activities found', 'info', {
@@ -462,9 +459,9 @@ const Step5_Compliance = () => {
     
     let destinationUrl;
     
-    if (completedActivities.length > 0) {
-      // Navigate to the last completed activity
-      const lastActivity = completedActivities[completedActivities.length - 1];
+    if (orderedActivities.length > 0) {
+      // Navigate to the last activity in sequence
+      const lastActivity = orderedActivities[orderedActivities.length - 1];
       const encodedActivity = encodeURIComponent(lastActivity);
       const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
       destinationUrl = `/add/deal/activity/${encodedActivity}/${dealId}${typeParam}`;
@@ -481,7 +478,7 @@ const Step5_Compliance = () => {
           dealType,
           lastActivity,
           encodedActivity,
-          completedActivities,
+          orderedActivities,
           destinationUrl,
           currentUrl: window.location.href,
           step: 'Step5_Compliance',
