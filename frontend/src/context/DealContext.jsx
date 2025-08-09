@@ -297,6 +297,17 @@ export const DealProvider = ({ children }) => {
     });
 
     try {
+      // Instrumentation: capture payload shape and size
+      const payloadKeys = updates ? Object.keys(updates) : [];
+      const payloadSize = (() => {
+        try { return JSON.stringify(updates)?.length || 0; } catch { return 0; }
+      })();
+      Sentry.addBreadcrumb({
+        category: 'api',
+        message: 'DealContext.updateDeal:start',
+        level: 'info',
+        data: { dealId, payloadKeys, payloadSize }
+      });
       const sessionRes = await supabase.auth.getSession();
       const token = sessionRes.data.session?.access_token;
 
@@ -327,7 +338,7 @@ export const DealProvider = ({ children }) => {
         body: JSON.stringify(updates)
       });
 
-      // Track API response
+      // Track API response (status only; no sensitive data)
       Sentry.captureMessage('DealContext: API response received', 'info', {
         tags: {
           component: 'DealContext',
@@ -341,6 +352,12 @@ export const DealProvider = ({ children }) => {
           responseStatusText: response.statusText
         }
       });
+      Sentry.addBreadcrumb({
+        category: 'api',
+        message: 'DealContext.updateDeal:response',
+        level: response.ok ? 'info' : 'error',
+        data: { dealId, status: response.status, ok: response.ok }
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -348,6 +365,13 @@ export const DealProvider = ({ children }) => {
       }
 
       const data = await response.json();
+      const responseKeys = data ? Object.keys(data) : [];
+      Sentry.addBreadcrumb({
+        category: 'api',
+        message: 'DealContext.updateDeal:parsed',
+        level: 'info',
+        data: { dealId, responseKeys }
+      });
 
       // Track successful data parsing
       Sentry.captureMessage('DealContext: Data parsed successfully', 'info', {
@@ -412,6 +436,12 @@ export const DealProvider = ({ children }) => {
           errorMessage,
           errorStack: err.stack
         }
+      });
+      Sentry.addBreadcrumb({
+        category: 'api',
+        message: 'DealContext.updateDeal:error',
+        level: 'error',
+        data: { dealId, errorMessage }
       });
 
       dealLogger.error('Error updating deal', { error: errorMessage });

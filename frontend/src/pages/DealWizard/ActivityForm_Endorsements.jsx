@@ -100,6 +100,7 @@ const ActivityForm_Endorsements = ({ onNext, currentActivity, totalActivities })
       details: endorsementDetails,
       description,
       duration,
+      completed: true,
     };
 
     // Get the existing activity entry to preserve sequence and completed status

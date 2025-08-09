@@ -240,8 +240,20 @@ const Step3_SelectActivities = () => {
       return;
     }
     
-    // Create obligations with proper sequential ordering while PRESERVING any existing activity data
-    const newObligations = {};
+    // Create obligations with proper sequential ordering while PRESERVING:
+    // 1) Existing activity data for selected activities
+    // 2) Any non-activity fields previously stored under obligations (e.g., compliance fields)
+    const validActivityTypes = [
+      'social-media', 'appearance', 'content-for-brand', 'autographs',
+      'merch-and-products', 'endorsements', 'other'
+    ];
+
+    const preservedNonActivityFields = Object.fromEntries(
+      Object.entries(currentDeal?.obligations || {})
+        .filter(([key]) => !validActivityTypes.includes(key))
+    );
+
+    const newObligations = { ...preservedNonActivityFields };
     selectedActivities.forEach((activity, index) => {
       const existing = currentDeal?.obligations?.[activity] || {};
 
@@ -249,7 +261,8 @@ const Step3_SelectActivities = () => {
       const merged = {
         ...existing,
         sequence: index,
-        completed: existing?.completed ?? false,
+        // preserve completed if already true; otherwise default to false
+        completed: existing?.completed === true,
       };
 
       // For "other", prefer newly entered description; otherwise preserve existing description
@@ -295,7 +308,8 @@ const Step3_SelectActivities = () => {
             obligations: newObligations,
             currentActivityIndex: 0,
             totalActivities: selectedActivities.length,
-            lastCompletedActivity: null
+            lastCompletedActivity: null,
+            preservedNonActivityKeys: Object.keys(preservedNonActivityFields)
           }
         }
       });

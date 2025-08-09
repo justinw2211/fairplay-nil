@@ -208,6 +208,9 @@ const Home = () => {
                 <Link href="/careers" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
                   Careers
                 </Link>
+                <Link href="/blog" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+                  Blogs
+                </Link>
               </VStack>
             </VStack>
 

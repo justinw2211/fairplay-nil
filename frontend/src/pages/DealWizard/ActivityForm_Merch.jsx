@@ -105,6 +105,7 @@ const ActivityForm_Merch = ({ onNext, currentActivity, totalActivities }) => {
       selectedTypes: selectedMerch,
       details: merchDetails,
       customMerch,
+      completed: true,
     };
 
     // Get the existing activity entry to preserve sequence and completed status

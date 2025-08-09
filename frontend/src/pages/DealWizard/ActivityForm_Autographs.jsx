@@ -32,12 +32,12 @@ const ActivityForm_Autographs = ({ onNext, currentActivity, totalActivities }) =
   const [itemTypes, setItemTypes] = useState("");
 
   useEffect(() => {
-    if (deal?.obligations?.['autographs']) {
-      const autographData = deal.obligations['autographs'];
+    if (currentDeal?.obligations?.['autographs']) {
+      const autographData = currentDeal.obligations['autographs'];
       setNumberOfItems(autographData.numberOfItems || "");
       setItemTypes(autographData.itemTypes || "");
     }
-  }, [deal]);
+  }, [currentDeal]);
 
   const isFormValid = () => {
     return numberOfItems && Number.parseInt(numberOfItems) > 0;
@@ -47,14 +47,15 @@ const ActivityForm_Autographs = ({ onNext, currentActivity, totalActivities }) =
     const formattedData = {
       numberOfItems: Number.parseInt(numberOfItems),
       itemTypes,
+      completed: true,
     };
 
     // Get the existing activity entry to preserve sequence and completed status
-    const existingActivity = deal.obligations?.['autographs'] || {};
+    const existingActivity = currentDeal.obligations?.['autographs'] || {};
 
     await updateDeal(dealId, {
       obligations: {
-        ...deal.obligations,
+        ...currentDeal.obligations,
         'autographs': {
           ...existingActivity, // Preserve sequence, completed, etc.
           ...formattedData,    // Add the form data
@@ -63,6 +64,31 @@ const ActivityForm_Autographs = ({ onNext, currentActivity, totalActivities }) =
     });
 
     onNext();
+  };
+
+  const handleBack = async () => {
+    // Persist current progress before navigating back
+    const formattedData = {
+      numberOfItems: numberOfItems ? Number.parseInt(numberOfItems) : undefined,
+      itemTypes,
+    };
+
+    const existingActivity = currentDeal.obligations?.['autographs'] || {};
+
+    try {
+      await updateDeal(dealId, {
+        obligations: {
+          ...currentDeal.obligations,
+          'autographs': {
+            ...existingActivity,
+            ...formattedData,
+          },
+        },
+      });
+    } catch (_) { /* ignore and still navigate back */ }
+
+    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
   };
 
   const progressPercentage = ((currentActivity - 1) / totalActivities) * 100;
@@ -207,10 +233,7 @@ const ActivityForm_Autographs = ({ onNext, currentActivity, totalActivities }) =
                   fontWeight="medium"
                   borderColor="brand.accentSecondary"
                   color="brand.textSecondary"
-                  onClick={() => {
-                    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-                    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
-                  }}
+                  onClick={handleBack}
                   _hover={{
                     bg: "brand.backgroundLight",
                     borderColor: "brand.accentPrimary",

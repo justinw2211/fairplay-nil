@@ -283,19 +283,9 @@ const ActivityRouter = () => {
     console.log('Total activities:', totalActivities);
     console.log('Is last activity?', currentActivityIndex >= totalActivities - 1);
 
-    // Mark the current activity as completed in obligations
-    const updatedObligations = { ...currentDeal.obligations };
-    if (updatedObligations[decodedActivityType]) {
-      updatedObligations[decodedActivityType].completed = true;
-      console.log(`✅ Marked ${decodedActivityType} as completed`);
-    }
-
-    // Update the deal with completion status
-    await updateDeal(dealId, {
-      obligations: updatedObligations,
-      lastCompletedActivity: decodedActivityType,
-      currentActivityIndex: currentActivityIndex + 1
-    });
+    // IMPORTANT: Do NOT call updateDeal here. The backend schema doesn't accept
+    // wizard-only metadata (currentActivityIndex/lastCompletedActivity) and
+    // saving here can race with the form save. Navigation proceeds without a PUT.
 
     const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
 

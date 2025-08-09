@@ -20,6 +20,8 @@ import Universities from "./pages/Universities";
 import Collectives from "./pages/Collectives";
 import Brands from "./pages/Brands";
 import NotFound from './pages/NotFound';
+import BlogList from './pages/Blog/BlogList';
+import BlogArticle from './pages/Blog/BlogArticle';
 
 // Import ONLY the new DealWizard components
 import Step0_SocialMedia from './pages/DealWizard/Step0_SocialMedia';
@@ -145,6 +147,8 @@ function AppContent() {
         <Route path="/universities" element={<Universities />} />
         <Route path="/collectives" element={<Collectives />} />
         <Route path="/brands" element={<Brands />} />
+        <Route path="/blog" element={<BlogList />} />
+        <Route path="/blog/:slug" element={<BlogArticle />} />
 
         {/* Protected Routes */}
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

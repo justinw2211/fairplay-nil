@@ -290,10 +290,42 @@ const Step6_Compensation = () => {
   };
 
   const handleFinishLater = () => {
+    // Persist to server as draft so data survives across devices/sessions
+    try {
+      const formattedData = {
+        compensation_cash: 0,
+        compensation_cash_schedule: undefined,
+        compensation_goods: [],
+        compensation_other: []
+      };
+
+      compensationItems.forEach(item => {
+        if (item.type === "cash") {
+          formattedData.compensation_cash = parseFloat(item.amount) || 0;
+          formattedData.compensation_cash_schedule = item.schedule || null;
+        } else if (item.type === "non-cash") {
+          formattedData.compensation_goods.push({
+            description: item.description,
+            value: parseFloat(item.value) || 0
+          });
+        } else if (item.type === "bonus" || item.type === "royalty" || item.type === "other") {
+          formattedData.compensation_other.push({
+            payment_type: item.type,
+            description: item.type === "bonus" ? item.requirements : item.description,
+            estimated_value: parseFloat(item.amount || item.value) || 0
+          });
+        }
+      });
+
+      updateDeal(dealId, formattedData).catch(() => {});
+    } catch (_) { /* ignore */ }
+
+    // Still keep a lightweight local cache as a fallback
     try {
       const toSave = { items: compensationItems };
       sessionStorage.setItem(`deal_${dealId}_compensation_form`, JSON.stringify(toSave));
     } catch (_) { /* ignore */ }
+
     navigate('/dashboard');
   };
 
