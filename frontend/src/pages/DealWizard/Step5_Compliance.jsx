@@ -313,12 +313,13 @@ const Step5_Compliance = () => {
       return;
     }
 
-    // Format the data according to the backend schema
+    // Format the data and PRESERVE existing obligations (activities) to avoid wiping them out
     const formattedData = {
       licenses_nil: licensingRights,
       uses_school_ip: schoolBrandVisible === 'yes',
       grant_exclusivity: exclusiveRights,
       obligations: {
+        ...(currentDeal?.obligations || {}),
         licensingInfo,
         schoolBrandInfo,
         conflictingSponsorships,
