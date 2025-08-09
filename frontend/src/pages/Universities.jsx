@@ -418,8 +418,6 @@ const Universities = () => {
           </HStack>
         </Container>
       </Box>
-        </Container>
-      </Box>
     </Box>
   );
 };
