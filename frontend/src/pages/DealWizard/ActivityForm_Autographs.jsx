@@ -32,12 +32,12 @@ const ActivityForm_Autographs = ({ onNext, currentActivity, totalActivities }) =
   const [itemTypes, setItemTypes] = useState("");
 
   useEffect(() => {
-    if (deal?.obligations?.['autographs']) {
-      const autographData = deal.obligations['autographs'];
+    if (currentDeal?.obligations?.['autographs']) {
+      const autographData = currentDeal.obligations['autographs'];
       setNumberOfItems(autographData.numberOfItems || "");
       setItemTypes(autographData.itemTypes || "");
     }
-  }, [deal]);
+  }, [currentDeal]);
 
   const isFormValid = () => {
     return numberOfItems && Number.parseInt(numberOfItems) > 0;
@@ -50,11 +50,11 @@ const ActivityForm_Autographs = ({ onNext, currentActivity, totalActivities }) =
     };
 
     // Get the existing activity entry to preserve sequence and completed status
-    const existingActivity = deal.obligations?.['autographs'] || {};
+    const existingActivity = currentDeal.obligations?.['autographs'] || {};
 
     await updateDeal(dealId, {
       obligations: {
-        ...deal.obligations,
+        ...currentDeal.obligations,
         'autographs': {
           ...existingActivity, // Preserve sequence, completed, etc.
           ...formattedData,    // Add the form data

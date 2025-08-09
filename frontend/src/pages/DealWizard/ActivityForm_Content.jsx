@@ -35,12 +35,12 @@ const ActivityForm_Content = ({ onNext, currentActivity, totalActivities }) => {
   const [showError, setShowError] = useState(false);
 
   useEffect(() => {
-    if (deal?.obligations?.['content-for-brand']) {
-      const contentData = deal.obligations['content-for-brand'];
+    if (currentDeal?.obligations?.['content-for-brand']) {
+      const contentData = currentDeal.obligations['content-for-brand'];
       setQuantityOfContent(contentData.quantity || "");
       setContentDescription(contentData.description || "");
     }
-  }, [deal]);
+  }, [currentDeal]);
 
   const isFormValid = () => {
     return quantityOfContent &&
@@ -62,11 +62,11 @@ const ActivityForm_Content = ({ onNext, currentActivity, totalActivities }) => {
     };
 
     // Get the existing activity entry to preserve sequence and completed status
-    const existingActivity = deal.obligations?.['content-for-brand'] || {};
+    const existingActivity = currentDeal.obligations?.['content-for-brand'] || {};
 
     await updateDeal(dealId, {
       obligations: {
-        ...deal.obligations,
+        ...currentDeal.obligations,
         'content-for-brand': {
           ...existingActivity, // Preserve sequence, completed, etc.
           ...formattedData,    // Add the form data

@@ -1,6 +1,6 @@
 // frontend/src/pages/DealWizard/ActivityForm_Appearance.jsx
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
   Box,
@@ -40,8 +40,9 @@ const appearanceTypes = [
 const ActivityForm_Appearance = ({ onNext, currentActivity, totalActivities }) => {
   const { dealId } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { currentDeal, updateDeal } = useDeal();
-  const dealType = 'standard'; // Default deal type for appearance form
+  const dealType = searchParams.get('type') || 'standard';
 
   const [selectedAppearances, setSelectedAppearances] = useState([]);
   const [appearanceDetails, setAppearanceDetails] = useState({});
@@ -139,6 +140,30 @@ const ActivityForm_Appearance = ({ onNext, currentActivity, totalActivities }) =
       },
     });
     onNext();
+  };
+
+  const handleBack = async () => {
+    const formattedData = {
+      selectedTypes: selectedAppearances,
+      details: appearanceDetails,
+      description,
+      otherAppearance,
+    };
+
+    const existingActivity = currentDeal.obligations?.['appearance'] || {};
+
+    await updateDeal(dealId, {
+      obligations: {
+        ...currentDeal.obligations,
+        'appearance': {
+          ...existingActivity,
+          ...formattedData,
+        },
+      },
+    });
+
+    const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
+    navigate(`/add/deal/activities/select/${dealId}${typeParam}`);
   };
 
   return (
@@ -477,7 +502,7 @@ const ActivityForm_Appearance = ({ onNext, currentActivity, totalActivities }) =
                   fontWeight="medium"
                   borderColor="brand.accentSecondary"
                   color="brand.textSecondary"
-                  onClick={() => navigate(`/add/deal/activities/select/${dealId}`)}
+                  onClick={handleBack}
                   _hover={{
                     bg: "brand.backgroundLight",
                     borderColor: "brand.accentPrimary",

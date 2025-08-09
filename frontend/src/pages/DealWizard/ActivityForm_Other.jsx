@@ -37,13 +37,13 @@ const ActivityForm_Other = ({ onNext, currentActivity, totalActivities }) => {
   const [showError, setShowError] = useState(false);
 
   useEffect(() => {
-    if (deal?.obligations?.['other']) {
-      const otherData = deal.obligations['other'];
+    if (currentDeal?.obligations?.['other']) {
+      const otherData = currentDeal.obligations['other'];
       setActivityName(otherData.name || "");
       setActivityDescription(otherData.description || "");
       setDueDate(otherData.dueDate || "");
     }
-  }, [deal]);
+  }, [currentDeal]);
 
   const isFormValid = () => {
     return activityName.trim() && activityDescription.trim();
@@ -57,11 +57,11 @@ const ActivityForm_Other = ({ onNext, currentActivity, totalActivities }) => {
     };
 
     // Get the existing activity entry to preserve sequence and completed status
-    const existingActivity = deal.obligations?.['other'] || {};
+    const existingActivity = currentDeal.obligations?.['other'] || {};
 
     await updateDeal(dealId, {
       obligations: {
-        ...deal.obligations,
+        ...currentDeal.obligations,
         'other': {
           ...existingActivity, // Preserve sequence, completed, etc.
           ...formattedData,    // Add the form data
