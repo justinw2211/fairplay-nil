@@ -30,7 +30,7 @@ const ActivityRouter = () => {
   const [searchParams] = useSearchParams();
   const dealType = searchParams.get('type') || 'standard';
   const navigate = useNavigate();
-  const { currentDeal, loading, fetchDealById, updateDeal } = useDeal();
+  const { currentDeal, loading, fetchDealById } = useDeal();
 
   // Store the activity sequence in component state for stability
   const [activitySequence, setActivitySequence] = useState([]);
@@ -282,13 +282,6 @@ const ActivityRouter = () => {
     console.log('Current index:', currentActivityIndex);
     console.log('Total activities:', totalActivities);
     console.log('Is last activity?', currentActivityIndex >= totalActivities - 1);
-
-    // IMPORTANT: Do NOT overwrite obligations here to avoid racing the form save.
-    // Forms set their own activity subobject (including completed flag). We only advance wizard metadata.
-    await updateDeal(dealId, {
-      lastCompletedActivity: decodedActivityType,
-      currentActivityIndex: currentActivityIndex + 1
-    });
 
     const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
 
