@@ -90,6 +90,35 @@ class ValuationPrediction(BaseModel):
     activity_multiplier: Optional[float] = None
     predicted_at: datetime = Field(default_factory=datetime.utcnow)
 
+# --- Schemas for Deal Duration and Company Type ---
+
+class DealDuration(BaseModel):
+    years: int = Field(ge=0, le=10, description="Contract duration in years")
+    months: int = Field(ge=0, le=11, description="Contract duration in months")
+    total_months: int = Field(description="Total duration in months for calculations")
+    
+    @validator('total_months', always=True)
+    def calculate_total_months(cls, v, values):
+        years = values.get('years', 0)
+        months = values.get('months', 0)
+        total = years * 12 + months
+        if total == 0:
+            raise ValueError('Duration must be at least 1 month')
+        if total > 120:  # 10 years * 12 months
+            raise ValueError('Total duration cannot exceed 10 years')
+        return total
+
+class CompanyType(BaseModel):
+    company_size: str = Field(pattern=r'^(individual|small_business|medium_business|large_corporation|startup|nonprofit|government|other)$')
+    industries: List[str] = Field(min_items=1, description="Company industries (unlimited)")
+    
+    @validator('company_size')
+    def validate_company_size(cls, v):
+        allowed_sizes = ['individual', 'small_business', 'medium_business', 'large_corporation', 'startup', 'nonprofit', 'government', 'other']
+        if v not in allowed_sizes:
+            raise ValueError(f'Company size must be one of: {", ".join(allowed_sizes)}')
+        return v
+
 # --- Schemas for the new Deal Wizard ---
 
 class OtherCompensationItem(BaseModel):
@@ -121,12 +150,21 @@ class DealUpdate(BaseModel):
     deal_terms_file_type: Optional[str] = None
     deal_terms_file_size: Optional[int] = None
     
+    # Step 1: Deal Duration (NEW)
+    deal_duration_years: Optional[int] = Field(None, ge=0, le=10, description="Contract duration in years")
+    deal_duration_months: Optional[int] = Field(None, ge=0, le=11, description="Contract duration in months")
+    deal_duration_total_months: Optional[int] = Field(None, ge=1, le=120, description="Total duration in months for calculations")
+    
     # Step 2: Payor Info
     payor_name: Optional[str] = None
     payor_type: Optional[str] = Field(None, pattern=r'^(business|individual)$')
     contact_name: Optional[str] = None
     contact_email: Optional[EmailStr] = None
     contact_phone: Optional[str] = None
+    
+    # Step 2: Company Type (NEW)
+    payor_company_size: Optional[str] = Field(None, pattern=r'^(individual|small_business|medium_business|large_corporation|startup|nonprofit|government|other)$', description="Revenue-based company size classification")
+    payor_industries: Optional[List[str]] = Field(None, description="Array of industries the payor company operates in")
     
     # Step 3-4: Activities
     activities: Optional[List[ActivityDetails]] = None

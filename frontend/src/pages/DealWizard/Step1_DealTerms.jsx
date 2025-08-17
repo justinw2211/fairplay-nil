@@ -13,12 +13,19 @@ import {
   Flex,
   FormControl,
   FormLabel,
+  FormErrorMessage,
   Heading,
   Icon,
   Input,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  NumberIncrementStepper,
+  NumberDecrementStepper,
   Progress,
   Text,
   VStack,
+  HStack,
   useToast,
   Alert,
   AlertIcon,
@@ -44,17 +51,26 @@ const Step1_DealTerms = () => {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [dealNickname, setDealNickname] = useState('');
   const [uploading, setUploading] = useState(false);
+  
+  // Duration state variables
+  const [durationYears, setDurationYears] = useState(0);
+  const [durationMonths, setDurationMonths] = useState(0);
+  const [durationError, setDurationError] = useState('');
 
   useEffect(() => {
     if (currentDeal) {
       setDealNickname(currentDeal.deal_nickname || '');
+      setDurationYears(currentDeal.deal_duration_years || 0);
+      setDurationMonths(currentDeal.deal_duration_months || 0);
 
-      logger.info('Deal nickname loaded from deal', {
+      logger.info('Deal data loaded from deal', {
         dealId,
         dealType,
         step: 'Step1_DealTerms',
         operation: 'useEffect',
-        hasDealNickname: !!currentDeal.deal_nickname
+        hasDealNickname: !!currentDeal.deal_nickname,
+        durationYears: currentDeal.deal_duration_years || 0,
+        durationMonths: currentDeal.deal_duration_months || 0
       });
 
       // Restore uploaded file if it exists
@@ -257,6 +273,36 @@ const Step1_DealTerms = () => {
     }
   };
 
+  // Duration validation and handlers
+  const validateDuration = () => {
+    const totalMonths = durationYears * 12 + durationMonths;
+    
+    if (totalMonths === 0) {
+      setDurationError('Duration must be at least 1 month');
+      return false;
+    }
+    
+    if (totalMonths > 120) {
+      setDurationError('Total duration cannot exceed 10 years');
+      return false;
+    }
+    
+    setDurationError('');
+    return true;
+  };
+
+  const handleYearsChange = (value) => {
+    const years = parseInt(value) || 0;
+    setDurationYears(years);
+    setDurationError('');
+  };
+
+  const handleMonthsChange = (value) => {
+    const months = parseInt(value) || 0;
+    setDurationMonths(months);
+    setDurationError('');
+  };
+
   const onContinue = async () => {
     if (!dealNickname.trim()) {
       logger.warn('Deal nickname validation failed', {
@@ -277,8 +323,25 @@ const Step1_DealTerms = () => {
       return;
     }
 
+    // Validate duration when proceeding to next step
+    if (!validateDuration()) {
+      toast({
+        title: 'Duration required',
+        description: durationError,
+        status: 'warning',
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+
     try {
-      const updateData = { deal_nickname: dealNickname };
+      const updateData = { 
+        deal_nickname: dealNickname,
+        deal_duration_years: durationYears,
+        deal_duration_months: durationMonths,
+        deal_duration_total_months: durationYears * 12 + durationMonths
+      };
 
       // Add contract file data if uploaded
       if (uploadedFile) {
@@ -293,7 +356,10 @@ const Step1_DealTerms = () => {
         step: 'Step1_DealTerms',
         operation: 'onContinue',
         dealNickname: dealNickname,
-        hasContractFile: !!uploadedFile
+        hasContractFile: !!uploadedFile,
+        durationYears: durationYears,
+        durationMonths: durationMonths,
+        totalMonths: durationYears * 12 + durationMonths
       });
 
       // Conditional navigation based on deal type
@@ -501,6 +567,91 @@ const Step1_DealTerms = () => {
                 />
               </FormControl>
 
+              {/* Deal Duration Input */}
+              <FormControl isInvalid={!!durationError}>
+                <FormLabel color="brand.textPrimary" fontWeight="semibold">
+                  Contract Duration *
+                </FormLabel>
+                <Text color="brand.textSecondary" fontSize="sm" mb={3}>
+                  How long is this contract/deal for?
+                </Text>
+                <HStack spacing={4} align="flex-start">
+                  <Box flex={1}>
+                    <FormLabel color="brand.textSecondary" fontSize="sm" mb={2}>
+                      Years
+                    </FormLabel>
+                    <NumberInput
+                      value={durationYears}
+                      onChange={handleYearsChange}
+                      min={0}
+                      max={10}
+                      size="lg"
+                    >
+                      <NumberInputField
+                        borderColor="brand.accentSecondary"
+                        _focus={{
+                          borderColor: "brand.accentPrimary",
+                          boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
+                        }}
+                      />
+                      <NumberInputStepper>
+                        <NumberIncrementStepper 
+                          borderColor="brand.accentSecondary"
+                          color="brand.textSecondary"
+                          _hover={{ bg: "brand.backgroundLight" }}
+                        />
+                        <NumberDecrementStepper 
+                          borderColor="brand.accentSecondary"
+                          color="brand.textSecondary"
+                          _hover={{ bg: "brand.backgroundLight" }}
+                        />
+                      </NumberInputStepper>
+                    </NumberInput>
+                  </Box>
+                  <Box flex={1}>
+                    <FormLabel color="brand.textSecondary" fontSize="sm" mb={2}>
+                      Months
+                    </FormLabel>
+                    <NumberInput
+                      value={durationMonths}
+                      onChange={handleMonthsChange}
+                      min={0}
+                      max={11}
+                      size="lg"
+                    >
+                      <NumberInputField
+                        borderColor="brand.accentSecondary"
+                        _focus={{
+                          borderColor: "brand.accentPrimary",
+                          boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
+                        }}
+                      />
+                      <NumberInputStepper>
+                        <NumberIncrementStepper 
+                          borderColor="brand.accentSecondary"
+                          color="brand.textSecondary"
+                          _hover={{ bg: "brand.backgroundLight" }}
+                        />
+                        <NumberDecrementStepper 
+                          borderColor="brand.accentSecondary"
+                          color="brand.textSecondary"
+                          _hover={{ bg: "brand.backgroundLight" }}
+                        />
+                      </NumberInputStepper>
+                    </NumberInput>
+                  </Box>
+                </HStack>
+                {(durationYears > 0 || durationMonths > 0) && (
+                  <Text color="brand.textSecondary" fontSize="sm" mt={2}>
+                    Total: {durationYears * 12 + durationMonths} months
+                    {durationYears > 0 && durationMonths > 0 && 
+                      ` (${durationYears} ${durationYears === 1 ? 'year' : 'years'}, ${durationMonths} ${durationMonths === 1 ? 'month' : 'months'})`
+                    }
+                  </Text>
+                )}
+                <FormErrorMessage>{durationError}</FormErrorMessage>
+              </FormControl>
+
               {/* Navigation Buttons */}
               <Flex justify="space-between" pt={8} w="full">
                 <Button
@@ -542,7 +693,7 @@ const Step1_DealTerms = () => {
                   </Button>
                   <Button
                     rightIcon={<Icon as={ChevronRight} />}
-                    bg={dealNickname.trim() ? "brand.accentPrimary" : "brand.accentSecondary"}
+                    bg={dealNickname.trim() && (durationYears > 0 || durationMonths > 0) ? "brand.accentPrimary" : "brand.accentSecondary"}
                     color="white"
                     px={8}
                     py={3}
@@ -551,7 +702,7 @@ const Step1_DealTerms = () => {
                     fontWeight="semibold"
                     transition="all 0.2s"
                     _hover={
-                      dealNickname.trim()
+                      dealNickname.trim() && (durationYears > 0 || durationMonths > 0)
                         ? {
                             transform: "scale(1.05)",
                             bg: "brand.accentPrimary",
@@ -563,7 +714,7 @@ const Step1_DealTerms = () => {
                       opacity: 0.6,
                       cursor: "not-allowed",
                     }}
-                    isDisabled={!dealNickname.trim()}
+                    isDisabled={!dealNickname.trim() || (durationYears === 0 && durationMonths === 0)}
                     onClick={onContinue}
                   >
                     Next

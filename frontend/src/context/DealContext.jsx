@@ -145,6 +145,72 @@ const getContactEmail = (deal) => {
   }
 };
 
+// Duration and Company Type utility functions
+const getDealDurationYears = (deal) => {
+  try {
+    return deal?.deal_duration_years || 0;
+  } catch (error) {
+    dealLogger.error('Error accessing deal_duration_years', { error: error.message, dealId: deal?.id });
+    Sentry.captureException(error, {
+      tags: { component: 'DealContext', action: 'getDealDurationYears' },
+      extra: { dealId: deal?.id }
+    });
+    return 0;
+  }
+};
+
+const getDealDurationMonths = (deal) => {
+  try {
+    return deal?.deal_duration_months || 0;
+  } catch (error) {
+    dealLogger.error('Error accessing deal_duration_months', { error: error.message, dealId: deal?.id });
+    Sentry.captureException(error, {
+      tags: { component: 'DealContext', action: 'getDealDurationMonths' },
+      extra: { dealId: deal?.id }
+    });
+    return 0;
+  }
+};
+
+const getDealDurationTotalMonths = (deal) => {
+  try {
+    return deal?.deal_duration_total_months || 0;
+  } catch (error) {
+    dealLogger.error('Error accessing deal_duration_total_months', { error: error.message, dealId: deal?.id });
+    Sentry.captureException(error, {
+      tags: { component: 'DealContext', action: 'getDealDurationTotalMonths' },
+      extra: { dealId: deal?.id }
+    });
+    return 0;
+  }
+};
+
+const getPayorCompanySize = (deal) => {
+  try {
+    return deal?.payor_company_size || 'Not specified';
+  } catch (error) {
+    dealLogger.error('Error accessing payor_company_size', { error: error.message, dealId: deal?.id });
+    Sentry.captureException(error, {
+      tags: { component: 'DealContext', action: 'getPayorCompanySize' },
+      extra: { dealId: deal?.id }
+    });
+    return 'Not specified';
+  }
+};
+
+const getPayorIndustries = (deal) => {
+  try {
+    return deal?.payor_industries || [];
+  } catch (error) {
+    dealLogger.error('Error accessing payor_industries', { error: error.message, dealId: deal?.id });
+    Sentry.captureException(error, {
+      tags: { component: 'DealContext', action: 'getPayorIndustries' },
+      extra: { dealId: deal?.id }
+    });
+    return [];
+  }
+};
+
 const getObligations = (deal) => {
   try {
     return deal?.obligations || {};
@@ -536,7 +602,13 @@ export const DealProvider = ({ children }) => {
     getContactName,
     getContactEmail,
     getObligations,
-    getTotalCompensation
+    getTotalCompensation,
+    // Duration and Company Type utility functions
+    getDealDurationYears,
+    getDealDurationMonths,
+    getDealDurationTotalMonths,
+    getPayorCompanySize,
+    getPayorIndustries
   };
 
   return (

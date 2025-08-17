@@ -42,6 +42,8 @@ import {
   Edit,
 } from 'lucide-react';
 import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
+import { getCompanySizeLabel } from '../../data/companySizes';
+import { formatIndustries } from '../../data/industries';
 
 // Import constants from Step6_Compensation.jsx
 const compensationTypes = [
@@ -65,6 +67,22 @@ const formatCurrency = (amount) => {
     console.error('Error formatting currency:', error);
     return '$0.00';
   }
+};
+
+const formatDuration = (years, months) => {
+  if ((!years || years === 0) && (!months || months === 0)) {
+    return 'Not specified';
+  }
+  
+  const parts = [];
+  if (years && years > 0) {
+    parts.push(`${years} ${years === 1 ? 'year' : 'years'}`);
+  }
+  if (months && months > 0) {
+    parts.push(`${months} ${months === 1 ? 'month' : 'months'}`);
+  }
+  
+  return parts.join(', ');
 };
 
 const StatusBadge = ({ status }) => {
@@ -268,9 +286,9 @@ const Step8_Review = () => {
                   </Text>
                 </Box>
                 <Box>
-                  <Text fontWeight="medium" color="brand.textSecondary">Deal Period</Text>
+                  <Text fontWeight="medium" color="brand.textSecondary">Contract Duration</Text>
                   <Text color="brand.textPrimary">
-                    {getDealDuration()}
+                    {formatDuration(deal.deal_duration_years, deal.deal_duration_months)}
                   </Text>
                 </Box>
               </VStack>
@@ -283,6 +301,18 @@ const Step8_Review = () => {
                   <Text color="brand.textPrimary">{getPayorName(deal)}</Text>
                   <Text fontSize="sm" color="brand.textSecondary">{getPayorType(deal)}</Text>
                 </Box>
+                {deal.payor_company_size && (
+                  <Box>
+                    <Text fontWeight="medium" color="brand.textSecondary">Company Size</Text>
+                    <Text color="brand.textPrimary">{getCompanySizeLabel(deal.payor_company_size)}</Text>
+                  </Box>
+                )}
+                {deal.payor_industries && deal.payor_industries.length > 0 && (
+                  <Box>
+                    <Text fontWeight="medium" color="brand.textSecondary">Industries</Text>
+                    <Text color="brand.textPrimary">{formatIndustries(deal.payor_industries)}</Text>
+                  </Box>
+                )}
                 <Box>
                   <Text fontWeight="medium" color="brand.textSecondary">Institution</Text>
                   <Text color="brand.textPrimary">{getUniversity(deal)}</Text>

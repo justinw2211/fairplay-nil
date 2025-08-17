@@ -11,8 +11,8 @@ from fastapi.responses import JSONResponse
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# Updated DEAL_SELECT_FIELDS to include new columns and analytics fields
-DEAL_SELECT_FIELDS = "id,user_id,status,created_at,deal_nickname,deal_terms_url,deal_terms_file_name,deal_terms_file_type,deal_terms_file_size,payor_name,payor_type,contact_name,contact_email,contact_phone,activities,obligations,grant_exclusivity,uses_school_ip,licenses_nil,compensation_cash,compensation_cash_schedule,compensation_goods,compensation_other,is_group_deal,is_paid_to_llc,athlete_social_media,social_media_confirmed,social_media_confirmed_at,deal_type,clearinghouse_prediction,valuation_prediction,brand_partner,clearinghouse_result,actual_compensation,valuation_range,submission_type"
+# Updated DEAL_SELECT_FIELDS to include new columns, analytics fields, duration and company type fields
+DEAL_SELECT_FIELDS = "id,user_id,status,created_at,deal_nickname,deal_terms_url,deal_terms_file_name,deal_terms_file_type,deal_terms_file_size,deal_duration_years,deal_duration_months,deal_duration_total_months,payor_name,payor_type,contact_name,contact_email,contact_phone,payor_company_size,payor_industries,activities,obligations,grant_exclusivity,uses_school_ip,licenses_nil,compensation_cash,compensation_cash_schedule,compensation_goods,compensation_other,is_group_deal,is_paid_to_llc,athlete_social_media,social_media_confirmed,social_media_confirmed_at,deal_type,clearinghouse_prediction,valuation_prediction,brand_partner,clearinghouse_result,actual_compensation,valuation_range,submission_type"
 
 def validate_file_metadata(file_type: str, file_size: int) -> bool:
     """Validate file metadata on the backend."""
@@ -107,6 +107,17 @@ async def update_deal(
         # Auto-set social_media_confirmed_at when social_media_confirmed is True
         if update_data.get('social_media_confirmed') is True:
             update_data['social_media_confirmed_at'] = 'now()'
+        
+        # Auto-calculate total_months when duration fields are provided
+        years = update_data.get('deal_duration_years')
+        months = update_data.get('deal_duration_months')
+        if years is not None and months is not None:
+            total_months = years * 12 + months
+            if total_months == 0:
+                raise HTTPException(status_code=400, detail="Duration must be at least 1 month")
+            if total_months > 120:
+                raise HTTPException(status_code=400, detail="Total duration cannot exceed 10 years")
+            update_data['deal_duration_total_months'] = total_months
 
         # Instrumentation: log sanitized keys
         try:
