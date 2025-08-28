@@ -50,17 +50,18 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="FairPlay NIL API", lifespan=lifespan)
 
-# --- DEFINITIVE CORS FIX v8 ---
+# --- DEFINITIVE CORS FIX v9 - Updated for fairplaynil.com ---
 # This regular expression matches:
 #
 # 1. http://localhost (with any port for local development)
-# 2. Your production URL (e.g., https://fairplay-nil.vercel.app)
-# 3. ANY preview URL patterns:
+# 2. Your production URL (https://www.fairplaynil.com)
+# 3. Your domain without www (https://fairplaynil.com)
+# 4. ANY preview URL patterns:
 #    - https://fairplay-*-justin-wachtels-projects.vercel.app
 #    - https://fairplay-nil-git-*-justin-wachtels-projects.vercel.app
 #    - https://fairplay-nil.vercel.app
 #
-ORIGIN_REGEX = r"https://fairplay-[^.]*\.vercel\.app|https://fairplay-nil-git-[^.]*-justin-wachtels-projects\.vercel\.app|https://fairplay-[^.]*-justin-wachtels-projects\.vercel\.app|http://localhost(:\d+)?"
+ORIGIN_REGEX = r"https://(www\.)?fairplaynil\.com|https://fairplay-[^.]*\.vercel\.app|https://fairplay-nil-git-[^.]*-justin-wachtels-projects\.vercel\.app|https://fairplay-[^.]*-justin-wachtels-projects\.vercel\.app|http://localhost(:\d+)?"
 
 app.add_middleware(
     CORSMiddleware,
