@@ -20,9 +20,63 @@ DEAL_SELECT_FIELDS = (
     "licenses_nil,compensation_cash,compensation_cash_schedule,compensation_goods,compensation_other,"
     "is_group_deal,is_paid_to_llc,athlete_social_media,social_media_confirmed,social_media_confirmed_at,"
     "deal_type,clearinghouse_prediction,valuation_prediction,brand_partner,clearinghouse_result,"
-    "actual_compensation,valuation_range,submission_type,deal_duration_years,deal_duration_months,deal_duration_total_months,"
+    "actual_compensation,valuation_range,fmv,submission_type,deal_duration_years,deal_duration_months,deal_duration_total_months,"
     "payor_company_size,payor_industries"
 )
+
+
+def _safe_number(value) -> float:
+    try:
+        if value is None:
+            return 0.0
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def compute_fmv_value(deal_like: dict) -> float:
+    """Compute FMV based on deal type.
+
+    - valuation: use valuation_prediction.estimated_fmv when available
+    - simple/clearinghouse/other: sum of compensation_cash + goods + other estimated values
+    """
+    if not isinstance(deal_like, dict):
+        return 0.0
+
+    deal_type = (deal_like.get("deal_type") or "").strip().lower() or "simple"
+
+    # If valuation prediction exists and deal type is valuation, prefer that
+    if deal_type == "valuation":
+        prediction = deal_like.get("valuation_prediction") or {}
+        if isinstance(prediction, dict):
+            est = prediction.get("estimated_fmv")
+            val = _safe_number(est)
+            if val > 0:
+                return round(val, 2)
+
+    # Otherwise compute from compensation fields
+    total = 0.0
+
+    # Cash
+    total += _safe_number(deal_like.get("compensation_cash"))
+
+    # Goods (array of objects, value may be in 'value' or 'estimated_value')
+    goods = deal_like.get("compensation_goods") or []
+    if isinstance(goods, list):
+        for item in goods:
+            if not isinstance(item, dict):
+                continue
+            total += _safe_number(item.get("value", item.get("estimated_value")))
+
+    # Other (array of objects, use 'estimated_value' or fallback to 'value')
+    other = deal_like.get("compensation_other") or []
+    if isinstance(other, list):
+        for item in other:
+            if not isinstance(item, dict):
+                continue
+            total += _safe_number(item.get("estimated_value", item.get("value")))
+
+    return round(total, 2)
 
 def validate_file_metadata(file_type: str, file_size: int) -> bool:
     """Validate file metadata on the backend."""
@@ -136,6 +190,23 @@ async def update_deal(
         except Exception:
             pass
 
+        # If compensation or deal_type fields are being updated, compute FMV server-side
+        fmv_related_keys = {
+            'compensation_cash', 'compensation_goods', 'compensation_other',
+            'valuation_prediction', 'deal_type'
+        }
+        if any(key in update_data for key in fmv_related_keys):
+            try:
+                # Fetch current values to merge and compute accurately
+                existing_resp = db.client.from_("deals").select(
+                    "deal_type,compensation_cash,compensation_goods,compensation_other,valuation_prediction"
+                ).eq("id", deal_id).eq("user_id", user_id).execute()
+                existing = existing_resp.data[0] if existing_resp.data else {}
+                merged = {**existing, **update_data}
+                update_data['fmv'] = compute_fmv_value(merged)
+            except Exception as e:
+                logger.warning(f"[update_deal] FMV compute failed for deal {deal_id}: {e}")
+
         # Use optimized update with cache invalidation
         updated_deal = await db.update_deal_with_cache_invalidation(deal_id, user_id, update_data)
         try:
@@ -176,7 +247,14 @@ async def store_valuation_prediction(
 ):
     """Store valuation prediction results for a deal."""
     try:
-        update_data = {"valuation_prediction": prediction_data}
+        # Persist valuation prediction and set FMV from estimated value when available
+        estimated = 0.0
+        try:
+            if isinstance(prediction_data, dict):
+                estimated = float(prediction_data.get('estimated_fmv') or 0)
+        except Exception:
+            estimated = 0.0
+        update_data = {"valuation_prediction": prediction_data, "fmv": round(estimated, 2)}
         updated_deal = await db.update_deal_with_cache_invalidation(deal_id, user_id, update_data)
         return {"message": "Valuation prediction stored successfully", "deal_id": deal_id}
     except Exception as e:
@@ -194,6 +272,12 @@ async def get_deal(deal_id: int, user_id: str = Depends(get_user_id)):
             raise HTTPException(status_code=404, detail="Deal not found")
         
         deal = data.data[0]
+        # Compute FMV dynamically for response
+        try:
+            computed_fmv = compute_fmv_value(deal)
+            deal['fmv'] = computed_fmv
+        except Exception:
+            pass
         return DealResponse(**deal)
     except HTTPException:
         raise
@@ -254,7 +338,19 @@ async def get_deals(
             sort_by=sort_by,
             sort_order=sort_order
         )
-        
+
+        # Compute FMV for each deal in the response to ensure correctness
+        try:
+            deals = result.get('deals', []) or []
+            for deal in deals:
+                try:
+                    deal['fmv'] = compute_fmv_value(deal)
+                except Exception:
+                    # Keep existing fmv if computation fails
+                    pass
+        except Exception as e:
+            logger.warning(f"[get_deals] Failed to compute FMV for response list: {e}")
+
         return result
     except Exception as e:
         logger.error(f"Error fetching deals: {str(e)}")
