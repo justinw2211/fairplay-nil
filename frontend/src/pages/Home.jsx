@@ -82,6 +82,7 @@ const Home = () => {
                 borderColor="brand.accentPrimary"
                 color="brand.textPrimary"
                 _hover={{ opacity: 0.8 }}
+                onClick={() => navigate('/how-it-works')}
               >
                 How It Works
               </Button>
