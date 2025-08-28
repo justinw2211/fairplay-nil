@@ -345,6 +345,18 @@ export const DealProvider = ({ children }) => {
       throw new Error('User must be authenticated to update a deal');
     }
 
+    // Guard: skip if updates is empty to avoid 400s and noisy logs
+    if (!updates || (typeof updates === 'object' && Object.keys(updates).length === 0)) {
+      dealLogger.debug('updateDeal called with empty payload; skipping request', { dealId });
+      Sentry.addBreadcrumb({
+        category: 'api',
+        message: 'DealContext.updateDeal:empty_payload_skipped',
+        level: 'info',
+        data: { dealId }
+      });
+      return currentDeal;
+    }
+
     setLoading(true);
     setError(null);
 
