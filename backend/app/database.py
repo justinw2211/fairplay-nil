@@ -268,7 +268,7 @@ class DatabaseClient:
             
             # Get deals with profile data joined - fixed to use 'sports' (plural) and include more profile fields
             deals_query = self.client.table('deals').select(f"""
-                id,user_id,status,created_at,deal_nickname,deal_terms_url,deal_terms_file_name,
+                id,user_id,status,status_labels,created_at,deal_nickname,deal_terms_url,deal_terms_file_name,
                 deal_terms_file_type,deal_terms_file_size,payor_name,payor_type,contact_name,
                 contact_email,contact_phone,activities,obligations,grant_exclusivity,
                 uses_school_ip,licenses_nil,compensation_cash,compensation_goods,
