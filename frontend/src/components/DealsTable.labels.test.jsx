@@ -122,7 +122,7 @@ describe('DealsTable - Labels Functionality', () => {
       expect(fetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/deals/1'),
         expect.objectContaining({
-          method: 'PATCH',
+          method: 'PUT',
           headers: expect.objectContaining({
             'Content-Type': 'application/json'
           }),

@@ -188,7 +188,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
       setDeals(deals.map(deal => deal.id === dealId ? updatedDeal : deal));
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -243,7 +243,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
     try {
       const token = (await supabase.auth.getSession()).data.session?.access_token;
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -287,7 +287,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
     try {
       const token = (await supabase.auth.getSession()).data.session?.access_token;
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -444,7 +444,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
       // Update deals in parallel
       const updatePromises = dealIds.map(dealId =>
         fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
-          method: 'PATCH',
+          method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
