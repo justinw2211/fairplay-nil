@@ -252,7 +252,16 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
         // Rollback on error
         setDeals(deals.map(deal => deal.id === dealId ? originalDeal : deal));
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || 'Failed to update labels');
+        const detail = (() => {
+          const d = errorData?.detail;
+          if (!d) {return '';}
+          if (Array.isArray(d)) {
+            return d.map(item => item?.msg || item?.detail || JSON.stringify(item)).join('; ');
+          }
+          if (typeof d === 'object') {return JSON.stringify(d);}
+          return String(d);
+        })();
+        throw new Error(detail || 'Failed to update labels');
       }
 
       toast({
