@@ -573,7 +573,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
                   {getSortIcon('fmv')}
                 </Flex>
               </Th>
-              <Th cursor="pointer" onClick={() => requestSort('status')} w="28%">
+              <Th cursor="pointer" onClick={() => requestSort('status')} w="24%">
                 <Flex align="center" gap={2}>
                   <Flex align="center" gap={1}>
                     <Text fontSize="xs" fontWeight="semibold" color="gray.600">Status</Text>
@@ -598,7 +598,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
                   </Menu>
                 </Flex>
               </Th>
-              <Th w="22%">
+              <Th w="18%">
                 <Text fontSize="xs" fontWeight="semibold" color="gray.600">Analysis Results</Text>
               </Th>
               <Th cursor="pointer" onClick={() => requestSort('created_at')}>
