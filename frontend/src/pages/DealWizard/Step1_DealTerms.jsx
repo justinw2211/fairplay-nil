@@ -89,6 +89,37 @@ const Step1_DealTerms = () => {
     }
   }, [currentDeal]);
 
+  // Debounced autosave for duration fields to ensure persistence even if user navigates away
+  useEffect(() => {
+    // Avoid autosaving invalid/empty duration
+    const totalMonths = (Number(durationYears) || 0) * 12 + (Number(durationMonths) || 0);
+    if (!dealId) return;
+    if (totalMonths <= 0 || totalMonths > 120) {
+      return; // skip autosave until valid
+    }
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        await updateDeal(dealId, {
+          deal_duration_years: Number.isFinite(Number(durationYears)) ? Number(durationYears) : 0,
+          deal_duration_months: Number.isFinite(Number(durationMonths)) ? Number(durationMonths) : 0,
+        });
+        logger.info('Autosaved contract duration', {
+          dealId,
+          step: 'Step1_DealTerms',
+          operation: 'autosaveDuration',
+          durationYears,
+          durationMonths,
+          totalMonths
+        });
+      } catch (e) {
+        logger.error('Failed to autosave duration', { error: e?.message, dealId });
+      }
+    }, 600); // debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [durationYears, durationMonths, dealId, updateDeal]);
+
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();

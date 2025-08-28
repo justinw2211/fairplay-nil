@@ -84,6 +84,42 @@ const Step2_PayorInfo = () => {
     }
   }, [currentDeal]);
 
+  // Debounced autosave for company size and industries
+  useEffect(() => {
+    if (!dealId) return;
+    // Require company size and at least one industry before autosaving
+    if (!companySize || !Array.isArray(selectedIndustries) || selectedIndustries.length === 0) {
+      return;
+    }
+
+    // Build industries submission (respect Other + text)
+    let industriesToSubmit = [...selectedIndustries];
+    if (industriesToSubmit.includes('Other') && otherIndustryText.trim()) {
+      industriesToSubmit = industriesToSubmit.filter(i => i !== 'Other');
+      industriesToSubmit.push(`Other: ${otherIndustryText.trim()}`);
+    }
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        await updateDeal(dealId, {
+          payor_company_size: companySize,
+          payor_industries: industriesToSubmit,
+        });
+        logger.info('Autosaved company info', {
+          dealId,
+          step: 'Step2_PayorInfo',
+          operation: 'autosaveCompanyInfo',
+          companySize,
+          industriesCount: industriesToSubmit.length
+        });
+      } catch (e) {
+        logger.error('Failed to autosave company info', { error: e?.message, dealId });
+      }
+    }, 600);
+
+    return () => clearTimeout(timeoutId);
+  }, [dealId, companySize, selectedIndustries, otherIndustryText, updateDeal]);
+
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
