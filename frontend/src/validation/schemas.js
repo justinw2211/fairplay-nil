@@ -109,6 +109,46 @@ export const editProfileSchema = yup.object().shape({
 // DEAL WIZARD SCHEMAS
 // ===============================
 
+// Deal Duration Schema
+export const dealDurationSchema = yup.object().shape({
+  deal_duration_years: yup
+    .number()
+    .required('Duration years is required')
+    .min(0, 'Years cannot be negative')
+    .max(10, 'Duration cannot exceed 10 years')
+    .integer('Years must be a whole number'),
+  deal_duration_months: yup
+    .number()
+    .required('Duration months is required')
+    .min(0, 'Months cannot be negative')
+    .max(11, 'Months cannot exceed 11')
+    .integer('Months must be a whole number'),
+}).test('minimum-duration', 'Duration must be at least 1 month', function(value) {
+  const { deal_duration_years, deal_duration_months } = value;
+  const totalMonths = (deal_duration_years || 0) * 12 + (deal_duration_months || 0);
+  return totalMonths > 0;
+}).test('maximum-duration', 'Total duration cannot exceed 10 years', function(value) {
+  const { deal_duration_years, deal_duration_months } = value;
+  const totalMonths = (deal_duration_years || 0) * 12 + (deal_duration_months || 0);
+  return totalMonths <= 120;
+});
+
+// Company Type Schema
+export const companyTypeSchema = yup.object().shape({
+  payor_company_size: yup
+    .string()
+    .required('Please select a company size')
+    .oneOf(
+      ['individual', 'small_business', 'medium_business', 'large_corporation', 'startup', 'nonprofit', 'government', 'other'],
+      'Please select a valid company size'
+    ),
+  payor_industries: yup
+    .array()
+    .of(yup.string())
+    .min(1, 'Please select at least one industry')
+    .required('Industries are required'),
+});
+
 // Deal Step 1: Deal Terms
 export const dealTermsSchema = yup.object().shape({
   payor_name: yup
@@ -134,6 +174,23 @@ export const dealTermsSchema = yup.object().shape({
     .date()
     .required(FIELD_MESSAGES.required('End date'))
     .min(yup.ref('start_date'), 'End date must be after start date'),
+  // Add duration fields to deal terms validation
+  deal_duration_years: yup
+    .number()
+    .required('Contract duration is required')
+    .min(0, 'Years cannot be negative')
+    .max(10, 'Duration cannot exceed 10 years')
+    .integer('Years must be a whole number'),
+  deal_duration_months: yup
+    .number()
+    .required('Contract duration is required')
+    .min(0, 'Months cannot be negative')
+    .max(11, 'Months cannot exceed 11')
+    .integer('Months must be a whole number'),
+}).test('minimum-duration', 'Duration must be between 1 month and 10 years', function(value) {
+  const { deal_duration_years, deal_duration_months } = value;
+  const totalMonths = (deal_duration_years || 0) * 12 + (deal_duration_months || 0);
+  return totalMonths > 0 && totalMonths <= 120;
 });
 
 // Deal Step 2: Payor Info
@@ -151,6 +208,19 @@ export const payorInfoSchema = yup.object().shape({
   payor_phone: yup
     .string()
     .nullable(),
+  // Add company type fields to payor info validation
+  payor_company_size: yup
+    .string()
+    .required('Please select a company size')
+    .oneOf(
+      ['individual', 'small_business', 'medium_business', 'large_corporation', 'startup', 'nonprofit', 'government', 'other'],
+      'Please select a valid company size'
+    ),
+  payor_industries: yup
+    .array()
+    .of(yup.string())
+    .min(1, 'Please select at least one industry')
+    .required('Industries are required'),
 });
 
 // Deal Step 5: Compliance

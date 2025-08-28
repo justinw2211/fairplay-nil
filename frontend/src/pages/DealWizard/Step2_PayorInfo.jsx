@@ -1,5 +1,5 @@
 // frontend/src/pages/DealWizard/Step2_PayorInfo.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
@@ -20,12 +20,22 @@ import {
   Stack,
   Text,
   VStack,
+  HStack,
+  Checkbox,
+  CheckboxGroup,
+  SimpleGrid,
+  IconButton,
+  InputGroup,
+  InputLeftElement,
+  useToast,
   Icon,
 } from '@chakra-ui/react';
-import { ChevronRight, ChevronLeft, Clock } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Clock, Search } from 'lucide-react';
 import { formatPhoneNumber } from '../../utils/phoneUtils';
 import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
 import { createLogger } from '../../utils/logger';
+import { COMPANY_SIZE_OPTIONS } from '../../data/companySizes';
+import { INDUSTRY_OPTIONS, getFilteredIndustries } from '../../data/industries';
 
 const logger = createLogger('Step2_PayorInfo');
 
@@ -41,26 +51,128 @@ const Step2_PayorInfo = () => {
   const [payorEmail, setPayorEmail] = useState('');
   const [payorPhone, setPayorPhone] = useState('');
   const [emailError, setEmailError] = useState('');
+  
+  // Company type state variables
+  const [companySize, setCompanySize] = useState('');
+  const [selectedIndustries, setSelectedIndustries] = useState([]);
+  const [industrySearch, setIndustrySearch] = useState('');
+  const [otherIndustryText, setOtherIndustryText] = useState('');
+  const [companyTypeErrors, setCompanyTypeErrors] = useState({});
+  const toast = useToast();
+  const hasHydratedRef = useRef(false);
 
   useEffect(() => {
-    if (currentDeal) {
-      setPayorType(currentDeal.payor_type || '');
-      setPayorName(currentDeal.payor_name || '');
-      setPayorEmail(currentDeal.payor_email || '');
-      setPayorPhone(currentDeal.payor_phone || '');
+    if (!currentDeal || hasHydratedRef.current) return;
 
-      logger.info('Payor info loaded from deal', {
-        dealId,
-        dealType,
-        step: 'Step2_PayorInfo',
-        operation: 'useEffect',
-        hasPayorType: !!currentDeal.payor_type,
-        hasPayorName: !!currentDeal.payor_name,
-        hasPayorEmail: !!currentDeal.payor_email,
-        hasPayorPhone: !!currentDeal.payor_phone
-      });
+    // Hydrate once on mount to avoid clobbering user input during autosaves
+    setPayorType(currentDeal.payor_type || '');
+    setPayorName(currentDeal.payor_name || '');
+    setPayorEmail(currentDeal.payor_email || '');
+    setPayorPhone(currentDeal.payor_phone || '');
+    setCompanySize(currentDeal.payor_company_size || '');
+    // Map persisted industries back to UI selections, handling "Other: text"
+    const restored = Array.isArray(currentDeal.payor_industries)
+      ? [...currentDeal.payor_industries]
+      : [];
+    const otherEntry = restored.find((i) => typeof i === 'string' && i.toLowerCase().startsWith('other:'));
+    if (otherEntry) {
+      // Extract the free text after 'Other:'
+      const text = otherEntry.split(':').slice(1).join(':').trim();
+      setOtherIndustryText(text);
+      // Replace with the selectable 'Other' token for the checkbox group
+      const mapped = restored.filter((i) => i !== otherEntry);
+      if (!mapped.includes('Other')) mapped.push('Other');
+      setSelectedIndustries(mapped);
+    } else {
+      setSelectedIndustries(restored);
     }
-  }, [currentDeal]);
+
+    logger.info('Payor info loaded from deal', {
+      dealId,
+      dealType,
+      step: 'Step2_PayorInfo',
+      operation: 'hydrate_initial',
+      hasPayorType: !!currentDeal.payor_type,
+      hasPayorName: !!currentDeal.payor_name,
+      hasPayorEmail: !!currentDeal.payor_email,
+      hasPayorPhone: !!currentDeal.payor_phone,
+      hasCompanySize: !!currentDeal.payor_company_size,
+      industriesCount: currentDeal.payor_industries?.length || 0
+    });
+
+    hasHydratedRef.current = true;
+  }, [currentDeal, dealId, dealType]);
+
+  // Debounced autosave for company size and industries
+  useEffect(() => {
+    if (!dealId) return;
+    // Require company size and at least one industry before autosaving
+    if (!companySize || !Array.isArray(selectedIndustries) || selectedIndustries.length === 0) {
+      return;
+    }
+
+    // Build industries submission (respect Other + text)
+    let industriesToSubmit = [...selectedIndustries];
+    if (industriesToSubmit.includes('Other') && otherIndustryText.trim()) {
+      industriesToSubmit = industriesToSubmit.filter(i => i !== 'Other');
+      industriesToSubmit.push(`Other: ${otherIndustryText.trim()}`);
+    }
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        await updateDeal(dealId, {
+          payor_company_size: companySize,
+          payor_industries: industriesToSubmit,
+        });
+        logger.info('Autosaved company info', {
+          dealId,
+          step: 'Step2_PayorInfo',
+          operation: 'autosaveCompanyInfo',
+          companySize,
+          industriesCount: industriesToSubmit.length
+        });
+      } catch (e) {
+        logger.error('Failed to autosave company info', { error: e?.message, dealId });
+      }
+    }, 600);
+
+    return () => clearTimeout(timeoutId);
+  }, [dealId, companySize, selectedIndustries, otherIndustryText, updateDeal]);
+
+  // Debounced autosave for payor type
+  useEffect(() => {
+    if (!dealId) return;
+    if (!payorType) return;
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        await updateDeal(dealId, { payor_type: payorType });
+        logger.info('Autosaved payor type', { dealId, step: 'Step2_PayorInfo', operation: 'autosavePayorType', payorType });
+      } catch (e) {
+        logger.error('Failed to autosave payor type', { error: e?.message, dealId });
+      }
+    }, 600);
+
+    return () => clearTimeout(timeoutId);
+  }, [dealId, payorType, updateDeal]);
+
+  // Debounced autosave for payor name (only when non-empty)
+  useEffect(() => {
+    if (!dealId) return;
+    const name = (payorName || '').trim();
+    if (!name) return;
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        await updateDeal(dealId, { payor_name: name });
+        logger.info('Autosaved payor name', { dealId, step: 'Step2_PayorInfo', operation: 'autosavePayorName' });
+      } catch (e) {
+        logger.error('Failed to autosave payor name', { error: e?.message, dealId });
+      }
+    }, 600);
+
+    return () => clearTimeout(timeoutId);
+  }, [dealId, payorName, updateDeal]);
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -86,11 +198,58 @@ const Step2_PayorInfo = () => {
   };
 
   const isFormValid = payorType && payorName.trim() &&
-                     (!payorEmail.trim() || validateEmail(payorEmail));
+                     (!payorEmail.trim() || validateEmail(payorEmail)) &&
+                     companySize && selectedIndustries.length > 0 &&
+                     (!selectedIndustries.includes('Other') || otherIndustryText.trim());
 
   const handlePhoneChange = (e) => {
     const formatted = formatPhoneNumber(e.target.value);
     setPayorPhone(formatted);
+  };
+
+  // Company type validation and handlers
+  const validateCompanyType = () => {
+    const errors = {};
+    
+    if (!companySize) {
+      errors.companySize = 'Please select a company size';
+    }
+    
+    if (selectedIndustries.length === 0) {
+      errors.industries = 'Please select at least one industry';
+    }
+    
+    if (selectedIndustries.includes('Other') && !otherIndustryText.trim()) {
+      errors.otherIndustry = 'Please specify what "Other" means';
+    }
+    
+    setCompanyTypeErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleIndustryChange = (industries) => {
+    setSelectedIndustries(industries);
+    setCompanyTypeErrors({...companyTypeErrors, industries: ''});
+    
+    // Clear other industry text if "Other" is deselected
+    if (!industries.includes('Other')) {
+      setOtherIndustryText('');
+      setCompanyTypeErrors({...companyTypeErrors, otherIndustry: ''});
+    }
+  };
+
+  const handleCompanySizeChange = (size) => {
+    setCompanySize(size);
+    setCompanyTypeErrors({...companyTypeErrors, companySize: ''});
+  };
+
+  const handleOtherIndustryChange = (e) => {
+    setOtherIndustryText(e.target.value);
+    setCompanyTypeErrors({...companyTypeErrors, otherIndustry: ''});
+  };
+
+  const getFilteredIndustriesForDisplay = () => {
+    return getFilteredIndustries(industrySearch);
   };
 
   const handleBack = () => {
@@ -120,6 +279,21 @@ const Step2_PayorInfo = () => {
       return;
     }
 
+    // Validate company type when proceeding to next step
+    if (!validateCompanyType()) {
+      const errorMessages = Object.values(companyTypeErrors).filter(Boolean);
+      if (errorMessages.length > 0) {
+        toast({
+          title: 'Company information required',
+          description: errorMessages[0],
+          status: 'warning',
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+      return;
+    }
+
     if (!isFormValid) {
       logger.error('Form validation failed - missing required fields', {
         dealId,
@@ -128,17 +302,28 @@ const Step2_PayorInfo = () => {
         operation: 'handleNext',
         hasPayorType: !!payorType,
         hasPayorName: !!payorName.trim(),
-        hasValidEmail: !payorEmail.trim() || validateEmail(payorEmail)
+        hasValidEmail: !payorEmail.trim() || validateEmail(payorEmail),
+        hasCompanySize: !!companySize,
+        industriesCount: selectedIndustries.length
       });
       return;
     }
 
     try {
+      // Prepare industries array, replacing "Other" with custom text if provided
+      let industriesToSubmit = [...selectedIndustries];
+      if (selectedIndustries.includes('Other') && otherIndustryText.trim()) {
+        industriesToSubmit = industriesToSubmit.filter(industry => industry !== 'Other');
+        industriesToSubmit.push(`Other: ${otherIndustryText.trim()}`);
+      }
+
       await updateDeal(dealId, {
         payor_type: payorType,
         payor_name: payorName,
         payor_email: payorEmail,
         payor_phone: payorPhone,
+        payor_company_size: companySize,
+        payor_industries: industriesToSubmit,
       });
 
       logger.info('Payor info updated successfully', {
@@ -149,7 +334,10 @@ const Step2_PayorInfo = () => {
         payorType: payorType,
         hasPayorName: !!payorName,
         hasPayorEmail: !!payorEmail,
-        hasPayorPhone: !!payorPhone
+        hasPayorPhone: !!payorPhone,
+        companySize: companySize,
+        industriesCount: industriesToSubmit.length,
+        industries: industriesToSubmit
       });
 
       // ALL deal types now continue to activities selection (no more skipping)
@@ -274,6 +462,150 @@ const Step2_PayorInfo = () => {
                     boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
                   }}
                 />
+              </FormControl>
+
+              {/* Company Size Selection */}
+              <FormControl isInvalid={companyTypeErrors.companySize}>
+                <FormLabel color="brand.textPrimary" fontWeight="semibold">
+                  Company Size *
+                </FormLabel>
+                <Text color="brand.textSecondary" fontSize="sm" mb={4}>
+                  Help us understand the size of the paying entity
+                </Text>
+                <RadioGroup value={companySize} onChange={handleCompanySizeChange}>
+                  <VStack spacing={3} align="stretch">
+                    {COMPANY_SIZE_OPTIONS.map((option) => (
+                      <Box
+                        key={option.value}
+                        p={4}
+                        border="1px solid"
+                        borderColor={companySize === option.value ? "brand.accentPrimary" : "brand.accentSecondary"}
+                        borderRadius="md"
+                        bg={companySize === option.value ? "brand.backgroundLight" : "transparent"}
+                        cursor="pointer"
+                        _hover={{ borderColor: "brand.accentPrimary", bg: "brand.backgroundLight" }}
+                        onClick={() => handleCompanySizeChange(option.value)}
+                      >
+                        <Radio value={option.value} colorScheme="blue">
+                          <VStack align="start" spacing={1}>
+                            <Text fontWeight="semibold" color="brand.textPrimary">
+                              {option.label}
+                            </Text>
+                            <Text fontSize="sm" color="brand.textSecondary">
+                              {option.description}
+                            </Text>
+                            <Text fontSize="xs" color="brand.textSecondary" fontStyle="italic">
+                              Examples: {option.example}
+                            </Text>
+                          </VStack>
+                        </Radio>
+                      </Box>
+                    ))}
+                  </VStack>
+                </RadioGroup>
+                <FormErrorMessage>{companyTypeErrors.companySize}</FormErrorMessage>
+              </FormControl>
+
+              {/* Industry Selection */}
+              <FormControl isInvalid={companyTypeErrors.industries}>
+                <FormLabel color="brand.textPrimary" fontWeight="semibold">
+                  Industries *
+                </FormLabel>
+                <Text color="brand.textSecondary" fontSize="sm" mb={4}>
+                  Select all industries that apply to this company (you can select multiple)
+                </Text>
+                
+                {/* Industry Search */}
+                <InputGroup mb={4}>
+                  <InputLeftElement pointerEvents="none">
+                    <Icon as={Search} color="brand.textSecondary" />
+                  </InputLeftElement>
+                  <Input
+                    placeholder="Search industries..."
+                    value={industrySearch}
+                    onChange={(e) => setIndustrySearch(e.target.value)}
+                    borderColor="brand.accentSecondary"
+                    _focus={{
+                      borderColor: "brand.accentPrimary",
+                      boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
+                    }}
+                  />
+                </InputGroup>
+
+                {/* Industry Checkboxes */}
+                <Box
+                  maxH="300px"
+                  overflowY="auto"
+                  border="1px solid"
+                  borderColor="brand.accentSecondary"
+                  borderRadius="md"
+                  p={4}
+                >
+                  <CheckboxGroup value={selectedIndustries} onChange={handleIndustryChange}>
+                    <SimpleGrid columns={2} spacing={2}>
+                      {getFilteredIndustriesForDisplay().map((industry) => (
+                        <Checkbox
+                          key={industry}
+                          value={industry}
+                          colorScheme="blue"
+                          size="sm"
+                        >
+                          <Text fontSize="sm" color="brand.textPrimary">
+                            {industry}
+                          </Text>
+                        </Checkbox>
+                      ))}
+                    </SimpleGrid>
+                  </CheckboxGroup>
+                </Box>
+
+                {/* Selected Industries Display */}
+                {selectedIndustries.length > 0 && (
+                  <Box mt={3} p={3} bg="brand.backgroundLight" borderRadius="md">
+                    <Text fontSize="sm" fontWeight="semibold" color="brand.textPrimary" mb={2}>
+                      Selected Industries ({selectedIndustries.length}):
+                    </Text>
+                    <HStack wrap="wrap" spacing={2}>
+                      {selectedIndustries.map((industry) => (
+                        <Box
+                          key={industry}
+                          px={2}
+                          py={1}
+                          bg="brand.accentPrimary"
+                          color="white"
+                          borderRadius="sm"
+                          fontSize="xs"
+                        >
+                          {industry}
+                        </Box>
+                      ))}
+                    </HStack>
+                  </Box>
+                )}
+
+                {/* Other Industry Text Input */}
+                {selectedIndustries.includes('Other') && (
+                  <Box mt={3}>
+                    <FormControl isInvalid={companyTypeErrors.otherIndustry}>
+                      <FormLabel fontSize="sm" color="brand.textPrimary">
+                        Please specify what "Other" means:
+                      </FormLabel>
+                      <Input
+                        value={otherIndustryText}
+                        onChange={handleOtherIndustryChange}
+                        placeholder="e.g., Gaming, Cryptocurrency, etc."
+                        borderColor="brand.accentSecondary"
+                        _focus={{
+                          borderColor: "brand.accentPrimary",
+                          boxShadow: "0 0 0 1px var(--chakra-colors-brand-accentPrimary)",
+                        }}
+                      />
+                      <FormErrorMessage>{companyTypeErrors.otherIndustry}</FormErrorMessage>
+                    </FormControl>
+                  </Box>
+                )}
+
+                <FormErrorMessage>{companyTypeErrors.industries}</FormErrorMessage>
               </FormControl>
 
               {/* Email Input */}
