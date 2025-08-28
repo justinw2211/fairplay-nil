@@ -41,7 +41,8 @@ import {
   EditIcon,
   ViewIcon,
   CheckIcon,
-  CloseIcon
+  CloseIcon,
+  SearchIcon
 } from '@chakra-ui/icons';
 import StatusMenu from './StatusMenu';
 import { ResultBadges } from './ResultBadge';
@@ -557,36 +558,26 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
               <Th cursor="pointer" onClick={() => requestSort('fmv')}>
                 FMV {getSortIcon('fmv')}
               </Th>
-              <Th minW="200px">
-                <Flex direction="column" gap={2} align="flex-start">
-                  <Text
-                    cursor="pointer"
-                    onClick={() => requestSort('status')}
-                    fontSize="sm"
-                    fontWeight="semibold"
-                  >
-                    Status {getSortIcon('status')}
-                  </Text>
-                  <Select
-                    placeholder="Filter by label"
-                    size="sm"
-                    w="160px"
-                    value={labelFilter}
-                    onChange={(e) => setLabelFilter(e.target.value)}
-                    bg="white"
-                    borderColor="gray.300"
-                    _hover={{ borderColor: "gray.400" }}
-                    _focus={{
-                      borderColor: "blue.500",
-                      boxShadow: "0 0 0 1px #3182ce"
-                    }}
-                  >
-                    {getAllLabels.map(({ label, count }) => (
-                      <option key={label} value={label}>
-                        {label} ({count})
-                      </option>
-                    ))}
-                  </Select>
+              <Th cursor="pointer" onClick={() => requestSort('status')}>
+                <Flex align="center" gap={2}>
+                  <Text>Status {getSortIcon('status')}</Text>
+                  <Menu>
+                    <MenuButton
+                      as={IconButton}
+                      aria-label="Filter status"
+                      icon={<SearchIcon />}
+                      size="xs"
+                      variant="ghost"
+                    />
+                    <MenuList>
+                      <MenuItem onClick={() => setLabelFilter('')}>All</MenuItem>
+                      {getAllLabels.map(({ label, count }) => (
+                        <MenuItem key={label} onClick={() => setLabelFilter(label)}>
+                          {label} ({count})
+                        </MenuItem>
+                      ))}
+                    </MenuList>
+                  </Menu>
                 </Flex>
               </Th>
               <Th>Analysis Results</Th>
