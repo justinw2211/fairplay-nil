@@ -1,5 +1,5 @@
 // frontend/src/pages/DealWizard/Step2_PayorInfo.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeal } from '../../context/DealContext';
 import {
@@ -59,45 +59,49 @@ const Step2_PayorInfo = () => {
   const [otherIndustryText, setOtherIndustryText] = useState('');
   const [companyTypeErrors, setCompanyTypeErrors] = useState({});
   const toast = useToast();
+  const hasHydratedRef = useRef(false);
 
   useEffect(() => {
-    if (currentDeal) {
-      setPayorType(currentDeal.payor_type || '');
-      setPayorName(currentDeal.payor_name || '');
-      setPayorEmail(currentDeal.payor_email || '');
-      setPayorPhone(currentDeal.payor_phone || '');
-      setCompanySize(currentDeal.payor_company_size || '');
-      // Map persisted industries back to UI selections, handling "Other: text"
-      const restored = Array.isArray(currentDeal.payor_industries)
-        ? [...currentDeal.payor_industries]
-        : [];
-      const otherEntry = restored.find((i) => typeof i === 'string' && i.toLowerCase().startsWith('other:'));
-      if (otherEntry) {
-        // Extract the free text after 'Other:'
-        const text = otherEntry.split(':').slice(1).join(':').trim();
-        setOtherIndustryText(text);
-        // Replace with the selectable 'Other' token for the checkbox group
-        const mapped = restored.filter((i) => i !== otherEntry);
-        if (!mapped.includes('Other')) mapped.push('Other');
-        setSelectedIndustries(mapped);
-      } else {
-        setSelectedIndustries(restored);
-      }
+    if (!currentDeal || hasHydratedRef.current) return;
 
-      logger.info('Payor info loaded from deal', {
-        dealId,
-        dealType,
-        step: 'Step2_PayorInfo',
-        operation: 'useEffect',
-        hasPayorType: !!currentDeal.payor_type,
-        hasPayorName: !!currentDeal.payor_name,
-        hasPayorEmail: !!currentDeal.payor_email,
-        hasPayorPhone: !!currentDeal.payor_phone,
-        hasCompanySize: !!currentDeal.payor_company_size,
-        industriesCount: currentDeal.payor_industries?.length || 0
-      });
+    // Hydrate once on mount to avoid clobbering user input during autosaves
+    setPayorType(currentDeal.payor_type || '');
+    setPayorName(currentDeal.payor_name || '');
+    setPayorEmail(currentDeal.payor_email || '');
+    setPayorPhone(currentDeal.payor_phone || '');
+    setCompanySize(currentDeal.payor_company_size || '');
+    // Map persisted industries back to UI selections, handling "Other: text"
+    const restored = Array.isArray(currentDeal.payor_industries)
+      ? [...currentDeal.payor_industries]
+      : [];
+    const otherEntry = restored.find((i) => typeof i === 'string' && i.toLowerCase().startsWith('other:'));
+    if (otherEntry) {
+      // Extract the free text after 'Other:'
+      const text = otherEntry.split(':').slice(1).join(':').trim();
+      setOtherIndustryText(text);
+      // Replace with the selectable 'Other' token for the checkbox group
+      const mapped = restored.filter((i) => i !== otherEntry);
+      if (!mapped.includes('Other')) mapped.push('Other');
+      setSelectedIndustries(mapped);
+    } else {
+      setSelectedIndustries(restored);
     }
-  }, [currentDeal]);
+
+    logger.info('Payor info loaded from deal', {
+      dealId,
+      dealType,
+      step: 'Step2_PayorInfo',
+      operation: 'hydrate_initial',
+      hasPayorType: !!currentDeal.payor_type,
+      hasPayorName: !!currentDeal.payor_name,
+      hasPayorEmail: !!currentDeal.payor_email,
+      hasPayorPhone: !!currentDeal.payor_phone,
+      hasCompanySize: !!currentDeal.payor_company_size,
+      industriesCount: currentDeal.payor_industries?.length || 0
+    });
+
+    hasHydratedRef.current = true;
+  }, [currentDeal, dealId, dealType]);
 
   // Debounced autosave for company size and industries
   useEffect(() => {
@@ -134,6 +138,41 @@ const Step2_PayorInfo = () => {
 
     return () => clearTimeout(timeoutId);
   }, [dealId, companySize, selectedIndustries, otherIndustryText, updateDeal]);
+
+  // Debounced autosave for payor type
+  useEffect(() => {
+    if (!dealId) return;
+    if (!payorType) return;
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        await updateDeal(dealId, { payor_type: payorType });
+        logger.info('Autosaved payor type', { dealId, step: 'Step2_PayorInfo', operation: 'autosavePayorType', payorType });
+      } catch (e) {
+        logger.error('Failed to autosave payor type', { error: e?.message, dealId });
+      }
+    }, 600);
+
+    return () => clearTimeout(timeoutId);
+  }, [dealId, payorType, updateDeal]);
+
+  // Debounced autosave for payor name (only when non-empty)
+  useEffect(() => {
+    if (!dealId) return;
+    const name = (payorName || '').trim();
+    if (!name) return;
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        await updateDeal(dealId, { payor_name: name });
+        logger.info('Autosaved payor name', { dealId, step: 'Step2_PayorInfo', operation: 'autosavePayorName' });
+      } catch (e) {
+        logger.error('Failed to autosave payor name', { error: e?.message, dealId });
+      }
+    }, 600);
+
+    return () => clearTimeout(timeoutId);
+  }, [dealId, payorName, updateDeal]);
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
