@@ -210,7 +210,7 @@ class DealUpdate(BaseModel):
     def validate_status_labels(cls, v):
         if v is not None:
             allowed_labels = [
-                'In Negotiation', 'Accepted', 'Active', 'Completed', 'Cleared by NIL Go'
+                'In Negotiation', 'Accepted', 'Active', 'Completed', 'NIL Clearinghouse Approved'
             ]
             invalid_labels = [label for label in v if label not in allowed_labels]
             if invalid_labels:

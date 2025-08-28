@@ -66,28 +66,23 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
   // Compute system labels for a deal - moved up to avoid hoisting issues
   const getSystemLabels = useCallback((deal) => {
     const systemLabels = [];
-    
+
     // Add "FMV Calculated" if valuation prediction exists
     if (deal.valuation_prediction) {
       systemLabels.push('FMV Calculated');
     }
-    
-    // Add "FMV Valuation Complete" if deal has completed FMV analysis for its terms
-    if (deal.fmv && deal.fmv > 0) {
-      systemLabels.push('FMV Valuation Complete');
+
+    // Add predictor-based clearinghouse approval when predicted approved
+    if (deal.clearinghouse_prediction?.prediction === 'approved') {
+      systemLabels.push('Clearinghouse Prediction: Approved');
     }
-    
-    // Add "Cleared by NIL Go" if clearinghouse result is approved
-    if (deal.clearinghouse_result === 'approved') {
-      systemLabels.push('Cleared by NIL Go');
-    }
-    
+
     return systemLabels;
   }, []);
 
   const sortedDeals = useMemo(() => {
     let filteredDeals = [...deals];
-    
+
     // Apply label filter
     if (labelFilter) {
       filteredDeals = filteredDeals.filter(deal => {
@@ -97,7 +92,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
         return allLabels.includes(labelFilter);
       });
     }
-    
+
     // Apply sorting
     if (sortConfig.key !== null) {
       filteredDeals.sort((a, b) => {
@@ -120,12 +115,12 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
       const userLabels = deal.status_labels || [];
       const systemLabels = getSystemLabels(deal);
       const allLabels = [...userLabels, ...systemLabels];
-      
+
       allLabels.forEach(label => {
         labelCounts[label] = (labelCounts[label] || 0) + 1;
       });
     });
-    
+
     return Object.entries(labelCounts)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([label, count]) => ({ label, count }));
@@ -281,8 +276,6 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
       });
     }
   };
-
-
 
   // Delete handlers
   const openDeleteConfirm = (deal) => {
@@ -569,10 +562,10 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
               </Th>
               <Th minW="200px">
                 <Flex direction="column" gap={2} align="flex-start">
-                  <Text 
-                    cursor="pointer" 
-                    onClick={() => requestSort('status')} 
-                    fontSize="sm" 
+                  <Text
+                    cursor="pointer"
+                    onClick={() => requestSort('status')}
+                    fontSize="sm"
                     fontWeight="semibold"
                   >
                     Status {getSortIcon('status')}
@@ -586,9 +579,9 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
                     bg="white"
                     borderColor="gray.300"
                     _hover={{ borderColor: "gray.400" }}
-                    _focus={{ 
-                      borderColor: "blue.500", 
-                      boxShadow: "0 0 0 1px #3182ce" 
+                    _focus={{
+                      borderColor: "blue.500",
+                      boxShadow: "0 0 0 1px #3182ce"
                     }}
                   >
                     {getAllLabels.map(({ label, count }) => (
@@ -633,7 +626,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
                     {isEditing ? (
                       renderEditableCell(deal, 'status', deal.status, 'select')
                     ) : (
-                      <StatusMenu 
+                      <StatusMenu
                         labels={deal.status_labels || []}
                         systemLabels={getSystemLabels(deal)}
                         onChange={(newLabels) => handleLabelsChange(deal.id, newLabels)}
@@ -722,7 +715,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
                 {dealToDelete?.brand_partner || dealToDelete?.payor_name || 'N/A'}?
               </Text>
               <Text fontSize="sm" color="gray.600">
-                This action cannot be undone. All deal data and any analysis results will be 
+                This action cannot be undone. All deal data and any analysis results will be
                 permanently removed.
               </Text>
             </AlertDialogBody>
@@ -761,7 +754,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
                 {selectedDeals.size > 1 ? 's' : ''}?
               </Text>
               <Text fontSize="sm" color="gray.600">
-                This action cannot be undone. All selected deals and their analysis results 
+                This action cannot be undone. All selected deals and their analysis results
                 will be permanently removed.
               </Text>
             </AlertDialogBody>

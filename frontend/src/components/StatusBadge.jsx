@@ -4,12 +4,12 @@ import { Badge } from '@chakra-ui/react';
 
 const statusColors = {
   'FMV Calculated': 'gray',
-  'FMV Valuation Complete': 'cyan',
+  'Clearinghouse Prediction: Approved': 'green',
   'In Negotiation': 'blue',
   'Accepted': 'purple',
   'Active': 'green',
   'Completed': 'orange',
-  'Cleared by NIL Go': 'teal',
+  'NIL Clearinghouse Approved': 'teal',
 };
 
 const StatusBadge = ({ status, size = "md" }) => {

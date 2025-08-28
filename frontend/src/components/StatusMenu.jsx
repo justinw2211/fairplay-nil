@@ -26,7 +26,7 @@ const statusLabels = [
 
 // Additional labels that can be combined with status
 const additionalLabels = [
-  'Cleared by NIL Go'
+  'NIL Clearinghouse Approved'
 ];
 
 const StatusMenu = ({ labels = [], systemLabels = [], onChange }) => {
