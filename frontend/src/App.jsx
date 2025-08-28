@@ -22,6 +22,7 @@ import Brands from "./pages/Brands";
 import NotFound from './pages/NotFound';
 import BlogList from './pages/Blog/BlogList';
 import BlogArticle from './pages/Blog/BlogArticle';
+import HowItWorks from './pages/HowItWorks';
 
 // Import ONLY the new DealWizard components
 import Step0_SocialMedia from './pages/DealWizard/Step0_SocialMedia';
@@ -141,6 +142,7 @@ function AppContent() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/about" element={<AboutUs />} />
+        <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/security" element={<Security />} />
         <Route path="/careers" element={<Careers />} />
         <Route path="/athletes" element={<Athletes />} />
