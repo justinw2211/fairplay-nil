@@ -1,5 +1,5 @@
 // frontend/src/components/DealsTable.jsx
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
   Table,
   Thead,
@@ -41,9 +41,9 @@ import {
   EditIcon,
   ViewIcon,
   CheckIcon,
-  CloseIcon
+  CloseIcon,
+  SearchIcon
 } from '@chakra-ui/icons';
-import StatusBadge from './StatusBadge';
 import StatusMenu from './StatusMenu';
 import { ResultBadges } from './ResultBadge';
 import { supabase } from '../supabaseClient';
@@ -56,6 +56,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
   const [editingDeal, setEditingDeal] = useState(null);
   const [editValues, setEditValues] = useState({});
   const [dealToDelete, setDealToDelete] = useState(null);
+  const [labelFilter, setLabelFilter] = useState('');
 
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const { isOpen: isBulkDeleteOpen, onOpen: onBulkDeleteOpen, onClose: onBulkDeleteClose } = useDisclosure();
@@ -63,10 +64,36 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
   const cancelRef = React.useRef();
   const toast = useToast();
 
+  // Compute system labels for a deal - moved up to avoid hoisting issues
+  const getSystemLabels = useCallback((deal) => {
+    const systemLabels = [];
+
+    // Add "FMV Calculated" if valuation prediction exists
+    if (deal.valuation_prediction) {
+      systemLabels.push('FMV Calculated');
+    }
+
+    // Note: Clearinghouse prediction labels are handled in Analysis Results column
+
+    return systemLabels;
+  }, []);
+
   const sortedDeals = useMemo(() => {
-    const sortableDeals = [...deals];
+    let filteredDeals = [...deals];
+
+    // Apply label filter
+    if (labelFilter) {
+      filteredDeals = filteredDeals.filter(deal => {
+        const userLabels = deal.status_labels || [];
+        const systemLabels = getSystemLabels(deal);
+        const allLabels = [...userLabels, ...systemLabels];
+        return allLabels.includes(labelFilter);
+      });
+    }
+
+    // Apply sorting
     if (sortConfig.key !== null) {
-      sortableDeals.sort((a, b) => {
+      filteredDeals.sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {
           return sortConfig.direction === 'ascending' ? -1 : 1;
         }
@@ -76,8 +103,26 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
         return 0;
       });
     }
-    return sortableDeals;
-  }, [deals, sortConfig]);
+    return filteredDeals;
+  }, [deals, sortConfig, labelFilter, getSystemLabels]);
+
+  // Get all unique labels for filter dropdown
+  const getAllLabels = useMemo(() => {
+    const labelCounts = {};
+    deals.forEach(deal => {
+      const userLabels = deal.status_labels || [];
+      const systemLabels = getSystemLabels(deal);
+      const allLabels = [...userLabels, ...systemLabels];
+
+      allLabels.forEach(label => {
+        labelCounts[label] = (labelCounts[label] || 0) + 1;
+      });
+    });
+
+    return Object.entries(labelCounts)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([label, count]) => ({ label, count }));
+  }, [deals, getSystemLabels]);
 
   const allSelected = selectedDeals.size > 0 && selectedDeals.size === deals.length;
   const isIndeterminate = selectedDeals.size > 0 && selectedDeals.size < deals.length;
@@ -140,7 +185,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
       setDeals(deals.map(deal => deal.id === dealId ? updatedDeal : deal));
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -185,9 +230,9 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
     }
   };
 
-  const handleStatusChange = async (dealId, newStatus) => {
+  const handleLabelsChange = async (dealId, newLabels) => {
     const originalDeal = deals.find(d => d.id === dealId);
-    const updatedDeal = { ...originalDeal, status: newStatus };
+    const updatedDeal = { ...originalDeal, status_labels: newLabels };
 
     // Optimistic update
     setDeals(deals.map(deal => deal.id === dealId ? updatedDeal : deal));
@@ -195,25 +240,35 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
     try {
       const token = (await supabase.auth.getSession()).data.session?.access_token;
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ status: newStatus })
+        body: JSON.stringify({ status_labels: newLabels })
       });
 
       if (!response.ok) {
         // Rollback on error
         setDeals(deals.map(deal => deal.id === dealId ? originalDeal : deal));
-        throw new Error('Failed to update status');
+        const errorData = await response.json().catch(() => ({}));
+        const detail = (() => {
+          const d = errorData?.detail;
+          if (!d) {return '';}
+          if (Array.isArray(d)) {
+            return d.map(item => item?.msg || item?.detail || JSON.stringify(item)).join('; ');
+          }
+          if (typeof d === 'object') {return JSON.stringify(d);}
+          return String(d);
+        })();
+        throw new Error(detail || 'Failed to update labels');
       }
 
       toast({
-        title: "Status Updated",
-        description: `Deal status changed to ${newStatus}`,
+        title: "Labels Updated",
+        description: "Deal labels updated successfully",
         status: "success",
-        duration: 3000,
+        duration: 2000,
         isClosable: true,
       });
 
@@ -221,7 +276,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
       setDeals(deals.map(deal => deal.id === dealId ? originalDeal : deal));
       toast({
         title: "Error",
-        description: "Failed to update deal status",
+        description: error.message || "Failed to update deal labels",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -349,7 +404,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
       // Update deals in parallel
       const updatePromises = dealIds.map(dealId =>
         fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
-          method: 'PATCH',
+          method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -496,7 +551,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
       )}
 
       <TableContainer>
-        <Table variant='simple'>
+        <Table variant='simple' size="sm">
           <Thead>
             <Tr>
               <Th>
@@ -507,19 +562,54 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
                 />
               </Th>
               <Th cursor="pointer" onClick={() => requestSort('brand_partner')}>
-                Brand {getSortIcon('brand_partner')}
+                <Flex align="center" gap={1}>
+                  <Text fontSize="xs" fontWeight="semibold" color="gray.600">Brand</Text>
+                  {getSortIcon('brand_partner')}
+                </Flex>
               </Th>
               <Th cursor="pointer" onClick={() => requestSort('fmv')}>
-                FMV {getSortIcon('fmv')}
+                <Flex align="center" gap={1}>
+                  <Text fontSize="xs" fontWeight="semibold" color="gray.600">FMV</Text>
+                  {getSortIcon('fmv')}
+                </Flex>
               </Th>
-              <Th cursor="pointer" onClick={() => requestSort('status')}>
-                Status {getSortIcon('status')}
+              <Th cursor="pointer" onClick={() => requestSort('status')} w="16%">
+                <Flex align="center" gap={2}>
+                  <Flex align="center" gap={1}>
+                    <Text fontSize="xs" fontWeight="semibold" color="gray.600">Status</Text>
+                    {getSortIcon('status')}
+                  </Flex>
+                  <Menu>
+                    <MenuButton
+                      as={IconButton}
+                      aria-label="Filter status"
+                      icon={<SearchIcon />}
+                      size="xs"
+                      variant="ghost"
+                    />
+                    <MenuList>
+                      <MenuItem onClick={() => setLabelFilter('')}>All</MenuItem>
+                      {getAllLabels.map(({ label, count }) => (
+                        <MenuItem key={label} onClick={() => setLabelFilter(label)}>
+                          {label} ({count})
+                        </MenuItem>
+                      ))}
+                    </MenuList>
+                  </Menu>
+                </Flex>
               </Th>
-              <Th>Analysis Results</Th>
+              <Th w="18%">
+                <Text fontSize="xs" fontWeight="semibold" color="gray.600">Analysis Results</Text>
+              </Th>
               <Th cursor="pointer" onClick={() => requestSort('created_at')}>
-                Date Added {getSortIcon('created_at')}
+                <Flex align="center" gap={1}>
+                  <Text fontSize="xs" fontWeight="semibold" color="gray.600">Date Added</Text>
+                  {getSortIcon('created_at')}
+                </Flex>
               </Th>
-              <Th>Actions</Th>
+              <Th>
+                <Text fontSize="xs" fontWeight="semibold" color="gray.600">Actions</Text>
+              </Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -540,24 +630,30 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
                     {isEditing ? (
                       renderEditableCell(deal, 'fmv', deal.fmv, 'number')
                     ) : (
-                      <Text onClick={() => startEditing(deal)} cursor="pointer" _hover={{ bg: 'gray.50' }}>
+                      <Text onClick={() => startEditing(deal)} cursor="pointer" _hover={{ bg: 'gray.50' }} fontSize="sm" color="gray.700">
                         ${deal.fmv ? deal.fmv.toFixed(2) : '0.00'}
                       </Text>
                     )}
                   </Td>
-                  <Td>
+                  <Td w="16%">
                     {isEditing ? (
                       renderEditableCell(deal, 'status', deal.status, 'select')
                     ) : (
-                      <StatusMenu deal={deal} onStatusChange={handleStatusChange}>
-                        <StatusBadge status={deal.status} />
-                      </StatusMenu>
+                      <StatusMenu
+                        labels={deal.status_labels || []}
+                        systemLabels={getSystemLabels(deal)}
+                        onChange={(newLabels) => handleLabelsChange(deal.id, newLabels)}
+                      />
                     )}
                   </Td>
                   <Td>
-                    <ResultBadges deal={deal} />
+                    <Flex align="center">
+                      <ResultBadges deal={deal} />
+                    </Flex>
                   </Td>
-                  <Td>{formatDate(deal.created_at)}</Td>
+                  <Td>
+                    <Text fontSize="sm" color="gray.700">{formatDate(deal.created_at)}</Text>
+                  </Td>
                   <Td>
                     {isEditing ? (
                       <ButtonGroup size="sm">
@@ -632,10 +728,12 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
             </AlertDialogHeader>
             <AlertDialogBody>
               <Text mb={4}>
-                Are you sure you want to delete this deal with {dealToDelete?.brand_partner || dealToDelete?.payor_name || 'N/A'}?
+                Are you sure you want to delete this deal with{' '}
+                {dealToDelete?.brand_partner || dealToDelete?.payor_name || 'N/A'}?
               </Text>
               <Text fontSize="sm" color="gray.600">
-                This action cannot be undone. All deal data and any analysis results will be permanently removed.
+                This action cannot be undone. All deal data and any analysis results will be
+                permanently removed.
               </Text>
             </AlertDialogBody>
             <AlertDialogFooter>
@@ -669,10 +767,12 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
             </AlertDialogHeader>
             <AlertDialogBody>
               <Text mb={4}>
-                Are you sure you want to delete {selectedDeals.size} selected deal{selectedDeals.size > 1 ? 's' : ''}?
+                Are you sure you want to delete {selectedDeals.size} selected deal
+                {selectedDeals.size > 1 ? 's' : ''}?
               </Text>
               <Text fontSize="sm" color="gray.600">
-                This action cannot be undone. All selected deals and their analysis results will be permanently removed.
+                This action cannot be undone. All selected deals and their analysis results
+                will be permanently removed.
               </Text>
             </AlertDialogBody>
             <AlertDialogFooter>

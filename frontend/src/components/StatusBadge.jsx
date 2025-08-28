@@ -8,12 +8,33 @@ const statusColors = {
   'Accepted': 'purple',
   'Active': 'green',
   'Completed': 'orange',
-  'Cleared by NIL Go': 'teal',
+  'NIL Clearinghouse Approved': 'teal',
 };
 
-const StatusBadge = ({ status }) => {
+const StatusBadge = ({ status, size = "md" }) => {
+  const sizeProps = {
+    sm: {
+      fontSize: "xs",
+      px: 2,
+      py: 1,
+      minH: "20px"
+    },
+    md: {
+      fontSize: "sm",
+      px: 3,
+      py: 1,
+      minH: "24px"
+    }
+  };
+
   return (
-    <Badge colorScheme={statusColors[status] || 'gray'}>
+    <Badge 
+      colorScheme={statusColors[status] || 'gray'}
+      variant="solid"
+      borderRadius="md"
+      fontWeight="medium"
+      {...sizeProps[size]}
+    >
       {status}
     </Badge>
   );

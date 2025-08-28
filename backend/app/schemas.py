@@ -191,6 +191,7 @@ class DealUpdate(BaseModel):
     is_group_deal: Optional[bool] = None
     is_paid_to_llc: Optional[bool] = None
     status: Optional[str] = None
+    status_labels: Optional[List[str]] = Field(None, description="User-managed status labels array")
     
     # Analytics Fields (NEW - for dashboard support)
     brand_partner: Optional[str] = Field(None, description="Brand partner name for analytics")
@@ -203,6 +204,23 @@ class DealUpdate(BaseModel):
     def validate_deal_type(cls, v):
         if v and v not in [e.value for e in DealTypeEnum]:
             raise ValueError(f'Deal type must be one of: {", ".join([e.value for e in DealTypeEnum])}')
+        return v
+    
+    @validator('status_labels')
+    def validate_status_labels(cls, v):
+        if v is not None:
+            allowed_labels = [
+                'In Negotiation', 'Accepted', 'Active', 'Completed', 'NIL Clearinghouse Approved'
+            ]
+            invalid_labels = [label for label in v if label not in allowed_labels]
+            if invalid_labels:
+                raise ValueError(f'Invalid status labels: {", ".join(invalid_labels)}. Allowed labels: {", ".join(allowed_labels)}')
+            
+            # Check for mutually exclusive status labels
+            status_labels = ['In Negotiation', 'Accepted', 'Active', 'Completed']
+            selected_status_labels = [label for label in v if label in status_labels]
+            if len(selected_status_labels) > 1:
+                raise ValueError(f'Only one status label can be selected: {", ".join(selected_status_labels)}')
         return v
 
 class DealResponse(DealUpdate):
