@@ -67,7 +67,22 @@ const Step2_PayorInfo = () => {
       setPayorEmail(currentDeal.payor_email || '');
       setPayorPhone(currentDeal.payor_phone || '');
       setCompanySize(currentDeal.payor_company_size || '');
-      setSelectedIndustries(currentDeal.payor_industries || []);
+      // Map persisted industries back to UI selections, handling "Other: text"
+      const restored = Array.isArray(currentDeal.payor_industries)
+        ? [...currentDeal.payor_industries]
+        : [];
+      const otherEntry = restored.find((i) => typeof i === 'string' && i.toLowerCase().startsWith('other:'));
+      if (otherEntry) {
+        // Extract the free text after 'Other:'
+        const text = otherEntry.split(':').slice(1).join(':').trim();
+        setOtherIndustryText(text);
+        // Replace with the selectable 'Other' token for the checkbox group
+        const mapped = restored.filter((i) => i !== otherEntry);
+        if (!mapped.includes('Other')) mapped.push('Other');
+        setSelectedIndustries(mapped);
+      } else {
+        setSelectedIndustries(restored);
+      }
 
       logger.info('Payor info loaded from deal', {
         dealId,

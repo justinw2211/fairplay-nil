@@ -60,8 +60,16 @@ const Step1_DealTerms = () => {
   useEffect(() => {
     if (currentDeal) {
       setDealNickname(currentDeal.deal_nickname || '');
-      setDurationYears(currentDeal.deal_duration_years || 0);
-      setDurationMonths(currentDeal.deal_duration_months || 0);
+      // Prefer the most authoritative persisted value first (total months), then split
+      if (typeof currentDeal.deal_duration_total_months === 'number' && currentDeal.deal_duration_total_months > 0) {
+        const yrs = Math.floor(currentDeal.deal_duration_total_months / 12);
+        const mos = currentDeal.deal_duration_total_months % 12;
+        setDurationYears(yrs);
+        setDurationMonths(mos);
+      } else {
+        setDurationYears(currentDeal.deal_duration_years || 0);
+        setDurationMonths(currentDeal.deal_duration_months || 0);
+      }
 
       logger.info('Deal data loaded from deal', {
         dealId,
