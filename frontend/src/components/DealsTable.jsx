@@ -56,6 +56,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
   const [editingDeal, setEditingDeal] = useState(null);
   const [editValues, setEditValues] = useState({});
   const [dealToDelete, setDealToDelete] = useState(null);
+  const [labelFilter, setLabelFilter] = useState('');
 
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const { isOpen: isBulkDeleteOpen, onOpen: onBulkDeleteOpen, onClose: onBulkDeleteClose } = useDisclosure();
@@ -64,9 +65,21 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
   const toast = useToast();
 
   const sortedDeals = useMemo(() => {
-    const sortableDeals = [...deals];
+    let filteredDeals = [...deals];
+    
+    // Apply label filter
+    if (labelFilter) {
+      filteredDeals = filteredDeals.filter(deal => {
+        const userLabels = deal.status_labels || [];
+        const systemLabels = getSystemLabels(deal);
+        const allLabels = [...userLabels, ...systemLabels];
+        return allLabels.includes(labelFilter);
+      });
+    }
+    
+    // Apply sorting
     if (sortConfig.key !== null) {
-      sortableDeals.sort((a, b) => {
+      filteredDeals.sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {
           return sortConfig.direction === 'ascending' ? -1 : 1;
         }
@@ -76,8 +89,26 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
         return 0;
       });
     }
-    return sortableDeals;
-  }, [deals, sortConfig]);
+    return filteredDeals;
+  }, [deals, sortConfig, labelFilter]);
+
+  // Get all unique labels for filter dropdown
+  const getAllLabels = useMemo(() => {
+    const labelCounts = {};
+    deals.forEach(deal => {
+      const userLabels = deal.status_labels || [];
+      const systemLabels = getSystemLabels(deal);
+      const allLabels = [...userLabels, ...systemLabels];
+      
+      allLabels.forEach(label => {
+        labelCounts[label] = (labelCounts[label] || 0) + 1;
+      });
+    });
+    
+    return Object.entries(labelCounts)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([label, count]) => ({ label, count }));
+  }, [deals]);
 
   const allSelected = selectedDeals.size > 0 && selectedDeals.size === deals.length;
   const isIndeterminate = selectedDeals.size > 0 && selectedDeals.size < deals.length;
@@ -227,6 +258,68 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
         isClosable: true,
       });
     }
+  };
+
+  const handleLabelsChange = async (dealId, newLabels) => {
+    const originalDeal = deals.find(d => d.id === dealId);
+    const updatedDeal = { ...originalDeal, status_labels: newLabels };
+
+    // Optimistic update
+    setDeals(deals.map(deal => deal.id === dealId ? updatedDeal : deal));
+
+    try {
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status_labels: newLabels })
+      });
+
+      if (!response.ok) {
+        // Rollback on error
+        setDeals(deals.map(deal => deal.id === dealId ? originalDeal : deal));
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Failed to update labels');
+      }
+
+      toast({
+        title: "Labels Updated",
+        description: "Deal labels updated successfully",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+      });
+
+    } catch (error) {
+      setDeals(deals.map(deal => deal.id === dealId ? originalDeal : deal));
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update deal labels",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  // Compute system labels for a deal
+  const getSystemLabels = (deal) => {
+    const systemLabels = [];
+    
+    // Add "FMV Calculated" if valuation prediction exists
+    if (deal.valuation_prediction) {
+      systemLabels.push('FMV Calculated');
+    }
+    
+    // Add "Cleared by NIL Go" if clearinghouse result is approved
+    if (deal.clearinghouse_result === 'approved') {
+      systemLabels.push('Cleared by NIL Go');
+    }
+    
+    return systemLabels;
   };
 
   // Delete handlers
@@ -512,8 +605,25 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
               <Th cursor="pointer" onClick={() => requestSort('fmv')}>
                 FMV {getSortIcon('fmv')}
               </Th>
-              <Th cursor="pointer" onClick={() => requestSort('status')}>
-                Status {getSortIcon('status')}
+              <Th>
+                <Flex align="center" gap={2}>
+                  <Text cursor="pointer" onClick={() => requestSort('status')}>
+                    Status {getSortIcon('status')}
+                  </Text>
+                  <Select
+                    placeholder="All"
+                    size="sm"
+                    w="120px"
+                    value={labelFilter}
+                    onChange={(e) => setLabelFilter(e.target.value)}
+                  >
+                    {getAllLabels.map(({ label, count }) => (
+                      <option key={label} value={label}>
+                        {label} ({count})
+                      </option>
+                    ))}
+                  </Select>
+                </Flex>
               </Th>
               <Th>Analysis Results</Th>
               <Th cursor="pointer" onClick={() => requestSort('created_at')}>
@@ -549,9 +659,11 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
                     {isEditing ? (
                       renderEditableCell(deal, 'status', deal.status, 'select')
                     ) : (
-                      <StatusMenu deal={deal} onStatusChange={handleStatusChange}>
-                        <StatusBadge status={deal.status} />
-                      </StatusMenu>
+                      <StatusMenu 
+                        labels={deal.status_labels || []}
+                        systemLabels={getSystemLabels(deal)}
+                        onChange={(newLabels) => handleLabelsChange(deal.id, newLabels)}
+                      />
                     )}
                   </Td>
                   <Td>

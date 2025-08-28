@@ -13,7 +13,7 @@ router = APIRouter()
 
 # Updated DEAL_SELECT_FIELDS to include new columns, analytics fields, duration and company type fields
 DEAL_SELECT_FIELDS = (
-    "id,user_id,status,created_at,deal_nickname,deal_terms_url,deal_terms_file_name,"
+    "id,user_id,status,status_labels,created_at,deal_nickname,deal_terms_url,deal_terms_file_name,"
     "deal_terms_file_type,deal_terms_file_size,deal_duration_years,deal_duration_months,"
     "deal_duration_total_months,payor_name,payor_type,contact_name,contact_email,contact_phone,"
     "payor_company_size,payor_industries,activities,obligations,grant_exclusivity,uses_school_ip,"
