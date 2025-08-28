@@ -4,6 +4,7 @@ import { Badge } from '@chakra-ui/react';
 
 const statusColors = {
   'FMV Calculated': 'gray',
+  'FMV Valuation Complete': 'cyan',
   'In Negotiation': 'blue',
   'Accepted': 'purple',
   'Active': 'green',

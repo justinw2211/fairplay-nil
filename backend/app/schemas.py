@@ -215,6 +215,12 @@ class DealUpdate(BaseModel):
             invalid_labels = [label for label in v if label not in allowed_labels]
             if invalid_labels:
                 raise ValueError(f'Invalid status labels: {", ".join(invalid_labels)}. Allowed labels: {", ".join(allowed_labels)}')
+            
+            # Check for mutually exclusive status labels
+            status_labels = ['In Negotiation', 'Accepted', 'Active', 'Completed']
+            selected_status_labels = [label for label in v if label in status_labels]
+            if len(selected_status_labels) > 1:
+                raise ValueError(f'Only one status label can be selected: {", ".join(selected_status_labels)}')
         return v
 
 class DealResponse(DealUpdate):

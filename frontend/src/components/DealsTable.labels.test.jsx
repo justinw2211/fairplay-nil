@@ -33,7 +33,7 @@ describe('DealsTable - Labels Functionality', () => {
       brand_partner: 'Test Brand',
       fmv: 1000,
       status: 'draft',
-      status_labels: ['Active', 'In Negotiation'],
+      status_labels: ['Active', 'Cleared by NIL Go'],
       valuation_prediction: { estimated_fmv: 1000 },
       clearinghouse_result: null,
       created_at: '2024-01-01T00:00:00Z'
@@ -67,9 +67,10 @@ describe('DealsTable - Labels Functionality', () => {
       </TestWrapper>
     );
 
-    // First deal should show FMV Calculated (has valuation_prediction)
-    // Second deal should show Cleared by NIL Go (clearinghouse_result = 'approved')
+    // First deal should show FMV Calculated (has valuation_prediction) and FMV Valuation Complete (fmv > 0)
+    // Second deal should show Cleared by NIL Go (clearinghouse_result = 'approved') and FMV Valuation Complete
     expect(screen.getByText('FMV Calculated')).toBeInTheDocument();
+    expect(screen.getAllByText('FMV Valuation Complete')).toHaveLength(2);
     expect(screen.getByText('Cleared by NIL Go')).toBeInTheDocument();
   });
 
@@ -87,7 +88,7 @@ describe('DealsTable - Labels Functionality', () => {
 
     // Should show user labels from status_labels
     expect(screen.getByText('Active')).toBeInTheDocument();
-    expect(screen.getByText('In Negotiation')).toBeInTheDocument();
+    expect(screen.getByText('Cleared by NIL Go')).toBeInTheDocument();
     expect(screen.getByText('Completed')).toBeInTheDocument();
   });
 
@@ -126,7 +127,7 @@ describe('DealsTable - Labels Functionality', () => {
           headers: expect.objectContaining({
             'Content-Type': 'application/json'
           }),
-          body: JSON.stringify({ status_labels: ['Active', 'In Negotiation', 'Accepted'] })
+          body: JSON.stringify({ status_labels: ['Accepted', 'Cleared by NIL Go'] })
         })
       );
     });
@@ -202,10 +203,10 @@ describe('DealsTable - Labels Functionality', () => {
     
     // Each unique label should appear with count
     expect(screen.getByText('Active (1)')).toBeInTheDocument();
-    expect(screen.getByText('In Negotiation (1)')).toBeInTheDocument();
     expect(screen.getByText('Completed (1)')).toBeInTheDocument();
+    expect(screen.getByText('Cleared by NIL Go (2)')).toBeInTheDocument();
     expect(screen.getByText('FMV Calculated (1)')).toBeInTheDocument();
-    expect(screen.getByText('Cleared by NIL Go (1)')).toBeInTheDocument();
+    expect(screen.getByText('FMV Valuation Complete (2)')).toBeInTheDocument();
   });
 
   it('clears filter when "All" is selected', () => {

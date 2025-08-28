@@ -74,7 +74,7 @@ describe('StatusMenu', () => {
     expect(screen.getByText('+1')).toBeInTheDocument();
   });
 
-  it('calls onChange when label is toggled', () => {
+  it('calls onChange when label is toggled and replaces mutually exclusive labels', () => {
     render(
       <TestWrapper>
         <StatusMenu 
@@ -88,18 +88,18 @@ describe('StatusMenu', () => {
     // Click to open menu
     fireEvent.click(screen.getByRole('button'));
 
-    // Click on "In Negotiation" checkbox to add it
+    // Click on "In Negotiation" checkbox - should replace "Active" since they're mutually exclusive
     const checkbox = screen.getByLabelText(/In Negotiation/);
     fireEvent.click(checkbox);
 
-    expect(mockOnChange).toHaveBeenCalledWith(['Active', 'In Negotiation']);
+    expect(mockOnChange).toHaveBeenCalledWith(['In Negotiation']);
   });
 
   it('removes label when already selected', () => {
     render(
       <TestWrapper>
         <StatusMenu 
-          labels={['Active', 'In Negotiation']} 
+          labels={['Active', 'Cleared by NIL Go']} 
           systemLabels={[]} 
           onChange={mockOnChange} 
         />
@@ -113,7 +113,7 @@ describe('StatusMenu', () => {
     const checkbox = screen.getByLabelText(/Active/);
     fireEvent.click(checkbox);
 
-    expect(mockOnChange).toHaveBeenCalledWith(['In Negotiation']);
+    expect(mockOnChange).toHaveBeenCalledWith(['Cleared by NIL Go']);
   });
 
   it('allows removal of system labels', () => {
@@ -176,11 +176,29 @@ describe('StatusMenu', () => {
     // Active should be checked
     expect(screen.getByLabelText(/Active/).checked).toBe(true);
     
-    // FMV Calculated should be checked (system label)
-    expect(screen.getByLabelText(/FMV Calculated/).checked).toBe(true);
-    
     // Others should not be checked
     expect(screen.getByLabelText(/In Negotiation/).checked).toBe(false);
     expect(screen.getByLabelText(/Accepted/).checked).toBe(false);
+  });
+
+  it('allows adding additional labels alongside status labels', () => {
+    render(
+      <TestWrapper>
+        <StatusMenu 
+          labels={['Active']} 
+          systemLabels={[]} 
+          onChange={mockOnChange} 
+        />
+      </TestWrapper>
+    );
+
+    // Click to open menu
+    fireEvent.click(screen.getByRole('button'));
+
+    // Click on "Cleared by NIL Go" checkbox - should add to existing "Active"
+    const checkbox = screen.getByLabelText(/Cleared by NIL Go/);
+    fireEvent.click(checkbox);
+
+    expect(mockOnChange).toHaveBeenCalledWith(['Active', 'Cleared by NIL Go']);
   });
 });

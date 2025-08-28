@@ -16,11 +16,16 @@ import {
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import StatusBadge from './StatusBadge.jsx';
 
-const userSelectableLabels = [
+// Mutually exclusive status labels (only one can be selected)
+const statusLabels = [
   'In Negotiation',
   'Accepted', 
   'Active',
-  'Completed',
+  'Completed'
+];
+
+// Additional labels that can be combined with status
+const additionalLabels = [
   'Cleared by NIL Go'
 ];
 
@@ -36,7 +41,14 @@ const StatusMenu = ({ labels = [], systemLabels = [], onChange }) => {
       newLabels = labels.filter(l => l !== label);
     } else {
       // Add label
-      newLabels = [...labels, label];
+      if (statusLabels.includes(label)) {
+        // For mutually exclusive status labels, remove any existing status labels first
+        newLabels = labels.filter(l => !statusLabels.includes(l));
+        newLabels.push(label);
+      } else {
+        // For additional labels, just add to existing
+        newLabels = [...labels, label];
+      }
     }
     
     onChange(newLabels);
@@ -102,7 +114,64 @@ const StatusMenu = ({ labels = [], systemLabels = [], onChange }) => {
         <Text fontSize="sm" fontWeight="semibold" color="gray.700" px={3} py={2} borderBottom="1px" borderColor="gray.100">
           Manage Status Labels
         </Text>
-        {userSelectableLabels.map(label => {
+        
+        {/* Status Labels Section (mutually exclusive) */}
+        <Text fontSize="xs" fontWeight="semibold" color="gray.600" px={3} py={2} bg="gray.50">
+          Deal Status (select one)
+        </Text>
+        {statusLabels.map(label => {
+          const isChecked = allLabels.includes(label);
+          const isSystemLabel = systemLabels.includes(label);
+          
+          return (
+            <MenuItem 
+              key={label} 
+              onClick={() => handleLabelToggle(label)}
+              _hover={{ bg: "gray.50" }}
+              px={3}
+              py={3}
+            >
+              <Flex align="center" w="100%">
+                <Checkbox
+                  isChecked={isChecked}
+                  onChange={() => handleLabelToggle(label)}
+                  mr={3}
+                  size="md"
+                />
+                <StatusBadge status={label} />
+                <Spacer />
+                {isSystemLabel && (
+                  <Tooltip 
+                    label="Automatically added based on deal data" 
+                    placement="left"
+                    bg="gray.700"
+                    color="white"
+                    fontSize="xs"
+                  >
+                    <Flex 
+                      align="center" 
+                      bg="blue.50" 
+                      color="blue.600" 
+                      px={2} 
+                      py={1} 
+                      borderRadius="md" 
+                      fontSize="xs" 
+                      fontWeight="medium"
+                    >
+                      Auto
+                    </Flex>
+                  </Tooltip>
+                )}
+              </Flex>
+            </MenuItem>
+          );
+        })}
+        
+        {/* Additional Labels Section */}
+        <Text fontSize="xs" fontWeight="semibold" color="gray.600" px={3} py={2} bg="gray.50">
+          Additional Labels
+        </Text>
+        {additionalLabels.map(label => {
           const isChecked = allLabels.includes(label);
           const isSystemLabel = systemLabels.includes(label);
           

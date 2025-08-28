@@ -72,6 +72,11 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
       systemLabels.push('FMV Calculated');
     }
     
+    // Add "FMV Valuation Complete" if deal has completed FMV analysis for its terms
+    if (deal.fmv && deal.fmv > 0) {
+      systemLabels.push('FMV Valuation Complete');
+    }
+    
     // Add "Cleared by NIL Go" if clearinghouse result is approved
     if (deal.clearinghouse_result === 'approved') {
       systemLabels.push('Cleared by NIL Go');
