@@ -542,7 +542,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
       )}
 
       <TableContainer>
-        <Table variant='simple'>
+        <Table variant='simple' size="sm">
           <Thead>
             <Tr>
               <Th>
@@ -553,14 +553,23 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
                 />
               </Th>
               <Th cursor="pointer" onClick={() => requestSort('brand_partner')}>
-                Brand {getSortIcon('brand_partner')}
+                <Flex align="center" gap={1}>
+                  <Text fontSize="xs" fontWeight="semibold" color="gray.600">Brand</Text>
+                  {getSortIcon('brand_partner')}
+                </Flex>
               </Th>
               <Th cursor="pointer" onClick={() => requestSort('fmv')}>
-                FMV {getSortIcon('fmv')}
+                <Flex align="center" gap={1}>
+                  <Text fontSize="xs" fontWeight="semibold" color="gray.600">FMV</Text>
+                  {getSortIcon('fmv')}
+                </Flex>
               </Th>
               <Th cursor="pointer" onClick={() => requestSort('status')}>
                 <Flex align="center" gap={2}>
-                  <Text>Status {getSortIcon('status')}</Text>
+                  <Flex align="center" gap={1}>
+                    <Text fontSize="xs" fontWeight="semibold" color="gray.600">Status</Text>
+                    {getSortIcon('status')}
+                  </Flex>
                   <Menu>
                     <MenuButton
                       as={IconButton}
@@ -580,11 +589,18 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
                   </Menu>
                 </Flex>
               </Th>
-              <Th>Analysis Results</Th>
-              <Th cursor="pointer" onClick={() => requestSort('created_at')}>
-                Date Added {getSortIcon('created_at')}
+              <Th>
+                <Text fontSize="xs" fontWeight="semibold" color="gray.600">Analysis Results</Text>
               </Th>
-              <Th>Actions</Th>
+              <Th cursor="pointer" onClick={() => requestSort('created_at')}>
+                <Flex align="center" gap={1}>
+                  <Text fontSize="xs" fontWeight="semibold" color="gray.600">Date Added</Text>
+                  {getSortIcon('created_at')}
+                </Flex>
+              </Th>
+              <Th>
+                <Text fontSize="xs" fontWeight="semibold" color="gray.600">Actions</Text>
+              </Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -605,7 +621,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
                     {isEditing ? (
                       renderEditableCell(deal, 'fmv', deal.fmv, 'number')
                     ) : (
-                      <Text onClick={() => startEditing(deal)} cursor="pointer" _hover={{ bg: 'gray.50' }}>
+                      <Text onClick={() => startEditing(deal)} cursor="pointer" _hover={{ bg: 'gray.50' }} fontSize="sm" color="gray.700">
                         ${deal.fmv ? deal.fmv.toFixed(2) : '0.00'}
                       </Text>
                     )}
@@ -622,9 +638,13 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
                     )}
                   </Td>
                   <Td>
-                    <ResultBadges deal={deal} />
+                    <Flex align="center">
+                      <ResultBadges deal={deal} />
+                    </Flex>
                   </Td>
-                  <Td>{formatDate(deal.created_at)}</Td>
+                  <Td>
+                    <Text fontSize="sm" color="gray.700">{formatDate(deal.created_at)}</Text>
+                  </Td>
                   <Td>
                     {isEditing ? (
                       <ButtonGroup size="sm">
