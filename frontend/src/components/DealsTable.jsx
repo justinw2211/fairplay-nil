@@ -43,7 +43,6 @@ import {
   CheckIcon,
   CloseIcon
 } from '@chakra-ui/icons';
-import StatusBadge from './StatusBadge';
 import StatusMenu from './StatusMenu';
 import { ResultBadges } from './ResultBadge';
 import { supabase } from '../supabaseClient';
@@ -230,50 +229,6 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
       setIsDeleting(false);
       setEditingDeal(null);
       setEditValues({});
-    }
-  };
-
-  const handleStatusChange = async (dealId, newStatus) => {
-    const originalDeal = deals.find(d => d.id === dealId);
-    const updatedDeal = { ...originalDeal, status: newStatus };
-
-    // Optimistic update
-    setDeals(deals.map(deal => deal.id === dealId ? updatedDeal : deal));
-
-    try {
-      const token = (await supabase.auth.getSession()).data.session?.access_token;
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/deals/${dealId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
-
-      if (!response.ok) {
-        // Rollback on error
-        setDeals(deals.map(deal => deal.id === dealId ? originalDeal : deal));
-        throw new Error('Failed to update status');
-      }
-
-      toast({
-        title: "Status Updated",
-        description: `Deal status changed to ${newStatus}`,
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-
-    } catch (error) {
-      setDeals(deals.map(deal => deal.id === dealId ? originalDeal : deal));
-      toast({
-        title: "Error",
-        description: "Failed to update deal status",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
     }
   };
 
@@ -607,17 +562,29 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
               <Th cursor="pointer" onClick={() => requestSort('fmv')}>
                 FMV {getSortIcon('fmv')}
               </Th>
-              <Th>
-                <Flex align="center" gap={2}>
-                  <Text cursor="pointer" onClick={() => requestSort('status')}>
+              <Th minW="200px">
+                <Flex direction="column" gap={2} align="flex-start">
+                  <Text 
+                    cursor="pointer" 
+                    onClick={() => requestSort('status')} 
+                    fontSize="sm" 
+                    fontWeight="semibold"
+                  >
                     Status {getSortIcon('status')}
                   </Text>
                   <Select
-                    placeholder="All"
+                    placeholder="Filter by label"
                     size="sm"
-                    w="120px"
+                    w="160px"
                     value={labelFilter}
                     onChange={(e) => setLabelFilter(e.target.value)}
+                    bg="white"
+                    borderColor="gray.300"
+                    _hover={{ borderColor: "gray.400" }}
+                    _focus={{ 
+                      borderColor: "blue.500", 
+                      boxShadow: "0 0 0 1px #3182ce" 
+                    }}
                   >
                     {getAllLabels.map(({ label, count }) => (
                       <option key={label} value={label}>
@@ -657,7 +624,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
                       </Text>
                     )}
                   </Td>
-                  <Td>
+                  <Td minW="200px" maxW="350px">
                     {isEditing ? (
                       renderEditableCell(deal, 'status', deal.status, 'select')
                     ) : (
@@ -746,10 +713,12 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
             </AlertDialogHeader>
             <AlertDialogBody>
               <Text mb={4}>
-                Are you sure you want to delete this deal with {dealToDelete?.brand_partner || dealToDelete?.payor_name || 'N/A'}?
+                Are you sure you want to delete this deal with{' '}
+                {dealToDelete?.brand_partner || dealToDelete?.payor_name || 'N/A'}?
               </Text>
               <Text fontSize="sm" color="gray.600">
-                This action cannot be undone. All deal data and any analysis results will be permanently removed.
+                This action cannot be undone. All deal data and any analysis results will be 
+                permanently removed.
               </Text>
             </AlertDialogBody>
             <AlertDialogFooter>
@@ -783,10 +752,12 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
             </AlertDialogHeader>
             <AlertDialogBody>
               <Text mb={4}>
-                Are you sure you want to delete {selectedDeals.size} selected deal{selectedDeals.size > 1 ? 's' : ''}?
+                Are you sure you want to delete {selectedDeals.size} selected deal
+                {selectedDeals.size > 1 ? 's' : ''}?
               </Text>
               <Text fontSize="sm" color="gray.600">
-                This action cannot be undone. All selected deals and their analysis results will be permanently removed.
+                This action cannot be undone. All selected deals and their analysis results 
+                will be permanently removed.
               </Text>
             </AlertDialogBody>
             <AlertDialogFooter>
