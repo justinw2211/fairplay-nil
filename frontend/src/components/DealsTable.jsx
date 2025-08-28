@@ -1,5 +1,5 @@
 // frontend/src/components/DealsTable.jsx
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
   Table,
   Thead,
@@ -64,6 +64,23 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
   const cancelRef = React.useRef();
   const toast = useToast();
 
+  // Compute system labels for a deal - moved up to avoid hoisting issues
+  const getSystemLabels = useCallback((deal) => {
+    const systemLabels = [];
+    
+    // Add "FMV Calculated" if valuation prediction exists
+    if (deal.valuation_prediction) {
+      systemLabels.push('FMV Calculated');
+    }
+    
+    // Add "Cleared by NIL Go" if clearinghouse result is approved
+    if (deal.clearinghouse_result === 'approved') {
+      systemLabels.push('Cleared by NIL Go');
+    }
+    
+    return systemLabels;
+  }, []);
+
   const sortedDeals = useMemo(() => {
     let filteredDeals = [...deals];
     
@@ -90,7 +107,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
       });
     }
     return filteredDeals;
-  }, [deals, sortConfig, labelFilter]);
+  }, [deals, sortConfig, labelFilter, getSystemLabels]);
 
   // Get all unique labels for filter dropdown
   const getAllLabels = useMemo(() => {
@@ -108,7 +125,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
     return Object.entries(labelCounts)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([label, count]) => ({ label, count }));
-  }, [deals]);
+  }, [deals, getSystemLabels]);
 
   const allSelected = selectedDeals.size > 0 && selectedDeals.size === deals.length;
   const isIndeterminate = selectedDeals.size > 0 && selectedDeals.size < deals.length;
@@ -305,22 +322,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
     }
   };
 
-  // Compute system labels for a deal
-  const getSystemLabels = (deal) => {
-    const systemLabels = [];
-    
-    // Add "FMV Calculated" if valuation prediction exists
-    if (deal.valuation_prediction) {
-      systemLabels.push('FMV Calculated');
-    }
-    
-    // Add "Cleared by NIL Go" if clearinghouse result is approved
-    if (deal.clearinghouse_result === 'approved') {
-      systemLabels.push('Cleared by NIL Go');
-    }
-    
-    return systemLabels;
-  };
+
 
   // Delete handlers
   const openDeleteConfirm = (deal) => {
