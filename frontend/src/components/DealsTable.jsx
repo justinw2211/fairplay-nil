@@ -573,7 +573,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
                   {getSortIcon('fmv')}
                 </Flex>
               </Th>
-              <Th cursor="pointer" onClick={() => requestSort('status')} w="24%">
+              <Th cursor="pointer" onClick={() => requestSort('status')} w="16%">
                 <Flex align="center" gap={2}>
                   <Flex align="center" gap={1}>
                     <Text fontSize="xs" fontWeight="semibold" color="gray.600">Status</Text>
@@ -635,7 +635,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
                       </Text>
                     )}
                   </Td>
-                  <Td minW="200px" maxW="350px">
+                  <Td w="16%">
                     {isEditing ? (
                       renderEditableCell(deal, 'status', deal.status, 'select')
                     ) : (
