@@ -8,6 +8,8 @@ import {
   Button, 
   Checkbox, 
   HStack, 
+  Wrap,
+  WrapItem,
   Tooltip,
   Text,
   Flex,
@@ -63,30 +65,15 @@ const StatusMenu = ({ labels = [], systemLabels = [], onChange }) => {
       );
     }
 
-    if (allLabels.length === 1) {
-      return <StatusBadge status={allLabels[0]} size="sm" />;
-    }
-
-    if (allLabels.length <= 3) {
-      return (
-        <HStack spacing={1} flexWrap="wrap">
-          {allLabels.map(label => (
-            <StatusBadge key={label} status={label} size="sm" />
-          ))}
-        </HStack>
-      );
-    }
-
-    // More than 3 labels - show first 2 plus count
+    // Show all labels with wrapping so rows can grow taller instead of widening the column
     return (
-      <HStack spacing={1} align="center">
-        {allLabels.slice(0, 2).map(label => (
-          <StatusBadge key={label} status={label} size="sm" />
+      <Wrap spacing={1} shouldWrapChildren>
+        {allLabels.map(label => (
+          <WrapItem key={label}>
+            <StatusBadge status={label} size="sm" />
+          </WrapItem>
         ))}
-        <Text fontSize="xs" color="gray.600" fontWeight="medium" px={2} py={1} bg="gray.100" borderRadius="md">
-          +{allLabels.length - 2}
-        </Text>
-      </HStack>
+      </Wrap>
     );
   };
 
@@ -102,6 +89,8 @@ const StatusMenu = ({ labels = [], systemLabels = [], onChange }) => {
         py={2}
         px={3}
         justifyContent="flex-start"
+        whiteSpace="normal"
+        overflow="visible"
         _hover={{ bg: "gray.50" }}
         _active={{ bg: "gray.100" }}
       >
