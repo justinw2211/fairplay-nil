@@ -72,10 +72,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
       systemLabels.push('FMV Calculated');
     }
 
-    // Add predictor-based clearinghouse approval when predicted approved
-    if (deal.clearinghouse_prediction?.prediction === 'approved') {
-      systemLabels.push('Clearinghouse Prediction: Approved');
-    }
+    // Note: Clearinghouse prediction labels are handled in Analysis Results column
 
     return systemLabels;
   }, []);
