@@ -64,7 +64,7 @@ const StatusMenu = ({ labels = [], systemLabels = [], onChange }) => {
     }
 
     if (allLabels.length === 1) {
-      return <StatusBadge status={allLabels[0]} />;
+      return <StatusBadge status={allLabels[0]} size="sm" />;
     }
 
     if (allLabels.length <= 3) {
@@ -94,7 +94,6 @@ const StatusMenu = ({ labels = [], systemLabels = [], onChange }) => {
     <Menu closeOnSelect={false} placement="bottom-start">
       <MenuButton 
         as={Button} 
-        rightIcon={<ChevronDownIcon />} 
         variant="ghost" 
         size="sm" 
         minW="fit-content"
