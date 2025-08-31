@@ -83,9 +83,7 @@ function AppContent() {
         color="brand.textPrimary"
       >
         <NavLink to="/">
-          <Heading as="span" size="md" letterSpacing="0.5px" fontWeight="800">
-            FAIR PLAY NIL
-          </Heading>
+          <Box as="img" src="/logo-full.svg" alt="FairPlay NIL" h="28px" />
         </NavLink>
         <Flex gap="32px" align="center" ml="-60px">
           {centerLinks.map((item, index) => {
