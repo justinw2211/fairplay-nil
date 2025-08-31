@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 60">
+  <!-- Logomark -->
+  <polygon points="0,0 30,0 15,26" fill="#282f3d"/>
+  <polygon points="30,0 60,0 15,60" fill="#282f3d"/>
+  
+  <!-- Wordmark -->
+  <text x="75" y="40" font-family="Inter, Arial, sans-serif" font-size="28" fill="#282f3d" font-weight="700" letter-spacing="1">FAIRPLAY</text>
+  <text x="220" y="40" font-family="Inter, Arial, sans-serif" font-size="18" fill="#4e6a7b" font-weight="400" letter-spacing="0.5">NIL</text>
+</svg>
+
