@@ -177,8 +177,8 @@ const Home = () => {
           >
             {/* Logo */}
             <VStack align="start">
-              <Link href="/" fontSize="2xl" fontWeight="bold" color="brand.textPrimary">
-                FairPlay NIL
+              <Link href="/" _hover={{ opacity: 0.9 }}>
+                <Box as="img" src="/logo-full.svg" alt="FairPlay NIL" height="32px" />
               </Link>
             </VStack>
 
