@@ -83,7 +83,7 @@ function AppContent() {
         color="brand.textPrimary"
       >
         <NavLink to="/">
-          <Box as="img" src="/logo-full.svg" alt="FairPlay NIL" h="1.6rem" />
+          <Box as="img" src="/logo-full.svg" alt="FairPlay NIL" h="2.0rem" />
         </NavLink>
         <Flex gap="32px" align="center" ml="-60px">
           {centerLinks.map((item, index) => {
