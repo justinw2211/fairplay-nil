@@ -509,7 +509,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
           direction={{ base: "column", md: "row" }}
           gap={3}
         >
-          <Text color="brand.textPrimary" fontWeight="medium">
+          <Text color="brand.textPrimary" fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>
             {selectedDeals.size} deal{selectedDeals.size > 1 ? 's' : ''} selected
           </Text>
           <Spacer display={{ base: "none", md: "block" }} />
@@ -523,7 +523,9 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
               placeholder="Change Status"
               onChange={(e) => e.target.value && handleBulkStatusChange(e.target.value)}
               isDisabled={isBulkOperating}
-              minW="140px"
+              minW={{ base: "auto", md: "140px" }}
+              w={{ base: "full", md: "auto" }}
+              size={{ base: "sm", md: "md" }}
             >
               <option value="draft">Draft</option>
               <option value="active">Active</option>
@@ -535,14 +537,18 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
               variant="outline"
               onClick={onBulkDeleteOpen}
               isLoading={isBulkOperating}
-              minW="120px"
+              minW={{ base: "auto", md: "120px" }}
+              w={{ base: "full", md: "auto" }}
+              size={{ base: "sm", md: "md" }}
             >
               Delete Selected
             </Button>
             <Button
               variant="ghost"
               onClick={() => setSelectedDeals(new Set())}
-              minW="120px"
+              minW={{ base: "auto", md: "120px" }}
+              w={{ base: "full", md: "auto" }}
+              size={{ base: "sm", md: "md" }}
             >
               Clear Selection
             </Button>
@@ -550,7 +556,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
         </Flex>
       )}
 
-      <TableContainer>
+      <TableContainer overflowX="auto">
         <Table variant='simple' size="sm">
           <Thead>
             <Tr>
@@ -624,13 +630,34 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
                     />
                   </Td>
                   <Td>
-                    {renderEditableCell(deal, 'brand_partner', deal.brand_partner || deal.payor_name)}
+                    {isEditing ? (
+                      renderEditableCell(deal, 'brand_partner', deal.brand_partner || deal.payor_name)
+                    ) : (
+                      <Text
+                        onClick={() => startEditing(deal)}
+                        cursor="pointer"
+                        _hover={{ bg: 'gray.50' }}
+                        fontSize="sm"
+                        color="gray.700"
+                        noOfLines={1}
+                        title={deal.brand_partner || deal.payor_name || ''}
+                      >
+                        {deal.brand_partner || deal.payor_name || 'N/A'}
+                      </Text>
+                    )}
                   </Td>
                   <Td>
                     {isEditing ? (
                       renderEditableCell(deal, 'fmv', deal.fmv, 'number')
                     ) : (
-                      <Text onClick={() => startEditing(deal)} cursor="pointer" _hover={{ bg: 'gray.50' }} fontSize="sm" color="gray.700">
+                      <Text
+                        onClick={() => startEditing(deal)}
+                        cursor="pointer"
+                        _hover={{ bg: 'gray.50' }}
+                        fontSize="sm"
+                        color="gray.700"
+                        whiteSpace="nowrap"
+                      >
                         ${deal.fmv ? deal.fmv.toFixed(2) : '0.00'}
                       </Text>
                     )}
@@ -652,7 +679,14 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
                     </Flex>
                   </Td>
                   <Td>
-                    <Text fontSize="sm" color="gray.700">{formatDate(deal.created_at)}</Text>
+                    <Text
+                      fontSize="sm"
+                      color="gray.700"
+                      noOfLines={1}
+                      title={formatDate(deal.created_at)}
+                    >
+                      {formatDate(deal.created_at)}
+                    </Text>
                   </Td>
                   <Td>
                     {isEditing ? (
