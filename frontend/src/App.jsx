@@ -1,7 +1,23 @@
 // frontend/src/App.jsx
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
-import { Box, Button, Flex, Heading, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Flex,
+  Text,
+  IconButton,
+  useDisclosure,
+  Drawer,
+  DrawerBody,
+  DrawerHeader,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
+  VStack,
+  useBreakpointValue
+} from "@chakra-ui/react";
+import { HamburgerIcon } from '@chakra-ui/icons';
 import { useState } from "react";
 import ErrorBoundary from './components/ErrorBoundary';
 import * as Sentry from "@sentry/react";
@@ -49,6 +65,7 @@ function AppContent() {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const handleSignOut = async () => {
     try {
@@ -74,18 +91,21 @@ function AppContent() {
         justify="space-between"
         align="center"
         bg="brand.background"
-        p="1.4rem 2rem"
-        fontSize="1.1rem"
+        p={{ base: "1rem", md: "1.4rem 2rem" }}
+        fontSize={{ base: "0.9rem", md: "1.1rem" }}
         boxShadow="sm"
         borderBottom="1px solid"
         borderColor="brand.accentSecondary"
         position="relative"
         color="brand.textPrimary"
       >
+        {/* Logo */}
         <NavLink to="/">
-          <Box as="img" src="/logo-full.svg" alt="FairPlay NIL" h="2.0rem" />
+          <Box as="img" src="/logo-full.svg" alt="FairPlay NIL" h={{ base: "1.5rem", md: "2.0rem" }} />
         </NavLink>
-        <Flex gap="32px" align="center" ml="-60px">
+
+        {/* Desktop Navigation Links */}
+        <Flex gap={{ base: "16px", md: "32px" }} align="center" display={{ base: "none", md: "flex" }} ml="-60px">
           {centerLinks.map((item, index) => {
             const isActive = location.pathname === item.path;
             const isHovered = hoveredIndex === index;
@@ -110,30 +130,111 @@ function AppContent() {
             );
           })}
         </Flex>
-        <Flex gap="24px" align="center">
-            {user ? (
-              <>
-                <NavLink to="/dashboard">
-                  <Text fontWeight="600" color="brand.textPrimary">Dashboard</Text>
-                </NavLink>
-                <Button onClick={handleSignOut} variant="outline" size="sm">
-                  Sign Out
+
+        {/* Desktop Auth Section */}
+        <Flex gap={{ base: "12px", md: "24px" }} align="center" display={{ base: "none", md: "flex" }}>
+          {user ? (
+            <>
+              <NavLink to="/dashboard">
+                <Text fontWeight="600" color="brand.textPrimary">Dashboard</Text>
+              </NavLink>
+              <Button onClick={handleSignOut} variant="outline" size="sm">
+                Sign Out
+              </Button>
+            </>
+          ) : (
+            <>
+              <NavLink to="/login">
+                <Text fontWeight="600" color="brand.textPrimary">Log In</Text>
+              </NavLink>
+              <NavLink to="/signup">
+                <Button colorScheme="pink" bg="brand.accentPrimary" color="white" size="sm" _hover={{ bg: '#c8aeb0' }}>
+                  Sign Up
                 </Button>
-              </>
-            ) : (
-              <>
-                <NavLink to="/login">
-                  <Text fontWeight="600" color="brand.textPrimary">Log In</Text>
-                </NavLink>
-                <NavLink to="/signup">
-                  <Button colorScheme="pink" bg="brand.accentPrimary" color="white" size="sm" _hover={{ bg: '#c8aeb0' }}>
-                    Sign Up
-                  </Button>
-                </NavLink>
-              </>
-            )}
+              </NavLink>
+            </>
+          )}
         </Flex>
+
+        {/* Mobile Menu Button */}
+        <IconButton
+          display={{ base: "flex", md: "none" }}
+          aria-label="Open menu"
+          icon={<HamburgerIcon />}
+          variant="ghost"
+          size="sm"
+          onClick={onOpen}
+        />
       </Flex>
+
+      {/* Mobile Drawer */}
+      <Drawer isOpen={isOpen} placement="right" onClose={onClose}>
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerCloseButton />
+          <DrawerHeader borderBottomWidth="1px">
+            <Box as="img" src="/logo-full.svg" alt="FairPlay NIL" h="1.5rem" />
+          </DrawerHeader>
+          <DrawerBody>
+            <VStack spacing={6} align="stretch" mt={6}>
+              {/* Navigation Links */}
+              {centerLinks.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <NavLink key={item.path} to={item.path} onClick={onClose}>
+                    <Text
+                      fontWeight="600"
+                      fontSize="lg"
+                      color={isActive ? "brand.accentPrimary" : "brand.textPrimary"}
+                      borderBottom={isActive ? "2px solid" : "2px solid transparent"}
+                      borderColor={isActive ? "brand.accentPrimary" : "transparent"}
+                      pb="4px"
+                    >
+                      {item.label}
+                    </Text>
+                  </NavLink>
+                );
+              })}
+
+              {/* Auth Section */}
+              <Box pt={4} borderTop="1px solid" borderColor="brand.accentSecondary">
+                {user ? (
+                  <VStack spacing={4} align="stretch">
+                    <NavLink to="/dashboard" onClick={onClose}>
+                      <Text fontWeight="600" fontSize="lg" color="brand.textPrimary">
+                        Dashboard
+                      </Text>
+                    </NavLink>
+                    <Button onClick={() => { handleSignOut(); onClose(); }} variant="outline" size="md">
+                      Sign Out
+                    </Button>
+                  </VStack>
+                ) : (
+                  <VStack spacing={4} align="stretch">
+                    <NavLink to="/login" onClick={onClose}>
+                      <Text fontWeight="600" fontSize="lg" color="brand.textPrimary">
+                        Log In
+                      </Text>
+                    </NavLink>
+                    <NavLink to="/signup" onClick={onClose}>
+                      <Button
+                        colorScheme="pink"
+                        bg="brand.accentPrimary"
+                        color="white"
+                        size="md"
+                        _hover={{ bg: '#c8aeb0' }}
+                        w="full"
+                      >
+                        Sign Up
+                      </Button>
+                    </NavLink>
+                  </VStack>
+                )}
+              </Box>
+            </VStack>
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
