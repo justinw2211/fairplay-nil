@@ -153,7 +153,24 @@ export default async function handler(req, res) {
     }
 
     // Extract release information (commit SHA)
-    const release = issue.release || issue.tags?.release || issue.metadata?.release;
+    // Sentry can send release in different formats:
+    // 1. Direct: issue.release
+    // 2. In tags array: issue.tags = [["release", "sha"], ...]
+    // 3. In metadata: issue.metadata.release
+    let release = issue.release;
+    
+    if (!release && Array.isArray(issue.tags)) {
+      // Find release in tags array
+      const releaseTag = issue.tags.find(tag => Array.isArray(tag) && tag[0] === 'release');
+      if (releaseTag && releaseTag[1]) {
+        release = releaseTag[1];
+      }
+    }
+    
+    if (!release && issue.metadata?.release) {
+      release = issue.metadata.release;
+    }
+    
     if (!release) {
       console.log('No release information found in issue');
       return res.status(200).json({ message: 'No release info, skipping' });
