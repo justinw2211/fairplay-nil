@@ -142,14 +142,32 @@ export default async function handler(req, res) {
     const payload = req.body;
     
     // Validate Sentry webhook payload
-    if (!payload || !payload.data) {
+    if (!payload) {
       return res.status(400).json({ error: 'Invalid payload' });
     }
 
-    // Extract issue from Sentry webhook
-    const issue = payload.data?.issue || payload.issue;
-    if (!issue) {
-      return res.status(400).json({ error: 'No issue data found' });
+    // Handle different Sentry webhook formats:
+    // 1. Internal Integration: payload.data.issue
+    // 2. Alert Rule: payload.data.event (event_alert.triggered)
+    let issue;
+    
+    if (payload.data?.issue) {
+      // Internal Integration format
+      issue = payload.data.issue;
+    } else if (payload.data?.event) {
+      // Alert Rule format - convert event to issue format
+      const event = payload.data.event;
+      issue = {
+        id: event.event_id || event.id,
+        title: event.title || event.message || event.metadata?.value,
+        tags: event.tags,
+        release: event.release,
+        count: 1,
+        lastSeen: event.timestamp || event.datetime || new Date().toISOString(),
+        status: 'unresolved'
+      };
+    } else {
+      return res.status(400).json({ error: 'No issue or event data found' });
     }
 
     // Extract release information (commit SHA)
