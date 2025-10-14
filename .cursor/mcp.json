@@ -12,6 +12,16 @@
           "SUPABASE_ACCESS_TOKEN": "sbp_84799e03da94a006a416950d9e331711613a82ea"
         }
       },
+      "github": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-github"
+        ],
+        "env": {
+          "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+        }
+      },
       "shrimp-task-manager": {
         "command": "npx",
         "args": [

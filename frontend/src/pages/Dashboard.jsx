@@ -22,6 +22,7 @@ import ProfileBanner from '../components/ProfileBanner';
 import useProfile from '../hooks/useProfile';
 import ErrorBoundary from '../components/ErrorBoundary';
 import * as Sentry from '@sentry/react';
+import useDeploymentFeedback from '../hooks/useDeploymentFeedback';
 
 // ProfileCard component removed - replaced with enhanced ProfileBanner
 
@@ -140,6 +141,7 @@ const Dashboard = () => {
   const { createDraftDeal, loading: isCreatingDeal } = useDeal();
   const { profile, loading: profileLoading, error: profileError, fetchProfile } = useProfile();
   const { fetchSocialMedia: loadSocialMediaData } = useSocialMedia();
+  const { deploymentStatus, errors: deploymentErrors } = useDeploymentFeedback();
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
@@ -150,6 +152,16 @@ const Dashboard = () => {
   // Debug: Check if createDraftDeal is defined
   console.log('[Dashboard] createDraftDeal function:', typeof createDraftDeal);
   console.log('[Dashboard] createDraftDeal is function:', typeof createDraftDeal === 'function');
+
+  // Log deployment feedback status for monitoring
+  useEffect(() => {
+    if (deploymentStatus) {
+      console.log('[Dashboard] Deployment status:', deploymentStatus);
+    }
+    if (deploymentErrors && deploymentErrors.length > 0) {
+      console.log('[Dashboard] Deployment errors detected:', deploymentErrors.length);
+    }
+  }, [deploymentStatus, deploymentErrors]);
 
   // Sentry temporarily disabled to fix blank website issue
   // console.log('[Dashboard] Testing Sentry integration...');

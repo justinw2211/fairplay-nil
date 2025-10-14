@@ -131,5 +131,36 @@ export const authLogger = new Logger('AuthContext');
 export const dealLogger = new Logger('DealContext');
 export const apiLogger = new Logger('API');
 export const formLogger = new Logger('Form');
+export const deploymentLogger = new Logger('Deployment');
+
+// Deployment-specific logging functions
+export const logDeploymentEvent = (event, data = {}) => {
+  const deploymentContext = {
+    event,
+    deployment: {
+      environment: import.meta.env.VITE_VERCEL_ENV || 'development',
+      version: import.meta.env.VITE_APP_VERSION || '1.0.0',
+      buildTime: import.meta.env.VITE_BUILD_TIME || new Date().toISOString()
+    },
+    ...data
+  };
+
+  deploymentLogger.info(`Deployment event: ${event}`, deploymentContext);
+};
+
+export const logDeploymentError = (error, context = {}) => {
+  const errorContext = {
+    ...context,
+    deployment: {
+      environment: import.meta.env.VITE_VERCEL_ENV || 'development',
+      version: import.meta.env.VITE_APP_VERSION || '1.0.0',
+      buildTime: import.meta.env.VITE_BUILD_TIME || new Date().toISOString()
+    },
+    errorType: 'deployment',
+    timestamp: new Date().toISOString()
+  };
+
+  deploymentLogger.error(`Deployment error: ${error.message}`, errorContext);
+};
 
 export default logger;

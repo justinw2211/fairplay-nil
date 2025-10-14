@@ -1,0 +1,75 @@
+# Cursor Git MCP Enhanced Workflow
+# Optimized for tight feedback loops
+
+workflows:
+  commit-and-deploy:
+    triggers:
+      - file_save
+      - git_commit
+    actions:
+      - name: "Auto-commit on significant changes"
+        condition: "has_meaningful_changes"
+        command: "git commit -m 'Auto-commit: {{change_summary}}'"
+      
+      - name: "Push to trigger deployment"
+        condition: "commit_successful"
+        command: "git push origin main"
+      
+      - name: "Monitor deployment status"
+        condition: "push_successful"
+        action: "monitor_vercel_deployment"
+        timeout: "5m"
+      
+      - name: "Check for errors post-deployment"
+        condition: "deployment_complete"
+        action: "check_sentry_errors"
+        delay: "30s"
+
+  error-recovery:
+    triggers:
+      - deployment_error
+      - sentry_error
+    actions:
+      - name: "Analyze error context"
+        action: "analyze_error_context"
+      
+      - name: "Suggest fixes"
+        condition: "error_analyzed"
+        action: "suggest_code_fixes"
+      
+      - name: "Create fix branch"
+        condition: "fixes_available"
+        command: "git checkout -b fix/{{error_type}}-{{timestamp}}"
+      
+      - name: "Apply suggested fixes"
+        action: "apply_code_fixes"
+
+  performance-monitoring:
+    triggers:
+      - deployment_success
+    actions:
+      - name: "Monitor performance metrics"
+        action: "check_performance_metrics"
+        delay: "2m"
+      
+      - name: "Alert on performance regression"
+        condition: "performance_degraded"
+        action: "create_performance_issue"
+
+settings:
+  auto_commit:
+    enabled: true
+    meaningful_changes_only: true
+    commit_message_template: "Auto-commit: {{change_summary}}"
+  
+  deployment_monitoring:
+    enabled: true
+    check_interval: "30s"
+    timeout: "5m"
+    retry_attempts: 3
+  
+  error_monitoring:
+    enabled: true
+    check_interval: "1m"
+    severity_threshold: "warning"
+    auto_fix_attempts: true

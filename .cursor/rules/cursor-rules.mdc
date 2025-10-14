@@ -1,4 +1,315 @@
+---
+alwaysApply: true
+---
+
 ### 🔄 Project Awareness & Context
+- **Always read `PLANNING.md`** at the start of a new conversation to understand the project's architecture, goals, style, and constraints.
+- **Check `TASK.md`** before starting a new task. If the task isn't listed, add it with a brief description and today's date.
+- **Review `docs/development/database/supabase-guide.md`** for complete database schema, relationships, and query patterns before working with database-related tasks. I will manually run raw SQL to make changes to the database
+
+- **FairPlay NIL Platform**: A comprehensive Name, Image, and Likeness platform for college athletes, brands, and collectives
+- **Core Business Logic**: Deal Management, Athlete Profiles, Managing Brand Partnerships, Compliance Tracking
+- **Activity Types**: Social Media, Endorsements, Appearances, Content Creation, Merchandise, Autographs
+- **Always consider regulatory compliance** - NIL deals must comply with NCAA and state regulations following the recent House v. NCAA ruling
+- **Multi-user platform**: Athletes, brands, collectives, and universities have different workflows and requirements
+- **Deal Lifecycle**: From creation to completion and compliance reporting
+- **Check existing file structure** in `frontend/src/` and `backend/app/` before creating new files
+- **Follow established patterns** from existing components and API routes
+
+### 🔌 MCP (Model Context Protocol) Integration
+- **LIVE DATABASE ACCESS**: MCP server provides direct access to Supabase database for real-time queries
+- **Configuration**: Located in `~/.cursor/mcp.json` with read-only access to project `izitucbtlygkzncwmsjl`
+- **Available MCP Tools**:
+  - `execute_sql`: Run SQL queries on live database (SELECT operations)
+  - `list_tables`: Get database table structure and relationships
+  - `list_migrations`: View applied database migrations
+  - `get_project_url`: Retrieve Supabase project API URL
+  - `get_anon_key`: Get anonymous API key for frontend
+  - `generate_typescript_types`: Auto-generate TypeScript types from database schema
+  - `get_logs`: Debug database and API issues with real-time logs
+  - `get_advisors`: Check for security vulnerabilities and performance issues
+- **Data Access**: Can query live data for deals (69 total, all in draft status), profiles, schools (710 total), and social media platforms
+- **Security**: Read-only mode prevents accidental database modifications
+- **Best Practices**: Use MCP for debugging, data analysis, and understanding current system state
+
+### 🔌 API & Integration Consistency
+- **ALWAYS use existing hooks** instead of direct fetch calls (e.g., use `useSocialMedia()` hook instead of `fetch('/api/...')`)
+- **API endpoint consistency**: Check `backend/app/api/` for correct endpoint paths before making frontend calls
+- **Hook-first approach**: If a hook exists for API operations, use it. If it doesn't exist, create one following existing patterns
+- **Never hardcode API endpoints** in components - use environment variables or hooks
+- **Verify backend routes** in FastAPI before implementing frontend calls
+- **Backend route prefix**: All API routes use `/api/` prefix (e.g., `/api/social-media`, not `/api/profile/social-media`)
+
+### 🎨 Theme & Design Consistency  
+- **ALWAYS use theme colors** from `frontend/src/theme.js` instead of hardcoded hex values or Chakra defaults
+- **Brand color reference**: `brand.accentPrimary: #d0bdb5`, `brand.textPrimary: #282f3d`, `brand.accentSecondary: #d6dce4`
+- **Never use Chakra colorSchemes** (`colorScheme="blue"`) - use custom brand colors instead
+- **Color validation**: Before using any color, check if it exists in theme.js first
+- **Consistent styling**: Use `bg={accentColor}` and `color="white"` pattern for brand-colored elements
+- **No hardcoded colors**: Replace hardcoded colors like `#3182CE`, `#2D3748` with theme variables
+
+### 🔄 Frontend/Backend Data Synchronization
+- **Division mapping consistency**: When adding divisions to database, update frontend constants in `frontend/src/data/formConstants.js`
+- **CRITICAL: Division enum mapping pattern**: 
+  - Database enum: `'I'`, `'II'`, `'III'`, `'NAIA'`, `'JUCO'`
+  - Frontend display: `'Division I'`, `'Division II'`, `'Division III'`, `'NAIA'`, `'JUCO'`
+  - **ALWAYS implement bidirectional mapping**: Convert display values to enum values on form submission, convert enum values to display values when loading data
+  - **Mapping locations**: EditProfile.jsx, SignUp.jsx, and any other forms that handle division selection
+- **Schema change checklist**: 
+  1. Update database migration
+  2. Update backend validation schemas (`backend/app/schemas.py`)
+  3. Update frontend constants and validation
+  4. Update TypeScript types if applicable
+- **Keep dropdown options in sync**: Always verify frontend dropdown options match available database values
+
+### 🚀 Deployment & Dependency Management
+- **Supabase Python Library**: Use supabase>=2.16.0 (versions 1.0.3 and earlier have critical initialization bugs)
+- **Deployment dependency conflicts**: When upgrading supabase library, also update:
+  - httpx>=0.26,<0.29 (not ==0.23.0)
+  - typing-extensions>=4.14.0,<5.0.0 (not ==4.5.0)
+  - pydantic>=1.10.7,<3.0.0 (flexible for v1/v2 compatibility)
+  - anyio>=3.6.2,<5.0.0 (not ==3.6.2)
+  - aioredis>=2.0.1,<3.0.0 (not ==2.0.1)
+- **Missing production dependencies**: Always include email-validator, redis, psutil in requirements.txt
+- **Pydantic compatibility**: Use `pattern` instead of `regex` for v2 compatibility in schema validation
+- **Deployment testing**: Local development may not catch all dependency issues - test in production environment
+
+### 🧱 Code Structure & Modularity
+- **Backend (FastAPI)**: 
+  - API routes in `backend/app/api/` organized by domain (deals.py, profile.py)
+  - Database models and schemas in `backend/app/schemas.py`
+  - Database connection in `backend/app/database.py`
+  - **Use Pydantic for data validation** (already established)
+- **Frontend (React + Vite)**:
+  - Components in `frontend/src/components/` with clear separation of concerns
+  - Pages in `frontend/src/pages/` following existing patterns
+  - Context providers in `frontend/src/context/` (AuthContext, DealContext)
+  - **Never create React components longer than 300 lines** - split into smaller components
+- **Database**: Use migration files in `backend/migrations/` for schema changes
+- **Form handling**: Use existing patterns from `frontend/src/components/forms/`
+
+### 🐛 Development & Debugging Best Practices
+- **Browser caching**: After making UI changes, always test with hard refresh (`Cmd+Shift+R` / `Ctrl+F5`)
+- **Development server restart**: If changes don't appear, restart dev server to clear module cache
+- **Color debugging**: Use browser dev tools to verify actual CSS values match expected theme colors
+- **API debugging**: Check browser Network tab to verify correct endpoint URLs are being called
+- **Hook usage verification**: Search codebase for existing hooks before creating new API calls
+
+### 🔍 Error-Specific Debugging Strategies
+- **"X is not a function" errors**: 
+  - **Check import/export consistency** first - most common cause
+  - **Verify function exists** in the imported module
+  - **Check if default vs named export** matches import style
+- **"Cannot read property of undefined" errors**:
+  - **Add console.log** to trace data flow and identify where undefined originates
+  - **Check component props** and state initialization
+  - **Verify API response structure** matches expected format
+- **React rendering errors (Error #31)**:
+  - **Check for unsafe object rendering** - wrap complex objects in try-catch
+  - **Add null checks** before accessing nested properties
+  - **Use React Error Boundaries** to catch and display helpful error messages
+- **Form data persistence issues**:
+  - **Log form data keys** being read vs written
+  - **Check state management** - ensure data isn't being lost on component re-renders
+  - **Verify routing parameters** are preserved across navigation
+- **Hook-related errors**:
+  - **Check hook parameters** are being passed correctly
+  - **Verify hook dependencies** array includes all required values
+  - **Test hook in isolation** to verify it works independently
+
+### 🧪 Testing & Reliability
+- **Frontend**: Use Jest + React Testing Library (already configured)
+- **Backend**: Create Pytest tests for new API endpoints and business logic
+- **Test files**: 
+  - Frontend: `*.test.jsx` files alongside components
+  - Backend: `/tests` folder structure
+- **Always test deal creation workflows** - critical business functionality
+- **Test compliance validation logic** thoroughly
+
+### ✅ Task Completion & Development Flow
+- **Database changes**: Always use migrations via `backend/migrations/`
+- **API changes**: Update both backend routes and frontend API calls
+- **Form updates**: Maintain consistency with existing form patterns and validation
+- **State management**: Use established Context patterns (AuthContext, DealContext)
+
+### 📎 Style & Conventions
+- **Backend (Python)**:
+  - Follow PEP8, use type hints
+  - Use FastAPI dependency injection patterns
+  - PostgreSQL via Supabase (not SQLAlchemy/SQLModel)
+  - Environment variables via Supabase configuration
+- **Frontend (React)**:
+  - Use Chakra UI components consistently
+  - Follow established component naming: kebab-case for files, PascalCase for component names
+  - Use React hooks patterns from `frontend/src/hooks/`
+  - Maintain responsive design principles
+
+### 🔒 Security & Compliance (MVP Essentials)
+- **Never log sensitive data**: No personal info, financial data, or authentication tokens in logs
+- **Validate user permissions**: Check user roles before accessing deal data or user profiles
+- **Input sanitization**: Validate all form inputs, especially file uploads and user-generated content
+- **Environment variables**: Keep API keys and secrets in environment variables, never hardcode
+- **Authentication**: Always verify user authentication before accessing protected resources
+
+### 🐛 Error Handling & User Experience
+- **Consistent error responses**: Use standard HTTP status codes and error message format
+- **User-friendly messages**: Show clear, actionable error messages to users
+- **Graceful degradation**: Handle API failures gracefully with loading states and retry options
+- **Form validation**: Provide real-time validation feedback using established patterns
+- **Error boundaries**: Use React Error Boundaries for component-level error handling
+
+### 🔧 Common Error Prevention Patterns
+- **Import/Export Consistency**: 
+  - **ALWAYS match import style with export style**: If `export default MyComponent`, use `import MyComponent from './MyComponent'`
+  - **If `export const MyComponent = ...`, use `import { MyComponent } from './MyComponent'`**
+  - **Double-check import statements** when debugging "is not a function" errors
+- **Function Name Consistency**: 
+  - **Function names in hooks MUST match actual function implementations**
+  - **Search codebase for existing function names** before creating new ones with similar purposes
+  - **Use consistent naming patterns**: `save*`, `store*`, `get*`, `fetch*` throughout the codebase
+- **Data Key Consistency**: 
+  - **Form data keys MUST match between read and write operations**
+  - **Use the same keys for reading from state and writing to state**
+  - **Document data structure keys** when dealing with complex nested objects
+- **Safe Property Access**: 
+  - **ALWAYS use optional chaining** (`?.`) for nested object properties that might be undefined
+  - **Add null checks** before rendering complex objects: `prediction && prediction.factors`
+  - **Use fallback values** for critical display data: `prediction?.value || 'Not calculated'`
+  - **Wrap object rendering in String()** conversion for safety: `String(prediction?.rationale || '')`
+- **Component State Management**: 
+  - **Never recalculate state from modified data** - store initial state and maintain it separately
+  - **Use stable state references** that don't change when underlying data is modified
+  - **Capture initial state once** and track changes through indices/flags rather than recalculating
+- **Hook Parameter Validation**: 
+  - **Always check required parameters** are provided when calling custom hooks
+  - **Add parameter validation** at the start of custom hooks
+  - **Use TypeScript/PropTypes** to enforce required parameters
+- **URL Parameter Completeness**: 
+  - **Include ALL required parameters** in navigation URLs
+  - **Double-check back navigation URLs** include necessary state parameters
+  - **Test navigation flows** to ensure parameters are preserved across route changes
+
+### 🔌 API Design Standards (MVP)
+- **RESTful endpoints**: Use standard patterns (GET /deals, POST /deals, PUT /deals/{id})
+- **Consistent response format**: Standard JSON structure with data/error/metadata
+- **Input validation**: Use Pydantic models for request/response validation
+- **HTTP status codes**: Use appropriate codes (200, 201, 400, 401, 403, 404, 500)
+- **Async patterns**: Use async/await for database operations and external API calls
+
+### ⚡ Performance Basics (MVP)
+- **Database queries**: Use indexes on frequently queried fields (athlete_id, deal_status)
+- **React optimization**: Use React.memo() for components that re-render frequently
+- **Bundle size**: Monitor main bundle size, code-split large pages if needed
+- **Image optimization**: Compress images, use appropriate formats for web
+- **Loading states**: Show loading indicators for any operation taking >500ms
+
+### 🔄 State Management Guidelines
+- **Context scope**: Keep contexts focused - AuthContext for auth, DealContext for deals
+- **Avoid prop drilling**: Use Context for deeply nested component communication
+- **Data flow**: Maintain unidirectional data flow patterns
+- **Local state**: Use useState for component-specific state, Context for shared state
+- **Form state**: Use established form patterns, avoid complex state management for simple forms
+
+### 📚 Documentation & Explainability
+- **Business logic comments**: Explain NIL compliance requirements and business rules
+- **Complex workflows**: Document multi-step processes like deal creation wizard
+- **API documentation**: Use FastAPI's automatic OpenAPI documentation
+- **Component props**: Document complex prop interfaces for reusable components
+
+### 🧠 AI Behavior Rules
+- **Never assume missing context about NIL regulations** - ask if uncertain about compliance requirements
+- **Always consider all user types**: Athletes, brands, collectives, universities have different needs
+- **Verify file paths** against existing project structure (`frontend/src/`, `backend/app/`)
+- **Check existing patterns** before creating new components or API routes
+- **Never delete existing migration files** - only add new ones
+- **Consider deal lifecycle** - from creation to compliance approval to completion
+
+### 🎯 FairPlay NIL Specific Rules
+- **Deal Management**: All deals must have clear deliverables, compensation, and compliance tracking
+- **Activity Categories**: Social Media, Endorsements, Appearances, Content Creation, Merchandise, Autographs
+- **User Types & Workflows**: 
+  - Athletes: Sports, school affiliation, contact information
+  - Brands: Company details, marketing objectives  
+  - Collectives: University-specific booster organizations
+  - Universities: Institution management
+- **School Integration**: Use existing NCAA schools data from `frontend/src/data/ncaaSchools.js`
+- **Geographic Restrictions**: State laws may affect available deal types
+- **Form Validation**: Use established validation patterns from `frontend/src/validation/`
+- **Authentication**: Leverage Supabase Auth patterns already implemented
+- **File Uploads**: Contract uploads are critical - handle securely with proper validation
+- **Compliance Workflow**: Approval required before deal activation
+- **Data Sensitivity**: Handle personal information, financial data, and compliance records with care
+
+### 🛠️ Critical Infrastructure & Code Quality (Updated 2025)
+- **ESLint Configuration**: Enhanced bug prevention rules in root `.eslintrc.cjs`
+  - **React-specific rules**: `react-hooks/exhaustive-deps`, `react-hooks/rules-of-hooks`, `react/jsx-key`
+  - **JavaScript safety**: `no-unused-vars`, `no-undef`, `no-console`, `prefer-const`
+  - **Async/await safety**: `no-async-promise-executor`, `require-await`
+  - **Common mistakes**: `eqeqeq`, `curly`, `no-eval`
+  - **ALWAYS run `npm run lint` before committing** to catch bugs early
+  - **Fix auto-fixable issues**: `npm run lint --fix` to automatically resolve simple issues
+
+- **Test Utilities**: Centralized testing infrastructure in `frontend/src/utils/test-utils.js`
+  - **Use `renderWithProviders`** for components needing all providers (Chakra + Router + Auth + Deal)
+  - **Use `renderWithChakra`** for simple UI components needing only ChakraProvider
+  - **Use `renderWithChakraAndRouter`** for navigation components
+  - **Use `renderWithMockedContexts`** for isolated testing with mock data
+  - **Mock contexts available**: `mockAuthContext`, `mockDealContext`, `mockDealContextWithDeal`
+  - **Test data utilities**: `testData`, `createTestProps`, `waitForAsync`, `mockConsole`
+  - **NEVER import actual contexts in test utilities** - use mocks to avoid Jest/import.meta.env issues
+
+- **Error Tracking & Monitoring**: Production-ready error handling
+  - **Sentry Integration**: Configured in `frontend/src/main.jsx` with environment-specific settings
+  - **Error Boundaries**: Enhanced `frontend/src/components/ErrorBoundary.jsx` with Sentry reporting
+  - **Logger Utility**: Centralized logging in `frontend/src/utils/logger.js` with Sentry integration
+  - **Environment Config**: Centralized in `frontend/src/config/environment.js` for consistent error handling
+  - **ALWAYS use logger instead of console.log**: `logger.info()`, `logger.error()`, `logger.warn()`
+  - **Error reporting**: Automatic error reporting to Sentry in production
+
+- **API Mocking**: Comprehensive mocks for testing in `frontend/src/__mocks__/api.js`
+  - **Mock API object**: `mockApi.deals`, `mockApi.profiles`, `mockApi.socialMedia`, `mockApi.schools`
+  - **Global mockFetch**: Handles all API endpoints with realistic responses
+  - **Immutable test data**: Uses `createMockData()` factory to prevent test state pollution
+  - **Realistic responses**: Includes pagination, filtering, error handling
+  - **Test file**: `frontend/src/__mocks__/api.test.js` validates mock functionality
+
+- **Environment Variables**: Production-ready configuration
+  - **Required**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_API_URL`
+  - **Optional**: `VITE_SENTRY_DSN` for error tracking
+  - **Validation**: Environment config validates required variables in production
+  - **ALWAYS check environment variables** before using them in production code
+
+- **Build & Deployment**: Optimized for Vercel deployment
+  - **ES Modules**: Project uses `"type": "module"` in package.json
+  - **Vite configuration**: Optimized for production builds
+  - **Environment detection**: Automatic production/development mode detection
+  - **Error sampling**: Reduced error reporting in production to manage costs
+
+- **Code Quality Standards**:
+  - **ALWAYS run ESLint before committing**: `npm run lint`
+  - **Fix warnings**: Address all ESLint warnings, not just errors
+  - **Use test utilities**: Leverage centralized test utilities for consistent testing
+  - **Mock external dependencies**: Use mocks for API calls, contexts, and external services
+  - **Error boundaries**: Wrap critical components in ErrorBoundary for graceful error handling
+  - **Logging**: Use structured logging with appropriate levels (info, warn, error, debug)
+
+- **Testing Best Practices**:
+  - **Component testing**: Use `renderWithProviders` or `renderWithChakra` for consistent test setup
+  - **API testing**: Use `mockApi` or `mockFetch` for testing API-dependent components
+  - **Context testing**: Use mock contexts for isolated component testing
+  - **Error testing**: Test error boundaries and error handling paths
+  - **Integration testing**: Test complete user workflows, especially deal creation
+
+- **Performance & Monitoring**:
+  - **Sentry performance monitoring**: Automatic performance tracking in production
+  - **Error sampling**: Configured to reduce costs while maintaining visibility
+  - **Session replay**: Available for debugging user interactions
+  - **Environment-specific settings**: Different configurations for dev/staging/production
+- **Form Validation**: Use established validation patterns from `frontend/src/validation/`
+- **Authentication**: Leverage Supabase Auth patterns already implemented
+- **File Uploads**: Contract uploads are critical - handle securely with proper validation
+- **Compliance Workflow**: Approval required before deal activation
+- **Data Sensitivity**: Handle personal information, financial data, and compliance records with care### 🔄 Project Awareness & Context
 - **Always read `PLANNING.md`** at the start of a new conversation to understand the project's architecture, goals, style, and constraints.
 - **Check `TASK.md`** before starting a new task. If the task isn't listed, add it with a brief description and today's date.
 - **Review `docs/development/database/supabase-guide.md`** for complete database schema, relationships, and query patterns before working with database-related tasks. I will manually run raw SQL to make changes to the database
