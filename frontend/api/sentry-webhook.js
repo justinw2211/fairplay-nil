@@ -13,8 +13,8 @@ const octokit = new Octokit({
 });
 
 // Repository configuration
-const REPO_OWNER = 'justinwachtel'; // Update with your GitHub username
-const REPO_NAME = 'fairplay-nil'; // Update with your repo name if different
+const REPO_OWNER = 'justinw2211'; // Your GitHub username
+const REPO_NAME = 'fairplay-nil';
 
 /**
  * Find GitHub PR by commit SHA
@@ -146,20 +146,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid payload' });
     }
 
-    const { event_type, data } = payload;
-    
-    // Only process issue creation/regression events
-    if (!['issue.created', 'issue.regression'].includes(event_type)) {
-      return res.status(200).json({ message: 'Event type not relevant' });
-    }
-
-    const issue = data.issue;
+    // Extract issue from Sentry webhook
+    const issue = payload.data?.issue || payload.issue;
     if (!issue) {
       return res.status(400).json({ error: 'No issue data found' });
     }
 
     // Extract release information (commit SHA)
-    const release = issue.release || issue.metadata?.release;
+    const release = issue.release || issue.tags?.release || issue.metadata?.release;
     if (!release) {
       console.log('No release information found in issue');
       return res.status(200).json({ message: 'No release info, skipping' });
@@ -172,16 +166,22 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: 'No PR found for commit' });
     }
 
-    // Get all active errors for this release
-    const activeErrors = await getActiveErrorsForRelease(release);
+    // Build error data from Sentry webhook
+    const errorData = {
+      id: issue.id,
+      title: issue.title || issue.culprit || 'Unknown Error',
+      count: issue.count || issue.numComments || 1,
+      lastSeen: issue.lastSeen || issue.last_seen || new Date().toISOString(),
+      status: issue.status || 'unresolved'
+    };
     
     // Update sticky comment
-    await updateStickyComment(pr.number, activeErrors);
+    await updateStickyComment(pr.number, [errorData]);
 
     return res.status(200).json({ 
       message: 'Sticky comment updated successfully',
       pr_number: pr.number,
-      errors_count: activeErrors.length
+      errors_count: 1
     });
 
   } catch (error) {
@@ -193,21 +193,4 @@ export default async function handler(req, res) {
   }
 }
 
-/**
- * Get all active errors for a specific release
- * Note: This is a simplified version - you'd need to implement
- * actual Sentry API calls to get real error data
- */
-async function getActiveErrorsForRelease(release) {
-  // TODO: Implement actual Sentry API call to get errors for this release
-  // For now, return mock data structure
-  return [
-    {
-      id: 'mock-error-1',
-      title: 'TypeError: Cannot read property of undefined',
-      count: 5,
-      lastSeen: new Date().toISOString(),
-      status: 'unresolved'
-    }
-  ];
-}
+// Removed unused function - error data now comes directly from Sentry webhook payload
