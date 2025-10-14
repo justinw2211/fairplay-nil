@@ -30,6 +30,7 @@
     "@nivo/core": "^0.99.0",
     "@nivo/line": "^0.99.0",
     "@nivo/pie": "^0.99.0",
+    "@octokit/rest": "^20.1.2",
     "@sentry/react": "^9.43.0",
     "@sentry/tracing": "^7.120.4",
     "@supabase/supabase-js": "^2.21.0",

@@ -15,12 +15,24 @@ import * as Sentry from "@sentry/react";
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN || "https://8a759dc24e0d183c942867eb9d1eadc6@o4509759316426752.ingest.us.sentry.io/4509759319572480",
   environment: import.meta.env.MODE,
+  // Set release to commit SHA for preview deployments
+  release: import.meta.env.VITE_VERCEL_GIT_COMMIT_SHA || import.meta.env.VITE_GIT_COMMIT_SHA || undefined,
   debug: import.meta.env.MODE === 'development',
   beforeSend(event) {
     // Filter out sensitive data
     if (event.request?.headers) {
       delete event.request.headers['authorization'];
     }
+    
+    // Add deployment context
+    if (import.meta.env.VITE_VERCEL_GIT_COMMIT_SHA) {
+      event.tags = {
+        ...event.tags,
+        commit_sha: import.meta.env.VITE_VERCEL_GIT_COMMIT_SHA,
+        deployment_url: import.meta.env.VITE_VERCEL_URL,
+      };
+    }
+    
     return event;
   },
 });
