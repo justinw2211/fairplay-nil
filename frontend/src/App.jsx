@@ -55,7 +55,6 @@ import ClearinghouseWizard from './pages/DealWizard/ClearinghouseWizard';
 import ClearinghouseResult from './pages/ClearinghouseResult';
 import ValuationWizard from './pages/DealWizard/ValuationWizard';
 import ValuationResult from './pages/ValuationResult';
-import WebhookTest from './pages/WebhookTest';
 
 // Import route protection components
 import DealWizardRoute from './components/DealWizardRoute';
@@ -251,7 +250,6 @@ function AppContent() {
         <Route path="/brands" element={<Brands />} />
         <Route path="/blog" element={<BlogList />} />
         <Route path="/blog/:slug" element={<BlogArticle />} />
-        <Route path="/webhook-test" element={<WebhookTest />} />
 
         {/* Protected Routes */}
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
