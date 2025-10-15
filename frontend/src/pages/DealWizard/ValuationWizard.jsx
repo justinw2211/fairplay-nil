@@ -49,6 +49,7 @@ import {
   Zap,
   BarChart3,
   Target,
+  Edit,
 } from 'lucide-react';
 import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
 
@@ -76,21 +77,35 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const SectionCard = ({ title, icon: IconComponent, children }) => (
+const SectionCard = ({ title, icon: IconComponent, children, onEdit }) => (
   <Card variant="outline" borderColor="brand.accentSecondary" shadow="sm">
     <CardHeader borderBottom="1px" borderColor="brand.accentSecondary" bg="brand.backgroundLight" roundedTop="lg">
-      <HStack spacing={3}>
-        <Box
-          bg="brand.accentPrimary"
-          p={2}
-          rounded="lg"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <Icon as={IconComponent} color="white" />
-        </Box>
-        <Heading size="md" color="brand.textPrimary">{title}</Heading>
+      <HStack spacing={3} justify="space-between">
+        <HStack spacing={3}>
+          <Box
+            bg="brand.accentPrimary"
+            p={2}
+            rounded="lg"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <Icon as={IconComponent} color="white" />
+          </Box>
+          <Heading size="md" color="brand.textPrimary">{title}</Heading>
+        </HStack>
+        {onEdit && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onEdit}
+            leftIcon={<Icon as={Edit} />}
+            color="brand.textSecondary"
+            _hover={{ color: "brand.textPrimary" }}
+          >
+            Edit
+          </Button>
+        )}
       </HStack>
     </CardHeader>
     <CardBody bg="white">{children}</CardBody>
@@ -269,7 +284,7 @@ const ValuationWizard = () => {
   }
 
   return (
-    <DealWizardStepWrapper stepNumber={10} stepName="Valuation Prediction">
+    <DealWizardStepWrapper stepNumber={9} stepName="Valuation Prediction">
       <Container maxW="4xl" py={8}>
         {/* Header */}
         <VStack spacing={6} align="stretch" mb={8}>
@@ -307,7 +322,11 @@ const ValuationWizard = () => {
             </CardHeader>
             <CardBody>
               <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6}>
-                <SectionCard title="Deal Terms" icon={Briefcase}>
+                <SectionCard 
+                  title="Deal Terms" 
+                  icon={Briefcase}
+                  onEdit={() => navigate(`/add/deal/terms/${dealId}?type=${dealType}`)}
+                >
                   <VStack align="start" spacing={2}>
                     <Text><strong>Type:</strong> {currentDeal.deal_type || 'Standard Deal'}</Text>
                     <Text><strong>Activities:</strong> {currentDeal.activities?.join(', ') || 'Not specified'}</Text>
@@ -317,7 +336,11 @@ const ValuationWizard = () => {
                   </VStack>
                 </SectionCard>
 
-                <SectionCard title="Payor Information" icon={Users}>
+                <SectionCard 
+                  title="Payor Information" 
+                  icon={Users}
+                  onEdit={() => navigate(`/add/deal/payor/${dealId}?type=${dealType}`)}
+                >
                   <VStack align="start" spacing={2}>
                     <Text><strong>Company:</strong> {currentDeal.payor_name || 'Not specified'}</Text>
                     <Text><strong>Type:</strong> {currentDeal.payor_type || 'Not specified'}</Text>
@@ -325,7 +348,11 @@ const ValuationWizard = () => {
                   </VStack>
                 </SectionCard>
 
-                <SectionCard title="Deliverables" icon={Target}>
+                <SectionCard 
+                  title="Deliverables" 
+                  icon={Target}
+                  onEdit={() => navigate(`/add/deal/activities/select/${dealId}?type=${dealType}`)}
+                >
                   <VStack align="start" spacing={2}>
                     <Text><strong>Posts:</strong> {currentDeal.social_media_posts || 0} posts</Text>
                     <Text><strong>Platforms:</strong> {currentDeal.platforms?.join(', ') || 'Not specified'}</Text>
@@ -400,11 +427,11 @@ const ValuationWizard = () => {
           <Button
             leftIcon={<ChevronLeft />}
             variant="outline"
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate(`/add/deal/deal-type/${dealId}?type=${dealType}`)}
             borderColor="brand.accentSecondary"
             color="brand.textPrimary"
           >
-            Back to Dashboard
+            Back to Deal Type
           </Button>
 
           <Button

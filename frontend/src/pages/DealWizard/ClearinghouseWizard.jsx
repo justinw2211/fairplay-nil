@@ -47,6 +47,7 @@ import {
   ChevronLeft,
   Clock,
   Zap,
+  Edit,
 } from 'lucide-react';
 import DealWizardStepWrapper from '../../components/DealWizardStepWrapper';
 
@@ -74,21 +75,35 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const SectionCard = ({ title, icon: IconComponent, children }) => (
+const SectionCard = ({ title, icon: IconComponent, children, onEdit }) => (
   <Card variant="outline" borderColor="brand.accentSecondary" shadow="sm">
     <CardHeader borderBottom="1px" borderColor="brand.accentSecondary" bg="brand.backgroundLight" roundedTop="lg">
-      <HStack spacing={3}>
-        <Box
-          bg="brand.accentPrimary"
-          p={2}
-          rounded="lg"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <Icon as={IconComponent} color="white" />
-        </Box>
-        <Heading size="md" color="brand.textPrimary">{title}</Heading>
+      <HStack spacing={3} justify="space-between">
+        <HStack spacing={3}>
+          <Box
+            bg="brand.accentPrimary"
+            p={2}
+            rounded="lg"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <Icon as={IconComponent} color="white" />
+          </Box>
+          <Heading size="md" color="brand.textPrimary">{title}</Heading>
+        </HStack>
+        {onEdit && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onEdit}
+            leftIcon={<Icon as={Edit} />}
+            color="brand.textSecondary"
+            _hover={{ color: "brand.textPrimary" }}
+          >
+            Edit
+          </Button>
+        )}
       </HStack>
     </CardHeader>
     <CardBody bg="white">{children}</CardBody>
@@ -320,7 +335,11 @@ const ClearinghouseWizard = () => {
           </Alert>
 
           <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-            <SectionCard title="Deal Overview" icon={Briefcase}>
+            <SectionCard 
+              title="Deal Overview" 
+              icon={Briefcase}
+              onEdit={() => navigate(`/add/deal/terms/${dealId}?type=${dealType}`)}
+            >
               <VStack align="stretch" spacing={4}>
                 <Box>
                   <Text fontWeight="medium" color="brand.textSecondary">Total Compensation</Text>
@@ -339,7 +358,11 @@ const ClearinghouseWizard = () => {
               </VStack>
             </SectionCard>
 
-            <SectionCard title="Payor Information" icon={Users}>
+            <SectionCard 
+              title="Payor Information" 
+              icon={Users}
+              onEdit={() => navigate(`/add/deal/payor/${dealId}?type=${dealType}`)}
+            >
               <VStack align="stretch" spacing={3}>
                 <Box>
                   <Text fontWeight="medium" color="brand.textSecondary">Payor Name</Text>
@@ -370,6 +393,18 @@ const ClearinghouseWizard = () => {
                   <Text fontWeight="semibold">Activities & Requirements</Text>
                 </HStack>
                 <AccordionIcon />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/add/deal/activities/select/${dealId}?type=${dealType}`);
+                  }}
+                  leftIcon={<Icon as={Edit} />}
+                  ml={2}
+                >
+                  Edit
+                </Button>
               </AccordionButton>
               <AccordionPanel pb={4}>
                 {currentDeal.activities && currentDeal.activities.length > 0 ? (
@@ -408,6 +443,18 @@ const ClearinghouseWizard = () => {
                   <Text fontWeight="semibold">Compliance Factors</Text>
                 </HStack>
                 <AccordionIcon />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/add/deal/compliance/${dealId}?type=${dealType}`);
+                  }}
+                  leftIcon={<Icon as={Edit} />}
+                  ml={2}
+                >
+                  Edit
+                </Button>
               </AccordionButton>
               <AccordionPanel pb={4}>
                 <List spacing={3}>
@@ -457,13 +504,13 @@ const ClearinghouseWizard = () => {
               h={12}
               fontSize="base"
               fontWeight="medium"
-              onClick={() => navigate(`/add/deal/compensation/${dealId}?type=${dealType}`)}
+              onClick={() => navigate(`/add/deal/deal-type/${dealId}?type=${dealType}`)}
               _hover={{
                 bg: "brand.backgroundLight",
                 color: "brand.textPrimary",
               }}
             >
-              Back to Wizard
+              Back to Deal Type
             </Button>
 
             <Flex gap={4}>

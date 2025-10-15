@@ -153,9 +153,17 @@ const Step7_DealType = () => {
         submissionType: submissionType
       });
 
-      // Navigate to review step
       const typeParam = dealType !== 'standard' ? `?type=${dealType}` : '';
-      navigate(`/add/deal/review/${dealId}${typeParam}`);
+      
+      // Navigate directly to specialized wizards for clearinghouse/valuation
+      if (dealType === 'clearinghouse') {
+        navigate(`/clearinghouse-wizard/${dealId}${typeParam}`);
+      } else if (dealType === 'valuation') {
+        navigate(`/valuation-wizard/${dealId}${typeParam}`);
+      } else {
+        // For simple deals, go to generic review
+        navigate(`/add/deal/review/${dealId}${typeParam}`);
+      }
     } catch (error) {
       logger.error('Failed to navigate to next step', {
         error: error.message,
