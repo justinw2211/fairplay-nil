@@ -43,7 +43,7 @@ const Universities = () => {
     },
     {
       icon: FiBarChart,
-      title: "Analytics Dashboard",
+      title: "Athlete & Analytics Dashboard",
       description: "Program-level KPIs and trends to inform NIL strategy and oversight.",
     },
     {
@@ -90,7 +90,14 @@ const Universities = () => {
               Manage NIL disclosures, track deal workflows, and access program-wide insights — all in one comprehensive platform designed for athletic departments.
             </Text>
             <HStack spacing={4} pt={2}>
-              <Button size="lg" px={8} onClick={handleCtaClick}>
+              <Button 
+                size="lg" 
+                px={8} 
+                bg="brand.accentPrimary" 
+                color="white"
+                _hover={{ bg: "#c9b2a9" }}
+                onClick={handleCtaClick}
+              >
                 Schedule a Demo
               </Button>
             </HStack>
@@ -187,7 +194,14 @@ const Universities = () => {
                 <Text color="brand.textSecondary">
                   See how FairPlay NIL can streamline compliance, deal workflows, and reporting.
                 </Text>
-                <Button size="md" onClick={handleCtaClick} alignSelf="stretch">
+                <Button 
+                  size="md" 
+                  bg="brand.accentPrimary" 
+                  color="white"
+                  _hover={{ bg: "#c9b2a9" }}
+                  onClick={handleCtaClick} 
+                  alignSelf="stretch"
+                >
                   Schedule a Demo
                 </Button>
                 <Text fontSize="sm" color="brand.textSecondary">30-minute personalized walkthrough</Text>
