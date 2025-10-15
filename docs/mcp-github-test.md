@@ -1,0 +1,1 @@
+MCP GitHub connectivity test. Safe to delete.
