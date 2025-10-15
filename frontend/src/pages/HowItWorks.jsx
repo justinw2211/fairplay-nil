@@ -81,7 +81,7 @@ const HowItWorks = () => {
               bg="brand.accentPrimary"
               color="white"
               px={8}
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/signup')}
               _hover={{ opacity: 0.9 }}
             >
               Try the Deal Wizard
@@ -448,7 +448,7 @@ const HowItWorks = () => {
               fontSize="lg"
               fontWeight="semibold"
               _hover={{ bg: 'gray.100' }}
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/signup')}
             >
               Try the Deal Wizard
             </Button>
