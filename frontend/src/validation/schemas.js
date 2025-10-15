@@ -274,7 +274,7 @@ export const socialMediaProfileSchema = yup.object().shape({
         handle: yup
           .string()
           .required('Handle is required')
-          .matches(/^@[a-zA-Z0-9_]+$/, 'Handle must start with @ and contain only letters, numbers, and underscores'),
+          .matches(/^@[a-zA-Z0-9_.]+$/, 'Handle must start with @ and contain only letters, numbers, underscores, and periods'),
         followers: yup
           .number()
           .required('Follower count is required')
@@ -296,7 +296,7 @@ export const socialMediaPlatformSchema = yup.object().shape({
   handle: yup
     .string()
     .required('Handle is required')
-    .matches(/^@[a-zA-Z0-9_]+$/, 'Handle must start with @ and contain only letters, numbers, and underscores'),
+    .matches(/^@[a-zA-Z0-9_.]+$/, 'Handle must start with @ and contain only letters, numbers, underscores, and periods'),
   followers: yup
     .number()
     .required('Follower count is required')

@@ -32,6 +32,12 @@ VALID_SOCIAL_MEDIA_DATA = {
             "handle": "@testuser_tw",
             "followers": 500,
             "verified": True
+        },
+        {
+            "platform": "tiktok",
+            "handle": "@john.doe",
+            "followers": 2500,
+            "verified": False
         }
     ]
 }
@@ -52,7 +58,7 @@ def test_social_media_validation():
     import re
     
     def validate_social_handle(handle):
-        return bool(re.match(r'^@[a-zA-Z0-9_]+$', handle))
+        return bool(re.match(r'^@[a-zA-Z0-9_.]+$', handle))
     
     def validate_followers(count):
         return isinstance(count, int) and count > 0
@@ -61,12 +67,21 @@ def test_social_media_validation():
     valid_handle = "@testuser123"
     assert validate_social_handle(valid_handle) == True
     
+    valid_handle_with_period = "@john.doe"
+    assert validate_social_handle(valid_handle_with_period) == True
+    
+    valid_handle_complex = "@test.user_123"
+    assert validate_social_handle(valid_handle_complex) == True
+    
     # Test invalid handles
     invalid_handle = "testuser"  # missing @
     assert validate_social_handle(invalid_handle) == False
     
     invalid_handle2 = "@test user"  # space not allowed
     assert validate_social_handle(invalid_handle2) == False
+    
+    invalid_handle3 = "@test-user"  # hyphen not allowed
+    assert validate_social_handle(invalid_handle3) == False
     
     # Test follower validation
     assert validate_followers(1000) == True

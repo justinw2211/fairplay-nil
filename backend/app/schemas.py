@@ -26,7 +26,7 @@ class ProfileUpdate(BaseModel):
 # --- Schemas for Social Media Functionality ---
 class SocialMediaPlatform(BaseModel):
     platform: str = Field(..., pattern=r'^(instagram|twitter|tiktok|youtube|facebook)$')
-    handle: str = Field(..., pattern=r'^@[a-zA-Z0-9_]+$')
+    handle: str = Field(..., pattern=r'^@[a-zA-Z0-9_.]+$')
     followers: int = Field(..., ge=0)
     verified: bool = False
     
@@ -34,8 +34,8 @@ class SocialMediaPlatform(BaseModel):
     def validate_handle_format(cls, v):
         if not v.startswith('@'):
             raise ValueError('Handle must start with @')
-        if not re.match(r'^@[a-zA-Z0-9_]+$', v):
-            raise ValueError('Handle contains invalid characters')
+        if not re.match(r'^@[a-zA-Z0-9_.]+$', v):
+            raise ValueError('Handle contains invalid characters (only letters, numbers, underscores, and periods allowed)')
         return v
     
     @validator('platform')

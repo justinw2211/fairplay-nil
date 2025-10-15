@@ -183,8 +183,8 @@ const useSocialMedia = () => {
         errors.push(`Platform ${index + 1}: Handle is required`);
       } else if (!platform.handle.startsWith('@')) {
         errors.push(`Platform ${index + 1}: Handle must start with @`);
-      } else if (!/^@[a-zA-Z0-9_]+$/.test(platform.handle)) {
-        errors.push(`Platform ${index + 1}: Handle contains invalid characters`);
+      } else if (!/^@[a-zA-Z0-9_.]+$/.test(platform.handle)) {
+        errors.push(`Platform ${index + 1}: Handle contains invalid characters (only letters, numbers, underscores, and periods allowed)`);
       }
 
       if (typeof platform.followers !== 'number' || platform.followers < 0) {

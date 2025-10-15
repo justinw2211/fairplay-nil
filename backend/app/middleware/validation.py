@@ -286,8 +286,8 @@ class InputValidator:
                         errors.append(f"Platform {i+1}: Handle is required")
                     elif not platform['handle'].startswith('@'):
                         errors.append(f"Platform {i+1}: Handle must start with @")
-                    elif not re.match(r'^@[a-zA-Z0-9_]+$', platform['handle']):
-                        errors.append(f"Platform {i+1}: Handle contains invalid characters")
+                    elif not re.match(r'^@[a-zA-Z0-9_.]+$', platform['handle']):
+                        errors.append(f"Platform {i+1}: Handle contains invalid characters (only letters, numbers, underscores, and periods allowed)")
                     
                     # Validate followers
                     if 'followers' not in platform or not self.validate_numeric(platform['followers'], 0, 1000000000):
