@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Container,
@@ -37,6 +38,8 @@ const FeatureCard = ({ icon: IconComponent, title, description }) => {
 };
 
 export default function Athletes() {
+  const navigate = useNavigate();
+  
   const features = [
     {
       icon: Calculator,
@@ -86,6 +89,7 @@ export default function Athletes() {
             color="white"
             _hover={{ bg: "#c9b2a9" }}
             mt={4}
+            onClick={() => navigate('/login')}
           >
             Calculate Your Value
           </Button>
