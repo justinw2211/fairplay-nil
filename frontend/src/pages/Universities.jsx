@@ -28,7 +28,6 @@ import {
   FiMonitor,
 } from "react-icons/fi";
 import { Twitter, Instagram, Linkedin } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
 import Footer from "../components/Footer";
 
 const Universities = () => {
@@ -76,7 +75,6 @@ const Universities = () => {
     pageLogger.info("demo_submit", { page: "Universities", payload: { ...payload, message: '[REDACTED]' } });
   };
 
-  const { user } = useAuth();
 
   return (
     <Box bg="brand.backgroundLight" minH="100vh">
@@ -234,7 +232,7 @@ const Universities = () => {
         </Container>
       </Box>
 
-      {!user && <Footer />}
+      <Footer />
       <UniversitiesDemoModal isOpen={isOpen} onClose={onClose} onSubmit={handleSubmitModal} />
     </Box>
   );

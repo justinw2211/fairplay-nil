@@ -18,7 +18,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { CheckCircleIcon, InfoIcon } from '@chakra-ui/icons';
 import { TrendingUp, Twitter, Instagram, Linkedin } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 import Footer from '../components/Footer';
 
 const Feature = ({ icon, title, text }) => {
@@ -48,7 +47,6 @@ const Feature = ({ icon, title, text }) => {
 
 const Home = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   return (
     <Box bg="white">
@@ -171,7 +169,7 @@ const Home = () => {
         </Container>
       </Box>
 
-      {!user && <Footer />}
+      <Footer />
     </Box>
   );
 };

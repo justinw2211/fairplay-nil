@@ -19,7 +19,6 @@ import {
   ListIcon,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import Footer from '../components/Footer';
 import {
   FileText,
@@ -65,7 +64,6 @@ const FeatureCard = ({ icon, title, description, color = 'brand.accentPrimary' }
 
 const HowItWorks = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   return (
     <Box bg="white">
@@ -458,7 +456,7 @@ const HowItWorks = () => {
           </VStack>
         </Container>
       </Box>
-      {!user && <Footer />}
+      <Footer />
     </Box>
   );
 };

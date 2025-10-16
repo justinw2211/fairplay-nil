@@ -1,6 +1,5 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import Footer from "../components/Footer";
 import {
   Box,
@@ -41,7 +40,6 @@ const FeatureCard = ({ icon: IconComponent, title, description }) => {
 
 export default function Athletes() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   
   const features = [
     {
@@ -138,7 +136,7 @@ export default function Athletes() {
           </SimpleGrid>
         </VStack>
       </Container>
-      {!user && <Footer />}
+      <Footer />
     </Box>
   );
 }

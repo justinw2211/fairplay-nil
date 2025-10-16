@@ -3,7 +3,6 @@ import { Box, Container, VStack, Heading, Text, Button, Icon, Stack, Badge, useD
 import { FiTrendingUp } from "react-icons/fi";
 import { Link as RouterLink } from "react-router-dom";
 import ContactUsModal from "../components/ContactUsModal";
-import { useAuth } from "../context/AuthContext";
 import Footer from "../components/Footer";
 
 const Brands = () => {
@@ -14,7 +13,6 @@ const Brands = () => {
     return Promise.resolve();
   };
 
-  const { user } = useAuth();
 
   return (
     <Box bgGradient="linear(to-b, gray.50, white)" minH="100vh" py={{ base: 16, md: 24 }}>
@@ -42,7 +40,7 @@ const Brands = () => {
           </Stack>
         </VStack>
       </Container>
-      {!user && <Footer />}
+      <Footer />
       <ContactUsModal isOpen={isOpen} onClose={onClose} onSubmit={handleSubmit} />
     </Box>
   );
