@@ -2,11 +2,14 @@ import React from 'react';
 import { useParams, Link as RouterLink } from 'react-router-dom';
 import { Container, VStack, Heading, Text, HStack, Button, Box } from '@chakra-ui/react';
 import { getPostBySlug } from '../../data/blogPosts';
+import { useAuth } from '../../context/AuthContext';
+import Footer from '../../components/Footer';
 
 const formatDate = (iso) => new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
 
 const BlogArticle = () => {
   const { slug } = useParams();
+  const { user } = useAuth();
   const post = getPostBySlug(slug);
 
   if (!post) {
@@ -38,6 +41,7 @@ const BlogArticle = () => {
         <Button as={RouterLink} to="/blog" variant="outline" borderColor="brand.accentSecondary" color="brand.textSecondary" _hover={{ bg: 'brand.backgroundLight', borderColor: 'brand.accentPrimary', color: 'brand.textPrimary' }}>Back to Blog</Button>
       </VStack>
     </Container>
+    {!user && <Footer />}
   );
 };
 

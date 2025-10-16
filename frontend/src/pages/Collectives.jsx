@@ -3,6 +3,8 @@ import { Box, Container, VStack, Heading, Text, Button, Icon, Stack, Badge, useD
 import { FiClock } from "react-icons/fi";
 import { Link as RouterLink } from "react-router-dom";
 import ContactUsModal from "../components/ContactUsModal";
+import { useAuth } from "../context/AuthContext";
+import Footer from "../components/Footer";
 
 const Collectives = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -11,6 +13,8 @@ const Collectives = () => {
     // TODO: wire to backend/email; for now noop
     return Promise.resolve();
   };
+
+  const { user } = useAuth();
 
   return (
     <Box bgGradient="linear(to-b, gray.50, white)" minH="100vh" py={{ base: 16, md: 24 }}>
@@ -39,6 +43,7 @@ const Collectives = () => {
           </Stack>
         </VStack>
       </Container>
+      {!user && <Footer />}
       <ContactUsModal isOpen={isOpen} onClose={onClose} onSubmit={handleSubmit} />
     </Box>
   );

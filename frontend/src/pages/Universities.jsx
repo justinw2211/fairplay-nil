@@ -28,6 +28,8 @@ import {
   FiMonitor,
 } from "react-icons/fi";
 import { Twitter, Instagram, Linkedin } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import Footer from "../components/Footer";
 
 const Universities = () => {
   const tools = [
@@ -73,6 +75,8 @@ const Universities = () => {
   const handleSubmitModal = async (payload) => {
     pageLogger.info("demo_submit", { page: "Universities", payload: { ...payload, message: '[REDACTED]' } });
   };
+
+  const { user } = useAuth();
 
   return (
     <Box bg="brand.backgroundLight" minH="100vh">
@@ -230,80 +234,7 @@ const Universities = () => {
         </Container>
       </Box>
 
-      {/* Footer (from Home page) */}
-      <Box bg="brand.background" py={12}>
-        <Container maxW="7xl">
-          <Grid templateColumns={{ base: "1fr", md: "repeat(4, 1fr)" }} gap={8}>
-            {/* Logo */}
-            <VStack align="start">
-              <Link href="/" fontSize="2xl" fontWeight="bold" color="brand.textPrimary">
-                FairPlay NIL
-              </Link>
-            </VStack>
-
-            {/* Product */}
-            <VStack align="start">
-              <Heading size="sm" color="brand.textPrimary" mb={4}>
-                Product
-              </Heading>
-              <VStack align="start" spacing={2}>
-                <Link href="/athletes" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
-                  Athletes
-                </Link>
-                <Link href="/brands" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
-                  Brands
-                </Link>
-              </VStack>
-            </VStack>
-
-            {/* Company */}
-            <VStack align="start">
-              <Heading size="sm" color="brand.textPrimary" mb={4}>
-                Company
-              </Heading>
-              <VStack align="start" spacing={2}>
-                <Link href="/about" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
-                  About Us
-                </Link>
-                <Link href="/careers" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
-                  Careers
-                </Link>
-                <Link href="/blog" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
-                  Blogs
-                </Link>
-              </VStack>
-            </VStack>
-
-            {/* Legal */}
-            <VStack align="start">
-              <Heading size="sm" color="brand.textPrimary" mb={4}>
-                Legal
-              </Heading>
-              <VStack align="start" spacing={2}>
-                <Link href="/privacy" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
-                  Privacy Policy
-                </Link>
-                <Link href="/terms" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
-                  Terms of Service
-                </Link>
-              </VStack>
-            </VStack>
-          </Grid>
-
-          {/* Social Media Icons */}
-          <HStack justify="center" spacing={6} mt={8} pt={8} borderTop="1px" borderColor="gray.300">
-            <Link href="#" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
-              <Icon as={Twitter} boxSize={6} />
-            </Link>
-            <Link href="#" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
-              <Icon as={Instagram} boxSize={6} />
-            </Link>
-            <Link href="#" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
-              <Icon as={Linkedin} boxSize={6} />
-            </Link>
-          </HStack>
-        </Container>
-      </Box>
+      {!user && <Footer />}
       <UniversitiesDemoModal isOpen={isOpen} onClose={onClose} onSubmit={handleSubmitModal} />
     </Box>
   );
