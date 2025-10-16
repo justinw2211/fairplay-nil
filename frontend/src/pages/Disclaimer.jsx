@@ -1,9 +1,11 @@
 import React from 'react';
 import LegalPageLayout from '../components/LegalPageLayout';
+import Footer from '../components/Footer';
 
 export default function Disclaimer() {
   return (
-    <LegalPageLayout title="FairPlay NIL LLC – Disclaimer">
+    <>
+      <LegalPageLayout title="FairPlay NIL LLC – Disclaimer">
       <h2>1. Informational and Educational Use Only</h2>
       <p>
         The information, tools, and results provided by <strong>FairPlay NIL LLC</strong> ("<strong>FairPlay NIL</strong>," "<strong>we</strong>," "<strong>us</strong>," or "<strong>our</strong>") — including outputs from the <strong>Fair Market Value (FMV) Calculator</strong>, <strong>Deal Builder</strong>, <strong>Pre-Clearance Check</strong>, and any dashboards, analytics, or APIs (collectively, the "<strong>Service</strong>") — are provided <strong>for informational and educational purposes only</strong>.
@@ -58,6 +60,8 @@ export default function Disclaimer() {
 
       <hr/>
       <p><strong>© 2025 FairPlay NIL LLC. All rights reserved.</strong></p>
-    </LegalPageLayout>
+      </LegalPageLayout>
+      <Footer />
+    </>
   );
 }

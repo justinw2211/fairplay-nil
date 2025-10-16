@@ -1,9 +1,11 @@
 import React from 'react';
 import LegalPageLayout from '../components/LegalPageLayout';
+import Footer from '../components/Footer';
 
 export default function TermsOfService() {
   return (
-    <LegalPageLayout title="FairPlay NIL LLC – Terms of Service">
+    <>
+      <LegalPageLayout title="FairPlay NIL LLC – Terms of Service">
       <h2>1. Agreement to Terms</h2>
       <p>
         These Terms of Service ("<strong>Terms</strong>") constitute a legally binding agreement between you ("<strong>you</strong>" or "<strong>user</strong>") and <strong>FairPlay NIL LLC</strong> ("<strong>FairPlay NIL</strong>," "<strong>we</strong>," "<strong>us</strong>," or "<strong>our</strong>") governing your access to and use of the FairPlay NIL website, applications, APIs, and related services (collectively, the "<strong>Service</strong>").  
@@ -175,6 +177,8 @@ export default function TermsOfService() {
       <hr/>
       <p><strong>Last Updated:</strong> October 1, 2025</p>
       <p><strong>© 2025 FairPlay NIL LLC. All rights reserved.</strong></p>
-    </LegalPageLayout>
+      </LegalPageLayout>
+      <Footer />
+    </>
   );
 }

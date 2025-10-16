@@ -1,9 +1,11 @@
 import React from 'react';
 import LegalPageLayout from '../components/LegalPageLayout';
+import Footer from '../components/Footer';
 
 export default function PrivacyPolicy() {
   return (
-    <LegalPageLayout title="FairPlay NIL LLC – Privacy Policy">
+    <>
+      <LegalPageLayout title="FairPlay NIL LLC – Privacy Policy">
       <h2>1. Overview</h2>
       <p>
         FairPlay NIL LLC ("<strong>FairPlay NIL</strong>," "<strong>we</strong>," "<strong>us</strong>," or "<strong>our</strong>") values your privacy.  
@@ -153,6 +155,8 @@ export default function PrivacyPolicy() {
 
       <hr/>
       <p><strong>© 2025 FairPlay NIL LLC. All rights reserved.</strong></p>
-    </LegalPageLayout>
+      </LegalPageLayout>
+      <Footer />
+    </>
   );
 }
