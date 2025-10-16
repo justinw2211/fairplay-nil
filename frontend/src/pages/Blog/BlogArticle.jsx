@@ -27,21 +27,23 @@ const BlogArticle = () => {
   const paragraphs = String(post.content || '').split(/\n\n+/);
 
   return (
-    <Container maxW="3xl" py={12}>
-      <VStack align="start" spacing={4}>
-        <Heading size="xl" color="brand.textPrimary">{post.title}</Heading>
-        <HStack color="brand.textSecondary" fontSize="sm">
-          <Text>{formatDate(post.date)}</Text>
-          <Box as="span">•</Box>
-          <Text>{post.author}</Text>
-        </HStack>
-        {paragraphs.map((para, idx) => (
-          <Text key={idx} color="brand.textPrimary">{para}</Text>
-        ))}
-        <Button as={RouterLink} to="/blog" variant="outline" borderColor="brand.accentSecondary" color="brand.textSecondary" _hover={{ bg: 'brand.backgroundLight', borderColor: 'brand.accentPrimary', color: 'brand.textPrimary' }}>Back to Blog</Button>
-      </VStack>
-    </Container>
-    {!user && <Footer />}
+    <Box>
+      <Container maxW="3xl" py={12}>
+        <VStack align="start" spacing={4}>
+          <Heading size="xl" color="brand.textPrimary">{post.title}</Heading>
+          <HStack color="brand.textSecondary" fontSize="sm">
+            <Text>{formatDate(post.date)}</Text>
+            <Box as="span">•</Box>
+            <Text>{post.author}</Text>
+          </HStack>
+          {paragraphs.map((para, idx) => (
+            <Text key={idx} color="brand.textPrimary">{para}</Text>
+          ))}
+          <Button as={RouterLink} to="/blog" variant="outline" borderColor="brand.accentSecondary" color="brand.textSecondary" _hover={{ bg: 'brand.backgroundLight', borderColor: 'brand.accentPrimary', color: 'brand.textPrimary' }}>Back to Blog</Button>
+        </VStack>
+      </Container>
+      {!user && <Footer />}
+    </Box>
   );
 };
 
