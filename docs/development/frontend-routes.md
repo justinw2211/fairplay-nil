@@ -16,6 +16,10 @@ This document lists all user-facing frontend routes, organized for clarity. Dyna
 - `/universities` — Universities listing/info
 - `/collectives` — Collectives listing/info
 - `/brands` — Brands listing/info
+- `/privacy` — Privacy Policy
+- `/terms-of-use` — Terms of Use
+- `/terms` — Terms of Service
+- `/disclaimer` — Disclaimer
 
 ## Protected Routes (Require Login)
 

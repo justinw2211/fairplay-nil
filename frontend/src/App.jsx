@@ -39,6 +39,10 @@ import NotFound from './pages/NotFound';
 import BlogList from './pages/Blog/BlogList';
 import BlogArticle from './pages/Blog/BlogArticle';
 import HowItWorks from './pages/HowItWorks';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfUse from './pages/TermsOfUse';
+import TermsOfService from './pages/TermsOfService';
+import Disclaimer from './pages/Disclaimer';
 
 // Import ONLY the new DealWizard components
 import Step0_SocialMedia from './pages/DealWizard/Step0_SocialMedia';
@@ -250,6 +254,10 @@ function AppContent() {
         <Route path="/brands" element={<Brands />} />
         <Route path="/blog" element={<BlogList />} />
         <Route path="/blog/:slug" element={<BlogArticle />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms-of-use" element={<TermsOfUse />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/disclaimer" element={<Disclaimer />} />
 
         {/* Protected Routes */}
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

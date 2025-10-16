@@ -69,6 +69,9 @@ export default function Footer() {
               <Link href="/terms" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
                 Terms of Service
               </Link>
+              <Link href="/disclaimer" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+                Disclaimer
+              </Link>
             </VStack>
           </VStack>
         </Grid>
