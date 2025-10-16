@@ -15,8 +15,9 @@ const Collectives = () => {
 
 
   return (
-    <Box bgGradient="linear(to-b, gray.50, white)" minH="100vh" pt={{ base: 16, md: 24 }}>
-      <Container maxW="6xl">
+    <Box bgGradient="linear(to-b, gray.50, white)" minH="100vh" display="flex" flexDirection="column">
+      <Box as="main" flex="1" pt={{ base: 16, md: 24 }}>
+        <Container maxW="6xl">
         <VStack spacing={8} align="center" textAlign="center">
           <Badge colorScheme="blue" px={3} py={1} borderRadius="md">Coming Soon</Badge>
           <Icon as={FiClock} boxSize={12} color="brand.accentPrimary" />
@@ -40,8 +41,8 @@ const Collectives = () => {
             </Button>
           </Stack>
         </VStack>
-      </Container>
-      <Box mt={{ base: 10, md: 16 }} />
+        </Container>
+      </Box>
       <Footer />
       <ContactUsModal isOpen={isOpen} onClose={onClose} onSubmit={handleSubmit} />
     </Box>
