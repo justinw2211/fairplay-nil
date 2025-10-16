@@ -182,17 +182,23 @@ const Home = () => {
               </Link>
             </VStack>
 
-            {/* Product */}
+            {/* Products */}
             <VStack align="start">
               <Heading size="sm" color="brand.textPrimary" mb={4}>
-                Product
+                Products
               </Heading>
               <VStack align="start" spacing={2}>
                 <Link href="/athletes" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
                   Athletes
                 </Link>
+                <Link href="/universities" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+                  Universities
+                </Link>
                 <Link href="/brands" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
                   Brands
+                </Link>
+                <Link href="/collectives" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+                  Collectives
                 </Link>
               </VStack>
             </VStack>
@@ -206,11 +212,11 @@ const Home = () => {
                 <Link href="/about" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
                   About Us
                 </Link>
-                <Link href="/careers" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
-                  Careers
-                </Link>
                 <Link href="/blog" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
                   Blogs
+                </Link>
+                <Link href="/contact" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+                  Contact
                 </Link>
               </VStack>
             </VStack>
@@ -223,6 +229,9 @@ const Home = () => {
               <VStack align="start" spacing={2}>
                 <Link href="/privacy" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
                   Privacy Policy
+                </Link>
+                <Link href="/terms-of-use" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
+                  Terms of Use
                 </Link>
                 <Link href="/terms" color="brand.textSecondary" _hover={{ opacity: 0.8 }}>
                   Terms of Service
