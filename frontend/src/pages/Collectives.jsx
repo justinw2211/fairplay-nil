@@ -41,6 +41,7 @@ const Collectives = () => {
           </Stack>
         </VStack>
       </Container>
+      <Box mt={{ base: 10, md: 16 }} />
       <Footer />
       <ContactUsModal isOpen={isOpen} onClose={onClose} onSubmit={handleSubmit} />
     </Box>
