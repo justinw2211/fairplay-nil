@@ -43,6 +43,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfUse from './pages/TermsOfUse';
 import TermsOfService from './pages/TermsOfService';
 import Disclaimer from './pages/Disclaimer';
+import Contact from './pages/Contact';
 
 // Import ONLY the new DealWizard components
 import Step0_SocialMedia from './pages/DealWizard/Step0_SocialMedia';
@@ -258,6 +259,7 @@ function AppContent() {
         <Route path="/terms-of-use" element={<TermsOfUse />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/disclaimer" element={<Disclaimer />} />
+        <Route path="/contact" element={<Contact />} />
 
         {/* Protected Routes */}
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
