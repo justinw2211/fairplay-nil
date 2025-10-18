@@ -22,7 +22,6 @@ import ProfileBanner from '../components/ProfileBanner';
 import useProfile from '../hooks/useProfile';
 import ErrorBoundary from '../components/ErrorBoundary';
 import * as Sentry from '@sentry/react';
-import useDeploymentFeedback from '../hooks/useDeploymentFeedback';
 
 // ProfileCard component removed - replaced with enhanced ProfileBanner
 
@@ -141,7 +140,6 @@ const Dashboard = () => {
   const { createDraftDeal, loading: isCreatingDeal } = useDeal();
   const { profile, loading: profileLoading, error: profileError, fetchProfile } = useProfile();
   const { fetchSocialMedia: loadSocialMediaData } = useSocialMedia();
-  const { deploymentStatus, errors: deploymentErrors } = useDeploymentFeedback();
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
