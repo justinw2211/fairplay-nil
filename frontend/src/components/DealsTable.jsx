@@ -47,6 +47,7 @@ import {
 import StatusMenu from './StatusMenu';
 import { ResultBadges } from './ResultBadge';
 import { supabase } from '../supabaseClient';
+import DealViewModal from './DealViewModal';
 
 const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'descending' });
@@ -57,9 +58,11 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
   const [editValues, setEditValues] = useState({});
   const [dealToDelete, setDealToDelete] = useState(null);
   const [labelFilter, setLabelFilter] = useState('');
+  const [selectedDealForView, setSelectedDealForView] = useState(null);
 
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const { isOpen: isBulkDeleteOpen, onOpen: onBulkDeleteOpen, onClose: onBulkDeleteClose } = useDisclosure();
+  const { isOpen: isViewModalOpen, onOpen: onViewModalOpen, onClose: onViewModalClose } = useDisclosure();
 
   const cancelRef = React.useRef();
   const toast = useToast();
@@ -282,6 +285,17 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
         isClosable: true,
       });
     }
+  };
+
+  // View modal handlers
+  const openViewModal = (deal) => {
+    setSelectedDealForView(deal);
+    onViewModalOpen();
+  };
+
+  const closeViewModal = () => {
+    setSelectedDealForView(null);
+    onViewModalClose();
   };
 
   // Delete handlers
@@ -726,7 +740,7 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
                           </MenuItem>
                           <MenuItem
                             icon={<ViewIcon />}
-                            onClick={() => {/* TODO: Implement view modal */}}
+                            onClick={() => openViewModal(deal)}
                           >
                             View Details
                           </MenuItem>
@@ -826,6 +840,13 @@ const DealsTable = ({ deals, setDeals, onDealDeleted, onDealUpdated }) => {
           </AlertDialogContent>
         </AlertDialogOverlay>
       </AlertDialog>
+
+      {/* Deal View Modal */}
+      <DealViewModal
+        isOpen={isViewModalOpen}
+        onClose={closeViewModal}
+        deal={selectedDealForView}
+      />
     </VStack>
   );
 };
