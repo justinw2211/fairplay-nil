@@ -1,6 +1,6 @@
 // frontend/src/components/Footer.jsx
 import React from 'react';
-import { Box, Container, Grid, Heading, HStack, Icon, Link, VStack } from '@chakra-ui/react';
+import { Box, Container, Grid, Heading, HStack, Icon, Link, Text, VStack } from '@chakra-ui/react';
 import { Twitter, Instagram, Linkedin } from 'lucide-react';
 
 export default function Footer() {
@@ -12,6 +12,9 @@ export default function Footer() {
           <VStack align="start">
             <Link href="/" _hover={{ opacity: 0.9 }}>
               <Box as="img" src="/logo-full.svg" alt="FairPlay NIL" height="32px" />
+            </Link>
+            <Link href="mailto:contact@fairplaynil.com" color="brand.textSecondary" fontSize="sm" _hover={{ opacity: 0.8 }}>
+              contact@fairplaynil.com
             </Link>
           </VStack>
 
