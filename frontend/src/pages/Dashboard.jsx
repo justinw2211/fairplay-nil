@@ -151,16 +151,6 @@ const Dashboard = () => {
   console.log('[Dashboard] createDraftDeal function:', typeof createDraftDeal);
   console.log('[Dashboard] createDraftDeal is function:', typeof createDraftDeal === 'function');
 
-  // Log deployment feedback status for monitoring
-  useEffect(() => {
-    if (deploymentStatus) {
-      console.log('[Dashboard] Deployment status:', deploymentStatus);
-    }
-    if (deploymentErrors && deploymentErrors.length > 0) {
-      console.log('[Dashboard] Deployment errors detected:', deploymentErrors.length);
-    }
-  }, [deploymentStatus, deploymentErrors]);
-
   // Sentry temporarily disabled to fix blank website issue
   // console.log('[Dashboard] Testing Sentry integration...');
   // try {
