@@ -48,8 +48,6 @@ import {
   DollarSign,
   Users,
   ChevronRight,
-  ChevronLeft,
-  Home,
   RotateCcw,
   AlertCircle,
   Download,
@@ -157,7 +155,7 @@ const ClearinghouseResult = () => {
       duration: 3000,
       isClosable: true,
     });
-    navigate(`/add/deal/terms/${dealId}?type=${dealType}`);
+    navigate(`/clearinghouse-wizard/${dealId}?type=${dealType}`);
   };
 
   const handleProceedAtRisk = () => {
@@ -454,45 +452,6 @@ const ClearinghouseResult = () => {
             </VStack>
           </CardBody>
         </Card>
-
-        {/* Navigation Buttons */}
-        <Flex justify="space-between" pt={8} w="full">
-          <Button
-            leftIcon={<Icon as={ChevronLeft} />}
-            variant="ghost"
-            color="brand.textSecondary"
-            px={8}
-            py={3}
-            h={12}
-            fontSize="base"
-            fontWeight="medium"
-            onClick={() => navigate(`/clearinghouse-wizard/${dealId}?type=${dealType}`)}
-            _hover={{
-              bg: "brand.backgroundLight",
-              color: "brand.textPrimary",
-            }}
-          >
-            Back to Analysis
-          </Button>
-
-          <Button
-            leftIcon={<Icon as={Home} />}
-            variant="ghost"
-            color="brand.textSecondary"
-            px={8}
-            py={3}
-            h={12}
-            fontSize="base"
-            fontWeight="medium"
-            onClick={() => navigate('/dashboard')}
-            _hover={{
-              bg: "brand.backgroundLight",
-              color: "brand.textPrimary",
-            }}
-          >
-            Return to Dashboard
-          </Button>
-        </Flex>
       </VStack>
     </Container>
   );
