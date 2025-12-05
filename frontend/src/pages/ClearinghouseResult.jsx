@@ -398,9 +398,8 @@ const ClearinghouseResult = () => {
                   w="full"
                   minH="160px"
                   _hover={{
-                    borderColor: "brand.accentPrimary",
-                    bg: "brand.accentPrimary",
-                    bgOpacity: 0.05
+                    borderColor: "blue.400",
+                    bg: "blue.50"
                   }}
                 >
                   <Box
