@@ -16,7 +16,6 @@ import {
   useToast,
   Badge,
   Card,
-  CardHeader,
   CardBody,
   Progress,
   Alert,
@@ -156,18 +155,6 @@ const ClearinghouseResult = () => {
       isClosable: true,
     });
     navigate(`/clearinghouse-wizard/${dealId}?type=${dealType}`);
-  };
-
-  const handleProceedAtRisk = () => {
-    toast({
-      title: 'Proceeding at Risk',
-      description: 'Your deal will be submitted despite potential compliance issues.',
-      status: 'warning',
-      duration: 5000,
-      isClosable: true,
-    });
-    // In real implementation, this would submit to the actual NIL Go system
-    navigate(`/deal-submission-success/${dealId}?type=${dealType}&risk=true`);
   };
 
   const handleCancelDeal = () => {
@@ -379,76 +366,148 @@ const ClearinghouseResult = () => {
         )}
 
         {/* Action Buttons */}
-        <Card variant="outline" borderColor="brand.accentSecondary">
-          <CardHeader>
-            <Heading size="md" color="brand.textPrimary" textAlign="center">Next Steps</Heading>
-          </CardHeader>
-          <CardBody>
-            <VStack align="center" spacing={6}>
-              <Text color="brand.textSecondary" textAlign="center">
+        <Card borderWidth="0" shadow="sm">
+          <CardBody pt={8}>
+            <VStack align="center" spacing={8}>
+              <Heading size="2xl" color="brand.textPrimary" textAlign="center" fontWeight="bold">
+                Next Steps
+              </Heading>
+              <Text fontSize="sm" color="brand.textSecondary" textAlign="center">
                 Based on your prediction results, choose how you'd like to proceed:
               </Text>
 
-              <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={4} justifyItems="center" w="full">
-              <Button
-                leftIcon={<Icon as={RotateCcw} />}
-                colorScheme="blue"
-                variant="outline"
-                onClick={handleRenegotiate}
-                h="auto"
-                py={4}
-                flexDirection="column"
-                textAlign="center"
-              >
-                <Text fontWeight="bold" mb={1}>Renegotiate</Text>
-                <Text fontSize="xs">Modify deal terms</Text>
-              </Button>
-
-              {prediction?.status !== 'cleared' && (
-                <Button
-                  leftIcon={<Icon as={AlertTriangle} />}
-                  colorScheme="orange"
-                  variant="outline"
-                  onClick={handleProceedAtRisk}
-                  h="auto"
-                  py={4}
+              <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4} w="full">
+                {/* Renegotiate Button */}
+                <Box
+                  as="button"
+                  role="group"
+                  onClick={handleRenegotiate}
+                  display="flex"
                   flexDirection="column"
+                  alignItems="center"
+                  gap={3}
+                  rounded="lg"
+                  borderWidth="1px"
+                  borderColor="brand.accentSecondary"
+                  px={6}
+                  py={8}
                   textAlign="center"
+                  transition="all 0.2s"
+                  bg="white"
+                  _hover={{
+                    borderColor: "brand.accentPrimary",
+                    bg: "brand.accentPrimary",
+                    bgOpacity: 0.05
+                  }}
                 >
-                  <Text fontWeight="bold" mb={1}>Proceed at Risk</Text>
-                  <Text fontSize="xs">Submit despite issues</Text>
-                </Button>
-              )}
+                  <Box
+                    rounded="full"
+                    bg="brand.backgroundLight"
+                    p={3}
+                    transition="colors 0.2s"
+                    _groupHover={{
+                      bg: "brand.accentPrimary",
+                      bgOpacity: 0.1
+                    }}
+                  >
+                    <Icon as={RotateCcw} boxSize={6} color="brand.accentPrimary" />
+                  </Box>
+                  <VStack spacing={1}>
+                    <Text fontWeight="semibold" color="brand.textPrimary">
+                      Renegotiate
+                    </Text>
+                    <Text fontSize="xs" color="brand.textSecondary">
+                      Modify deal terms
+                    </Text>
+                  </VStack>
+                </Box>
 
-              {prediction?.status === 'cleared' && (
-                <Button
-                  leftIcon={<Icon as={CheckCircle} />}
-                  colorScheme="green"
+                {/* Submit Deal Button */}
+                <Box
+                  as="button"
+                  role="group"
                   onClick={() => navigate('/dashboard')}
-                  h="auto"
-                  py={4}
+                  display="flex"
                   flexDirection="column"
+                  alignItems="center"
+                  gap={3}
+                  rounded="lg"
+                  borderWidth="1px"
+                  borderColor="brand.accentSecondary"
+                  px={6}
+                  py={8}
                   textAlign="center"
+                  transition="all 0.2s"
+                  bg="white"
+                  _hover={{
+                    borderColor: "green.400",
+                    bg: "green.50"
+                  }}
                 >
-                  <Text fontWeight="bold" mb={1}>Submit Deal</Text>
-                  <Text fontSize="xs">Proceed with submission</Text>
-                </Button>
-              )}
+                  <Box
+                    rounded="full"
+                    bg="brand.backgroundLight"
+                    p={3}
+                    transition="colors 0.2s"
+                    _groupHover={{
+                      bg: "green.100"
+                    }}
+                  >
+                    <Icon as={CheckCircle} boxSize={6} color="green.500" />
+                  </Box>
+                  <VStack spacing={1}>
+                    <Text fontWeight="semibold" color="brand.textPrimary">
+                      Submit Deal
+                    </Text>
+                    <Text fontSize="xs" color="brand.textSecondary">
+                      Proceed with submission
+                    </Text>
+                  </VStack>
+                </Box>
 
-              <Button
-                leftIcon={<Icon as={XCircle} />}
-                colorScheme="gray"
-                variant="outline"
-                onClick={handleCancelDeal}
-                h="auto"
-                py={4}
-                flexDirection="column"
-                textAlign="center"
-              >
-                <Text fontWeight="bold" mb={1}>Cancel Deal</Text>
-                <Text fontSize="xs">Return to drafts</Text>
-              </Button>
-            </SimpleGrid>
+                {/* Cancel Deal Button */}
+                <Box
+                  as="button"
+                  role="group"
+                  onClick={handleCancelDeal}
+                  display="flex"
+                  flexDirection="column"
+                  alignItems="center"
+                  gap={3}
+                  rounded="lg"
+                  borderWidth="1px"
+                  borderColor="brand.accentSecondary"
+                  px={6}
+                  py={8}
+                  textAlign="center"
+                  transition="all 0.2s"
+                  bg="white"
+                  _hover={{
+                    borderColor: "red.400",
+                    bg: "red.50"
+                  }}
+                >
+                  <Box
+                    rounded="full"
+                    bg="brand.backgroundLight"
+                    p={3}
+                    transition="colors 0.2s"
+                    _groupHover={{
+                      bg: "red.100"
+                    }}
+                  >
+                    <Icon as={XCircle} boxSize={6} color="red.500" />
+                  </Box>
+                  <VStack spacing={1}>
+                    <Text fontWeight="semibold" color="brand.textPrimary">
+                      Cancel Deal
+                    </Text>
+                    <Text fontSize="xs" color="brand.textSecondary">
+                      Return to drafts
+                    </Text>
+                  </VStack>
+                </Box>
+              </SimpleGrid>
             </VStack>
           </CardBody>
         </Card>
