@@ -407,13 +407,21 @@ const ClearinghouseResult = () => {
                     rounded="full"
                     bg="brand.backgroundLight"
                     p={3}
-                    transition="colors 0.2s"
+                    transition="all 0.2s"
                     _groupHover={{
-                      bg: "brand.accentPrimary",
-                      bgOpacity: 0.1
+                      bg: "blue.100"
                     }}
                   >
-                    <Icon as={RotateCcw} boxSize={6} color="brand.accentPrimary" />
+                    <Box
+                      display="inline-block"
+                      color="blue.500"
+                      transition="color 0.2s"
+                      _groupHover={{
+                        color: "blue.600"
+                      }}
+                    >
+                      <Icon as={RotateCcw} boxSize={6} color="currentColor" />
+                    </Box>
                   </Box>
                   <VStack spacing={1}>
                     <Text fontWeight="semibold" color="brand.textPrimary">
