@@ -383,14 +383,15 @@ const ClearinghouseResult = () => {
         {/* Action Buttons */}
         <Card variant="outline" borderColor="brand.accentSecondary">
           <CardHeader>
-            <Heading size="md" color="brand.textPrimary">Next Steps</Heading>
+            <Heading size="md" color="brand.textPrimary" textAlign="center">Next Steps</Heading>
           </CardHeader>
           <CardBody>
-            <Text color="brand.textSecondary" mb={6}>
-              Based on your prediction results, choose how you'd like to proceed:
-            </Text>
+            <VStack align="center" spacing={6}>
+              <Text color="brand.textSecondary" textAlign="center">
+                Based on your prediction results, choose how you'd like to proceed:
+              </Text>
 
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={4}>
+              <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={4} justifyItems="center" w="full">
               <Button
                 leftIcon={<Icon as={RotateCcw} />}
                 colorScheme="blue"
@@ -450,6 +451,7 @@ const ClearinghouseResult = () => {
                 <Text fontSize="xs">Return to drafts</Text>
               </Button>
             </SimpleGrid>
+            </VStack>
           </CardBody>
         </Card>
 
