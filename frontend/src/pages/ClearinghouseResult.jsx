@@ -376,7 +376,7 @@ const ClearinghouseResult = () => {
                 Based on your prediction results, choose how you'd like to proceed:
               </Text>
 
-              <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4} w="full">
+              <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4} w="full" justifyItems="stretch">
                 {/* Renegotiate Button */}
                 <Box
                   as="button"
@@ -385,6 +385,7 @@ const ClearinghouseResult = () => {
                   display="flex"
                   flexDirection="column"
                   alignItems="center"
+                  justifyContent="center"
                   gap={3}
                   rounded="lg"
                   borderWidth="1px"
@@ -394,6 +395,8 @@ const ClearinghouseResult = () => {
                   textAlign="center"
                   transition="all 0.2s"
                   bg="white"
+                  w="full"
+                  minH="160px"
                   _hover={{
                     borderColor: "brand.accentPrimary",
                     bg: "brand.accentPrimary",
@@ -430,6 +433,7 @@ const ClearinghouseResult = () => {
                   display="flex"
                   flexDirection="column"
                   alignItems="center"
+                  justifyContent="center"
                   gap={3}
                   rounded="lg"
                   borderWidth="1px"
@@ -439,6 +443,8 @@ const ClearinghouseResult = () => {
                   textAlign="center"
                   transition="all 0.2s"
                   bg="white"
+                  w="full"
+                  minH="160px"
                   _hover={{
                     borderColor: "green.400",
                     bg: "green.50"
@@ -473,6 +479,7 @@ const ClearinghouseResult = () => {
                   display="flex"
                   flexDirection="column"
                   alignItems="center"
+                  justifyContent="center"
                   gap={3}
                   rounded="lg"
                   borderWidth="1px"
@@ -482,6 +489,8 @@ const ClearinghouseResult = () => {
                   textAlign="center"
                   transition="all 0.2s"
                   bg="white"
+                  w="full"
+                  minH="160px"
                   _hover={{
                     borderColor: "red.400",
                     bg: "red.50"
